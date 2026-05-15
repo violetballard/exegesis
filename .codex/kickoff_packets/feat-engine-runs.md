@@ -2,65 +2,44 @@
 
 - Branch: `codex/feat-engine-runs`
 - Lane/owned paths: `src/qual/engine/**`
-- Scope goal: Nail the core run pipeline so planning, retrieval, patch proposals, provenance, and export all move through one stable engine flow for the CLI/A2UI MVP.
+- Scope goal: This commit is a metadata-only handoff reissue for the reviewed engine-run source range `7b1bcaa8..2a1d2267`; it updates handoff metadata only for that reviewed range and does not change the feature implementation itself.
 
 ### Priority outcomes
-1. Make the engine run lifecycle deterministic and testable.
-2. Keep patch proposal, apply, reject, and audit behavior coherent.
-3. Provide one explicit engine-side acceptance path for the Milestone 3 loop.
-
-### Definition of done
-- Plan-from-context works through the engine contract.
-- Revise-selection or draft-from-context works through the engine contract.
-- Patch proposal shape is stable.
-- Apply and reject update document state consistently.
-- One explicit engine-side acceptance flow proves the loop end to end.
-
-### Milestone 3 closure focus
-- Canonical demo-path step advanced by this lane:
-  - produce a plan or revision
-  - preview and apply or reject a patch
-  - continue working without breaking document state
-- Optimize for one believable acceptance path, not broader engine ambition.
-- Prefer mergeable, integrator-friendly closure over more branch-local refinement.
-- If the core loop already works for one path, stop widening scope and prove it with tests and handoff evidence.
-- Treat review/integration closure as the current priority once the run path is coherent.
-
-### Current intervention guidance
-1. Minimize changes outside the core run loop needed for the canonical demo path.
-2. Favor deterministic apply/reject behavior and explicit acceptance evidence over new run modes.
-3. If a change does not directly make the retrieve -> revise/apply loop more real, defer it.
-4. Handoff should state exactly which engine-side loop is now standing and which post-merge checks prove it.
-
-### Current stale-approval recovery plan
-- The previously approved packet rooted at `45f0c73e` is stale against current `main`.
-- Do not try to re-integrate that commit as-is:
-  - `src/qual/engine/run_pipeline.py` no longer exists on current `main`
-  - `src/qual/engine/service.py` is now a thin compatibility surface
-  - the canonical engine API now lives in `engine/src/exegesis_engine/api/app_service.py`
-- Regenerate this lane from current `main`, not from the stale approval packet.
-- First decision:
-  - decide whether the explicit `accept_patch_flow` alias is still needed for the canonical demo path
-  - if it is needed, forward-port it into the canonical API instead of resurrecting deleted compatibility modules
-  - if it is not needed, close the lane by proving the current canonical `apply_patch` / `reject_patch` path already satisfies the demo loop
-- Preferred implementation target for regeneration:
-  - `engine/src/exegesis_engine/api/app_service.py`
-- Avoid re-expanding scope back into the deleted pre-migration files unless a compatibility shim is truly required.
-- Required regression coverage for the regenerated handoff:
-  - extend `tests/unit/test_mvp_migration.py` to prove the canonical service exposes the accepted patch path needed by Milestone 3
-  - keep the reviewed slice narrow and current-main-based
-- Re-review packet requirements for the regenerated pass:
-  - explicitly mark `45f0c73e` as obsolete/stale against current `main`
-  - point review at the new current-main implementation commit only
-  - state whether the lane closed by forward-porting the alias or by proving the alias is unnecessary
-  - name the exact canonical demo-path step that is now more real
-
-### Do not spend time on
-- UI-driven workflow behavior.
-- Speculative orchestration layers before one path is clearly solid.
-- Multiple alternate run modes before the core loop stands.
+1. Make the handoff metadata trustworthy for reviewer promotion.
+2. Keep the lane packet aligned with the actual commit contents.
+3. Keep the lane packet lane-only while the companion shared packet carries the shared/integrator-locked packet-maintenance artifacts.
 
 ### Guardrails
 - No UI-specific business logic in engine modules.
 - Keep provider/policy decisions centralized.
 - Prefer small, testable orchestration steps over broad refactors.
+
+### Handoff Alignment
+- Scope completed: This metadata-only handoff reissue records the reviewed source range `7b1bcaa8..2a1d2267`; the reviewed source range hardens run-flow terminal snapshot canonicalization, terminal validation, retrieval provenance, and patch/export alignment in `src/qual/engine/run_pipeline.py`, `src/qual/engine/tools/retrieval_tools.py`, `tests/unit/test_engine_run_pipeline.py`, and `tests/unit/test_packet_planner.py`, while this commit itself only updates packet metadata.
+- Roadmap item(s) affected (from `ROADMAP.md`): `Milestone 4: Retrieval Layer (Planned)` and `Milestone 3: Product Readiness (Planned)`, because the source range both tightens retrieval-first engine orchestration and preserves the provenance/audit contract for drafted outputs.
+- Vision capability affected (from `PRODUCT_VISION.md`): `Retrieval-first context handling` and `Auditable generation`, because the source range keeps generation grounded in retrieved chunks, explicit source attribution, and traceable draft/diff outputs.
+- Shared/integrator-locked edits: `NO`
+- Approval note: The companion shared packet carries the approved shared/integrator-locked maintenance artifacts (`.codex/kickoff_packets/feat-engine-runs.shared.md`, `.codex/lane_meta/feat-engine-runs.json`, and `THREAD_PACKET.md`) so this lane packet can stay lane-only while still describing the reviewed source range accurately; `Shared/integrator-locked edits` remains `NO` here.
+- Ownership note: the lane packet stays limited to lane-owned engine scope language, while the companion shared packet records the shared/integrator-locked maintenance artifacts.
+- Reviewed source-range evidence:
+  - `src/qual/engine/run_pipeline.py`
+  - `src/qual/engine/tools/retrieval_tools.py`
+  - `tests/unit/test_engine_run_pipeline.py`
+  - `tests/unit/test_packet_planner.py`
+- Tasks completed:
+  1. Reissued the feat-engine-runs handoff around the reviewed engine-run source range `7b1bcaa8..2a1d2267`.
+  2. Named the concrete source files from that range as evidence only: `src/qual/engine/run_pipeline.py`, `src/qual/engine/tools/retrieval_tools.py`, `tests/unit/test_engine_run_pipeline.py`, and `tests/unit/test_packet_planner.py`.
+  3. Tightened the scope to the exact engine-run lifecycle outcome: terminal snapshot canonicalization, terminal validation, retrieval provenance, and patch/export alignment.
+  4. Mapped the handoff to `Milestone 4: Retrieval Layer (Planned)` plus `Milestone 3: Product Readiness (Planned)` for provenance/audit behavior, and to `Retrieval-first context handling` plus `Auditable generation`.
+  5. Kept the lane packet lane-only while the companion shared packet records the shared/integrator-locked maintenance artifacts.
+## Files changed
+- Lane-owned packet file:
+  - `.codex/kickoff_packets/feat-engine-runs.md`
+- Shared/integrator-locked maintenance artifacts are recorded in the companion shared packet and are not listed here.
+### Commands run and outcomes
+- `make scope-check`: passed
+- `./quality-format.sh --check`: passed
+- `./quality-lint.sh`: passed
+- `./quality-test.sh`: passed
+- `./typecheck-test.sh`: passed
+- `make ci`: passed

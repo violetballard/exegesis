@@ -210,6 +210,33 @@ class BulkDraftRoutingTests(unittest.TestCase):
                 run_editor=lambda _, out: out,
             )
 
+    def test_drafting_mode_restores_resident_state_after_best_run_failure(self) -> None:
+        resident = _ResidentStub()
+
+        def run_best(_: BulkDraftRequest, __: BulkRunContext) -> DraftPassOutput:
+            raise RuntimeError("best path failed")
+
+        with self.assertRaisesRegex(RuntimeError, "best path failed"):
+            execute_bulk_draft(
+                request=_request(section_type="discussion", target_word_count=3000),
+                capabilities=BulkDraftCapabilities(True, False, True),
+                resident_models=resident,
+                run_fast=lambda *_: DraftPassOutput("fast"),
+                run_best=run_best,
+                run_editor=lambda _, out: out,
+            )
+
+        self.assertEqual(
+            resident.events,
+            [
+                "snapshot",
+                "unload_all",
+                "load:gpt-oss-120b:12000",
+                "unload_all",
+                "restore:snap-1",
+            ],
+        )
+
     def test_editor_pass_always_executes(self) -> None:
         editor_calls: list[str] = []
 

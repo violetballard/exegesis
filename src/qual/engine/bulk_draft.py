@@ -296,13 +296,15 @@ def execute_bulk_draft(
     if decision.bulk_draft_mode == "drafting_mode":
         snapshot = resident_models.snapshot()
         resident_models.unload_all()
-        resident_models.load_model(BEST_MODEL_ID, max_ctx=_DRAFTING_MODE_DEFAULT_CTX)
-        bulk_out = run_best(
-            request,
-            BulkRunContext(mode="drafting_mode", max_ctx=_DRAFTING_MODE_MAX_CTX),
-        )
-        resident_models.unload_all()
-        restore_success = resident_models.restore(snapshot)
+        try:
+            resident_models.load_model(BEST_MODEL_ID, max_ctx=_DRAFTING_MODE_DEFAULT_CTX)
+            bulk_out = run_best(
+                request,
+                BulkRunContext(mode="drafting_mode", max_ctx=_DRAFTING_MODE_MAX_CTX),
+            )
+        finally:
+            resident_models.unload_all()
+            restore_success = resident_models.restore(snapshot)
     else:
         bulk_out = run_best(request, BulkRunContext(mode="normal"))
 

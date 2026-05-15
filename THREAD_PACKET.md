@@ -1,68 +1,41 @@
 ## Thread Handoff Packet
 
-- Branch name: `codex/feat-a2ui-contract`
-- Lane: `feat-a2ui-contract`
-- Merge target: current `main`
-- Authoritative review target: branch tip `HEAD` against current `main` using `main...HEAD` after merging current `main` into this branch.
-- Merge surface: review the corrected branch-tip diff only; do not use prior mixed-scope packets as the review surface.
-- Fixer re-review note: this packet supersedes the rejected packet and is the only handoff surface for this re-review.
-- Scope completed: corrected the A2UI handoff metadata so the submitted review surface is auditable and aligned with the canonical demo path.
-- Canonical demo-path step advanced: `preview and apply or reject a patch`.
-
-## High-Risk / Off-Lane Framing
-
-- Risk reason: the rejected packet mixed contradictory review-surface claims and unsupported packet-planner file claims.
-- Budget used for this fixer pass: `4` metadata correction tasks, under the high-risk cap of `4`.
-- Approval/scope basis: this corrected packet removes unsupported claims about packet-planner/control-plane maintenance and brings current `main` into the branch so remote monitoring, router, launcher, related test, spec, and docs changes are not part of this lane's review surface.
-- No explicit approval is claimed for remote monitoring, router, launcher, or packet-planner/control-plane maintenance in this A2UI handoff because no such files are part of the corrected branch-tip merge surface.
-
-## Tasks Completed
-
-1. Brought current `main` into the branch so already-integrated remote monitoring, router, launcher, related test, spec, and docs changes are not presented as `feat-a2ui-contract` work.
-2. Regenerated the handoff packet around the corrected branch-tip merge surface.
-3. Removed unsupported changed-file claims for non-A2UI packet-planner, remote-monitoring, router, launcher, and related test/spec/docs paths.
-4. Set the handoff review target to one corrected branch-tip merge surface: `HEAD` against current `main`.
-
-## Files Changed In Review Target
-
-Authoritative branch-tip review target, exactly matching `git diff --name-status main...HEAD`:
-
-- `M	.codex/kickoff_packets/feat-a2ui-contract.md`
-- `M	THREAD_PACKET.md`
-
-No `REMOTE_MONITORING_SPEC.md`, `docs/remote_monitoring/iphone_shortcuts.md`, `codex_packet_handoff/tools/*`, `tests/unit/test_remote_monitor.py`, `client-textual/`, retrieval runtime, daemon source, shared-contract source, `.codex/packet_planner/state.json`, packet-planner source/test, runtime A2UI file, or lane metadata file is part of the corrected branch-tip merge surface.
-
-## Shared / Locked Status
-
-- Integrator-locked files changed in branch-tip review target: none.
-- Shared-by-approval files changed in branch-tip review target: none.
-- A2UI runtime/source files changed in branch-tip review target: none.
-- Remote monitoring, router, launcher, packet-planner source/test/state files changed in branch-tip review target: none.
-- Packet metadata files changed in branch-tip review target: `.codex/kickoff_packets/feat-a2ui-contract.md`, `THREAD_PACKET.md`.
-
-## Review Surface Note
-
-The corrected review target is branch tip `HEAD` against current `main` using `main...HEAD` after merging current `main` into this branch. The merge surface is metadata-only and consists of `.codex/kickoff_packets/feat-a2ui-contract.md` and `THREAD_PACKET.md`. Prior packets that described remote monitoring, router, launcher, related tests/spec/docs, runtime commits, or unsupported packet-planner changes are stale and superseded by this handoff.
-
-## Demo-Path Mapping
-
-This corrected A2UI handoff supports the canonical demo-path step `preview and apply or reject a patch` by making the review evidence for the CLI fallback patch-action contract auditable. It does not add runtime scope beyond the branch-tip metadata correction, and it leaves all non-A2UI remote monitoring and router work outside this lane.
-
-## Commands Run
-
-Required gates for the corrected branch-tip packet, re-run after finalizing the corrected review surface:
-
-- Fresh fixer gate run: `2026-05-15` after confirming off-lane remote-monitoring and router/tooling paths are absent from `main...HEAD`.
-- `make scope-check`: passed; scope-check accepted branch `codex/feat-a2ui-contract`.
-- `./quality-format.sh --check`: passed.
-- `./quality-lint.sh`: passed.
-- `./quality-test.sh`: passed; 514 tests passed.
-- `./typecheck-test.sh`: passed.
-- `make ci`: passed; CI completed with 514 tests passed.
-
-## Risks / Blockers
-
-- Merge risk is limited to packet and lane metadata because the branch-tip merge surface is metadata-only.
-- No remote monitoring source/spec/docs, router source, launcher source, shared contract source, packet-planner state/source/test, Textual file, or runtime A2UI file is in the branch-tip merge surface.
-- Fresh required gates are green on the corrected branch-tip packet.
-- Remaining risk is that this handoff is metadata-only; it makes review evidence truthful but does not itself add runtime A2UI behavior.
+- Branch name: `codex/feat-engine-runs`
+- Source commit(s): `7b1bcaa8..2a1d2267`
+- Scope goal: Metadata-only handoff reissue for the reviewed engine-run source range `7b1bcaa8..2a1d2267`; this commit updates handoff metadata only, does not change the feature implementation, and remains a metadata-only packet update.
+- Scope completed: This metadata-only handoff reissue records the reviewed source range `7b1bcaa8..2a1d2267`; the reviewed source range hardens run-flow terminal snapshot canonicalization, terminal validation, retrieval provenance, and patch/export alignment in `src/qual/engine/run_pipeline.py`, `src/qual/engine/tools/retrieval_tools.py`, `tests/unit/test_engine_run_pipeline.py`, and `tests/unit/test_packet_planner.py`, but this commit itself does not modify `src/qual/engine/**`.
+- Roadmap item(s) affected (from `ROADMAP.md`): `Milestone 4: Retrieval Layer (Planned)` and `Milestone 3: Product Readiness (Planned)` because the source range tightens retrieval provenance and preserves the provenance/audit contract for drafted outputs.
+- Vision capability affected (from `PRODUCT_VISION.md`): `Retrieval-first context handling` and `Auditable generation` because the source range preserves traceable retrieved-source flow and explicit source attribution.
+- Shared/integrator-locked edits: `NO`
+- Approval note: The lane packet stays lane-only. The companion shared packet carries the approved shared/integrator-locked maintenance artifacts so this thread packet can describe the reviewed source range accurately without implying source changes; `Shared/integrator-locked edits` remains `NO` here.
+- Ownership note: the lane packet stays limited to `src/qual/engine/**` scope language, while the companion shared packet records the shared/integrator-locked packet-maintenance artifacts.
+## Reviewed source-range evidence
+The following files are evidence from `7b1bcaa8..2a1d2267` only; they are not changed by this metadata-only reissue:
+  - `src/qual/engine/run_pipeline.py`
+  - `src/qual/engine/tools/retrieval_tools.py`
+  - `tests/unit/test_engine_run_pipeline.py`
+  - `tests/unit/test_packet_planner.py`
+- Tasks completed:
+  1. Reissued the handoff as a metadata-only packet update for the reviewed engine-run source range `7b1bcaa8..2a1d2267`.
+  2. Named the concrete reviewed source files from that range as evidence only, not as files changed by this metadata-only reissue: `src/qual/engine/run_pipeline.py`, `src/qual/engine/tools/retrieval_tools.py`, `tests/unit/test_engine_run_pipeline.py`, and `tests/unit/test_packet_planner.py`.
+  3. Tightened the scope to the exact engine-run lifecycle outcome: terminal snapshot canonicalization, terminal validation, retrieval provenance, and patch/export alignment.
+  4. Mapped the handoff to `Milestone 4: Retrieval Layer (Planned)` plus `Milestone 3: Product Readiness (Planned)`, and to `Retrieval-first context handling` plus `Auditable generation`.
+  5. Kept the thread packet aligned with the lane packet, shared packet, and lane-meta record while preserving the approved shared/integrator-locked packet split.
+## Files changed
+- Lane-owned packet file:
+  - `.codex/kickoff_packets/feat-engine-runs.md`
+- Shared/integrator-locked maintenance artifacts are recorded in the companion shared packet and are not listed here.
+- No `src/qual/engine/**` files changed in this metadata-only reissue.
+- Commands run with results:
+  - `make scope-check` -> passed
+  - `./quality-format.sh --check` -> passed
+  - `./quality-lint.sh` -> passed
+  - `./quality-test.sh` -> passed
+  - `./typecheck-test.sh` -> passed
+  - `make ci` -> passed
+- Scope-check / ownership note:
+  - Shared/integrator-locked edits: `NO`
+  - Ownership note: the lane packet stays limited to `src/qual/engine/**` in scope language, while the packet-maintenance files are approved through the companion shared packet.
+- Routing/provider impact note: None. No model routing or provider configuration was touched.
+- Risks / blockers:
+  - No blocker. Packet-maintenance changes are additive and the handoff now traces back to the actual code-bearing engine-run range.

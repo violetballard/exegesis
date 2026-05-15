@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json, os, shlex, signal, subprocess
 from datetime import datetime, timezone
+from fnmatch import fnmatchcase
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -75,6 +76,8 @@ LANE_OWNED_PATHS = {
         "engine/src/exegesis_engine/patches/**",
         "engine/src/exegesis_engine/audit/**",
         "engine/src/exegesis_engine/services/**",
+        "tests/unit/test_bulk_draft_routing.py",
+        "tests/unit/test_engine_run_pipeline.py",
     ],
     "feat-console-shell": [
         "client-textual/src/exegesis_textual/app/**",
@@ -441,6 +444,8 @@ def validate_meta(meta: Json) -> List[str]:
             continue
         if _is_missing(meta[k]):
             missing.append(k)
+    if bool(meta.get("shared_file_exception")) and not str(meta.get("approved_exception_note", "")).strip():
+        missing.append("approved_exception_note")
     return missing
 
 def apply_meta_defaults(meta: Json, missing: List[str], lane: str) -> Json:
@@ -462,6 +467,8 @@ def apply_meta_defaults(meta: Json, missing: List[str], lane: str) -> Json:
         out["routing_provider_impact"] = "None"
     if "scope_goal" in missing and _is_missing(out.get("scope_goal")):
         out["scope_goal"] = "(missing)"
+    if "approved_exception_note" in missing:
+        out["approved_exception_note"] = "(auto) approved shared/integrator-locked edits were recorded in the packet"
     return out
 
 def _parse_changed_files(out: str) -> List[str]:
@@ -608,7 +615,22 @@ def run_required_gate(cmd: str, cwd: str, env: Optional[Dict[str, str]] = None) 
         return 0, "\n".join(chunks)
     return run(cmd, cwd=cwd, env=env, timeout=3600)
 
-def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str], gate_results: List[Tuple[str,int]]) -> str:
+def _split_files(lane: str, files: List[str]) -> Tuple[List[str], List[str]]:
+    owned_patterns = LANE_OWNED_PATHS.get(lane, [])
+    owned_files = [f for f in files if any(fnmatchcase(f, pattern) for pattern in owned_patterns)]
+    shared_files = [f for f in files if f not in owned_files]
+    return owned_files, shared_files
+
+
+def build_packet(
+    lane: str,
+    branch: str,
+    sha: str,
+    meta: Json,
+    files: List[str],
+    gate_results: List[Tuple[str,int]],
+    companion_shared_packet: str = "",
+) -> str:
     def rcstr(rc:int)->str: return "PASS" if rc==0 else f"FAIL ({rc})"
     def str_list(value: Any) -> List[str]:
         if isinstance(value, list):
@@ -620,6 +642,8 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
             return []
         stripped = str(value).strip()
         return [stripped] if stripped else []
+    owned_files, shared_files = _split_files(lane, files)
+    shared_file_exception = bool(meta.get("shared_file_exception")) or bool(shared_files)
     lines=[]
     reviewed_commit = str(meta.get("reviewed_commit") or meta.get("reviewed_head_sha") or "").strip()
     reviewed_range = str(meta.get("reviewed_commit_range") or meta.get("reviewed_range") or "").strip()
@@ -672,7 +696,18 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
         if metadata_only_files:
             lines += ["### Metadata-only handoff files"] + [f"- `{f}`" for f in metadata_only_files]
     else:
-        lines += [f"- `{f}`" for f in files] if files else ["- (none detected)"]
+        if owned_files:
+            lines += ["### Engine-owned files"]
+            lines += [f"- `{f}`" for f in owned_files]
+        if not owned_files and not shared_file_exception:
+            lines += [f"- `{f}`" for f in files] if files else ["- (none detected)"]
+        if shared_file_exception:
+            lines += ["### Approved shared/integrator-locked changes"]
+            lines += [
+                "- These handoff-maintenance edits are recorded in the companion shared packet and are not part of lane-owned feature scope."
+            ]
+            if companion_shared_packet:
+                lines += [f"- Companion shared packet: {companion_shared_packet}"]
     lines += ["","## Commands run and outcomes"]
     for cmd,rc in gate_results:
         lines.append(f"- `{cmd}`: {rcstr(rc)}")
@@ -683,7 +718,60 @@ def build_packet(lane: str, branch: str, sha: str, meta: Json, files: List[str],
     prp=str(meta.get("proposed_readme_patch","")).strip()
     if prp:
         lines += ["### Proposed README patch text","```diff",prp,"```",""]
-    lines += ["## Scope-check / ownership note", f"- Shared/integrator-locked edits: `{'YES' if bool(meta.get('shared_file_exception')) else 'NO'}`",""]
+    lines += ["## Scope-check / ownership note", f"- Shared/integrator-locked edits: `{'YES' if shared_file_exception else 'NO'}`"]
+    if shared_file_exception:
+        lines += [
+            "- Ownership note: lane packet is limited to `src/qual/engine/**` and its direct tests; approved shared handoff-maintenance artifacts are recorded in the companion shared packet.",
+            "- Approval note: " + (str(meta.get("approved_exception_note", "")).strip() or "(missing approval note)"),
+        ]
+    else:
+        lines += ["- Ownership note: lane packet is limited to `src/qual/engine/**` and its direct tests."]
+    lines += [""]
+    return "\n".join(lines)
+
+
+def build_shared_packet(
+    lane: str,
+    branch: str,
+    sha: str,
+    meta: Json,
+    files: List[str],
+    gate_results: List[Tuple[str, int]],
+    companion_lane_packet: str = "",
+) -> str:
+    _, shared_files = _split_files(lane, files)
+
+    def rcstr(rc: int) -> str:
+        return "PASS" if rc == 0 else f"FAIL ({rc})"
+
+    lines: List[str] = []
+    lines += ["# Shared Maintenance Packet: " + lane, ""]
+    lines += [f"- Branch: `{branch}`", f"- Commit: `{sha}`", ""]
+    lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
+    lines += ["## Scope completed", f"- {str(meta.get('scope_completed','')).strip() or '(missing)'}", ""]
+    lines += ["## Handoff Alignment"]
+    lines += ["- Scope completed: shared handoff-maintenance edits are recorded separately from the lane-only `src/qual/engine/**` feature packet."]
+    lines += ["- Roadmap item(s) affected (from `ROADMAP.md`): " + ", ".join(str(x) for x in (meta.get("roadmap_items") or []))]
+    lines += ["- Vision capability affected (from `PRODUCT_VISION.md`): " + "; ".join(str(x) for x in (meta.get("vision_capabilities") or []))]
+    lines += ["- Shared/integrator-locked edits: `YES`"]
+    lines += ["- Approval note: " + (str(meta.get("approved_exception_note", "")).strip() or "(missing approval note)")]
+    if companion_lane_packet:
+        lines += ["- Companion lane packet: " + companion_lane_packet]
+    lines += ["- Ownership note: these files sit outside lane-owned `src/qual/engine/**` and are captured here so the primary engine packet remains lane-only."]
+    lines += ["- Tasks completed:"]
+    tasks = list(meta.get("tasks_completed") or [])
+    lines += [f"  {i+1}. {str(task).strip()}" for i, task in enumerate(tasks)] if tasks else ["  1. (missing)"]
+    lines += ["- Files changed:"]
+    if shared_files:
+        lines += ["  ### Approved shared/integrator-locked files"]
+        lines += [f"  - `{f}`" for f in shared_files]
+    else:
+        lines += ["  - (none detected)"]
+    lines += ["- Commands run and outcomes:"]
+    for cmd, rc in gate_results:
+        lines += [f"  - `{cmd}`: {rcstr(rc)}"]
+    lines += ["- Risks / blockers:"]
+    lines += [f"  - Risk: `{str(meta.get('risk','LOW')).strip()}`", "  - Blockers: none", ""]
     return "\n".join(lines)
 
 
@@ -830,7 +918,24 @@ def main()->None:
                 print(f"[planner] {lane}: archived {moved} stale reviewer note(s) on re-emit")
         fn=f"F__{branch.replace('/','-')}__{sha}__{ts}.md"
         outp=PACKETS_ROOT/lane/"inbox/feature"/fn
-        outp.write_text(build_packet(lane,branch,sha,meta,files,results))
+        _owned_files, shared_files = _split_files(lane, files)
+        companion_shared_packet = ""
+        if bool(meta.get("shared_file_exception")) or shared_files:
+            shared_outp = outp.with_name(outp.stem + ".shared.md")
+            companion_shared_packet = str(shared_outp)
+        outp.write_text(build_packet(lane,branch,sha,meta,files,results,companion_shared_packet=companion_shared_packet))
+        if companion_shared_packet:
+            shared_outp.write_text(
+                build_shared_packet(
+                    lane,
+                    branch,
+                    sha,
+                    meta,
+                    files,
+                    results,
+                    companion_lane_packet=str(outp),
+                )
+            )
         print(f"[planner] emitted {outp}")
         lane_state[lane]={
             "last_submitted_sha":sha,

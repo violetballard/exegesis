@@ -1,41 +1,40 @@
 {
-  "scope_goal": "Preserve legacy run provenance manifests in the engine run lifecycle so recovered provenance and retrieval evidence stay deterministic and auditable across legacy replay paths.",
-  "scope_completed": [
-    "Updated `src/qual/engine/run_pipeline.py` in reviewed source commit `d59e853efa72e14488e62d9487010ba61e335a55` so `EngineRunFlowResult.to_manifest()` backfills `run_provenance` from legacy flow manifests or snapshots, synthesizes provenance when only the run record is available, and carries `retrieval_evidence` through serialized run manifests.",
-    "Extended `tests/unit/test_engine_run_pipeline.py` to assert provenance-only legacy manifests preserve `retrieval_evidence`, keep `run_provenance` aligned, and continue producing a stable run-flow manifest digest.",
-    "The docs-only sync commits `c46f8eb28a289e9f1138ca7b349ebc3d415a9c86` and later packet-refresh commits keep the handoff packet SHA aligned with the reviewed implementation; they do not change engine scope."
-  ],
-  "kickoff_budget_note": "This packet stays on the current Milestone 3 engine-run loop and audit/provenance handling. Later handoff-maintenance edits remain metadata-only and do not widen the engine scope.",
-  "approved_exception_note": "Approved shared handoff-maintenance artifacts are recorded in the companion shared packet `.codex/kickoff_packets/feat-engine-runs.shared.md`.",
-  "tasks_completed": [
-    "Preserved legacy run provenance manifests in `EngineRunFlowResult.to_manifest()` so recovered provenance and retrieval evidence survive legacy replay paths.",
-    "Kept synthesized `run_flow_manifest` output aligned with recovered provenance for provenance-only rehydration.",
-    "Added regression coverage in `tests/unit/test_engine_run_pipeline.py` for provenance-only manifest synthesis and `retrieval_evidence` preservation.",
-    "Kept the handoff metadata synchronized with the docs-only packet SHA sync commits without widening engine scope."
-  ],
+  "kickoff_budget_note": "",
+  "proposed_readme_patch": "",
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 3: Real workflow loop - expose canonical engine state models and plan/draft/revise/apply-reject through the canonical app service.",
-    "Milestone 3: Real workflow loop - feat-engine-runs: plan/draft/revise/apply-reject workflow actions.",
-    "Milestone 4: Dogfooding readiness - finish persistence and audit hooks needed for real writing sessions."
+    "Milestone 4: Retrieval Layer (Planned)",
+    "Milestone 3: Product Readiness (Planned)"
   ],
-  "vision_capabilities": [
-    "Canonical engine contract",
-    "Auditable state and workflow"
+  "source_commits": [
+    "7b1bcaa8..2a1d2267"
   ],
   "routing_provider_impact": "None",
-  "shared_file_exception": true,
-  "reviewed_commit": "d59e853efa72e14488e62d9487010ba61e335a55",
-  "packet_head_role": "metadata-only reviewer-fix finalization",
-  "metadata_only_note": "The current branch tip is a packet-refresh commit. Review the engine-run implementation at `d59e853efa72e14488e62d9487010ba61e335a55`; later handoff-maintenance commits remain metadata-only unless this packet is regenerated.",
-  "reviewed_files": [
+  "reviewed_source_files": [
     "src/qual/engine/run_pipeline.py",
-    "tests/unit/test_engine_run_pipeline.py"
+    "src/qual/engine/tools/retrieval_tools.py",
+    "tests/unit/test_engine_run_pipeline.py",
+    "tests/unit/test_packet_planner.py"
   ],
-  "metadata_only_files": [
+  "scope_completed": "This metadata-only handoff reissue covers the reviewed source range `7b1bcaa8..2a1d2267`, which hardens run-flow terminal snapshot canonicalization, terminal validation, retrieval provenance, and patch/export alignment in `src/qual/engine/run_pipeline.py`, `src/qual/engine/tools/retrieval_tools.py`, `tests/unit/test_engine_run_pipeline.py`, and `tests/unit/test_packet_planner.py`; this commit does not modify `src/qual/engine/**`.",
+  "scope_goal": "This commit is a metadata-only handoff reissue for the reviewed source range `7b1bcaa8..2a1d2267`; it only synchronizes handoff metadata and does not change `src/qual/engine/**` or the feature implementation.",
+  "shared_file_exception": true,
+  "approved_exception_note": "The companion shared packet carries the approved shared/integrator-locked maintenance artifacts (`.codex/kickoff_packets/feat-engine-runs.shared.md`, `.codex/lane_meta/feat-engine-runs.json`, and `THREAD_PACKET.md`) so the lane packet can stay lane-only while still describing the reviewed source range accurately.",
+  "packet_files_changed": [
     ".codex/kickoff_packets/feat-engine-runs.md",
     ".codex/kickoff_packets/feat-engine-runs.shared.md",
     ".codex/lane_meta/feat-engine-runs.json",
     "THREAD_PACKET.md"
+  ],
+  "tasks_completed": [
+    "Named the reviewed engine-run source range `7b1bcaa8..2a1d2267` instead of treating the packet files as the feature itself.",
+    "Recorded the concrete engine-run files from the reviewed source range as evidence only, not as files changed by this metadata-only commit: `src/qual/engine/run_pipeline.py`, `src/qual/engine/tools/retrieval_tools.py`, `tests/unit/test_engine_run_pipeline.py`, and `tests/unit/test_packet_planner.py`.",
+    "Tightened the scope to terminal snapshot canonicalization, terminal validation, retrieval provenance, and patch/export alignment.",
+    "Mapped the handoff to `Milestone 4: Retrieval Layer (Planned)` and `Milestone 3: Product Readiness (Planned)`, plus `Retrieval-first context handling` and `Auditable generation`.",
+    "Kept the lane, shared, lane-meta, and thread packets synchronized with the reviewed source range while keeping the lane packet lane-only and the shared packet responsible for the shared/integrator-locked maintenance artifacts."
+  ],
+  "vision_capabilities": [
+    "Retrieval-first context handling",
+    "Auditable generation"
   ]
 }
