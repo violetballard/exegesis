@@ -52,6 +52,10 @@ Immediate handoff to review/integration if any trigger fires:
 - Editing shared-by-approval files without explicit approval
 - Test/lint/typecheck failure not resolved after `2` focused fix attempts
 - Scope check failure (`make scope-check`) that cannot be resolved cleanly
+- Any required edit to control-plane files such as `codex_packet_handoff/**`,
+  `.codex/**`, `.agents/**`, `THREAD_PACKET.md`,
+  `THREAD_OWNERSHIP.md`, `INTEGRATION.md`, `AGENTS.md`, or
+  `scripts/scope-check.sh`
 
 ## Required Checkpoints (Short Status, Not Full Handoff)
 
@@ -238,3 +242,11 @@ Do not spend milestone time on:
 - speculative sync, collaboration, or workstation features
 
 Do not start `feat-console-shell` or `feat-console-workflow` until they are explicitly enabled.
+
+## Control Plane Boundary
+
+Feature branches must not edit or commit control-plane files. This includes
+daemon/router/planner code, packet metadata, skill definitions, kickoff packets,
+handoff packet files, ownership docs, and scope-check policy. If feature work
+needs one of these changes, stop the feature thread and report the blocker so
+the integrator/control-plane path can handle it separately.

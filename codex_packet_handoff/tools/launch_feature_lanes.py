@@ -319,6 +319,8 @@ def build_prompt(lane: str, workdir: str) -> str:
         f"{kickoff}\n\n"
         "Execution requirements:\n"
         "- Stay inside lane-owned paths only.\n"
+        "- Do not edit or commit control-plane files from a feature branch, including `codex_packet_handoff/**`, `.codex/**`, `.agents/**`, `THREAD_PACKET.md`, `THREAD_OWNERSHIP.md`, `INTEGRATION.md`, `AGENTS.md`, or `scripts/scope-check.sh`.\n"
+        "- If control-plane behavior must change, stop and report the blocker for integrator/control-plane handling instead of patching it in this lane.\n"
         "- Use the existing git worktree exactly as provided; do not replace `.git` or create `.git-local`, `.git-alt*`, shadow repos, or alternate object/index stores.\n"
         "- If normal git operations fail, stop and report the failure rather than inventing custom git plumbing.\n"
         "- When using `apply_patch`, pass the patch as a single patch string. Do not call `apply_patch` with no patch body and do not emit raw JSON-style tool calls for it.\n"
@@ -327,7 +329,7 @@ def build_prompt(lane: str, workdir: str) -> str:
         "- Make a real, meaningful code change from current lane HEAD.\n"
         "- Run the required gates before handoff.\n"
         "- Commit your completed work on the lane branch.\n"
-        "- Update the handoff packet fields required by INTEGRATION.md.\n"
+        "- Provide the handoff fields required by INTEGRATION.md in your final message; do not edit THREAD_PACKET.md or .codex packet metadata from the feature branch.\n"
         "- Do not wait for more instruction if the next safe step is clear.\n"
     )
 

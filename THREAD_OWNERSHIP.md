@@ -312,9 +312,30 @@ Only integrator/release work should edit these unless explicitly approved:
 - `src/qual/cli.py`
 - `src/qual/app.py`
 
+Control-plane files are stricter than ordinary shared files: feature branches
+must not edit or commit them. If a feature lane discovers that one of these
+needs a change, it should stop and report the blocker for an integrator/control
+plane patch instead of making the edit on the feature branch.
+
+Control-plane paths include:
+- `codex_packet_handoff/**`
+- `.agents/**`
+- `.codex/**`
+- `THREAD.md`
+- `THREAD_PACKET.md`
+- `THREAD_OWNERSHIP.md`
+- `INTEGRATION.md`
+- `AGENTS.md`
+- `scripts/scope-check.sh`
+- `scripts/common.sh`
+- `REMOTE_MONITORING_SPEC.md`
+- `docs/remote_monitoring/**`
+
 ## Enforcement
 
 - Run `make scope-check` before handoff.
 - `make ci` runs scope-check automatically.
 - Shared-file exceptions for approved edits can be passed as:
   - `SCOPE_ALLOW_SHARED=1 make scope-check`
+- `SCOPE_ALLOW_SHARED=1` does not permit control-plane edits from
+  `codex/feat-*` branches.

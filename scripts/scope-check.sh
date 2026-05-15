@@ -3,7 +3,7 @@ set -euo pipefail
 
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/common.sh"
 
-branch="$(git rev-parse --abbrev-ref HEAD)"
+branch="${SCOPE_BRANCH_OVERRIDE:-$(git rev-parse --abbrev-ref HEAD)}"
 allow_shared="${SCOPE_ALLOW_SHARED:-0}"
 include_worktree="${SCOPE_INCLUDE_WORKTREE:-0}"
 ignore_lane_noise="${SCOPE_IGNORE_LANE_NOISE:-1}"
@@ -78,8 +78,43 @@ is_approved_shared_test() {
   return 1
 }
 
+is_feature_branch() {
+  case "$branch" in
+    codex/feat-*) return 0 ;;
+  esac
+  return 1
+}
+
+is_control_plane_file() {
+  local f="$1"
+  case "$f" in
+    codex_packet_handoff/*|codex_packet_handoff/*/*)
+      return 0
+      ;;
+    .agents/*|.agents/*/*)
+      return 0
+      ;;
+    .codex/*|.codex/*/*)
+      return 0
+      ;;
+    THREAD.md|THREAD_PACKET.md|THREAD_OWNERSHIP.md|INTEGRATION.md|AGENTS.md)
+      return 0
+      ;;
+    scripts/scope-check.sh|scripts/common.sh)
+      return 0
+      ;;
+    REMOTE_MONITORING_SPEC.md|docs/remote_monitoring/*|docs/remote_monitoring/*/*)
+      return 0
+      ;;
+  esac
+  return 1
+}
+
 is_allowed() {
   local f="$1"
+  if is_feature_branch && is_control_plane_file "$f"; then
+    return 1
+  fi
   if shared_file_allowed && is_approved_shared_test "$f"; then
     return 0
   fi
