@@ -630,7 +630,6 @@ def resolve_patch_review_action(
     decision = build_patch_review_decision(payload)
     current_routes = dict(_patch_review_action_routes_for_decision(decision))
     expected_routes = dict(_expected_patch_review_action_routes())
-    engine_action = current_routes.get(requested_action, expected_routes.get(requested_action, ""))
     if not requested_action:
         allowed = False
         reason = "missing-action"
@@ -643,6 +642,7 @@ def resolve_patch_review_action(
     else:
         allowed = True
         reason = "allowed"
+    engine_action = current_routes[requested_action] if allowed else ""
     return PatchReviewActionResolution(
         action=requested_action,
         engine_action=engine_action,
