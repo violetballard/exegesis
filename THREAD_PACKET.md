@@ -21,7 +21,7 @@
 1. Regenerated the handoff packet around the actual branch-tip merge surface.
 2. Removed unsupported changed-file claims for `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py`.
 3. Set the handoff review target to one branch-tip merge surface: `HEAD` against `main`.
-4. Added the explicit canonical demo-path step advanced: `preview and apply or reject a patch`.
+4. Corrected `.codex/lane_meta/feat-a2ui-contract.json` so it matches the metadata-only branch-tip review surface and no longer claims a shared exception.
 
 ## Files Changed In Review Target
 
@@ -53,7 +53,7 @@ This corrected A2UI handoff supports the canonical demo-path step `preview and a
 
 Required gates for the corrected branch-tip packet:
 
-- Fresh fixer gate run: `2026-05-14` after correcting the branch-tip review surface.
+- Fresh fixer gate run: `2026-05-15` after correcting lane metadata and regenerating this review packet.
 - `make scope-check`: passed; scope-check accepted branch `codex/feat-a2ui-contract`.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
@@ -66,4 +66,4 @@ Required gates for the corrected branch-tip packet:
 - Merge risk is limited to packet and lane metadata because the branch-tip merge surface is metadata-only.
 - No router source, shared contract source, packet-planner state/source/test, Textual file, or runtime A2UI file is in the branch-tip merge surface.
 - Fresh required gates are green on the corrected branch-tip packet.
-- Control-plane lane metadata has been corrected so regenerated review packets use this narrowed branch-tip surface.
+- Lane metadata has been corrected so regenerated review packets use this narrowed branch-tip surface and do not claim packet-planner, A2UI runtime, or shared-exception scope.
