@@ -53,6 +53,7 @@ from src.qual.commands.canonical import (
     canonical_command_readiness_step_seal_payload,
     canonical_command_readiness_status_for_flow_step,
     canonical_command_retrieval_context_payload,
+    canonical_command_runtime_dispatch_payload,
     canonical_command_supported_launcher_readiness_audit_summary,
     canonical_command_supported_launcher_readiness_summary,
 )
@@ -1041,6 +1042,7 @@ def run_mvp_demo_cli_handoff_progress_json() -> str:
 
 def _mvp_demo_cli_runtime_checkpoint_issues(
     *,
+    runtime_dispatch: dict[str, object],
     trusted_contract: dict[str, object],
     smoke_gate: dict[str, object],
     route_validation: dict[str, object],
@@ -1050,6 +1052,14 @@ def _mvp_demo_cli_runtime_checkpoint_issues(
     next_action: dict[str, object],
 ) -> tuple[str, ...]:
     issues: list[str] = []
+    if not bool(runtime_dispatch["is_complete"]):
+        issues.append("runtime dispatch contract incomplete")
+    if tuple(runtime_dispatch["non_cli_entrypoints"]):
+        non_cli = ", ".join(tuple(runtime_dispatch["non_cli_entrypoints"]))
+        issues.append(f"runtime dispatch non-CLI entrypoints: {non_cli}")
+    if tuple(runtime_dispatch["thin_handler_violations"]):
+        thin_handler = ", ".join(tuple(runtime_dispatch["thin_handler_violations"]))
+        issues.append(f"runtime dispatch thin handler violations: {thin_handler}")
     if not bool(trusted_contract["is_trusted"]):
         untrusted = ", ".join(tuple(trusted_contract["untrusted_commands"])) or "unknown"
         issues.append(f"untrusted commands: {untrusted}")
@@ -1102,6 +1112,7 @@ def build_mvp_demo_cli_runtime_checkpoint_payload(
 
     progress = canonical_command_readiness_handoff_command_progress_payload(smoke_argvs)
     next_action = canonical_command_readiness_handoff_next_action_payload(smoke_argvs)
+    runtime_dispatch = canonical_command_runtime_dispatch_payload()
     trusted_contract = build_mvp_demo_trusted_command_contract_payload()
     smoke_gate = build_mvp_demo_smoke_gate_payload()
     route_validation = build_patch_review_route_validation_payload()
@@ -1115,6 +1126,7 @@ def build_mvp_demo_cli_runtime_checkpoint_payload(
         tuple(next_action["remaining_engine_actions"])
     )
     issues = _mvp_demo_cli_runtime_checkpoint_issues(
+        runtime_dispatch=runtime_dispatch,
         trusted_contract=trusted_contract,
         smoke_gate=smoke_gate,
         route_validation=route_validation,
@@ -1151,6 +1163,12 @@ def build_mvp_demo_cli_runtime_checkpoint_payload(
         "invalid_argv": tuple(progress["invalid_argv"]),
         "trusted_commands": tuple(trusted_contract["commands"]),
         "untrusted_commands": tuple(trusted_contract["untrusted_commands"]),
+        "runtime_dispatch_complete": bool(runtime_dispatch["is_complete"]),
+        "runtime_dispatch_entries": tuple(runtime_dispatch["entries"]),
+        "runtime_dispatch_non_cli_entrypoints": tuple(runtime_dispatch["non_cli_entrypoints"]),
+        "runtime_dispatch_thin_handler_violations": tuple(
+            runtime_dispatch["thin_handler_violations"]
+        ),
         "thin_handler_violations": tuple(trusted_contract["thin_handler_violations"]),
         "smoke_gate_complete": bool(smoke_gate["is_complete"]),
         "patch_review_routes_valid": bool(route_validation["is_valid"]),
