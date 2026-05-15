@@ -24,6 +24,7 @@ RunStatus = Literal["running", "completed", "failed", "cancelled"]
 TerminalRunStatus = Literal["completed", "failed", "cancelled"]
 PatchDecision = Literal["accepted", "rejected"]
 _TERMINAL_RUN_STATUSES: tuple[TerminalRunStatus, ...] = ("completed", "failed", "cancelled")
+_RETRIEVAL_INTENT_ALIASES = {"outline": "outline_support"}
 
 
 @dataclass(frozen=True)
@@ -675,6 +676,7 @@ class EngineRunService:
         normalized_query_text = self._require_non_empty_text(query_text, field_name="query_text")
         normalized_scope = self._require_non_empty_text(scope, field_name="scope")
         normalized_intent = self._require_non_empty_text(intent, field_name="intent")
+        retrieval_intent = _RETRIEVAL_INTENT_ALIASES.get(normalized_intent, normalized_intent)
         self._require_matching_scope(record, scope=normalized_scope, operation="retrieve")
         normalized_confidentiality_profile = self._validate_retrieval_confidentiality_profile(
             confidentiality_profile
@@ -684,7 +686,7 @@ class EngineRunService:
             self._retrieval,
             query_text=normalized_query_text,
             scope=normalized_scope,
-            intent=normalized_intent,
+            intent=retrieval_intent,
             constraints=normalized_constraints,
             confidentiality_profile=normalized_confidentiality_profile,
         )

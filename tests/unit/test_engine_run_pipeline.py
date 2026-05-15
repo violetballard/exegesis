@@ -755,7 +755,7 @@ class EngineRunPipelineTests(unittest.TestCase):
             stored.artifacts[6].payload["retrieval_evidence"]["query_scope"],
             "doc:doc-1",
         )
-        self.assertEqual(stored.artifacts[6].payload["retrieval_evidence"]["query_intent"], "outline")
+        self.assertEqual(stored.artifacts[6].payload["retrieval_evidence"]["query_intent"], "outline_support")
         self.assertEqual(
             stored.artifacts[7].payload["retrieval_evidence"]["artifact_id"],
             f"{result.run.run_id}:0003:retrieval_result",
