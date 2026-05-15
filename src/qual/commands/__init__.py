@@ -19,6 +19,7 @@ COMMAND_FIXER_GATE_RESULTS = (
 
 from src.qual.commands.catalog import *  # noqa: F401,F403
 from src.qual.commands.catalog import (
+    command_demo_readiness_validate_ordered_cli_exact_action_script,
     command_demo_readiness_validate_ordered_script,
     command_demo_readiness_validate_cli_exact_action_shell_script_lines,
     command_demo_readiness_validate_cli_shell_script_lines,
@@ -1180,6 +1181,9 @@ def build_mvp_demo_cli_script_validation_payload(
 
     validation = command_demo_readiness_validate_script(smoke_argvs)
     ordered_validation = command_demo_readiness_validate_ordered_script(smoke_argvs)
+    exact_action_validation = command_demo_readiness_validate_ordered_cli_exact_action_script(
+        smoke_argvs
+    )
     runtime_checkpoint = build_mvp_demo_cli_runtime_checkpoint_payload(smoke_argvs)
     next_step = build_mvp_demo_next_step_payload(smoke_argvs)
     issues = (
@@ -1187,14 +1191,25 @@ def build_mvp_demo_cli_script_validation_payload(
         *(f"missing engine action: {action}" for action in validation.missing_engine_actions),
         *(f"invalid argv: {argv}" for argv in validation.invalid_argv),
         *(f"order violation: {violation}" for violation in ordered_validation.order_violations),
+        *(
+            f"exact action order violation: {violation}"
+            for violation in exact_action_validation.order_violations
+        ),
     )
     return {
-        "is_ready": validation.is_complete and ordered_validation.is_ordered,
+        "is_ready": (
+            validation.is_complete
+            and ordered_validation.is_ordered
+            and exact_action_validation.is_complete
+        ),
         "is_complete": validation.is_complete,
         "is_ordered": ordered_validation.is_ordered,
+        "exact_actions_complete": exact_action_validation.is_complete,
+        "exact_actions_ordered": exact_action_validation.is_ordered,
         "issues": issues,
         "requested_argv": validation.requested_argv,
         "canonical_argv": validation.canonical_argv,
+        "exact_action_canonical_argv": exact_action_validation.validation.canonical_argv,
         "command_lines": validation.command_lines,
         "covered_flow_steps": validation.covered_flow_steps,
         "missing_flow_steps": validation.missing_flow_steps,
@@ -1204,6 +1219,10 @@ def build_mvp_demo_cli_script_validation_payload(
         "expected_flow_steps": ordered_validation.expected_flow_steps,
         "observed_flow_steps": ordered_validation.observed_flow_steps,
         "order_violations": ordered_validation.order_violations,
+        "expected_engine_actions": exact_action_validation.expected_engine_actions,
+        "observed_exact_engine_actions": exact_action_validation.observed_engine_actions,
+        "exact_action_order_violations": exact_action_validation.order_violations,
+        "exact_action_invalid_argv": exact_action_validation.validation.invalid_argv,
         "next_command_line": runtime_checkpoint["next_command_line"],
         "next_exact_action_line": runtime_checkpoint["next_exact_action_line"],
         "remaining_command_lines": runtime_checkpoint["remaining_command_lines"],
