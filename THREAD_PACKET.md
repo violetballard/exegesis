@@ -53,7 +53,7 @@ This corrected A2UI handoff supports the canonical demo-path step `preview and a
 
 Required gates for the corrected branch-tip packet:
 
-- Fresh fixer gate run: `2026-05-15` after correcting lane metadata and regenerating this review packet.
+- Fresh fixer gate run: `2026-05-15` after correcting the branch review surface and regenerating this review packet.
 - `make scope-check`: passed; scope-check accepted branch `codex/feat-a2ui-contract`.
 - `./quality-format.sh --check`: passed.
 - `./quality-lint.sh`: passed.
