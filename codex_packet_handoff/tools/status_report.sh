@@ -46,6 +46,9 @@ print_latest_logs() {
 }
 
 print_heading "DAEMON STATUS"
+"${PYTHON_BIN}" codex_packet_handoff/tools/remote_monitor_ctl.py status || true
+
+print_heading "COORDINATOR DAEMON STATUS"
 "${PYTHON_BIN}" codex_packet_handoff/tools/daemon_ctl.py status
 
 print_heading "PIPELINE STATUS"

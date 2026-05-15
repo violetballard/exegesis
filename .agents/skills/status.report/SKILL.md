@@ -4,7 +4,6 @@ description: "Show the real full status report for daemon, reviewer lanes, integ
 ---
 
 Run from repo root:
-- `python codex_packet_handoff/tools/remote_monitor_ctl.py status`
 - `./codex_packet_handoff/tools/status_report.sh`
 
 Access path selection:
@@ -13,6 +12,7 @@ Access path selection:
 - If local scripts are unavailable but `QUAL_MONITOR_URL` and `QUAL_MONITOR_TOKEN` are set, use `python codex_packet_handoff/tools/remote_monitor_client.py status` for compact status or `... full` for the sanitized full snapshot.
 - Remote monitor access is only for VPN/home access; do not use it as a replacement for direct local scripts when working on the machine.
 - Remote monitor output is sanitized and narrower than local script output, so say when a report is remote-derived.
+- Local `remote_monitor_ctl.py status` is allowed only as a process-health check for the phone/VPN monitor. It is not the HTTP/network status path.
 
 Manual breakdown if you need to inspect each step:
 - `python codex_packet_handoff/tools/remote_monitor_ctl.py status`
@@ -30,7 +30,7 @@ CLI-first note:
 - when the controller itself is local `gpt-oss-20b`, prefer showing the full script outputs first and then summarize them; do not rely on memory or prior chat context for status
 
 Then summarize:
-- remote monitor running/stopped state, PID, and whether phone/VPN status access should be available
+- local remote monitor process running/stopped state, PID, and whether phone/VPN status access should be available
 - daemon running/stopped state from `daemon_ctl.py status`
 - filesystem truth per lane (`status.py`)
 - daemon state, reviewer/integrator queues, `active_blocker`, and latest lane discussion (`daemon_monitor.py`)
@@ -40,7 +40,7 @@ Then summarize:
 - whether any stale fixer/log noise should be ignored because the queue is clean
 
 Reading order:
-1. Start with `remote_monitor_ctl.py status`, then `daemon_ctl.py status`, then `status.py` totals and lane states.
+1. Start with `status_report.sh`; within it, treat `remote_monitor_ctl.py status` as only a local process-health precheck.
 2. Use `daemon_monitor.py` to read `bottleneck`, `active_blocker`, heartbeat, and live lane discussion.
 3. Only then read process list, feature-runner logs, packet-router logs, and daemon-log tail.
 4. If logs conflict with queue truth, say so explicitly and prefer `status.py` for queue state.

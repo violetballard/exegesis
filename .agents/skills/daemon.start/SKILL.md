@@ -19,6 +19,7 @@ Access path selection:
 - If this session is remote over VPN and local scripts are unavailable, use `python codex_packet_handoff/tools/remote_monitor_client.py start`.
 - After remote start, use `python codex_packet_handoff/tools/remote_monitor_client.py status` or `full` for the sanitized verification snapshot.
 - Do not use remote monitor as the default when direct local scripts are available.
+- Local `remote_monitor_ctl.py start/status` only manages the phone/VPN monitor process. It is not the remote HTTP status path.
 
 CLI-first note:
 - assume the operator launched Codex CLI with `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
