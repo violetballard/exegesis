@@ -9032,7 +9032,7 @@ def command_demo_readiness_handoff_packet(
             "context; preview and apply or reject a patch; persist and continue] Exposed the "
             "trusted command loop as deterministic payload and JSON surfaces.",
         ),
-        files_changed=("src/qual/commands/**",),
+        files_changed=("src/qual/commands/**", "tests/unit/test_commands_catalog.py"),
         commands_run=tuple(
             (entry.command, entry.expected_result)
             for entry in required_gate_commands
@@ -9070,7 +9070,10 @@ def command_demo_readiness_handoff_packet(
         step_seals=step_seals,
         cli_step_validations=cli_step_validations,
         lane_owned_paths=("src/qual/commands/**",),
-        shared_file_approval="Not required: command readiness scope remains lane-owned.",
+        shared_file_approval=(
+            "Approved shared-test exception: tests/unit/test_commands_catalog.py; "
+            "implementation ownership remains src/qual/commands/** for feat-commands."
+        ),
         required_gate_commands=required_gate_commands,
         kickoff_budget=kickoff_budget,
         stop_triggers=stop_triggers,
@@ -9119,7 +9122,7 @@ def _validate_command_demo_readiness_handoff_packet(
         raise ValueError("Command demo readiness handoff packet tasks must be numbered")
     if any(not task.strip() for task in packet.tasks_completed):
         raise ValueError("Command demo readiness handoff packet tasks must not be empty")
-    if packet.files_changed != ("src/qual/commands/**",):
+    if packet.files_changed != ("src/qual/commands/**", "tests/unit/test_commands_catalog.py"):
         raise ValueError("Command demo readiness handoff packet files changed are inconsistent")
     if packet.commands_run != tuple((entry.command, entry.expected_result) for entry in required_gate_commands):
         raise ValueError("Command demo readiness handoff packet commands run are inconsistent")

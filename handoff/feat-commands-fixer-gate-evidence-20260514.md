@@ -12,3 +12,10 @@
 - `./quality-test.sh`: passed, 480 tests run, 1 skipped
 - `./typecheck-test.sh`: passed
 - `make ci`: passed, 480 tests run, 1 skipped
+
+## 2026-05-15 Metadata Correction
+
+- Reviewer packet: `fixer__feat-commands__20260515T160501Z.prompt.txt`
+- Scope-check / ownership note: `feat-commands` owned path is `src/qual/commands/**`, not `src/qual/engine/**`.
+- Approved shared-test exception remains explicit for `tests/unit/test_commands_catalog.py`.
+- Implementation behavior unchanged; this reissues packet metadata only.
