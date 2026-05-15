@@ -2,8 +2,8 @@
 
 - Branch name: `codex/feat-a2ui-contract`
 - Lane: `feat-a2ui-contract`
-- Merge target: current `main` (`004285b8b7f046156ea0d391bee6ac629df84e56`)
-- Authoritative review target: branch tip `HEAD` against current `main` using `main..HEAD`.
+- Merge target: current `main`
+- Authoritative review target: branch tip `HEAD` against current `main` using `main...HEAD` after merging current `main` into this branch.
 - Merge surface: review the corrected branch-tip diff only; do not use prior mixed-scope packets as the review surface.
 - Fixer re-review note: this packet supersedes the rejected packet and is the only handoff surface for this re-review.
 - Scope goal: correct the A2UI handoff metadata so the submitted review surface is auditable and aligned with the canonical demo path.
@@ -13,25 +13,24 @@
 
 - Risk reason: the rejected packet mixed contradictory review-surface claims and unsupported packet-planner file claims.
 - Budget used for this fixer pass: `4` metadata correction tasks, under the high-risk cap of `4`.
-- Approval/scope basis: this corrected packet removes unsupported claims about packet-planner/control-plane maintenance and reverts the remote monitoring, router, launcher, related test, spec, and docs changes from the branch review surface.
+- Approval/scope basis: this corrected packet removes unsupported claims about packet-planner/control-plane maintenance and brings current `main` into the branch so remote monitoring, router, launcher, related test, spec, and docs changes are not part of this lane's review surface.
 - No explicit approval is claimed for remote monitoring, router, launcher, or packet-planner/control-plane maintenance in this A2UI handoff because no such files are part of the corrected branch-tip merge surface.
 
 ## Tasks Completed
 
-1. Reverted remote monitoring, router, launcher, related test, spec, and docs changes from this `feat-a2ui-contract` review surface.
+1. Brought current `main` into the branch so already-integrated remote monitoring, router, launcher, related test, spec, and docs changes are not presented as `feat-a2ui-contract` work.
 2. Regenerated the handoff packet around the corrected branch-tip merge surface.
 3. Removed unsupported changed-file claims for non-A2UI packet-planner, remote-monitoring, router, launcher, and related test/spec/docs paths.
-4. Set the handoff review target to one corrected branch-tip merge surface: `HEAD` against `main`.
+4. Set the handoff review target to one corrected branch-tip merge surface: `HEAD` against current `main`.
 
 ## Files Changed In Review Target
 
-Authoritative branch-tip review target, `main..HEAD`:
+Authoritative branch-tip review target, `main...HEAD` after merging current `main`:
 
 - `.codex/kickoff_packets/feat-a2ui-contract.md`
-- `.codex/lane_meta/feat-a2ui-contract.json`
 - `THREAD_PACKET.md`
 
-No `REMOTE_MONITORING_SPEC.md`, `docs/remote_monitoring/iphone_shortcuts.md`, `codex_packet_handoff/tools/*`, `tests/unit/test_remote_monitor.py`, `client-textual/`, retrieval runtime, daemon source, shared-contract source, `.codex/packet_planner/state.json`, packet-planner source/test, or runtime A2UI file is part of the corrected branch-tip merge surface.
+No `REMOTE_MONITORING_SPEC.md`, `docs/remote_monitoring/iphone_shortcuts.md`, `codex_packet_handoff/tools/*`, `tests/unit/test_remote_monitor.py`, `client-textual/`, retrieval runtime, daemon source, shared-contract source, `.codex/packet_planner/state.json`, packet-planner source/test, runtime A2UI file, or lane metadata file is part of the corrected branch-tip merge surface.
 
 ## Shared / Locked Status
 
@@ -39,11 +38,11 @@ No `REMOTE_MONITORING_SPEC.md`, `docs/remote_monitoring/iphone_shortcuts.md`, `c
 - Shared-by-approval files changed in branch-tip review target: none.
 - A2UI runtime/source files changed in branch-tip review target: none.
 - Remote monitoring, router, launcher, packet-planner source/test/state files changed in branch-tip review target: none.
-- Packet metadata files changed in branch-tip review target: `.codex/kickoff_packets/feat-a2ui-contract.md`, `.codex/lane_meta/feat-a2ui-contract.json`, `THREAD_PACKET.md`.
+- Packet metadata files changed in branch-tip review target: `.codex/kickoff_packets/feat-a2ui-contract.md`, `THREAD_PACKET.md`.
 
 ## Review Surface Note
 
-The corrected review target is branch tip `HEAD` against current `main` using `main..HEAD`. The merge surface is metadata-only and consists of `.codex/kickoff_packets/feat-a2ui-contract.md`, `.codex/lane_meta/feat-a2ui-contract.json`, and `THREAD_PACKET.md`. Prior packets that described remote monitoring, router, launcher, related tests/spec/docs, runtime commits, or unsupported packet-planner changes are stale and superseded by this handoff.
+The corrected review target is branch tip `HEAD` against current `main` using `main...HEAD` after merging current `main` into this branch. The merge surface is metadata-only and consists of `.codex/kickoff_packets/feat-a2ui-contract.md` and `THREAD_PACKET.md`. Prior packets that described remote monitoring, router, launcher, related tests/spec/docs, runtime commits, or unsupported packet-planner changes are stale and superseded by this handoff.
 
 ## Demo-Path Mapping
 
