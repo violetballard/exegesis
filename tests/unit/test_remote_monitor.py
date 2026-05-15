@@ -9,7 +9,7 @@ import urllib.request
 from pathlib import Path
 from unittest import mock
 
-from codex_packet_handoff.tools import agents_coordinator, remote_monitor_server, remote_monitor_snapshot
+from codex_packet_handoff.tools import agents_coordinator, remote_monitor_ctl, remote_monitor_server, remote_monitor_snapshot
 
 
 class RemoteMonitorSnapshotTests(unittest.TestCase):
@@ -93,6 +93,27 @@ class RemoteMonitorServerTests(unittest.TestCase):
         self.assertNotIn("sk-secretvalue", joined)
         self.assertNotIn("doctor-violet", joined)
 
+    def test_summary_text_is_phone_readable(self) -> None:
+        payload = {
+            "generated_at": "now",
+            "daemon_running": True,
+            "runtime_mode": "hybrid",
+            "cloud_available": True,
+            "local_lms_jobs": "2/4",
+            "cloud_jobs": "1/4",
+            "pending_feature": 1,
+            "reviewer_notes": 0,
+            "approved_for_integrator": 0,
+            "active_blocker": "-",
+            "pause": {"paused": False},
+        }
+
+        text = remote_monitor_server.summary_text(payload)
+
+        self.assertIn("daemon_running=True", text)
+        self.assertIn("runtime_mode=hybrid", text)
+        self.assertTrue(text.endswith("\n"))
+
     def test_status_endpoint_requires_auth(self) -> None:
         config = {"allowed_remote_cidrs": [], "snapshot_ttl_seconds": 0}
         server = remote_monitor_server.ThreadingHTTPServer(("127.0.0.1", 0), remote_monitor_server.RemoteMonitorHandler)
@@ -122,6 +143,63 @@ class RemoteMonitorServerTests(unittest.TestCase):
             server.shutdown()
             thread.join(timeout=5)
             server.server_close()
+
+    def test_text_status_endpoint_requires_auth_and_returns_text(self) -> None:
+        config = {"allowed_remote_cidrs": [], "snapshot_ttl_seconds": 0}
+        server = remote_monitor_server.ThreadingHTTPServer(("127.0.0.1", 0), remote_monitor_server.RemoteMonitorHandler)
+        server.monitor_config = config  # type: ignore[attr-defined]
+        server.monitor_token = "token"  # type: ignore[attr-defined]
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        base = f"http://127.0.0.1:{server.server_address[1]}"
+        try:
+            with mock.patch.object(
+                remote_monitor_server,
+                "_fresh_snapshot",
+                return_value={
+                    "daemon_running": True,
+                    "generated_at": "now",
+                    "pause": {"paused": False},
+                },
+            ):
+                req = urllib.request.Request(
+                    f"{base}/api/status/text",
+                    headers={"Authorization": "Bearer token"},
+                )
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    body = response.read().decode("utf-8")
+                    content_type = response.headers.get("Content-Type", "")
+                self.assertIn("text/plain", content_type)
+                self.assertIn("daemon_running=True", body)
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
+            server.server_close()
+
+
+class RemoteMonitorCtlTests(unittest.TestCase):
+    def test_init_config_writes_chmod_600_token_and_config(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = root / "config.json"
+            token_file = root / "token"
+
+            rc = remote_monitor_ctl.init_config(
+                config,
+                host="127.0.0.1",
+                port=8765,
+                allowed_cidr=["100.64.0.0/10"],
+                token_file=token_file,
+                force=False,
+                print_token=False,
+            )
+
+            self.assertEqual(rc, 0)
+            payload = json.loads(config.read_text())
+            self.assertEqual(payload["host"], "127.0.0.1")
+            self.assertEqual(payload["allowed_remote_cidrs"], ["100.64.0.0/10"])
+            self.assertTrue(token_file.read_text().strip())
+            self.assertEqual(token_file.stat().st_mode & 0o777, 0o600)
 
 
 class RemoteMonitorCoordinatorStateTests(unittest.TestCase):

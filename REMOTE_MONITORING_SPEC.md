@@ -102,6 +102,8 @@ Read endpoints:
   - returns no daemon state
 - `GET /api/status/summary`
   - authenticated compact status for chat use
+- `GET /api/status/text`
+  - authenticated compact text status for iOS Shortcuts and thin phone use
 - `GET /api/status`
   - authenticated sanitized status snapshot
 
@@ -194,6 +196,7 @@ Kick:
 
 Tracked files:
 
+- `docs/remote_monitoring/iphone_shortcuts.md`
 - `REMOTE_MONITORING_SPEC.md`
 - `codex_packet_handoff/config/remote_monitor.example.json`
 - `codex_packet_handoff/tools/remote_monitor_snapshot.py`
@@ -210,6 +213,10 @@ Untracked runtime files:
 - `.codex/packet_coordinator/pause.json`
 - `.codex/packet_coordinator/kick.json`
 
+## Phone Shortcuts
+
+The simplest mobile operator surface is a folder of iOS Shortcuts that call the authenticated remote monitor endpoints over VPN. Keep these shortcuts limited to status, start, stop, pause, resume, and kick. The paste-ready recipes live in `docs/remote_monitoring/iphone_shortcuts.md`.
+
 ## Operator Commands
 
 Local monitor process:
@@ -220,12 +227,30 @@ python codex_packet_handoff/tools/remote_monitor_ctl.py status
 python codex_packet_handoff/tools/remote_monitor_ctl.py stop
 ```
 
+One-time local setup:
+
+```sh
+python codex_packet_handoff/tools/remote_monitor_ctl.py init \
+  --host 127.0.0.1 \
+  --allowed-cidr 100.64.0.0/10
+```
+
+For phone use, replace `--host` with the specific VPN interface address or VPN DNS name that resolves to it. Never bind to `0.0.0.0`.
+
 Remote/local client:
 
 ```sh
 QUAL_MONITOR_URL=http://127.0.0.1:8765 \
 QUAL_MONITOR_TOKEN=<token> \
 python codex_packet_handoff/tools/remote_monitor_client.py status
+```
+
+Phone-readable text status:
+
+```sh
+QUAL_MONITOR_URL=http://127.0.0.1:8765 \
+QUAL_MONITOR_TOKEN=<token> \
+python codex_packet_handoff/tools/remote_monitor_client.py text
 ```
 
 Access selection check:

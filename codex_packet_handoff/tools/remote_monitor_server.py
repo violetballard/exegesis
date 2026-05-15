@@ -164,6 +164,39 @@ def _fresh_snapshot(config: Mapping[str, Any], *, full: bool = False) -> Dict[st
     return snapshot if full else compact_summary(snapshot)
 
 
+def summary_text(payload: Mapping[str, Any]) -> str:
+    pause = payload.get("pause") if isinstance(payload.get("pause"), dict) else {}
+    git = payload.get("git") if isinstance(payload.get("git"), dict) else {}
+    memory = payload.get("memory_pressure") if isinstance(payload.get("memory_pressure"), dict) else {}
+    lines = [
+        f"generated_at={payload.get('generated_at', '-')}",
+        f"daemon_running={payload.get('daemon_running', '-')}",
+        f"paused={pause.get('paused', False)}",
+    ]
+    if pause.get("paused"):
+        lines.append(f"pause_reason={pause.get('reason', '-')}")
+    lines.extend(
+        [
+            f"runtime_mode={payload.get('runtime_mode', '-')}",
+            f"cloud_available={payload.get('cloud_available', '-')}",
+            f"local_lms_jobs={payload.get('local_lms_jobs', '-')}",
+            f"cloud_jobs={payload.get('cloud_jobs', '-')}",
+            f"pending_feature={payload.get('pending_feature', 0)}",
+            f"reviewer_notes={payload.get('reviewer_notes', 0)}",
+            f"approved_for_integrator={payload.get('approved_for_integrator', 0)}",
+            f"active_blocker={payload.get('active_blocker', '-')}",
+        ]
+    )
+    if git:
+        lines.append(f"git_clean_tracked={git.get('clean_tracked', '-')}")
+        lines.append(f"git_tracked_change_count={git.get('tracked_change_count', '-')}")
+    if memory:
+        summary = memory.get("summary") if isinstance(memory.get("summary"), list) else []
+        if summary:
+            lines.append("memory=" + " | ".join(str(line) for line in summary[:2]))
+    return "\n".join(lines) + "\n"
+
+
 def _invalidate_snapshot() -> None:
     global _cached_snapshot, _cached_snapshot_ts
     with _snapshot_lock:
@@ -271,6 +304,15 @@ class RemoteMonitorHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _send_text(self, status: int, body: str) -> None:
+        encoded = body.encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.send_header("Content-Length", str(len(encoded)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(encoded)
+
     def _guard(self, *, auth: bool = True) -> bool:
         if not client_allowed(self.client_address[0], self.monitor_config):
             self._send_json(HTTPStatus.FORBIDDEN, {"error": "remote address not allowed"})
@@ -290,6 +332,11 @@ class RemoteMonitorHandler(BaseHTTPRequestHandler):
             if not self._guard():
                 return
             self._send_json(HTTPStatus.OK, _fresh_snapshot(self.monitor_config, full=False))
+            return
+        if self.path == "/api/status/text":
+            if not self._guard():
+                return
+            self._send_text(HTTPStatus.OK, summary_text(_fresh_snapshot(self.monitor_config, full=False)))
             return
         if self.path == "/api/status":
             if not self._guard():
