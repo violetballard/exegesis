@@ -58,7 +58,7 @@ Required gates for the corrected branch-tip packet, re-run after finalizing the 
 - `./quality-lint.sh`: passed.
 - `./quality-test.sh`: passed; 514 tests passed.
 - `./typecheck-test.sh`: passed.
-- `make ci`: passed; 514 tests passed inside CI.
+- `make ci`: passed; CI completed with 514 tests passed.
 
 ## Risks / Blockers
 
