@@ -58,6 +58,17 @@ class RouterQuotaFallbackTests(unittest.TestCase):
 
         self.assertFalse(_has_real_quota_signal(text))
 
+    def test_integrator_blocker_text_does_not_count_as_real_quota_signal(self) -> None:
+        text = '\n'.join(
+            [
+                "Integration report for `feat-commands`:",
+                "Failure reason: integrator reported blocked/no integration performed",
+                "Blocker: `quality-test` and `make ci` fail on control-plane tests.",
+            ]
+        )
+
+        self.assertFalse(_has_real_quota_signal(text))
+
     def test_retry_limit_wrapper_does_not_flip_runtime_mode(self) -> None:
         cfg = _router_cfg()
         state = {"runtime_mode": "cloud_primary"}
