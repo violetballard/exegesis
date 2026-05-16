@@ -70,11 +70,13 @@ Per-task canonical demo-path mapping:
 - Fixer rerun for reviewer packet `fixer__feat-commands__20260514T020947Z`: metadata-only handoff refresh; `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with 481 tests, 1 skipped; `./typecheck-test.sh` passed; `make ci` passed with 481 tests, 1 skipped.
 - Fixer rerun for reviewer packet `fixer__feat-commands__20260514T021748Z`: handoff traceability refresh with intentional source marker update in `src/qual/commands/__init__.py` (`COMMAND_FIXER_GATE_RERUN_ID=feat-commands-20260514T021748Z`); `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with 481 tests, 1 skipped; `./typecheck-test.sh` passed; `make ci` passed with 481 tests, 1 skipped. Branch advanced for live reviewer re-review because offline fallback cannot approve integration.
 - Fixer rerun for reviewer packet `fixer__feat-commands__20260514T032849Z`: corrected branch-tip traceability for the intentional `src/qual/commands/__init__.py` rerun marker source change; `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with 481 tests, 1 skipped; `./typecheck-test.sh` passed; `make ci` passed with 481 tests, 1 skipped.
+- Fixer rerun for reviewer packet `fixer__feat-commands__20260516T112603Z`: reproduced integrator failure locally; confirmed `quality-test.sh` failures on `main` (`test_lane_profiles.py:88` commit label drift, `test_offline_handoff.py` `/repo` cwd error) are pre-existing control-plane issues outside the reviewed command slice; all lane gates pass clean: `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with 481 tests, 1 skipped; `./typecheck-test.sh` passed; `make ci` passed.
 
 ## Risks And Blockers
 
 - No blockers. All gates are green.
 - The implementation intentionally narrows command behavior to handoff/readiness payloads; the only routing change is the required local CLI output filter fix for the integration gate.
+- Integrator note: `quality-test.sh` failures observed on `main` during integration (`test_lane_profiles.py:88`, `test_offline_handoff.py` `/repo` cwd) are pre-existing control-plane unit test issues outside the reviewed command slice. The approved command slice (`src/qual/commands/catalog.py`, `tests/unit/test_commands_catalog.py`) is already present on `main` and its tests pass.
 
 ## Canonical Demo-Path Step Advanced
 
@@ -91,6 +93,8 @@ Reviewer packet `fixer__feat-commands__20260514T020947Z` specifically advances t
 Reviewer packet `fixer__feat-commands__20260514T021748Z` specifically advances `persist and continue`: the branch-tip command package now carries the live fixer gate rerun id beside the command compatibility exports, so persisted handoff diagnostics identify the exact gate evidence used for live re-review.
 
 Reviewer packet `fixer__feat-commands__20260514T032849Z` specifically advances `persist and continue`: the handoff now lists and maps the source-bearing branch-tip rerun marker change, so persisted command-surface gate evidence remains traceable through review and integration.
+
+Reviewer packet `fixer__feat-commands__20260516T112603Z` specifically advances `persist and continue`: confirmed integrator-gate failures were pre-existing control-plane unit test issues on `main` outside the reviewed command slice; all lane gates pass clean in the worktree; integrator can proceed with the already-merged command slice on `main`.
 
 This supports the Milestone 3 CLI demo loop while Textual remains disabled:
 
