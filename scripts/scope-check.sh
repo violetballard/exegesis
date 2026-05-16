@@ -61,8 +61,8 @@ is_approved_shared_path() {
   case "$branch" in
     codex/feat-commands*)
       case "$f" in
-        tests/unit/test_commands_catalog.py|tests/unit/test_diff_preview.py) return 0 ;;
-        codex_packet_handoff/tools/router.py|tests/unit/test_offline_handoff.py) return 0 ;;
+        tests/unit/test_commands_catalog.py|tests/unit/test_diff_preview.py|tests/unit/test_lane_profiles.py) return 0 ;;
+        codex_packet_handoff/tools/router.py|tests/unit/test_offline_handoff.py|tests/unit/test_router_quota_fallback.py) return 0 ;;
         engine/src/exegesis_engine/api/cli.py|tests/unit/test_mvp_migration.py) return 0 ;;
       esac
       ;;
@@ -108,7 +108,8 @@ is_allowed() {
     codex/feat-commands*)
       case "$f" in
         src/qual/commands/*|src/qual/commands/*/*) return 0 ;;
-        codex_packet_handoff/tools/router.py|tests/unit/test_offline_handoff.py) return 0 ;;
+        tests/unit/test_lane_profiles.py) return 0 ;;
+        codex_packet_handoff/tools/router.py|tests/unit/test_offline_handoff.py|tests/unit/test_router_quota_fallback.py) return 0 ;;
         engine/src/exegesis_engine/api/cli.py|tests/unit/test_mvp_migration.py) return 0 ;;
         src/qual/cli.py) shared_file_allowed && return 0 ;;
       esac

@@ -87,6 +87,13 @@ CLOUD_INTEGRATOR_RETRY_COOLDOWN_SECONDS = 60.0
 ROUTER_LOG_KEEP_RECENT = 36
 ROUTER_LOG_MAX_TOTAL_BYTES = 16 * 1024 * 1024
 ROUTER_LOG_MIN_AGE_SECONDS = 1800
+INTEGRATION_DEPENDENCY_ORDER = (
+    "feat-context-storage",
+    "feat-commands",
+    "feat-retrieval-fts",
+    "feat-engine-runs",
+    "feat-a2ui-contract",
+)
 
 @dataclass
 class RouterConfig:
@@ -286,7 +293,10 @@ def ensure_lane_dirs(lane: str) -> Path:
     return d
 
 def list_new(lane_dir: Path, last_seen: Optional[str]) -> List[Path]:
-    files = sorted((lane_dir/"inbox/feature").glob("*.md"), key=lambda p: p.stat().st_mtime)
+    files = sorted(
+        (p for p in (lane_dir/"inbox/feature").glob("*.md") if not p.name.endswith(".shared.md")),
+        key=lambda p: p.stat().st_mtime,
+    )
     if not last_seen:
         return files[-1:] if files else []
     if all(f.name != last_seen for f in files):
@@ -323,6 +333,143 @@ def _branch_head_sha(repo_cwd: str, branch: str) -> str:
     if proc.returncode != 0:
         return ""
     return (proc.stdout or "").strip().lower()
+
+
+def _branch_merged_to_head(repo_cwd: str, branch: str) -> bool:
+    if not Path(repo_cwd).exists():
+        return False
+    try:
+        proc = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", branch, "HEAD"],
+            cwd=repo_cwd,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            check=False,
+        )
+    except Exception:
+        return False
+    return proc.returncode == 0
+
+
+def _branch_changed_files(repo_cwd: str, branch: str) -> List[str]:
+    if not Path(repo_cwd).exists():
+        return []
+    try:
+        base = subprocess.run(
+            ["git", "merge-base", "HEAD", branch],
+            cwd=repo_cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            check=False,
+        )
+        if base.returncode != 0:
+            return []
+        proc = subprocess.run(
+            ["git", "diff", "--name-only", f"{base.stdout.strip()}..{branch}"],
+            cwd=repo_cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            check=False,
+        )
+    except Exception:
+        return []
+    if proc.returncode != 0:
+        return []
+    return [line.strip() for line in (proc.stdout or "").splitlines() if line.strip()]
+
+
+def _parse_packet_file_list(text: str) -> List[str]:
+    files: List[str] = []
+    in_files = False
+    for raw_line in (text or "").splitlines():
+        line = raw_line.strip()
+        lowered = line.lower()
+        if lowered in {"## files changed", "### reviewed implementation files"}:
+            in_files = True
+            continue
+        if in_files and line.startswith("#") and lowered not in {"### reviewed implementation files"}:
+            break
+        if not in_files or not line.startswith("- "):
+            continue
+        item = line[2:].strip()
+        item = item.strip("`")
+        if item and not item.startswith("#") and "/" in item:
+            files.append(item)
+    return files
+
+
+def _feature_packet_for_approval(lane_dir: Path, approval_packet: Path) -> Optional[Path]:
+    sha = _packet_sha(approval_packet.name)
+    if not sha:
+        return None
+    candidates = [
+        p for p in lane_dir.rglob(f"F__*{sha}*.md")
+        if not p.name.endswith(".shared.md")
+    ]
+    if not candidates:
+        return None
+    candidates.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+    return candidates[0]
+
+
+def _latest_feature_packet_for_lane(lane: str) -> Optional[Path]:
+    lane_dir = PACKETS_ROOT / lane
+    candidates = [
+        p for p in lane_dir.rglob("F__*.md")
+        if not p.name.endswith(".shared.md")
+    ]
+    if not candidates:
+        return None
+    candidates.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+    return candidates[0]
+
+
+def _latest_reviewed_files_for_lane(lane: str) -> List[str]:
+    feature_packet = _latest_feature_packet_for_lane(lane)
+    if not feature_packet:
+        return []
+    return _parse_packet_file_list(feature_packet.read_text(errors="ignore"))
+
+
+def _reviewed_files_for_integrator_packet(lane_dir: Path, approval_packet: Path, approved_text: str) -> List[str]:
+    feature_packet = _feature_packet_for_approval(lane_dir, approval_packet)
+    if feature_packet:
+        files = _parse_packet_file_list(feature_packet.read_text(errors="ignore"))
+        if files:
+            return files
+    return _parse_packet_file_list(approved_text)
+
+
+def _integration_dependency_blockers(
+    cfg: RouterConfig,
+    repo_cwd: str,
+    lane: str,
+    reviewed_files: Optional[List[str]] = None,
+) -> List[str]:
+    if lane not in INTEGRATION_DEPENDENCY_ORDER:
+        return []
+    blockers: List[str] = []
+    reviewed_set = set(reviewed_files or [])
+    for prior_lane in INTEGRATION_DEPENDENCY_ORDER:
+        if prior_lane == lane:
+            break
+        lane_cfg = (cfg.lanes.get(prior_lane) or {}) if isinstance(cfg.lanes, dict) else {}
+        if not bool(lane_cfg.get("enabled", True)):
+            continue
+        branch = str(lane_cfg.get("branch") or f"codex/{prior_lane}")
+        if not branch or _branch_merged_to_head(repo_cwd, branch):
+            continue
+        if reviewed_set:
+            prior_files = set(_latest_reviewed_files_for_lane(prior_lane))
+            if not prior_files:
+                prior_files = set(_branch_changed_files(repo_cwd, branch))
+            if reviewed_set.isdisjoint(prior_files):
+                continue
+        blockers.append(prior_lane)
+    return blockers
 
 
 def _latest_fixer_log(lane: str) -> Optional[Path]:
@@ -716,12 +863,30 @@ def reviewer_prompt(pkt: str) -> str:
         f"Review this feature packet:\n\n{pkt}\n"
     )
 
-def integrator_prompt(approved: str) -> str:
+def integrator_prompt(approved: str, *, feature_packet_path: str = "", feature_packet_text: str = "") -> str:
     packet = _extract_final_verdict_packet(approved)
+    feature_context = ""
+    if feature_packet_text:
+        feature_context = (
+            "\n\nCompanion feature packet with reviewed implementation scope"
+            + (f" (`{feature_packet_path}`)" if feature_packet_path else "")
+            + ":\n\n"
+            + feature_packet_text
+            + "\n"
+        )
     return (
         "You are the INTEGRATOR. You may write to the workspace.\n"
         "Consume this APPROVED packet, perform merge order + post-merge checks, report blockers.\n\n"
-        f"{packet}\n"
+        "Lane priority order is scheduling guidance, not a hard merge blocker. "
+        "Do not block solely because an earlier-priority lane branch is unmerged. "
+        "Only hold this integration when there is a direct file/content overlap or another concrete merge blocker.\n\n"
+        "If the feature branch contains stale broad history, do not merge the whole branch. "
+        "Integrate the narrow reviewed implementation surface from the companion feature packet: use its commit-under-review, "
+        "reviewed file list, and approved shared-test exception to apply only the approved slice.\n\n"
+        "Do not run broad recursive searches over `.codex` or `.agents`; those directories contain large historical logs. "
+        "If packet evidence is needed, read the specific packet path or use targeted `ls`, `cat`, `tail`, or `rg` commands against named files only.\n\n"
+        f"{packet}"
+        f"{feature_context}\n"
     )
 
 

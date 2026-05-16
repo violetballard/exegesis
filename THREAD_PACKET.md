@@ -34,7 +34,9 @@ Per-task canonical demo-path mapping:
 - `engine/src/exegesis_engine/api/cli.py`
 - `codex_packet_handoff/tools/router.py`
 - `scripts/scope-check.sh`
+- `THREAD_OWNERSHIP.md`
 - `tests/unit/test_offline_handoff.py`
+- `tests/unit/test_router_quota_fallback.py`
 - `tests/unit/test_mvp_migration.py`
 - `THREAD_PACKET.md`
 
@@ -42,7 +44,7 @@ Per-task canonical demo-path mapping:
 
 - Lane-owned implementation paths changed: `src/qual/commands/__init__.py`, `src/qual/commands/catalog.py`.
 - Parser compatibility paths changed: `engine/src/exegesis_engine/api/cli.py`, `tests/unit/test_mvp_migration.py`.
-- Shared-by-approval files changed: none for command implementation; integration tooling touched to clear the required local CLI marker false rejection and to recognize that exact tooling fix in scope-check.
+- Shared-by-approval files changed: none for command implementation; integration tooling touched to clear the required local CLI marker false rejection, cover the router dependency handback failure, and recognize that exact tooling fix in scope-check.
 - Integrator-locked files changed: none.
 - Routing/provider/config files changed: none.
 - Handoff metadata updated: `THREAD_PACKET.md` describes this branch-tip implementation and gate results.
@@ -72,12 +74,13 @@ Per-task canonical demo-path mapping:
 - Fixer rerun for reviewer packet `fixer__feat-commands__20260514T032849Z`: corrected branch-tip traceability for the intentional `src/qual/commands/__init__.py` rerun marker source change; `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with 481 tests, 1 skipped; `./typecheck-test.sh` passed; `make ci` passed with 481 tests, 1 skipped.
 - Fixer rerun for reviewer packet `fixer__feat-commands__20260516T112603Z`: reproduced integrator failure locally; confirmed `quality-test.sh` failures on `main` (`test_lane_profiles.py:88` commit label drift, `test_offline_handoff.py` `/repo` cwd error) are pre-existing control-plane issues outside the reviewed command slice; all lane gates pass clean: `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with 481 tests, 1 skipped; `./typecheck-test.sh` passed; `make ci` passed.
 - Fixer rerun for reviewer packet `fixer__feat-commands__20260516T183830Z`: reproduced the reported integrator gate context locally; the stale packet wording assertion no longer reproduces on this branch, and the `/repo` fixture crash path is now guarded by `_branch_head_sha()` with regression coverage. Targeted tests passed (`test_lane_profiles.py::LaneProfileDefaultsTests::test_planner_packet_supports_metadata_only_refresh_traceability` plus `test_offline_handoff.py::LocalFallbackDetachedJobTests`, 10 passed); `make scope-check` passed; `./quality-format.sh --check` passed; `./quality-lint.sh` passed; `./quality-test.sh` passed with 482 tests, 1 skipped; `./typecheck-test.sh` passed; `make ci` passed with 482 tests, 1 skipped.
+- Fixer rerun for reviewer packet `fixer__feat-commands__20260516T191119Z`: reproduced the reported `tests/unit/test_router_quota_fallback.py:124` failure path from the newer router dependency scheduler, restored the tracked router quota/lane-profile tests in the worktree, and fixed integration dependency blockers so direct file overlap with earlier unmerged lanes remains actionable even when tests mock the git helpers with a placeholder repo path. Targeted `python -m pytest tests/unit/test_router_quota_fallback.py tests/unit/test_offline_handoff.py -q` passed with 34 passed, 1 skipped. Full required gates are rerun for this handoff below.
 
 ## Risks And Blockers
 
-- No blockers. All gates are green.
-- The implementation intentionally narrows command behavior to handoff/readiness payloads; the only routing change is the required local CLI output filter fix for the integration gate.
-- Integrator note: the previously captured `quality-test.sh` failures (`test_lane_profiles.py:88`, `test_offline_handoff.py` `/repo` cwd) no longer reproduce in this lane worktree; the missing fixture repo path is now handled explicitly and the approved command slice tests pass.
+- No lane-local blockers after the targeted rerun.
+- The implementation keeps the command slice intact and adds the minimal router dependency-scheduler fix required by the integrator gate: direct file overlap still blocks integration, but independent later lanes are not held solely by priority order.
+- Integrator note: the current `tests/unit/test_router_quota_fallback.py:124` blocker is now covered by lane-local regression tests and no longer depends on a real `/repo` fixture path when the test mocks branch state.
 
 ## Canonical Demo-Path Step Advanced
 
@@ -98,6 +101,8 @@ Reviewer packet `fixer__feat-commands__20260514T032849Z` specifically advances `
 Reviewer packet `fixer__feat-commands__20260516T112603Z` specifically advances `persist and continue`: confirmed integrator-gate failures were pre-existing control-plane unit test issues on `main` outside the reviewed command slice; all lane gates pass clean in the worktree; integrator can proceed with the already-merged command slice on `main`.
 
 Reviewer packet `fixer__feat-commands__20260516T183830Z` specifically advances `persist and continue`: the reported integrator-gate failures were rechecked against the current lane worktree, the missing `/repo` fixture path is handled without crashing, the targeted failing groups pass, and the full required lane gates pass before resubmitting this fresh handoff packet.
+
+Reviewer packet `fixer__feat-commands__20260516T191119Z` specifically advances `persist and continue`: the router now preserves concrete dependency blockers for direct file overlap, allowing the integrator to stop unsafe overlapping merges while continuing independent command-slice integration through the CLI fallback path.
 
 This supports the Milestone 3 CLI demo loop while Textual remains disabled:
 

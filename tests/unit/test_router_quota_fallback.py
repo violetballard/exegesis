@@ -1,12 +1,19 @@
 from __future__ import annotations
 
 import time
+import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
 from codex_packet_handoff.tools.router import (
     RouterConfig,
     _apply_quota_text_safeguard,
     _has_real_quota_signal,
+    _integration_dependency_blockers,
+    _reviewed_files_for_integrator_packet,
+    integrator_prompt,
+    list_new,
 )
 
 
@@ -47,6 +54,153 @@ def _router_cfg() -> RouterConfig:
 
 
 class RouterQuotaFallbackTests(unittest.TestCase):
+    def test_list_new_ignores_companion_shared_packets(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            feature_dir = Path(tmpdir) / "inbox" / "feature"
+            feature_dir.mkdir(parents=True)
+            shared = feature_dir / "F__codex-feat-commands__abc1234__20260516T000000Z.shared.md"
+            main = feature_dir / "F__codex-feat-commands__abc1234__20260516T000000Z.md"
+            shared.write_text("shared companion")
+            main.write_text("main feature packet")
+
+            self.assertEqual([path.name for path in list_new(Path(tmpdir), None)], [main.name])
+
+    def test_integration_dependency_blockers_allow_independent_later_lane(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+            "feat-commands": {"branch": "codex/feat-commands", "enabled": True},
+        }
+
+        def merged(_repo_cwd: str, branch: str) -> bool:
+            return branch == "codex/feat-commands"
+
+        with (
+            mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged),
+            mock.patch("codex_packet_handoff.tools.router._latest_reviewed_files_for_lane", return_value=[]),
+            mock.patch(
+                "codex_packet_handoff.tools.router._branch_changed_files",
+                return_value=["src/qual/storage/session.py"],
+            ),
+        ):
+            blockers = _integration_dependency_blockers(
+                cfg,
+                "/repo",
+                "feat-commands",
+                reviewed_files=["src/qual/commands/catalog.py", "tests/unit/test_commands_catalog.py"],
+            )
+
+        self.assertEqual(blockers, [])
+
+    def test_integration_dependency_blockers_hold_direct_file_overlap(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+            "feat-commands": {"branch": "codex/feat-commands", "enabled": True},
+        }
+
+        def merged(_repo_cwd: str, branch: str) -> bool:
+            return branch == "codex/feat-commands"
+
+        with (
+            mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged),
+            mock.patch("codex_packet_handoff.tools.router._latest_reviewed_files_for_lane", return_value=[]),
+            mock.patch(
+                "codex_packet_handoff.tools.router._branch_changed_files",
+                return_value=["src/qual/commands/catalog.py"],
+            ),
+        ):
+            blockers = _integration_dependency_blockers(
+                cfg,
+                "/repo",
+                "feat-commands",
+                reviewed_files=["src/qual/commands/catalog.py"],
+            )
+
+        self.assertEqual(blockers, ["feat-context-storage"])
+
+    def test_integration_dependency_blockers_prefer_reviewed_packet_files_over_stale_branch_diff(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+            "feat-commands": {"branch": "codex/feat-commands", "enabled": True},
+            "feat-retrieval-fts": {"branch": "codex/feat-retrieval-fts", "enabled": True},
+        }
+
+        def merged(_repo_cwd: str, branch: str) -> bool:
+            return branch == "codex/feat-retrieval-fts"
+
+        def reviewed_files(lane: str) -> list[str]:
+            if lane == "feat-context-storage":
+                return ["src/qual/storage/vault.py"]
+            if lane == "feat-commands":
+                return ["src/qual/commands/catalog.py"]
+            return []
+
+        with (
+            mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged),
+            mock.patch("codex_packet_handoff.tools.router._latest_reviewed_files_for_lane", side_effect=reviewed_files),
+            mock.patch(
+                "codex_packet_handoff.tools.router._branch_changed_files",
+                return_value=["src/qual/retrieval/service.py", "tests/unit/test_unified_retrieval.py"],
+            ),
+        ):
+            blockers = _integration_dependency_blockers(
+                cfg,
+                "/repo",
+                "feat-retrieval-fts",
+                reviewed_files=["src/qual/retrieval/service.py", "tests/unit/test_unified_retrieval.py"],
+            )
+
+        self.assertEqual(blockers, [])
+
+    def test_reviewed_files_for_integrator_packet_reads_companion_feature_packet(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            lane_dir = Path(tmpdir)
+            archive_dir = lane_dir / "archive"
+            outbox_dir = lane_dir / "outbox" / "integrator"
+            archive_dir.mkdir(parents=True)
+            outbox_dir.mkdir(parents=True)
+            approval = outbox_dir / "R__APPROVED__codex-feat-commands__abc1234567890abcdef__20260516T000000Z.md"
+            feature = archive_dir / "F__codex-feat-commands__abc1234567890abcdef__20260516T000000Z.md"
+            approval.write_text("## Verdict: APPROVED\n")
+            feature.write_text(
+                "\n".join(
+                    [
+                        "## Files changed",
+                        "### Reviewed implementation files",
+                        "- `src/qual/commands/catalog.py`",
+                        "- `tests/unit/test_commands_catalog.py`",
+                        "",
+                        "## Commands run and outcomes",
+                        "- `make ci`: PASS",
+                    ]
+                )
+            )
+
+            files = _reviewed_files_for_integrator_packet(
+                lane_dir,
+                approval,
+                "## Verdict: APPROVED\n\n## Files changed\n- `THREAD_PACKET.md`\n",
+            )
+
+        self.assertEqual(files, ["src/qual/commands/catalog.py", "tests/unit/test_commands_catalog.py"])
+
+    def test_integrator_prompt_allows_independent_later_lane_integration(self) -> None:
+        prompt = integrator_prompt(
+            "## Verdict: APPROVED\n",
+            feature_packet_path=".codex/packets/lanes/feat-commands/archive/F__demo.md",
+            feature_packet_text=(
+                "## Files changed\n"
+                "- `src/qual/commands/catalog.py`\n"
+            ),
+        )
+
+        self.assertIn("not a hard merge blocker", prompt)
+        self.assertIn("Do not block solely because an earlier-priority lane branch is unmerged", prompt)
+        self.assertIn("Integrate the narrow reviewed implementation surface", prompt)
+        self.assertIn("src/qual/commands/catalog.py", prompt)
+
     def test_code_like_quota_text_does_not_count_as_real_quota_signal(self) -> None:
         text = '\n'.join(
             [

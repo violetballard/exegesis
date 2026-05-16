@@ -164,6 +164,24 @@ class OfflineReviewerGuardTests(unittest.TestCase):
 
         self.assertFalse(router._has_real_quota_signal(text))
 
+    def test_integrator_failure_handback_keeps_gate_failure_actionable(self) -> None:
+        packet = router._integrator_failure_handback_packet(
+            "feat-commands",
+            Path("R__APPROVED__codex-feat-commands__abc1234__20260516T185957Z.md"),
+            reason="integrator reported blocked/no integration performed",
+            output=(
+                "Checks run:\n"
+                "- `quality-test`: FAIL\n"
+                "Blocker: `tests/unit/test_router_quota_fallback.py:124` "
+                "expected [`feat-context-storage`] but got []."
+            ),
+        )
+
+        self.assertIn("1. Reproduce the integrator failure locally", packet)
+        self.assertIn("2. Fix the failing integration gate or merge conflict", packet)
+        self.assertIn("3. Re-run the required lane gates", packet)
+        self.assertIn("tests/unit/test_router_quota_fallback.py:124", packet)
+
     def test_metadata_only_packet_preserves_reviewed_commit_instruction(self) -> None:
         packet = build_packet(
             "feat-retrieval-fts",
