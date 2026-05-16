@@ -122,7 +122,7 @@ def _derive_lane_state(
 
 def scan_lane(lane_dir: Path, lane_cfg: Dict, planner_lane_state: Dict) -> LaneStatus:
     lane = lane_dir.name
-    pending = sorted((lane_dir/'inbox/feature').glob('*.md'))
+    pending = sorted(p for p in (lane_dir/'inbox/feature').glob('*.md') if not p.name.endswith('.shared.md'))
     reviewer = sorted((lane_dir/'inbox/reviewer').glob('*.md'))
     approved = sorted((lane_dir/'outbox/integrator').glob('*.md'))
     integ = sorted((lane_dir/'archive').glob('INTEGRATOR__*.md'))

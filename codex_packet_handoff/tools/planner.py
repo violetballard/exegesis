@@ -403,7 +403,7 @@ def ensure_lane_dirs(lane: str) -> None:
 
 def lane_has_pending_feature(lane: str) -> bool:
     base = PACKETS_ROOT / lane
-    return any((base/"inbox/feature").glob("*.md"))
+    return any(not path.name.endswith(".shared.md") for path in (base/"inbox/feature").glob("*.md"))
 
 def lane_has_reviewer_notes(lane: str) -> bool:
     base = PACKETS_ROOT / lane
@@ -659,7 +659,10 @@ def build_packet(
     lines += ["# Feature → Review Packet",""]
     lines += [f"- Lane: `{lane}`", f"- Branch: `{branch}`"]
     if reviewed_commit and reviewed_commit != sha:
-        lines += [f"- Commit: `{reviewed_commit}`", f"- Packet refresh commit: `{sha}`"]
+        lines += [
+            f"- Commit under review: `{reviewed_commit}`",
+            f"- Packet refresh commit: `{sha}` (metadata-only; do not review this commit as implementation)",
+        ]
         if packet_refresh_role:
             lines += [f"- Packet refresh role: `{packet_refresh_role}`"]
         if reviewed_range:

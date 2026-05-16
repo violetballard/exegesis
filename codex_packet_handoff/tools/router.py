@@ -312,7 +312,10 @@ def ensure_lane_dirs(lane: str) -> Path:
     return d
 
 def list_new(lane_dir: Path, last_seen: Optional[str]) -> List[Path]:
-    files = sorted((lane_dir/"inbox/feature").glob("*.md"), key=lambda p: p.stat().st_mtime)
+    files = sorted(
+        (p for p in (lane_dir/"inbox/feature").glob("*.md") if not p.name.endswith(".shared.md")),
+        key=lambda p: p.stat().st_mtime,
+    )
     if not last_seen:
         return files[-1:] if files else []
     if all(f.name != last_seen for f in files):
@@ -844,6 +847,8 @@ def _requires_live_reviewer_rerun(note_text: str) -> bool:
 def reviewer_prompt(pkt: str) -> str:
     return (
         "You are the REVIEWER. You are sandboxed read-only and MUST NOT modify files.\n"
+        "If the packet includes `Commit under review`, review that implementation commit/range. "
+        "Do not treat a `Packet refresh commit` as implementation unless the packet explicitly says it is the reviewed implementation.\n"
         "You MUST enforce plan alignment using narrow evidence from: ROADMAP.md, PRODUCT_VISION.md, ARCHITECTURE.md, INTEGRATION.md, AGENTS.md.\n"
         "Use bounded reads only: first use `rg -n` for relevant headings/keywords, then read narrow `nl -ba | sed -n '<start>,<end>p'` ranges, normally <=80 lines at a time. "
         "Do not `cat` or full-file Read docs, source files, `.codex`, `.agents`, archives, or logs. "
@@ -2425,7 +2430,10 @@ def process_reviewer_backlog(
             # Approved reviewer notes belong to the integrator path; they are
             # not feature-fixer work and should not consume the one-kick budget.
             continue
-        feature_pkts = sorted((lane_dir / "inbox/feature").glob("*.md"), key=lambda p: p.stat().st_mtime)
+        feature_pkts = sorted(
+            (p for p in (lane_dir / "inbox/feature").glob("*.md") if not p.name.endswith(".shared.md")),
+            key=lambda p: p.stat().st_mtime,
+        )
         if feature_pkts:
             newest_feature = feature_pkts[-1]
             f_sha = _packet_sha(newest_feature.name)

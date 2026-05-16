@@ -406,7 +406,7 @@ def _latest_run() -> Dict[str, Any] | None:
 
 def _lane_counts(lane_dir: Path) -> Dict[str, int]:
     return {
-        "pending": len(list((lane_dir / "inbox/feature").glob("*.md"))),
+        "pending": len([p for p in (lane_dir / "inbox/feature").glob("*.md") if not p.name.endswith(".shared.md")]),
         "review": len(list((lane_dir / "inbox/reviewer").glob("*.md"))),
         "approved": len(list((lane_dir / "outbox/integrator").glob("*.md"))),
     }

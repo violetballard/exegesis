@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import time
+import tempfile
 import unittest
+from pathlib import Path
 
 from codex_packet_handoff.tools.router import (
     RouterConfig,
     _apply_quota_text_safeguard,
     _has_real_quota_signal,
+    list_new,
 )
 
 
@@ -51,6 +54,17 @@ def _router_cfg() -> RouterConfig:
 
 
 class RouterQuotaFallbackTests(unittest.TestCase):
+    def test_list_new_ignores_companion_shared_packets(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            feature_dir = Path(tmpdir) / "inbox" / "feature"
+            feature_dir.mkdir(parents=True)
+            shared = feature_dir / "F__codex-feat-commands__abc1234__20260516T000000Z.shared.md"
+            main = feature_dir / "F__codex-feat-commands__abc1234__20260516T000000Z.md"
+            shared.write_text("shared companion")
+            main.write_text("main feature packet")
+
+            self.assertEqual([path.name for path in list_new(Path(tmpdir), None)], [main.name])
+
     def test_code_like_quota_text_does_not_count_as_real_quota_signal(self) -> None:
         text = '\n'.join(
             [
