@@ -63,3 +63,11 @@ This work makes **"open project/document"** more real. The command-catalog drift
 ### Canonical Demo-Path Step Advanced
 
 Stable CLI command contract for the engine-first path steps covered by `bootstrap`/project-open, `context-basket`/retrieval, and `diff-preview`/patch review. The catalog drift guard ensures the CLI surface and engine dispatch table remain in lockstep so the "open project/document" step executes reliably, with downstream retrieval and patch-review tokens resolving to their canonical engine actions.
+
+## 2026-05-16 Corrected Packet Reissue Trigger
+
+- Reviewer packet: `R__CHANGES__codex-feat-commands__d6b6d1fe0623c471bdf780fc9329916976d5f6e2__20260515T224949Z.md`
+- Required fixes are packet metadata and packet-generation fixes; command implementation remains unchanged.
+- The control plane now emits lane-specific ownership notes for `feat-commands` instead of the stale engine-owned path note.
+- The lane metadata now includes canonical demo-path step labels for each completed task.
+- This branch advances with an evidence-only handoff note so planner can re-emit the same implementation through corrected packet generation.
