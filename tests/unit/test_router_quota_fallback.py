@@ -80,6 +80,7 @@ class RouterQuotaFallbackTests(unittest.TestCase):
             return branch == "codex/feat-commands"
 
         with (
+            tempfile.TemporaryDirectory() as repo,
             mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged),
             mock.patch("codex_packet_handoff.tools.router._latest_reviewed_files_for_lane", return_value=[]),
             mock.patch(
@@ -89,7 +90,7 @@ class RouterQuotaFallbackTests(unittest.TestCase):
         ):
             blockers = _integration_dependency_blockers(
                 cfg,
-                "/repo",
+                repo,
                 "feat-commands",
                 reviewed_files=["src/qual/commands/catalog.py", "tests/unit/test_commands_catalog.py"],
             )
@@ -107,6 +108,7 @@ class RouterQuotaFallbackTests(unittest.TestCase):
             return branch == "codex/feat-commands"
 
         with (
+            tempfile.TemporaryDirectory() as repo,
             mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged),
             mock.patch("codex_packet_handoff.tools.router._latest_reviewed_files_for_lane", return_value=[]),
             mock.patch(
@@ -116,7 +118,7 @@ class RouterQuotaFallbackTests(unittest.TestCase):
         ):
             blockers = _integration_dependency_blockers(
                 cfg,
-                "/repo",
+                repo,
                 "feat-commands",
                 reviewed_files=["src/qual/commands/catalog.py"],
             )
@@ -142,6 +144,7 @@ class RouterQuotaFallbackTests(unittest.TestCase):
             return []
 
         with (
+            tempfile.TemporaryDirectory() as repo,
             mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged),
             mock.patch("codex_packet_handoff.tools.router._latest_reviewed_files_for_lane", side_effect=reviewed_files),
             mock.patch(
@@ -151,7 +154,7 @@ class RouterQuotaFallbackTests(unittest.TestCase):
         ):
             blockers = _integration_dependency_blockers(
                 cfg,
-                "/repo",
+                repo,
                 "feat-retrieval-fts",
                 reviewed_files=["src/qual/retrieval/service.py", "tests/unit/test_unified_retrieval.py"],
             )
