@@ -1,7 +1,7 @@
 {
   "model": "gpt-5.1-codex",
   "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
-  "fallback_model": "qwen3.6-27b",
+  "fallback_model": "gemma-4-31b-it",
   "fallback_codex_cmd": "/opt/homebrew/bin/opencode",
   "fallback_codex_args": [],
   "fallback_model_args": [],
@@ -55,14 +55,14 @@
     "worker_local": {
       "codex_cmd": "/opt/homebrew/bin/opencode",
       "codex_args": [],
-      "model": "qwen3.6-27b",
+      "model": "gemma-4-31b-it",
       "model_args": [],
       "harness": "opencode"
     },
     "worker_local_heavy": {
       "codex_cmd": "/opt/homebrew/bin/opencode",
       "codex_args": [],
-      "model": "qwen3.6-27b",
+      "model": "gemma-4-31b-it",
       "model_args": [],
       "harness": "opencode"
     }
@@ -103,8 +103,8 @@
   "reviewer_timeout": 600,
   "integrator_timeout": 900,
   "max_cloud_fixer_kicks_per_run": 1,
-  "max_local_fixer_kicks_per_run": 1,
-  "max_local_fixer_jobs": 1,
+  "max_local_fixer_kicks_per_run": 2,
+  "max_local_fixer_jobs": 3,
   "lanes": {
     "feat-context-storage": {
       "branch": "codex/feat-context-storage",
