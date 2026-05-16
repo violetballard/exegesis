@@ -980,14 +980,30 @@ def reviewer_prompt(pkt: str) -> str:
         f"Review this feature packet:\n\n{pkt}\n"
     )
 
-def integrator_prompt(approved: str) -> str:
+def integrator_prompt(approved: str, *, feature_packet_path: str = "", feature_packet_text: str = "") -> str:
     packet = _extract_final_verdict_packet(approved)
+    feature_context = ""
+    if feature_packet_text:
+        feature_context = (
+            "\n\nCompanion feature packet with reviewed implementation scope"
+            + (f" (`{feature_packet_path}`)" if feature_packet_path else "")
+            + ":\n\n"
+            + feature_packet_text
+            + "\n"
+        )
     return (
         "You are the INTEGRATOR. You may write to the workspace.\n"
         "Consume this APPROVED packet, perform merge order + post-merge checks, report blockers.\n\n"
+        "Lane priority order is scheduling guidance, not a hard merge blocker. "
+        "Do not block solely because an earlier-priority lane branch is unmerged. "
+        "Only hold this integration when there is a direct file/content overlap or another concrete merge blocker.\n\n"
+        "If the feature branch contains stale broad history, do not merge the whole branch. "
+        "Integrate the narrow reviewed implementation surface from the companion feature packet: use its commit-under-review, "
+        "reviewed file list, and approved shared-test exception to apply only the approved slice.\n\n"
         "Do not run broad recursive searches over `.codex` or `.agents`; those directories contain large historical logs. "
         "If packet evidence is needed, read the specific packet path or use targeted `ls`, `cat`, `tail`, or `rg` commands against named files only.\n\n"
-        f"{packet}\n"
+        f"{packet}"
+        f"{feature_context}\n"
     )
 
 
@@ -1789,13 +1805,20 @@ def _prepare_cli_integrator_result(
         state[jobs_key] = jobs
         return False, "", state
 
+    lane_dir = pkt.parents[2] if len(pkt.parents) > 2 else ensure_lane_dirs(lane)
+    feature_packet = _feature_packet_for_approval(lane_dir, pkt)
+    feature_packet_text = feature_packet.read_text(errors="ignore") if feature_packet else ""
     jobs[job_key] = _spawn_detached_cli_job(
         role="integrator",
         cfg=cfg,
         repo_cwd=repo_cwd,
         lane=lane,
         packet_name=pkt.name,
-        prompt=integrator_prompt(approved_text),
+        prompt=integrator_prompt(
+            approved_text,
+            feature_packet_path=str(feature_packet) if feature_packet else "",
+            feature_packet_text=feature_packet_text,
+        ),
         sandbox="workspace-write",
         timeout_seconds=cfg.integrator_timeout,
         local=local,

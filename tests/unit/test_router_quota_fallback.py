@@ -12,6 +12,7 @@ from codex_packet_handoff.tools.router import (
     _integration_dependency_blockers,
     _reviewed_files_for_integrator_packet,
     _has_real_quota_signal,
+    integrator_prompt,
     list_new,
 )
 
@@ -150,6 +151,22 @@ class RouterQuotaFallbackTests(unittest.TestCase):
             files,
             ["src/qual/commands/catalog.py", "tests/unit/test_commands_catalog.py"],
         )
+
+    def test_integrator_prompt_allows_independent_later_lane_integration(self) -> None:
+        prompt = integrator_prompt(
+            "## Verdict: APPROVED\n",
+            feature_packet_path=".codex/packets/lanes/feat-commands/archive/F__demo.md",
+            feature_packet_text=(
+                "## Files changed\n"
+                "- `src/qual/commands/catalog.py`\n"
+                "- `tests/unit/test_commands_catalog.py`\n"
+            ),
+        )
+
+        self.assertIn("not a hard merge blocker", prompt)
+        self.assertIn("Do not block solely because an earlier-priority lane branch is unmerged", prompt)
+        self.assertIn("Integrate the narrow reviewed implementation surface", prompt)
+        self.assertIn("src/qual/commands/catalog.py", prompt)
 
     def test_code_like_quota_text_does_not_count_as_real_quota_signal(self) -> None:
         text = '\n'.join(
