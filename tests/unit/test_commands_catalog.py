@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
+# Import the module directly for cache-clearing and drift patching assertions.
 import src.qual.commands.catalog as command_catalog
 from src.qual.commands import (
     CommandSpec,
