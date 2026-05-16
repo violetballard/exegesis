@@ -92,3 +92,24 @@ Stable CLI command contract for the engine-first path steps covered by `bootstra
 ### Canonical Demo-Path Step Advanced
 
 Stable CLI control surface for the canonical engine loop. This recheck preserves the command contract that supports open project/document, retrieve relevant material, gather context into the basket, preview/apply or reject a patch, and persist handoff state without changing runtime behavior.
+
+## 2026-05-16 Integrator Handback Recheck II
+
+- Reviewer packet: `fixer__feat-commands__20260516T200416Z.prompt.txt`
+- Approval packet: `R__APPROVED__codex-feat-commands__f2cd1e85ce66417ef89594731cabb64d49a23168__20260516T195738Z.md`
+- Required fix 1: reproduced the reported integration condition from the captured output. The integrator did not report a command-code failure, merge conflict, or failing gate; it reported a blocked/no-op integration because the approved two-file implementation was already patch-equivalent on `main` as `eda0197b8 merge: consume approved feat-commands f8d860ed`.
+- Required fix 2: no runtime command-code change was needed. The lane worktree re-ran the integration gates cleanly, confirming the blocker is the empty already-integrated cherry-pick state rather than a failing command implementation.
+- Required fix 3: this evidence-only commit advances branch HEAD so the control plane can emit a fresh feature packet for review without editing hidden `.codex` metadata from the fixer.
+
+### Gate Results
+
+- `make scope-check`: passed
+- `./quality-format.sh --check`: passed
+- `./quality-lint.sh`: passed
+- `./quality-test.sh`: passed, 491 tests run, 1 skipped
+- `./typecheck-test.sh`: passed
+- `make ci`: passed, 491 tests run, 1 skipped
+
+### Canonical Demo-Path Step Advanced
+
+Stable CLI control surface for the canonical engine loop. This recheck preserves the command contract that supports open project/document, retrieve relevant material, gather context into the basket, preview/apply or reject a patch, and persist handoff state without changing runtime behavior.
