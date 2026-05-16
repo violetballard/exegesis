@@ -93,7 +93,7 @@ is_allowed() {
       handoff/*|handoff.block/*|handoffs/*)
         return 0
         ;;
-      THREAD.md|THREAD_PACKET.md|AGENTS.md|INTEGRATION.md)
+      THREAD.md|THREAD_PACKET.md|THREAD_OWNERSHIP.md|AGENTS.md|INTEGRATION.md)
         return 0
         ;;
       .gitignore|scripts/scope-check.sh|foo.txt|foo.lock|tmp_check.txt|tmpfile.md)
