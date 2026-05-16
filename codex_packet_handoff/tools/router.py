@@ -371,10 +371,86 @@ def _branch_merged_to_head(repo_cwd: str, branch: str) -> bool:
     return proc.returncode == 0
 
 
-def _integration_dependency_blockers(cfg: RouterConfig, repo_cwd: str, lane: str) -> List[str]:
+def _branch_changed_files(repo_cwd: str, branch: str) -> List[str]:
+    try:
+        base = subprocess.run(
+            ["git", "merge-base", "HEAD", branch],
+            cwd=repo_cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            check=False,
+        )
+        if base.returncode != 0:
+            return []
+        proc = subprocess.run(
+            ["git", "diff", "--name-only", f"{base.stdout.strip()}..{branch}"],
+            cwd=repo_cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            check=False,
+        )
+    except Exception:
+        return []
+    if proc.returncode != 0:
+        return []
+    return [line.strip() for line in (proc.stdout or "").splitlines() if line.strip()]
+
+
+def _parse_packet_file_list(text: str) -> List[str]:
+    files: List[str] = []
+    in_files = False
+    for raw_line in (text or "").splitlines():
+        line = raw_line.strip()
+        lowered = line.lower()
+        if lowered in {"## files changed", "### reviewed implementation files"}:
+            in_files = True
+            continue
+        if in_files and line.startswith("#") and lowered not in {"### reviewed implementation files"}:
+            break
+        if not in_files or not line.startswith("- "):
+            continue
+        item = line[2:].strip()
+        item = item.strip("`")
+        if item and not item.startswith("#") and "/" in item:
+            files.append(item)
+    return files
+
+
+def _feature_packet_for_approval(lane_dir: Path, approval_packet: Path) -> Optional[Path]:
+    sha = _packet_sha(approval_packet.name)
+    if not sha:
+        return None
+    candidates = [
+        p for p in lane_dir.rglob(f"F__*{sha}*.md")
+        if not p.name.endswith(".shared.md")
+    ]
+    if not candidates:
+        return None
+    candidates.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+    return candidates[0]
+
+
+def _reviewed_files_for_integrator_packet(lane_dir: Path, approval_packet: Path, approved_text: str) -> List[str]:
+    feature_packet = _feature_packet_for_approval(lane_dir, approval_packet)
+    if feature_packet:
+        files = _parse_packet_file_list(feature_packet.read_text(errors="ignore"))
+        if files:
+            return files
+    return _parse_packet_file_list(approved_text)
+
+
+def _integration_dependency_blockers(
+    cfg: RouterConfig,
+    repo_cwd: str,
+    lane: str,
+    reviewed_files: Optional[List[str]] = None,
+) -> List[str]:
     if lane not in INTEGRATION_DEPENDENCY_ORDER:
         return []
     blockers: List[str] = []
+    reviewed_set = set(reviewed_files or [])
     for prior_lane in INTEGRATION_DEPENDENCY_ORDER:
         if prior_lane == lane:
             break
@@ -382,7 +458,13 @@ def _integration_dependency_blockers(cfg: RouterConfig, repo_cwd: str, lane: str
         if not bool(lane_cfg.get("enabled", True)):
             continue
         branch = str(lane_cfg.get("branch") or f"codex/{prior_lane}")
-        if branch and not _branch_merged_to_head(repo_cwd, branch):
+        if not branch or _branch_merged_to_head(repo_cwd, branch):
+            continue
+        if reviewed_set:
+            prior_files = set(_branch_changed_files(repo_cwd, branch))
+            if reviewed_set.isdisjoint(prior_files):
+                continue
+        if branch:
             blockers.append(prior_lane)
     return blockers
 
@@ -2564,11 +2646,12 @@ def process_integrator_backlog(
     for _, _lane, lane_dir, pkt in approvals:
         if processed >= cfg.max_packets_per_run:
             break
-        blockers = _integration_dependency_blockers(cfg, repo_cwd, _lane)
+        approved_text = pkt.read_text()
+        reviewed_files = _reviewed_files_for_integrator_packet(lane_dir, pkt, approved_text)
+        blockers = _integration_dependency_blockers(cfg, repo_cwd, _lane, reviewed_files=reviewed_files)
         if blockers:
             print(f"[router] holding integrator packet for {_lane}; waiting on prior lane(s): {', '.join(blockers)}")
             continue
-        approved_text = pkt.read_text()
         archive_hint = list((lane_dir / "archive").glob(f"INTEGRATOR__*{_packet_sha(pkt.name)}*.md"))
         if archive_hint:
             archive_hint.sort(key=lambda p: p.stat().st_mtime)

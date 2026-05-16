@@ -10,6 +10,7 @@ from codex_packet_handoff.tools.router import (
     RouterConfig,
     _apply_quota_text_safeguard,
     _integration_dependency_blockers,
+    _reviewed_files_for_integrator_packet,
     _has_real_quota_signal,
     list_new,
 )
@@ -67,7 +68,7 @@ class RouterQuotaFallbackTests(unittest.TestCase):
 
             self.assertEqual([path.name for path in list_new(Path(tmpdir), None)], [main.name])
 
-    def test_integration_dependency_blockers_hold_later_engine_lanes(self) -> None:
+    def test_integration_dependency_blockers_allow_independent_later_lane(self) -> None:
         cfg = _router_cfg()
         cfg.lanes = {
             "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
@@ -77,10 +78,78 @@ class RouterQuotaFallbackTests(unittest.TestCase):
         def merged(_repo_cwd: str, branch: str) -> bool:
             return branch == "codex/feat-commands"
 
-        with mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged):
-            blockers = _integration_dependency_blockers(cfg, "/repo", "feat-commands")
+        with (
+            mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged),
+            mock.patch(
+                "codex_packet_handoff.tools.router._branch_changed_files",
+                return_value=["src/qual/storage/session.py"],
+            ),
+        ):
+            blockers = _integration_dependency_blockers(
+                cfg,
+                "/repo",
+                "feat-commands",
+                reviewed_files=["src/qual/commands/catalog.py", "tests/unit/test_commands_catalog.py"],
+            )
+
+        self.assertEqual(blockers, [])
+
+    def test_integration_dependency_blockers_hold_direct_file_overlap(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+            "feat-commands": {"branch": "codex/feat-commands", "enabled": True},
+        }
+
+        def merged(_repo_cwd: str, branch: str) -> bool:
+            return branch == "codex/feat-commands"
+
+        with (
+            mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged),
+            mock.patch(
+                "codex_packet_handoff.tools.router._branch_changed_files",
+                return_value=["src/qual/commands/catalog.py"],
+            ),
+        ):
+            blockers = _integration_dependency_blockers(
+                cfg,
+                "/repo",
+                "feat-commands",
+                reviewed_files=["src/qual/commands/catalog.py"],
+            )
 
         self.assertEqual(blockers, ["feat-context-storage"])
+
+    def test_reviewed_files_for_integrator_packet_reads_companion_feature_packet(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            lane_dir = Path(tmpdir)
+            archive_dir = lane_dir / "archive"
+            outbox_dir = lane_dir / "outbox" / "integrator"
+            archive_dir.mkdir(parents=True)
+            outbox_dir.mkdir(parents=True)
+            approval = outbox_dir / "R__APPROVED__codex-feat-commands__abc1234567890abcdef__20260516T000000Z.md"
+            feature = archive_dir / "F__codex-feat-commands__abc1234567890abcdef__20260516T000000Z.md"
+            approval.write_text("## Verdict: APPROVED\n")
+            feature.write_text(
+                "\n".join(
+                    [
+                        "## Files changed",
+                        "### Reviewed implementation files",
+                        "- `src/qual/commands/catalog.py`",
+                        "- `tests/unit/test_commands_catalog.py`",
+                        "",
+                        "## Commands run and outcomes",
+                        "- `make ci`: PASS",
+                    ]
+                )
+            )
+
+            files = _reviewed_files_for_integrator_packet(lane_dir, approval, approval.read_text())
+
+        self.assertEqual(
+            files,
+            ["src/qual/commands/catalog.py", "tests/unit/test_commands_catalog.py"],
+        )
 
     def test_code_like_quota_text_does_not_count_as_real_quota_signal(self) -> None:
         text = '\n'.join(
