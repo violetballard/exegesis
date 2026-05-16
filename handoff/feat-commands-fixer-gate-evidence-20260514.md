@@ -134,3 +134,24 @@ Stable CLI control surface for the canonical engine loop. This recheck preserves
 ### Canonical Demo-Path Step Advanced
 
 Stable CLI control surface for the canonical engine loop. This recheck preserves the command contract that supports open project/document, retrieve relevant material, gather context into the basket, preview/apply or reject a patch, and persist handoff state without changing runtime behavior.
+
+## 2026-05-16 Duplicate Integrator Handback Recheck III
+
+- Reviewer packet: `fixer__feat-commands__20260516T202811Z.prompt.txt`
+- Approval packet: `R__APPROVED__codex-feat-commands__b2f58647fcc356d204e3b88f78b626b0acab851d__20260516T201941Z.md`
+- Required fix 1: reproduced the reported integration condition locally without changing branches. The reviewed implementation commit `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` has no diff against `main` for `src/qual/commands/catalog.py` or `tests/unit/test_commands_catalog.py`, matching the integrator output that the cherry-pick was empty because `main` already contained the approved slice.
+- Required fix 2: no command implementation failure, merge conflict, or failing integration gate was present. The lane worktree gates all passed again on `codex/feat-commands`.
+- Required fix 3: this evidence-only commit advances branch HEAD so the control plane can emit a fresh feature packet for review without editing hidden `.codex` metadata from the sandboxed fixer.
+
+### Gate Results
+
+- `make scope-check`: passed
+- `./quality-format.sh --check`: passed
+- `./quality-lint.sh`: passed
+- `./quality-test.sh`: passed, 491 tests run, 1 skipped
+- `./typecheck-test.sh`: passed
+- `make ci`: passed, 491 tests run, 1 skipped
+
+### Canonical Demo-Path Step Advanced
+
+Stable CLI control surface for the canonical engine loop. This recheck preserves the command contract that supports open project/document, retrieve relevant material, gather context into the basket, preview/apply or reject a patch, and persist handoff state without changing runtime behavior.
