@@ -622,6 +622,13 @@ def _split_files(lane: str, files: List[str]) -> Tuple[List[str], List[str]]:
     return owned_files, shared_files
 
 
+def _owned_path_note(lane: str) -> str:
+    patterns = LANE_OWNED_PATHS.get(lane, [])
+    if not patterns:
+        return "(no lane-owned paths configured)"
+    return ", ".join(f"`{pattern}`" for pattern in patterns)
+
+
 def build_packet(
     lane: str,
     branch: str,
@@ -721,11 +728,11 @@ def build_packet(
     lines += ["## Scope-check / ownership note", f"- Shared/integrator-locked edits: `{'YES' if shared_file_exception else 'NO'}`"]
     if shared_file_exception:
         lines += [
-            "- Ownership note: lane packet is limited to `src/qual/engine/**` and its direct tests; approved shared handoff-maintenance artifacts are recorded in the companion shared packet.",
+            f"- Ownership note: lane packet is limited to {_owned_path_note(lane)}; approved shared handoff-maintenance artifacts are recorded in the companion shared packet.",
             "- Approval note: " + (str(meta.get("approved_exception_note", "")).strip() or "(missing approval note)"),
         ]
     else:
-        lines += ["- Ownership note: lane packet is limited to `src/qual/engine/**` and its direct tests."]
+        lines += [f"- Ownership note: lane packet is limited to {_owned_path_note(lane)}."]
     lines += [""]
     return "\n".join(lines)
 
@@ -750,14 +757,14 @@ def build_shared_packet(
     lines += ["## Scope goal", f"- {str(meta.get('scope_goal','')).strip() or '(missing)'}", ""]
     lines += ["## Scope completed", f"- {str(meta.get('scope_completed','')).strip() or '(missing)'}", ""]
     lines += ["## Handoff Alignment"]
-    lines += ["- Scope completed: shared handoff-maintenance edits are recorded separately from the lane-only `src/qual/engine/**` feature packet."]
+    lines += [f"- Scope completed: shared handoff-maintenance edits are recorded separately from the lane-only {_owned_path_note(lane)} feature packet."]
     lines += ["- Roadmap item(s) affected (from `ROADMAP.md`): " + ", ".join(str(x) for x in (meta.get("roadmap_items") or []))]
     lines += ["- Vision capability affected (from `PRODUCT_VISION.md`): " + "; ".join(str(x) for x in (meta.get("vision_capabilities") or []))]
     lines += ["- Shared/integrator-locked edits: `YES`"]
     lines += ["- Approval note: " + (str(meta.get("approved_exception_note", "")).strip() or "(missing approval note)")]
     if companion_lane_packet:
         lines += ["- Companion lane packet: " + companion_lane_packet]
-    lines += ["- Ownership note: these files sit outside lane-owned `src/qual/engine/**` and are captured here so the primary engine packet remains lane-only."]
+    lines += [f"- Ownership note: these files sit outside lane-owned {_owned_path_note(lane)} and are captured here so the primary lane packet remains lane-only."]
     lines += ["- Tasks completed:"]
     tasks = list(meta.get("tasks_completed") or [])
     lines += [f"  {i+1}. {str(task).strip()}" for i, task in enumerate(tasks)] if tasks else ["  1. (missing)"]

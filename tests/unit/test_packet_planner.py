@@ -64,7 +64,12 @@ class PacketPlannerTests(unittest.TestCase):
         self.assertIn("`tests/unit/test_bulk_draft_routing.py`", packet)
         self.assertIn("`tests/unit/test_engine_run_pipeline.py`", packet)
         self.assertIn("- Shared/integrator-locked edits: `NO`", packet)
-        self.assertIn("- Ownership note: lane packet is limited to `src/qual/engine/**` and its direct tests.", packet)
+        self.assertIn("- Ownership note: lane packet is limited to `src/qual/engine/**`", packet)
+        self.assertIn("`tests/unit/test_engine_run_pipeline.py`", packet)
+        self.assertNotIn(
+            "- Ownership note: lane packet is limited to `src/qual/engine/**` and its direct tests.",
+            packet,
+        )
         self.assertNotIn("## Approved exception note", packet)
         self.assertNotIn("### Approved shared/integrator-locked files", packet)
 
@@ -108,8 +113,9 @@ class PacketPlannerTests(unittest.TestCase):
         )
         self.assertIn("- Companion shared packet: .codex/kickoff_packets/feat-engine-runs.shared.md", packet)
         self.assertIn("- Shared/integrator-locked edits: `YES`", packet)
+        self.assertIn("- Ownership note: lane packet is limited to `src/qual/engine/**`", packet)
         self.assertIn(
-            "- Ownership note: lane packet is limited to `src/qual/engine/**` and its direct tests; approved shared handoff-maintenance artifacts are recorded in the companion shared packet.",
+            "approved shared handoff-maintenance artifacts are recorded in the companion shared packet.",
             packet,
         )
         self.assertNotIn("### Approved shared/integrator-locked files", packet)
@@ -149,10 +155,9 @@ class PacketPlannerTests(unittest.TestCase):
         )
 
         self.assertIn("## Handoff Alignment", packet)
-        self.assertIn(
-            "- Scope completed: shared handoff-maintenance edits are recorded separately from the lane-only `src/qual/engine/**` feature packet.",
-            packet,
-        )
+        self.assertIn("- Scope completed: shared handoff-maintenance edits are recorded separately from the lane-only", packet)
+        self.assertIn("`src/qual/engine/**`", packet)
+        self.assertIn("`tests/unit/test_engine_run_pipeline.py` feature packet.", packet)
         self.assertIn("- Shared/integrator-locked edits: `YES`", packet)
         self.assertIn(
             "- Approval note: Approved shared/integrator-locked handoff maintenance is recorded in the companion shared packet.",
