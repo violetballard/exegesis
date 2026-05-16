@@ -71,3 +71,24 @@ Stable CLI command contract for the engine-first path steps covered by `bootstra
 - The control plane now emits lane-specific ownership notes for `feat-commands` instead of the stale engine-owned path note.
 - The lane metadata now includes canonical demo-path step labels for each completed task.
 - This branch advances with an evidence-only handoff note so planner can re-emit the same implementation through corrected packet generation.
+
+## 2026-05-16 Integrator Handback Recheck
+
+- Reviewer packet: `R__CHANGES__codex-feat-commands__eec030e17958c1e3097974f7aa1cabaa3acfaaa1__20260516T195443Z.md`
+- Approval packet: `R__APPROVED__codex-feat-commands__eec030e17958c1e3097974f7aa1cabaa3acfaaa1__20260516T193422Z.md`
+- Required fix 1: reproduced the integration inputs by rerunning the lane gates on branch `codex/feat-commands` at `eec030e17958c1e3097974f7aa1cabaa3acfaaa1`; no local gate failure or merge conflict reproduced.
+- Required fix 2: no command-code change was needed because the integration output reported a patch-empty integration with matching approved files and all post-merge checks passing.
+- Required fix 3: this evidence-only commit advances branch HEAD so the control plane can emit a fresh feature packet for review without editing hidden `.codex` metadata from the fixer.
+
+### Gate Results
+
+- `make scope-check`: passed
+- `./quality-format.sh --check`: passed
+- `./quality-lint.sh`: passed
+- `./quality-test.sh`: passed, 491 tests run, 1 skipped
+- `./typecheck-test.sh`: passed
+- `make ci`: passed, 491 tests run, 1 skipped
+
+### Canonical Demo-Path Step Advanced
+
+Stable CLI control surface for the canonical engine loop. This recheck preserves the command contract that supports open project/document, retrieve relevant material, gather context into the basket, preview/apply or reject a patch, and persist handoff state without changing runtime behavior.
