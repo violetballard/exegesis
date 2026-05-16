@@ -53,7 +53,7 @@ The operator workflow has two access paths:
 2. Remote VPN access
    - Use `remote_monitor_client.py` with `QUAL_MONITOR_URL` and `QUAL_MONITOR_TOKEN`.
    - This path is only for home/Codex access over the split-tunnel VPN or for a thin remote operator shell.
-   - Remote controls are intentionally limited to status, start, stop, pause, resume, and kick.
+   - Remote controls are intentionally limited to status, start, stop, and kick.
 
 Skills and operator runbooks should choose the path this way:
 
@@ -114,13 +114,6 @@ Control endpoints:
 - `POST /api/control/stop`
   - runs `daemon_ctl.py stop`
   - may terminate daemon workers the same way local stop does
-- `POST /api/control/pause`
-  - writes `.codex/packet_coordinator/pause.json`
-  - daemon stops launching new planner/router/feature work
-  - active workers are not killed
-- `POST /api/control/resume`
-  - removes pause flag
-  - writes a kick request so the daemon reconciles promptly
 - `POST /api/control/kick`
   - writes `.codex/packet_coordinator/kick.json`
   - daemon consumes it on the next loop and records the request
@@ -148,7 +141,6 @@ Control response includes:
 Status snapshots may include:
 
 - daemon running state
-- pause state
 - runtime mode
 - cloud availability
 - local/cloud active job counts
@@ -170,20 +162,7 @@ Snapshots must not include:
 - full workspace paths
 - arbitrary file contents
 
-## Pause And Kick Semantics
-
-Pause is a first-class daemon state:
-
-- stored at `.codex/packet_coordinator/pause.json`
-- visible in remote status snapshots
-- prevents new coordinator work cycles from launching planner/router/feature work
-- does not kill active workers
-
-Resume:
-
-- removes the pause file
-- records a kick request
-- allows the next daemon loop to resume normal scheduling
+## Kick Semantics
 
 Kick:
 
@@ -191,6 +170,7 @@ Kick:
 - does not bypass the coordinator lease
 - does not duplicate active jobs
 - does not run git mutation commands
+- does not stage, commit, push, edit packets, or execute arbitrary shell commands
 
 ## Local Files
 
@@ -210,12 +190,11 @@ Untracked runtime files:
 - `.codex/remote_monitor/token`
 - `.codex/remote_monitor/server.pid`
 - `.codex/remote_monitor/server.log`
-- `.codex/packet_coordinator/pause.json`
 - `.codex/packet_coordinator/kick.json`
 
 ## Phone Shortcuts
 
-The simplest mobile operator surface is a folder of iOS Shortcuts that call the authenticated remote monitor endpoints over VPN. Keep these shortcuts limited to status, start, stop, pause, resume, and kick. The paste-ready recipes live in `docs/remote_monitoring/iphone_shortcuts.md`.
+The simplest mobile operator surface is a folder of iOS Shortcuts that call the authenticated remote monitor endpoints over VPN. Keep these shortcuts limited to status, start, stop, and kick. The paste-ready recipes live in `docs/remote_monitoring/iphone_shortcuts.md`.
 
 ## Operator Commands
 
@@ -265,8 +244,6 @@ If the local check works, prefer the local scripts. If it fails in a VPN/home co
 Control examples:
 
 ```sh
-python codex_packet_handoff/tools/remote_monitor_client.py pause --reason "leaving machine idle"
-python codex_packet_handoff/tools/remote_monitor_client.py resume --reason "back online"
 python codex_packet_handoff/tools/remote_monitor_client.py kick --reason "unstick queue"
 ```
 
@@ -279,8 +256,8 @@ python codex_packet_handoff/tools/remote_monitor_client.py kick --reason "unstic
 - Hung `daemon_monitor.py` cannot hang status generation.
 - `start` invokes only `daemon_ctl.py start`.
 - `stop` invokes only `daemon_ctl.py stop`.
-- `pause` prevents new work cycles while preserving active workers.
-- `resume` clears pause and writes a kick request.
+- `start` starts the daemon when it is stopped.
+- `stop` stops the daemon and tracked workers.
 - `kick` writes a wake request without direct git mutation.
 - Control requests are serialized.
 - No route can stage, commit, push, edit packets, or run arbitrary shell commands.

@@ -17,8 +17,8 @@ Run from repo root:
 
 Access path selection:
 - If local scripts exist, use the direct resume/status workflow above.
-- If this session is remote over VPN and local scripts are unavailable, use `python codex_packet_handoff/tools/remote_monitor_client.py resume`, then `... status` or `... full`.
-- Remote resume clears the pause flag and requests a fresh reconcile cycle; it does not run arbitrary local scripts.
+- If this session is remote over VPN and local scripts are unavailable, use `python codex_packet_handoff/tools/remote_monitor_client.py start`, then `python codex_packet_handoff/tools/remote_monitor_client.py kick` if a fresh reconcile is needed, followed by `... status` or `... full`.
+- Remote start and kick are the only remote equivalents; they do not run arbitrary local scripts.
 - Local `remote_monitor_ctl.py start/status` only manages the phone/VPN monitor process. It is not the remote HTTP status path.
 
 CLI-first note:

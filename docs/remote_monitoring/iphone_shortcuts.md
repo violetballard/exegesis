@@ -1,6 +1,6 @@
 # iPhone Remote Monitor Shortcuts
 
-These are paste-ready recipes for a folder of iOS Shortcuts that talk to the `qual` remote monitor over VPN. They are intentionally tiny: status, pause, resume, kick, start, and stop. No remote commits, no packet editing, no arbitrary shell.
+These are paste-ready recipes for a folder of iOS Shortcuts that talk to the `qual` remote monitor over VPN. They are intentionally tiny: status, kick, start, and stop. No remote commits, no packet editing, no arbitrary shell.
 
 ## Setup
 
@@ -83,71 +83,7 @@ Headers:
 
 Expected result: sanitized JSON only. It must not expose raw logs, prompts, env vars, tokens, full command lines, or packet bodies.
 
-## Shortcut 3: Exegesis Pause
-
-Purpose: stop launching new work while letting active workers finish.
-
-Shortcut actions:
-
-1. `Text`
-
-```json
-{"operator":"iphone","reason":"paused from phone"}
-```
-
-2. `URL`
-
-```text
-MONITOR_BASE_URL/api/control/pause
-```
-
-3. `Get Contents of URL`
-
-```text
-Method: POST
-Request Body: File
-File: Text from step 1
-Headers:
-  Authorization: Bearer MONITOR_TOKEN
-  Content-Type: application/json
-  Accept: application/json
-```
-
-4. `Show Result`
-
-## Shortcut 4: Exegesis Resume
-
-Purpose: resume scheduling and request a fresh reconcile cycle.
-
-Shortcut actions:
-
-1. `Text`
-
-```json
-{"operator":"iphone","reason":"resumed from phone"}
-```
-
-2. `URL`
-
-```text
-MONITOR_BASE_URL/api/control/resume
-```
-
-3. `Get Contents of URL`
-
-```text
-Method: POST
-Request Body: File
-File: Text from step 1
-Headers:
-  Authorization: Bearer MONITOR_TOKEN
-  Content-Type: application/json
-  Accept: application/json
-```
-
-4. `Show Result`
-
-## Shortcut 5: Exegesis Kick
+## Shortcut 3: Exegesis Kick
 
 Purpose: ask the coordinator to reconcile promptly without starting a new remote shell or doing any git mutation.
 
@@ -179,7 +115,7 @@ Headers:
 
 4. `Show Result`
 
-## Shortcut 6: Exegesis Start
+## Shortcut 4: Exegesis Start
 
 Purpose: start the daemon if it is down.
 
@@ -211,7 +147,7 @@ Headers:
 
 4. `Show Result`
 
-## Shortcut 7: Exegesis Stop
+## Shortcut 5: Exegesis Stop
 
 Purpose: stop the daemon when the machine needs to cool down or you see runaway pressure.
 
@@ -278,8 +214,6 @@ Put these in one folder or widget stack:
 ```text
 Exegesis Status
 Exegesis Kick
-Exegesis Pause
-Exegesis Resume
 Exegesis Start
 Exegesis Stop
 Exegesis Full Status

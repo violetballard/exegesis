@@ -68,7 +68,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Remote client for qual daemon monitor/control.")
     parser.add_argument(
         "action",
-        choices=["status", "text", "full", "health", "start", "stop", "pause", "resume", "kick"],
+        choices=["status", "text", "full", "health", "start", "stop", "kick"],
         nargs="?",
         default="status",
     )

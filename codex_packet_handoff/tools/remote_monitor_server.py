@@ -28,7 +28,6 @@ REMOTE_ROOT = REPO_ROOT / ".codex/remote_monitor"
 DEFAULT_CONFIG = REMOTE_ROOT / "config.json"
 DEFAULT_TOKEN_FILE = REMOTE_ROOT / "token"
 COORD_ROOT = REPO_ROOT / ".codex/packet_coordinator"
-PAUSE_FILE = COORD_ROOT / "pause.json"
 KICK_FILE = COORD_ROOT / "kick.json"
 DAEMON_CTL = [sys.executable, "codex_packet_handoff/tools/daemon_ctl.py"]
 COORDINATOR_ONCE = [sys.executable, "codex_packet_handoff/tools/agents_coordinator.py", "--once", "--max-cycles", "1"]
@@ -38,8 +37,6 @@ SNAPSHOT_TTL_SECONDS = 10.0
 CONTROL_ROUTES = {
     "/api/control/start": "start",
     "/api/control/stop": "stop",
-    "/api/control/pause": "pause",
-    "/api/control/resume": "resume",
     "/api/control/kick": "kick",
 }
 
@@ -204,32 +201,6 @@ def _invalidate_snapshot() -> None:
         _cached_snapshot_ts = 0.0
 
 
-def _pause(operator: str, reason: str) -> Dict[str, Any]:
-    payload = {
-        "paused": True,
-        "operator": operator,
-        "reason": reason or "remote pause requested",
-        "updated_at": utc_now(),
-    }
-    write_json(PAUSE_FILE, payload)
-    return {"rc": 0, "output": ["paused"], "timed_out": False}
-
-
-def _resume(operator: str, reason: str) -> Dict[str, Any]:
-    if PAUSE_FILE.exists():
-        PAUSE_FILE.unlink()
-    write_json(
-        KICK_FILE,
-        {
-            "operator": operator,
-            "reason": reason or "remote resume requested",
-            "requested_at": utc_now(),
-            "action": "resume",
-        },
-    )
-    return {"rc": 0, "output": ["resumed", "kick requested"], "timed_out": False}
-
-
 def _kick(operator: str, reason: str) -> Dict[str, Any]:
     write_json(
         KICK_FILE,
@@ -244,17 +215,13 @@ def _kick(operator: str, reason: str) -> Dict[str, Any]:
 
 
 def run_control_action(action: str, *, operator: str, reason: str = "") -> Dict[str, Any]:
-    if action not in {"start", "stop", "pause", "resume", "kick"}:
+    if action not in {"start", "stop", "kick"}:
         return {"rc": 2, "output": ["unsupported action"], "timed_out": False}
     with _control_lock:
         if action == "start":
             result = _run_control_command([*DAEMON_CTL, "start"])
         elif action == "stop":
             result = _run_control_command([*DAEMON_CTL, "stop"], timeout=60.0)
-        elif action == "pause":
-            result = _pause(operator, reason)
-        elif action == "resume":
-            result = _resume(operator, reason)
         else:
             result = _kick(operator, reason)
         _invalidate_snapshot()
