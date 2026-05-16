@@ -201,6 +201,9 @@ class OfflineIntegratorGuardTests(unittest.TestCase):
 
 
 class LocalFallbackDetachedJobTests(unittest.TestCase):
+    def test_branch_head_sha_returns_empty_for_missing_fixture_repo(self) -> None:
+        self.assertEqual(router._branch_head_sha("/repo", "codex/feat-commands"), "")
+
     def test_process_once_queues_detached_local_reviewer_job(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             lane_dir = Path(tmp)

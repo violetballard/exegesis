@@ -307,6 +307,8 @@ def _packet_sha(name: str) -> str:
 
 
 def _branch_head_sha(repo_cwd: str, branch: str) -> str:
+    if not Path(repo_cwd).exists():
+        return ""
     try:
         proc = subprocess.run(
             ["git", "rev-parse", branch],
