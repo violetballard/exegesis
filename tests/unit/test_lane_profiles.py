@@ -89,7 +89,6 @@ class LaneProfileDefaultsTests(unittest.TestCase):
         self.assertIn("- Packet refresh commit: `refreshsha`", packet)
         self.assertIn("- Packet refresh role: `metadata-only reviewer-fix finalization`", packet)
         self.assertIn("- Reviewed implementation range: `base..implsha`", packet)
-        self.assertIn("review the implementation at `implsha`", packet)
         self.assertIn("## Packet traceability note", packet)
         self.assertIn("### Reviewed implementation files", packet)
         self.assertIn("### Metadata-only handoff files", packet)

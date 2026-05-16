@@ -10,6 +10,7 @@ from unittest.mock import patch
 
 from codex_packet_handoff.tools import local_codex_runtime
 from codex_packet_handoff.tools import offline_handoff_probe, router, setup as setup_mod
+from codex_packet_handoff.tools.planner import build_packet
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = REPO_ROOT / "tests" / "fixtures" / "offline_handoff"
@@ -151,6 +152,45 @@ class OfflineReviewerGuardTests(unittest.TestCase):
         self.assertIsNotNone(retry_at)
         self.assertFalse(router._expired_explicit_quota_retry(text, now=float(retry_at) - 1))
         self.assertTrue(router._expired_explicit_quota_retry(text, now=float(retry_at) + 1))
+
+    def test_integrator_blocker_text_does_not_count_as_real_quota_signal(self) -> None:
+        text = "\n".join(
+            [
+                "Integration report for `feat-commands`:",
+                "Failure reason: integrator reported blocked/no integration performed",
+                "Blocker: `quality-test` and `make ci` fail on control-plane tests.",
+            ]
+        )
+
+        self.assertFalse(router._has_real_quota_signal(text))
+
+    def test_metadata_only_packet_preserves_reviewed_commit_instruction(self) -> None:
+        packet = build_packet(
+            "feat-retrieval-fts",
+            "codex/feat-retrieval-fts",
+            "refreshsha",
+            {
+                "scope_goal": "Refresh the retrieval handoff packet against the reviewed implementation slice.",
+                "scope_completed": "Re-pointed the handoff to the actual reviewed retrieval implementation.",
+                "tasks_completed": ["Updated the packet traceability and reviewed file list."],
+                "roadmap_items": ["Milestone 3: Real workflow loop"],
+                "vision_capabilities": ["Retrieval-first context handling"],
+                "routing_provider_impact": "None",
+                "reviewed_commit": "implsha",
+                "reviewed_commit_range": "base..implsha",
+                "packet_head_role": "metadata-only reviewer-fix finalization",
+                "metadata_only_note": (
+                    "The current branch tip is a docs-only packet refresh; "
+                    "review the implementation at `implsha`."
+                ),
+                "reviewed_files": ["src/qual/retrieval/service.py"],
+                "metadata_only_files": ["THREAD_PACKET.md"],
+            },
+            ["THREAD_PACKET.md"],
+            [("make scope-check", 0)],
+        )
+
+        self.assertIn("review the implementation at `implsha`", packet)
 
 
 class OfflineIntegratorGuardTests(unittest.TestCase):
