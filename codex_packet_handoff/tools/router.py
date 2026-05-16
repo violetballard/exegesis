@@ -432,6 +432,25 @@ def _feature_packet_for_approval(lane_dir: Path, approval_packet: Path) -> Optio
     return candidates[0]
 
 
+def _latest_feature_packet_for_lane(lane: str) -> Optional[Path]:
+    lane_dir = PACKETS_ROOT / lane
+    candidates = [
+        p for p in lane_dir.rglob("F__*.md")
+        if not p.name.endswith(".shared.md")
+    ]
+    if not candidates:
+        return None
+    candidates.sort(key=lambda p: p.stat().st_mtime, reverse=True)
+    return candidates[0]
+
+
+def _latest_reviewed_files_for_lane(lane: str) -> List[str]:
+    feature_packet = _latest_feature_packet_for_lane(lane)
+    if not feature_packet:
+        return []
+    return _parse_packet_file_list(feature_packet.read_text(errors="ignore"))
+
+
 def _reviewed_files_for_integrator_packet(lane_dir: Path, approval_packet: Path, approved_text: str) -> List[str]:
     feature_packet = _feature_packet_for_approval(lane_dir, approval_packet)
     if feature_packet:
@@ -461,7 +480,9 @@ def _integration_dependency_blockers(
         if not branch or _branch_merged_to_head(repo_cwd, branch):
             continue
         if reviewed_set:
-            prior_files = set(_branch_changed_files(repo_cwd, branch))
+            prior_files = set(_latest_reviewed_files_for_lane(prior_lane))
+            if not prior_files:
+                prior_files = set(_branch_changed_files(repo_cwd, branch))
             if reviewed_set.isdisjoint(prior_files):
                 continue
         if branch:

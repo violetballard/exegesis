@@ -81,6 +81,7 @@ class RouterQuotaFallbackTests(unittest.TestCase):
 
         with (
             mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged),
+            mock.patch("codex_packet_handoff.tools.router._latest_reviewed_files_for_lane", return_value=[]),
             mock.patch(
                 "codex_packet_handoff.tools.router._branch_changed_files",
                 return_value=["src/qual/storage/session.py"],
@@ -107,6 +108,7 @@ class RouterQuotaFallbackTests(unittest.TestCase):
 
         with (
             mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged),
+            mock.patch("codex_packet_handoff.tools.router._latest_reviewed_files_for_lane", return_value=[]),
             mock.patch(
                 "codex_packet_handoff.tools.router._branch_changed_files",
                 return_value=["src/qual/commands/catalog.py"],
@@ -120,6 +122,41 @@ class RouterQuotaFallbackTests(unittest.TestCase):
             )
 
         self.assertEqual(blockers, ["feat-context-storage"])
+
+    def test_integration_dependency_blockers_prefer_reviewed_packet_files_over_stale_branch_diff(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+            "feat-commands": {"branch": "codex/feat-commands", "enabled": True},
+            "feat-retrieval-fts": {"branch": "codex/feat-retrieval-fts", "enabled": True},
+        }
+
+        def merged(_repo_cwd: str, branch: str) -> bool:
+            return branch == "codex/feat-retrieval-fts"
+
+        def reviewed_files(lane: str) -> list[str]:
+            if lane == "feat-context-storage":
+                return ["src/qual/storage/vault.py"]
+            if lane == "feat-commands":
+                return ["src/qual/commands/catalog.py"]
+            return []
+
+        with (
+            mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged),
+            mock.patch("codex_packet_handoff.tools.router._latest_reviewed_files_for_lane", side_effect=reviewed_files),
+            mock.patch(
+                "codex_packet_handoff.tools.router._branch_changed_files",
+                return_value=["src/qual/retrieval/service.py", "tests/unit/test_unified_retrieval.py"],
+            ),
+        ):
+            blockers = _integration_dependency_blockers(
+                cfg,
+                "/repo",
+                "feat-retrieval-fts",
+                reviewed_files=["src/qual/retrieval/service.py", "tests/unit/test_unified_retrieval.py"],
+            )
+
+        self.assertEqual(blockers, [])
 
     def test_reviewed_files_for_integrator_packet_reads_companion_feature_packet(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
