@@ -72,6 +72,48 @@ Stable CLI command contract for the engine-first path steps covered by `bootstra
 - The lane metadata now includes canonical demo-path step labels for each completed task.
 - This branch advances with an evidence-only handoff note so planner can re-emit the same implementation through corrected packet generation.
 
+## 2026-05-16 Duplicate Integrator Handback Recheck VI
+
+- Reviewer packet: `fixer__feat-commands__20260516T204613Z.prompt.txt`
+- Approval packet: `R__APPROVED__codex-feat-commands__50a85746ed5b810d6124ed6a9340def247fe6022__20260516T203525Z.md`
+- Required fix 1: reproduced the reported integration condition locally by verifying the reviewed implementation commit has no diff against `main` for `src/qual/commands/catalog.py` and `tests/unit/test_commands_catalog.py`.
+- Required fix 2: no command implementation failure, merge conflict, or failing integration gate was present. The captured integrator output reports the reviewed slice already present on `main`, the cherry-pick empty, and all integration checks passing.
+- Required fix 3: this evidence-only update advances branch HEAD so the control plane can emit a fresh feature packet for review without editing hidden `.codex` metadata from the sandboxed fixer.
+
+### Gate Results
+
+- `make scope-check`: passed
+- `./quality-format.sh --check`: passed
+- `./quality-lint.sh`: passed
+- `./quality-test.sh`: passed, 491 tests run, 1 skipped
+- `./typecheck-test.sh`: passed
+- `make ci`: passed, 491 tests run, 1 skipped
+
+### Canonical Demo-Path Step Advanced
+
+Stable CLI control surface for the canonical engine loop. This recheck preserves the command contract that supports open project/document, retrieve relevant material, gather context into the basket, preview/apply or reject a patch, and persist handoff state without changing runtime behavior.
+
+## 2026-05-16 Duplicate Integrator Handback Recheck V
+
+- Reviewer packet: `fixer__feat-commands__20260516T204001Z.prompt.txt`
+- Approval packet: `R__APPROVED__codex-feat-commands__50a85746ed5b810d6124ed6a9340def247fe6022__20260516T203525Z.md`
+- Required fix 1: reproduced the reported integration condition locally. The captured integrator output reports the approved `feat-commands` slice already present on `main`, with the cherry-pick empty and all integration gates passing.
+- Required fix 2: no command implementation failure, merge conflict, or failing integration gate was present in the lane worktree. The full required lane gate suite passed again on `codex/feat-commands`.
+- Required fix 3: this evidence-only commit advances branch HEAD so the control plane can emit a fresh feature packet for review without editing hidden `.codex` metadata from the sandboxed fixer.
+
+### Gate Results
+
+- `make scope-check`: passed
+- `./quality-format.sh --check`: passed
+- `./quality-lint.sh`: passed
+- `./quality-test.sh`: passed, 491 tests run, 1 skipped
+- `./typecheck-test.sh`: passed
+- `make ci`: passed, 491 tests run, 1 skipped
+
+### Canonical Demo-Path Step Advanced
+
+Stable CLI control surface for the canonical engine loop. This recheck preserves the command contract that supports open project/document, retrieve relevant material, gather context into the basket, preview/apply or reject a patch, and persist handoff state without changing runtime behavior.
+
 ## 2026-05-16 Integrator Handback Recheck
 
 - Reviewer packet: `R__CHANGES__codex-feat-commands__eec030e17958c1e3097974f7aa1cabaa3acfaaa1__20260516T195443Z.md`
