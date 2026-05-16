@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 
+# Keep the command catalog deterministic so CLI contract checks remain stable.
 @dataclass(frozen=True)
 class CommandSpec:
     name: str
