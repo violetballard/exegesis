@@ -15,8 +15,6 @@ Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-
     - `src/qual/app.py`
     - `tests/unit/test_commands_catalog.py`
     - `tests/unit/test_diff_preview.py`
-    - `tests/unit/test_router_quota_fallback.py`
-    - `tests/unit/test_lane_profiles.py`
 
 - `codex/feat-context-storage*`
   - Owned paths:

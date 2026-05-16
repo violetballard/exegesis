@@ -34,7 +34,6 @@ Per-task canonical demo-path mapping:
 - `engine/src/exegesis_engine/api/cli.py`
 - `codex_packet_handoff/tools/router.py`
 - `scripts/scope-check.sh`
-- `THREAD_OWNERSHIP.md`
 - `tests/unit/test_offline_handoff.py`
 - `tests/unit/test_router_quota_fallback.py`
 - `tests/unit/test_mvp_migration.py`
