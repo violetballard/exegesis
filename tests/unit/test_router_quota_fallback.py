@@ -4,10 +4,12 @@ import time
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from codex_packet_handoff.tools.router import (
     RouterConfig,
     _apply_quota_text_safeguard,
+    _integration_dependency_blockers,
     _has_real_quota_signal,
     list_new,
 )
@@ -64,6 +66,21 @@ class RouterQuotaFallbackTests(unittest.TestCase):
             main.write_text("main feature packet")
 
             self.assertEqual([path.name for path in list_new(Path(tmpdir), None)], [main.name])
+
+    def test_integration_dependency_blockers_hold_later_engine_lanes(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+            "feat-commands": {"branch": "codex/feat-commands", "enabled": True},
+        }
+
+        def merged(_repo_cwd: str, branch: str) -> bool:
+            return branch == "codex/feat-commands"
+
+        with mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged):
+            blockers = _integration_dependency_blockers(cfg, "/repo", "feat-commands")
+
+        self.assertEqual(blockers, ["feat-context-storage"])
 
     def test_code_like_quota_text_does_not_count_as_real_quota_signal(self) -> None:
         text = '\n'.join(

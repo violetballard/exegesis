@@ -100,6 +100,13 @@ INTEGRATOR_EXEC_MARKERS = (
     "You are the INTEGRATOR",
     "Consume this APPROVED packet",
 )
+INTEGRATION_DEPENDENCY_ORDER = (
+    "feat-context-storage",
+    "feat-commands",
+    "feat-retrieval-fts",
+    "feat-engine-runs",
+    "feat-a2ui-contract",
+)
 
 @dataclass
 class RouterConfig:
@@ -350,6 +357,34 @@ def _branch_head_sha(repo_cwd: str, branch: str) -> str:
     if proc.returncode != 0:
         return ""
     return (proc.stdout or "").strip().lower()
+
+
+def _branch_merged_to_head(repo_cwd: str, branch: str) -> bool:
+    proc = subprocess.run(
+        ["git", "merge-base", "--is-ancestor", branch, "HEAD"],
+        cwd=repo_cwd,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        text=True,
+        check=False,
+    )
+    return proc.returncode == 0
+
+
+def _integration_dependency_blockers(cfg: RouterConfig, repo_cwd: str, lane: str) -> List[str]:
+    if lane not in INTEGRATION_DEPENDENCY_ORDER:
+        return []
+    blockers: List[str] = []
+    for prior_lane in INTEGRATION_DEPENDENCY_ORDER:
+        if prior_lane == lane:
+            break
+        lane_cfg = (cfg.lanes.get(prior_lane) or {}) if isinstance(cfg.lanes, dict) else {}
+        if not bool(lane_cfg.get("enabled", True)):
+            continue
+        branch = str(lane_cfg.get("branch") or f"codex/{prior_lane}")
+        if branch and not _branch_merged_to_head(repo_cwd, branch):
+            blockers.append(prior_lane)
+    return blockers
 
 
 def _latest_fixer_log(lane: str) -> Optional[Path]:
@@ -2523,11 +2558,16 @@ def process_integrator_backlog(
         lane_dir = ensure_lane_dirs(lane)
         for pkt in (lane_dir / "outbox/integrator").glob("*.md"):
             approvals.append((pkt.stat().st_mtime, lane, lane_dir, pkt))
-    approvals.sort(key=lambda item: item[0])
+    priority_index = {lane: idx for idx, lane in enumerate(INTEGRATION_DEPENDENCY_ORDER)}
+    approvals.sort(key=lambda item: (priority_index.get(item[1], len(priority_index)), item[0]))
 
     for _, _lane, lane_dir, pkt in approvals:
         if processed >= cfg.max_packets_per_run:
             break
+        blockers = _integration_dependency_blockers(cfg, repo_cwd, _lane)
+        if blockers:
+            print(f"[router] holding integrator packet for {_lane}; waiting on prior lane(s): {', '.join(blockers)}")
+            continue
         approved_text = pkt.read_text()
         archive_hint = list((lane_dir / "archive").glob(f"INTEGRATOR__*{_packet_sha(pkt.name)}*.md"))
         if archive_hint:
