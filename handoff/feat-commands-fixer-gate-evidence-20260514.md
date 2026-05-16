@@ -95,7 +95,7 @@ Stable CLI control surface for the canonical engine loop. This recheck preserves
 
 ## 2026-05-16 Duplicate Integration Handback Recheck
 
-- Reviewer packet: `fixer__feat-commands__20260516T201433Z.prompt.txt`
+- Reviewer packet: `fixer__feat-commands__20260516T201232Z.prompt.txt`
 - Approval packet: `R__APPROVED__codex-feat-commands__22e55cb83dea914cbc897acadb749163bc0b502a__20260516T200613Z.md`
 - Required fix 1: reproduced the reported integration condition from the captured output. The integrator reported no merge commit because the reviewed implementation slice from `f8d860ed9f6299f0169c4f21321ac5f37c949fd3` was already byte-equivalent on `main`, while the full lane branch still contains broad stale history outside the reviewed command slice.
 - Required fix 2: no command implementation failure, merge conflict, or failing gate was present to fix. `make scope-check` passed locally on `codex/feat-commands`, matching the integrator output that post-merge checks passed on `main`.
