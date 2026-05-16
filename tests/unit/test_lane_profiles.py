@@ -6,6 +6,7 @@ from codex_packet_handoff.tools.lane_profiles import (
     ENGINE_MILESTONE_FOCUS,
     default_lane_meta,
     engine_priority_lines,
+    lane_priority_order,
 )
 from codex_packet_handoff.tools.launch_feature_lanes import build_prompt
 from codex_packet_handoff.tools.planner import build_packet, merge_lane_meta_defaults
@@ -85,7 +86,7 @@ class LaneProfileDefaultsTests(unittest.TestCase):
             [("make scope-check", 0)],
         )
 
-        self.assertIn("- Commit: `implsha`", packet)
+        self.assertIn("- Commit under review: `implsha`", packet)
         self.assertIn("- Packet refresh commit: `refreshsha`", packet)
         self.assertIn("- Packet refresh role: `metadata-only reviewer-fix finalization`", packet)
         self.assertIn("- Reviewed implementation range: `base..implsha`", packet)
@@ -126,6 +127,31 @@ class LaneProfileDefaultsTests(unittest.TestCase):
         self.assertIn("Do not use full-file `cat`, full-file Read", prompt)
         self.assertIn("First use `rg -n`", prompt)
         self.assertIn("normally <=80 lines", prompt)
+
+    def test_lane_priority_order_uses_live_closure_pressure(self) -> None:
+        lanes = ["feat-a2ui-contract", "feat-engine-runs", "feat-retrieval-fts"]
+        digest = {
+            "feat-a2ui-contract": {"approved": 1},
+            "feat-retrieval-fts": {"reviewer_notes": 1},
+            "feat-engine-runs": {},
+        }
+
+        ordered = lane_priority_order(lanes, digest_for_lane=lambda lane: digest.get(lane, {}))
+
+        self.assertEqual(
+            ordered,
+            ["feat-a2ui-contract", "feat-retrieval-fts", "feat-engine-runs"],
+        )
+
+    def test_lane_priority_order_uses_milestone_closure_order_as_tiebreaker(self) -> None:
+        lanes = ["feat-a2ui-contract", "feat-context-storage", "feat-engine-runs", "feat-commands"]
+
+        ordered = lane_priority_order(lanes)
+
+        self.assertEqual(
+            ordered,
+            ["feat-engine-runs", "feat-commands", "feat-context-storage", "feat-a2ui-contract"],
+        )
 
 
 if __name__ == "__main__":

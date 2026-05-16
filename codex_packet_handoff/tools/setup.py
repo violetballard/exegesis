@@ -5,7 +5,7 @@ import json
 
 APP_CODEX_CMD = "/Applications/Codex.app/Contents/Resources/codex"
 APP_OPENCODE_CMD = "/opt/homebrew/bin/opencode"
-LOCAL_QWEN_MODEL = "qwen3.6-27b"
+LOCAL_LMS_MODEL = "gemma-4-31b-it"
 CODEX_CLOUD_CONTEXT_ARGS = ["-c", "model_context_window=256000"]
 
 LANES = [
@@ -114,7 +114,7 @@ def write_example_config():
     example = {
         "model": "gpt-5.1-codex",
         "codex_cmd": APP_CODEX_CMD,
-        "fallback_model": LOCAL_QWEN_MODEL,
+        "fallback_model": LOCAL_LMS_MODEL,
         "fallback_codex_cmd": APP_OPENCODE_CMD,
         "fallback_codex_args": [],
         "fallback_model_args": [],
@@ -147,14 +147,14 @@ def write_example_config():
                 "harness": "opencode",
                 "codex_cmd": APP_OPENCODE_CMD,
                 "codex_args": [],
-                "model": LOCAL_QWEN_MODEL,
+                "model": LOCAL_LMS_MODEL,
                 "model_args": [],
             },
             "worker_local_heavy": {
                 "harness": "opencode",
                 "codex_cmd": APP_OPENCODE_CMD,
                 "codex_args": [],
-                "model": LOCAL_QWEN_MODEL,
+                "model": LOCAL_LMS_MODEL,
                 "model_args": [],
             },
         },
@@ -194,14 +194,14 @@ def write_example_config():
         "reviewer_timeout": 600,
         "integrator_timeout": 900,
         "max_cloud_fixer_kicks_per_run": 1,
-        "max_local_fixer_kicks_per_run": 1,
-        "max_local_fixer_jobs": 1,
+        "max_local_fixer_kicks_per_run": 2,
+        "max_local_fixer_jobs": 3,
         "lanes": lanes_cfg,
         "feature_lane_priority": [
             "feat-engine-runs",
-            "feat-context-storage",
             "feat-retrieval-fts",
             "feat-commands",
+            "feat-context-storage",
             "feat-a2ui-contract",
         ],
         "planner": {

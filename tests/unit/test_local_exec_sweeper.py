@@ -123,7 +123,7 @@ class LocalExecSweeperTests(unittest.TestCase):
             prompt = repo_root / ".codex/feature_runner/logs" / "feat-commands.prompt.md"
             prompt.write_text("prompt", encoding="utf-8")
             ps_output = (
-                "505 1 505 /opt/homebrew/bin/opencode run --model lmstudio/qwen3.6-27b "
+                "505 1 505 /opt/homebrew/bin/opencode run --model lmstudio/gemma-4-31b-it "
                 f"--dir {repo_root} --dangerously-skip-permissions Read {prompt.resolve()}."
             )
 

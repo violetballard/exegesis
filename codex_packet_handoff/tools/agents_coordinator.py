@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 try:
+    from lane_profiles import ENGINE_PRIORITY_ORDER, lane_priority_order
     from git_ops import run_git
     from git_hygiene import run_hygiene
     from local_exec_sweeper import (
@@ -32,6 +33,7 @@ try:
         terminate_process_groups,
     )
 except ImportError:  # pragma: no cover - package execution fallback
+    from .lane_profiles import ENGINE_PRIORITY_ORDER, lane_priority_order
     from .git_ops import run_git
     from .git_hygiene import run_hygiene
     from .local_exec_sweeper import (
@@ -1231,9 +1233,9 @@ def _enabled_lanes() -> List[str]:
         priority = cfg.get("feature_lane_priority") if isinstance(cfg, dict) else []
         if not isinstance(priority, list):
             priority = []
-        priority_order = [str(name) for name in priority if str(name) in enabled]
-        return priority_order + [name for name in enabled if name not in set(priority_order)]
-    return list(DEFAULT_LANES)
+        configured_priority = [str(name) for name in priority]
+        return lane_priority_order(enabled, digest_for_lane=_lane_digest, configured_priority=configured_priority)
+    return lane_priority_order(list(DEFAULT_LANES), configured_priority=list(ENGINE_PRIORITY_ORDER))
 
 
 def acquire_lease(ttl_seconds: int) -> bool:

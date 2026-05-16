@@ -14,13 +14,13 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 try:
     from codex_mcp_client import ApprovalPolicy, CodexMcpClient
     from git_ops import run_git
-    from lane_profiles import ENGINE_MILESTONE_FOCUS, engine_priority_lines
+    from lane_profiles import ENGINE_MILESTONE_FOCUS, engine_priority_lines, lane_priority_order
     from log_maintenance import prune_log_dir
     from local_codex_runtime import agent_runtime_env, isolated_codex_env
 except ImportError:  # pragma: no cover - test/import fallback for package execution
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
     from .git_ops import run_git
-    from .lane_profiles import ENGINE_MILESTONE_FOCUS, engine_priority_lines
+    from .lane_profiles import ENGINE_MILESTONE_FOCUS, engine_priority_lines, lane_priority_order
     from .log_maintenance import prune_log_dir
     from .local_codex_runtime import agent_runtime_env, isolated_codex_env
 
@@ -100,9 +100,8 @@ def _enabled_lanes() -> List[str]:
         priority = cfg.get("feature_lane_priority") if isinstance(cfg, dict) else []
         if not isinstance(priority, list):
             priority = []
-        priority_order = [str(name) for name in priority if str(name) in enabled]
-        return priority_order + [name for name in enabled if name not in set(priority_order)]
-    return list(DEFAULT_LANES)
+        return lane_priority_order(enabled, configured_priority=[str(name) for name in priority])
+    return lane_priority_order(list(DEFAULT_LANES))
 
 
 def _pid_alive(pid: int) -> bool:

@@ -12,7 +12,7 @@ from typing import Dict, Iterable, List
 
 LOCAL_AGENT_RE = re.compile(r"(?:\bcodex\b.*\bexec\b|\bopencode\b.*\brun\b)", re.IGNORECASE)
 LOCAL_EXEC_MARKERS = ("--skip-git-repo-check", "workspace-write", "--local-provider", "lmstudio")
-OPENCODE_LOCAL_MARKERS = ("--model", "lmstudio/qwen3.6-27b")
+OPENCODE_LOCAL_MARKERS = ("--model", "lmstudio/gemma-4-31b-it")
 TEST_RUNNER_RE = re.compile(
     r"(^|/|\s)(quality-test\.sh|typecheck-test\.sh|python(?:\d+(?:\.\d+)?)?\s+-m\s+(unittest|pytest)\b|pytest\b)",
     re.IGNORECASE,

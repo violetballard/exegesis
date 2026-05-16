@@ -255,9 +255,9 @@
   },
   "feature_lane_priority": [
     "feat-engine-runs",
-    "feat-context-storage",
     "feat-retrieval-fts",
     "feat-commands",
+    "feat-context-storage",
     "feat-a2ui-contract"
   ]
 }

@@ -19,7 +19,7 @@ class OfflineHandoffConfigTests(unittest.TestCase):
     def test_live_router_config_uses_explicit_lms_provider(self) -> None:
         cfg = json.loads((REPO_ROOT / ".codex/packet_router/config.json").read_text(encoding="utf-8"))
         self.assertEqual(cfg["fallback_codex_args"], [])
-        self.assertEqual(cfg["fallback_model"], "qwen3.6-27b")
+        self.assertEqual(cfg["fallback_model"], "gemma-4-31b-it")
         self.assertEqual(cfg["fallback_model_args"], [])
         self.assertEqual(cfg["profiles"]["worker_cloud"]["codex_args"], ["-c", "model_context_window=256000"])
         self.assertEqual(
@@ -29,11 +29,11 @@ class OfflineHandoffConfigTests(unittest.TestCase):
         self.assertEqual(cfg["profiles"]["integrator_cloud"]["codex_args"], ["-c", "model_context_window=256000"])
         self.assertEqual(cfg["profiles"]["worker_local"]["harness"], "opencode")
         self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], [])
-        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "qwen3.6-27b")
+        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gemma-4-31b-it")
         self.assertEqual(cfg["profiles"]["worker_local"]["model_args"], [])
         self.assertEqual(cfg["profiles"]["orchestrator"]["model_args"], [])
         self.assertEqual(cfg["profiles"]["worker_local_heavy"]["harness"], "opencode")
-        self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "qwen3.6-27b")
+        self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "gemma-4-31b-it")
         self.assertEqual(cfg["role_profiles"]["integrator_local"], "worker_local")
         self.assertEqual(cfg["lanes"]["feat-retrieval-fts"]["integrator_local_profile"], "worker_local_heavy")
         self.assertEqual(cfg["lanes"]["feat-a2ui-contract"]["fixer_local_profile"], "worker_local_heavy")
@@ -51,7 +51,7 @@ class OfflineHandoffConfigTests(unittest.TestCase):
                 os.chdir(prev_cwd)
 
         self.assertEqual(cfg["fallback_codex_args"], [])
-        self.assertEqual(cfg["fallback_model"], "qwen3.6-27b")
+        self.assertEqual(cfg["fallback_model"], "gemma-4-31b-it")
         self.assertEqual(cfg["fallback_model_args"], [])
         self.assertEqual(cfg["profiles"]["worker_cloud"]["codex_args"], ["-c", "model_context_window=256000"])
         self.assertEqual(
@@ -61,11 +61,11 @@ class OfflineHandoffConfigTests(unittest.TestCase):
         self.assertEqual(cfg["profiles"]["integrator_cloud"]["codex_args"], ["-c", "model_context_window=256000"])
         self.assertEqual(cfg["profiles"]["worker_local"]["harness"], "opencode")
         self.assertEqual(cfg["profiles"]["worker_local"]["codex_args"], [])
-        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "qwen3.6-27b")
+        self.assertEqual(cfg["profiles"]["worker_local"]["model"], "gemma-4-31b-it")
         self.assertEqual(cfg["profiles"]["worker_local"]["model_args"], [])
         self.assertEqual(cfg["profiles"]["orchestrator"]["model_args"], [])
         self.assertEqual(cfg["profiles"]["worker_local_heavy"]["harness"], "opencode")
-        self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "qwen3.6-27b")
+        self.assertEqual(cfg["profiles"]["worker_local_heavy"]["model"], "gemma-4-31b-it")
         self.assertEqual(cfg["role_profiles"]["integrator_local"], "worker_local")
         self.assertEqual(cfg["lanes"]["feat-retrieval-fts"]["integrator_local_profile"], "worker_local_heavy")
         self.assertEqual(cfg["lanes"]["feat-a2ui-contract"]["fixer_local_profile"], "worker_local_heavy")
@@ -150,13 +150,13 @@ class OfflineReviewerGuardTests(unittest.TestCase):
         self.assertEqual((rc, out), (0, "ok"))
         self.assertIs(run_mock.call_args.kwargs["stdin"], router.subprocess.DEVNULL)
 
-    def test_run_cli_opencode_uses_provider_prefixed_qwen_model(self) -> None:
+    def test_run_cli_opencode_uses_provider_prefixed_local_model(self) -> None:
         completed = SimpleNamespace(returncode=0, stdout="ok")
         with patch.object(router.subprocess, "run", return_value=completed) as run_mock:
             rc, out = router._run_cli_codex(
                 "opencode",
                 [],
-                "qwen3.6-27b",
+                "gemma-4-31b-it",
                 [],
                 "read-only",
                 "/repo",
@@ -168,7 +168,7 @@ class OfflineReviewerGuardTests(unittest.TestCase):
         self.assertEqual((rc, out), (0, "ok"))
         self.assertEqual(
             run_mock.call_args.args[0],
-            ["opencode", "run", "--model", "lmstudio/qwen3.6-27b", "--dir", "/repo", "Prompt"],
+            ["opencode", "run", "--model", "lmstudio/gemma-4-31b-it", "--dir", "/repo", "Prompt"],
         )
         self.assertIs(run_mock.call_args.kwargs["stdin"], router.subprocess.DEVNULL)
 
@@ -963,8 +963,8 @@ class LocalCodexRuntimeTests(unittest.TestCase):
 
             target_home = Path(env["CODEX_HOME"])
             written = (target_home / "config.toml").read_text(encoding="utf-8")
-            self.assertIn('model = "qwen3.6-27b"', written)
-            self.assertIn("[profiles.qwen3.6-27b-lms]", written)
+            self.assertIn('model = "gemma-4-31b-it"', written)
+            self.assertIn("[profiles.gemma-4-31b-it-lms]", written)
             self.assertIn('oss_provider = "lmstudio"', written)
             self.assertIn('[model_providers.lms]', written)
             self.assertIn('base_url = "http://127.0.0.1:1234/v1"', written)

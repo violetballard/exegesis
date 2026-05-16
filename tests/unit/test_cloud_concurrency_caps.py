@@ -118,7 +118,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 "worker_cloud": {"codex_cmd": "codex", "model": "gpt-5.5"},
                 "worker_local": {
                     "codex_cmd": "opencode",
-                    "model": "qwen3.6-27b",
+                    "model": "gemma-4-31b-it",
                     "harness": "opencode",
                 },
             },
@@ -711,6 +711,83 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         self.assertEqual(kicked, 1)
         self.assertEqual(len(kicked_lanes), 1)
 
+    def test_process_reviewer_backlog_prioritizes_milestone_closure_lanes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            packet_root = Path(tmpdir) / "packets"
+            lanes = {
+                "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+                "feat-a2ui-contract": {"branch": "codex/feat-a2ui-contract", "enabled": True},
+                "feat-engine-runs": {"branch": "codex/feat-engine-runs", "enabled": True},
+                "feat-retrieval-fts": {"branch": "codex/feat-retrieval-fts", "enabled": True},
+            }
+            for lane in lanes:
+                lane_dir = packet_root / lane / "inbox" / "reviewer"
+                lane_dir.mkdir(parents=True, exist_ok=True)
+                (lane_dir / f"R__{lane}.md").write_text("## Verdict\nCHANGES_REQUESTED\n", encoding="utf-8")
+
+            cfg = router.RouterConfig(
+                model="gpt-5.1-codex",
+                codex_cmd="codex",
+                fallback_model="gemma-4-31b-it",
+                fallback_codex_cmd="codex",
+                fallback_codex_args=["-c", "model_provider=lms"],
+                fallback_model_args=[],
+                runtime_mode_default="hybrid",
+                auto_switch_to_local_on_quota=True,
+                auto_probe_cloud_recovery=True,
+                cloud_probe_cooldown_seconds=1800.0,
+                cloud_probe_timeout_seconds=30.0,
+                reviewer_timeout=180.0,
+                integrator_timeout=900.0,
+                max_packets_per_run=5,
+                inline_fixer=True,
+                kick_fixers_on_reviewer_backlog=True,
+                fixer_kick_timeout_seconds=8.0,
+                reviewer_fixer_retry_cooldown_seconds=120.0,
+                fixer_quota_retry_cooldown_seconds=3600.0,
+                max_cloud_fixer_kicks_per_run=1,
+                max_local_fixer_kicks_per_run=2,
+                max_cloud_fixer_jobs=1,
+                max_local_fixer_jobs=3,
+                max_cloud_feature_jobs=1,
+                max_cloud_reviewer_jobs=1,
+                max_cloud_integrator_jobs=1,
+                max_total_cloud_jobs=4,
+                prefer_cli_fixer=True,
+                prefer_cli_reviewer=True,
+                prefer_cli_integrator=True,
+                use_cli_reviewer_fallback=True,
+                use_cli_integrator_fallback=True,
+                profiles={},
+                role_profiles={},
+                lanes=lanes,
+            )
+
+            kicked_lanes = []
+
+            def fake_ensure_lane_dirs(lane: str) -> Path:
+                lane_dir = packet_root / lane
+                (lane_dir / "inbox" / "feature").mkdir(parents=True, exist_ok=True)
+                (lane_dir / "outbox" / "integrator").mkdir(parents=True, exist_ok=True)
+                (lane_dir / "archive").mkdir(parents=True, exist_ok=True)
+                return lane_dir
+
+            def fake_run_fixer(reviewer_client, cfg, state, lane, reviewer_packet, repo_cwd, local_mode):
+                kicked_lanes.append(lane)
+                return state
+
+            with mock.patch.object(router, "PACKETS_ROOT", packet_root), mock.patch.object(
+                router, "ensure_lane_dirs", side_effect=fake_ensure_lane_dirs
+            ), mock.patch.object(router, "_latest_fixer_log", return_value=None), mock.patch.object(
+                router, "_maybe_restore_cloud", side_effect=lambda cfg, state, repo_cwd: state
+            ), mock.patch.object(
+                router, "_materialize_reviewer_packet", return_value="review packet"
+            ), mock.patch.object(router, "run_fixer", side_effect=fake_run_fixer):
+                kicked, _ = router.process_reviewer_backlog(object(), cfg, {}, str(packet_root))
+
+        self.assertEqual(kicked, 2)
+        self.assertEqual(kicked_lanes, ["feat-engine-runs", "feat-retrieval-fts"])
+
     def test_process_reviewer_backlog_ignores_stale_cloud_quota_in_local_mode(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             packet_root = Path(tmpdir) / "packets"
@@ -985,6 +1062,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             worktree.mkdir()
             proc = SimpleNamespace(pid=12345)
             with (
+                mock.patch.object(router, "ROUTER_ROOT", Path(tmp) / "router"),
                 mock.patch.object(router, "_find_worktree_for_branch", return_value=str(worktree)),
                 mock.patch.object(router, "_sync_lane_runbook_files"),
                 mock.patch.object(router, "_profile_for_role", return_value=cfg.profiles["worker_local"]),
@@ -1084,7 +1162,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         cfg = router.RouterConfig(
             model="gpt-5.4-mini",
             codex_cmd="codex",
-            fallback_model="qwen3.6-27b",
+            fallback_model="gemma-4-31b-it",
             fallback_codex_cmd="opencode",
             fallback_codex_args=[],
             fallback_model_args=[],
@@ -1115,7 +1193,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             use_cli_reviewer_fallback=True,
             use_cli_integrator_fallback=True,
             profiles={
-                "worker_local": router.LaunchProfile("opencode", [], "qwen3.6-27b", [], harness="opencode"),
+                "worker_local": router.LaunchProfile("opencode", [], "gemma-4-31b-it", [], harness="opencode"),
             },
             role_profiles={"fixer_local": "worker_local"},
             lanes={"feat-commands": {"branch": "codex/feat-commands"}},
@@ -1195,7 +1273,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             "cmd_args": [],
             "harness": "opencode",
             "mode": "local_fallback",
-            "model": "qwen3.6-27b",
+            "model": "gemma-4-31b-it",
             "model_args": [],
         }
         proc = SimpleNamespace(pid=2468)
@@ -1222,7 +1300,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 cmd = popen_mock.call_args.args[0]
                 self.assertEqual(cmd[-1], "lane kickoff prompt")
                 self.assertNotIn(str(prompt_path), cmd[-1])
-                self.assertEqual(cmd[:4], ["opencode", "run", "--model", "lmstudio/qwen3.6-27b"])
+                self.assertEqual(cmd[:4], ["opencode", "run", "--model", "lmstudio/gemma-4-31b-it"])
 
     def test_materialize_reviewer_packet_uses_final_verdict_packet_for_huge_note(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

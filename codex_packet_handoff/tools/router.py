@@ -17,6 +17,7 @@ try:
     from codex_mcp_client import ApprovalPolicy, CodexMcpClient
     from git_ops import run_git
     from git_hygiene import prune_stale_index_locks
+    from lane_profiles import lane_priority_order
     from log_maintenance import prune_log_dir
     from local_codex_runtime import agent_ripgrep_config_path, agent_runtime_env, isolated_codex_env
     from packet_progress import infer_last_submitted_sha
@@ -24,6 +25,7 @@ except ImportError:  # pragma: no cover - test/import fallback for package execu
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
     from .git_ops import run_git
     from .git_hygiene import prune_stale_index_locks
+    from .lane_profiles import lane_priority_order
     from .log_maintenance import prune_log_dir
     from .local_codex_runtime import agent_ripgrep_config_path, agent_runtime_env, isolated_codex_env
     from .packet_progress import infer_last_submitted_sha
@@ -318,6 +320,21 @@ def ensure_lane_dirs(lane: str) -> Path:
     (d/"archive").mkdir(parents=True, exist_ok=True)
     return d
 
+
+def _lane_digest(lane: str) -> Dict[str, int]:
+    lane_dir = PACKETS_ROOT / lane
+    return {
+        "pending_feature": len(
+            [
+                p
+                for p in (lane_dir / "inbox/feature").glob("*.md")
+                if not p.name.endswith(".shared.md")
+            ]
+        ),
+        "reviewer_notes": len(list((lane_dir / "inbox/reviewer").glob("*.md"))),
+        "approved": len(list((lane_dir / "outbox/integrator").glob("*.md"))),
+    }
+
 def list_new(lane_dir: Path, last_seen: Optional[str]) -> List[Path]:
     files = sorted(
         (p for p in (lane_dir/"inbox/feature").glob("*.md") if not p.name.endswith(".shared.md")),
@@ -360,14 +377,17 @@ def _branch_head_sha(repo_cwd: str, branch: str) -> str:
 
 
 def _branch_merged_to_head(repo_cwd: str, branch: str) -> bool:
-    proc = subprocess.run(
-        ["git", "merge-base", "--is-ancestor", branch, "HEAD"],
-        cwd=repo_cwd,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        text=True,
-        check=False,
-    )
+    try:
+        proc = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", branch, "HEAD"],
+            cwd=repo_cwd,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            check=False,
+        )
+    except Exception:
+        return False
     return proc.returncode == 0
 
 
@@ -466,6 +486,8 @@ def _integration_dependency_blockers(
     lane: str,
     reviewed_files: Optional[List[str]] = None,
 ) -> List[str]:
+    if not Path(repo_cwd).exists():
+        return []
     if lane not in INTEGRATION_DEPENDENCY_ORDER:
         return []
     blockers: List[str] = []
@@ -2316,7 +2338,7 @@ def process_once(
             state["reviewer_quota_retry_ts"] = reviewer_quota_retry_ts
             state["reviewer_quota_global_retry_ts"] = global_quota_retry_ts
             return processed, state, reviewer_thread_ids, integrator_tid
-    for lane in cfg.lanes.keys():
+    for lane in lane_priority_order(list(cfg.lanes.keys()), digest_for_lane=_lane_digest):
         lane_dir = ensure_lane_dirs(lane)
         for pkt_path in list_new(lane_dir, cursor.get(lane)):
             if processed >= cfg.max_packets_per_run:
@@ -2557,7 +2579,7 @@ def process_reviewer_backlog(
     kick_limit = cfg.max_local_fixer_kicks_per_run if local_mode else cfg.max_cloud_fixer_kicks_per_run
     max_active = cfg.max_local_fixer_jobs if local_mode else cfg.max_cloud_fixer_jobs
     kicked = 0
-    for lane in cfg.lanes.keys():
+    for lane in lane_priority_order(list(cfg.lanes.keys()), digest_for_lane=_lane_digest):
         if kick_limit > 0 and kicked >= kick_limit:
             break
         fallback_jobs = state.get("fixer_fallback_jobs") or {}

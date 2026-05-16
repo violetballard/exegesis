@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from typing import Any, Dict, List
+from collections.abc import Callable
+from typing import Any, Dict, List, Mapping
 
 Json = Dict[str, Any]
 
@@ -11,10 +12,10 @@ ENGINE_MILESTONE_FOCUS = (
 )
 
 ENGINE_PRIORITY_ORDER = [
-    "feat-context-storage",
-    "feat-commands",
-    "feat-retrieval-fts",
     "feat-engine-runs",
+    "feat-retrieval-fts",
+    "feat-commands",
+    "feat-context-storage",
     "feat-a2ui-contract",
 ]
 
@@ -856,3 +857,56 @@ def engine_priority_lines() -> List[str]:
         else:
             lines.append(f"{index}. `{lane}`")
     return lines
+
+
+LaneDigestFn = Callable[[str], Mapping[str, Any]]
+
+
+def lane_priority_order(
+    lanes: List[str],
+    *,
+    digest_for_lane: LaneDigestFn | None = None,
+    configured_priority: List[str] | None = None,
+) -> List[str]:
+    """Sort lanes by live milestone-closure pressure.
+
+    Static lane order is only the tie-breaker. Scarce workers should first clear
+    work that can close the current milestone: approved integration packets,
+    reviewer-requested fixes, and pending reviewer packets.
+    """
+
+    ordered_priority: List[str] = []
+    for name in list(configured_priority or []) + ENGINE_PRIORITY_ORDER:
+        if name and name not in ordered_priority:
+            ordered_priority.append(name)
+    priority_index = {lane: index for index, lane in enumerate(ordered_priority)}
+
+    def count(digest: Mapping[str, Any], key: str) -> int:
+        try:
+            return int(digest.get(key, 0) or 0)
+        except Exception:
+            return 0
+
+    def urgency(lane: str) -> int:
+        digest: Mapping[str, Any] = {}
+        if digest_for_lane is not None:
+            try:
+                digest = digest_for_lane(lane) or {}
+            except Exception:
+                digest = {}
+        if count(digest, "approved") > 0:
+            return 0
+        if count(digest, "reviewer_notes") > 0:
+            return 1
+        if count(digest, "pending_feature") > 0:
+            return 2
+        return 3
+
+    return sorted(
+        lanes,
+        key=lambda lane: (
+            urgency(lane),
+            priority_index.get(lane, len(priority_index)),
+            lane,
+        ),
+    )
