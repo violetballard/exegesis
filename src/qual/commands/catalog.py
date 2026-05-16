@@ -172,11 +172,6 @@ def _validated_cli_entrypoints() -> tuple[str, ...]:
         validated_entrypoints.append(normalized_entrypoint)
     return tuple(validated_entrypoints)
 
-
-def _validate_cli_entrypoints() -> None:
-    _validated_cli_entrypoints()
-
-
 def _command_cli_tokens_by_name() -> dict[str, tuple[str, ...]]:
     tokens_by_name: dict[str, list[str]] = {}
     for token, canonical_name in command_cli_lookup_table():
