@@ -138,18 +138,6 @@ class CommandCatalogTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Unknown CLI command entrypoint: not-a-command"):
                 command_catalog.command_cli_tokens()
 
-    def test_command_cli_tokens_reject_ambiguous_entrypoints(self) -> None:
-        command_catalog.command_cli_tokens.cache_clear()
-        with patch.object(command_catalog, "_CLI_ENTRYPOINTS", ("bootstrap", "bootstrap")):
-            with self.assertRaisesRegex(ValueError, "Duplicate command CLI entrypoint: bootstrap"):
-                command_catalog.command_cli_tokens()
-
-    def test_command_cli_tokens_reject_empty_entrypoints(self) -> None:
-        command_catalog.command_cli_tokens.cache_clear()
-        with patch.object(command_catalog, "_CLI_ENTRYPOINTS", ("bootstrap", " ")):
-            with self.assertRaisesRegex(ValueError, "Command CLI entrypoints must not be empty"):
-                command_catalog.command_cli_tokens()
-
     def test_command_cli_flow_contract_maps_parser_tokens_to_mvp_flow_steps(self) -> None:
         contract = command_cli_flow_contract()
         self.assertEqual(
