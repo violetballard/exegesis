@@ -844,6 +844,24 @@ class LocalFallbackDetachedJobTests(unittest.TestCase):
             note = reviewer_notes[0].read_text(encoding="utf-8")
             self.assertIn("integrator reported blocked/no integration performed", note)
 
+    def test_integrator_already_present_summary_is_success(self) -> None:
+        output = """Integrated status: the approved `feat-commands` slice is already present on `main`.
+No new merge commit was needed.
+
+Post-merge checks all passed:
+
+- `make scope-check`: PASS
+- `./quality-format.sh --check`: PASS
+- `./quality-lint.sh`: PASS
+- `./quality-test.sh`: PASS, 575 tests
+- `./typecheck-test.sh`: PASS
+- `make ci`: PASS, 575 tests
+
+Blockers: none.
+"""
+
+        self.assertIsNone(router._local_cli_output_rejection_reason(output, require_verdict=False))
+
     def test_process_integrator_backlog_completes_detached_cloud_job_on_later_tick(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             lane_dir = Path(tmp)

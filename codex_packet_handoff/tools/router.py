@@ -73,7 +73,8 @@ BAD_LOCAL_CLI_CONTENT_MARKERS = (
     "text.format",
 )
 SUCCESSFUL_INTEGRATOR_SUMMARY_RE = re.compile(
-    r"(?:\*\*)?Integration Result(?:\*\*)?.*Post-merge checks all passed:.*Blockers:\s*none",
+    r"(?:\*\*)?Integration Result(?:\*\*)?.*Post-merge checks all passed:.*Blockers:\s*none"
+    r"|Integrated status:.*Post-merge checks all passed:.*Blockers:\s*none",
     re.IGNORECASE | re.DOTALL,
 )
 BLOCKED_INTEGRATOR_OUTPUT_RE = re.compile(
@@ -675,10 +676,10 @@ def _local_cli_output_rejection_reason(text: str, *, require_verdict: bool) -> O
     has_final_verdict = _extract_reviewer_verdict(reviewable) is not None
     if INVALID_REVIEWER_RE.search(t) and not has_final_verdict:
         return "stale or missing thread reference"
-    if not require_verdict and BLOCKED_INTEGRATOR_OUTPUT_RE.search(t):
-        return "integrator reported blocked/no integration performed"
     if not require_verdict and SUCCESSFUL_INTEGRATOR_SUMMARY_RE.search(t):
         return None
+    if not require_verdict and BLOCKED_INTEGRATOR_OUTPUT_RE.search(t):
+        return "integrator reported blocked/no integration performed"
     marker_text = reviewable if require_verdict and has_final_verdict else t
     lower = marker_text.lower()
     for marker in BAD_LOCAL_CLI_CONTENT_MARKERS:
