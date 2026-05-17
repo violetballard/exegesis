@@ -27,10 +27,10 @@ def _request(method: str, path: str, *, body: Dict[str, Any] | None = None) -> D
         return json.loads(response.read().decode("utf-8"))
 
 
-def _request_text(method: str, path: str) -> str:
+def _request_text(method: str, path: str, *, accept: str = "text/plain") -> str:
     base = os.environ.get("QUAL_MONITOR_URL", DEFAULT_URL).rstrip("/")
     token = os.environ.get("QUAL_MONITOR_TOKEN", "")
-    headers = {"Accept": "text/plain"}
+    headers = {"Accept": accept}
     if token:
         headers["Authorization"] = f"Bearer {token}"
     req = urllib.request.Request(f"{base}{path}", method=method, headers=headers)
@@ -68,7 +68,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Remote client for qual daemon monitor/control.")
     parser.add_argument(
         "action",
-        choices=["status", "text", "full", "health", "start", "stop", "kick"],
+        choices=["status", "text", "html", "full", "health", "start", "stop", "kick"],
         nargs="?",
         default="status",
     )
@@ -78,9 +78,11 @@ def main() -> int:
 
     try:
         if args.action == "status":
-            _print_summary(_request("GET", "/api/status/summary"))
+            print(_request_text("GET", "/api/status/text"), end="")
         elif args.action == "text":
             print(_request_text("GET", "/api/status/text"), end="")
+        elif args.action == "html":
+            print(_request_text("GET", "/api/status/html", accept="text/html"), end="")
         elif args.action == "health":
             print(json.dumps(_request("GET", "/healthz"), indent=2, sort_keys=True))
         elif args.action == "full":

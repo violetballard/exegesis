@@ -1,6 +1,6 @@
 # iPhone Remote Monitor Shortcuts
 
-These are paste-ready recipes for a folder of iOS Shortcuts that talk to the `qual` remote monitor over VPN. They are intentionally tiny: status, kick, start, and stop. No remote commits, no packet editing, no arbitrary shell.
+These are paste-ready recipes for a folder of iOS Shortcuts that talk to the `qual` remote monitor over VPN. They are intentionally tiny: status, HTML status, kick, start, and stop. No remote commits, no packet editing, no arbitrary shell.
 
 ## Setup
 
@@ -56,9 +56,41 @@ Headers:
 
 3. `Quick Look` or `Show Result`
 
-Expected result: compact plain text with daemon state, queue counts, active jobs, blocker, git cleanliness, and memory summary.
+Expected result: readable plain text with daemon state, queue counts, active jobs, blocker, git cleanliness, and memory summary.
 
-## Shortcut 2: Exegesis Full Status
+## Shortcut 2: Exegesis Status Page
+
+Purpose: a small browser-readable status page. This is not a full dashboard; it renders the same sanitized compact status as a lightweight HTML view.
+
+Shortcut actions:
+
+1. `URL`
+
+```text
+MONITOR_BASE_URL/api/status/html
+```
+
+2. `Get Contents of URL`
+
+```text
+Method: GET
+Headers:
+  Authorization: Bearer MONITOR_TOKEN
+  Accept: text/html
+```
+
+3. `Quick Look`
+
+Expected result: a compact styled status page with daemon, runtime, capacity, queue, repo, and memory sections.
+
+The page also includes simple controls below the daemon status:
+
+- `Start daemon` when the daemon is stopped, or `Stop daemon` when it is running
+- `Kick`
+
+These controls use the authenticated same-origin browser session created by the status page request. If an iOS preview surface renders the HTML but does not run the buttons, open the same URL in Safari or keep using the separate Start, Stop, and Kick shortcuts below.
+
+## Shortcut 3: Exegesis Full Status
 
 Purpose: fuller sanitized snapshot if the compact status is not enough.
 
@@ -83,7 +115,7 @@ Headers:
 
 Expected result: sanitized JSON only. It must not expose raw logs, prompts, env vars, tokens, full command lines, or packet bodies.
 
-## Shortcut 3: Exegesis Kick
+## Shortcut 4: Exegesis Kick
 
 Purpose: ask the coordinator to reconcile promptly without starting a new remote shell or doing any git mutation.
 
@@ -115,7 +147,7 @@ Headers:
 
 4. `Show Result`
 
-## Shortcut 4: Exegesis Start
+## Shortcut 5: Exegesis Start
 
 Purpose: start the daemon if it is down.
 
@@ -147,7 +179,7 @@ Headers:
 
 4. `Show Result`
 
-## Shortcut 5: Exegesis Stop
+## Shortcut 6: Exegesis Stop
 
 Purpose: stop the daemon when the machine needs to cool down or you see runaway pressure.
 
@@ -213,6 +245,7 @@ Put these in one folder or widget stack:
 
 ```text
 Exegesis Status
+Exegesis Status Page
 Exegesis Kick
 Exegesis Start
 Exegesis Stop

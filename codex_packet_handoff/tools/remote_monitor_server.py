@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import hmac
 import ipaddress
 import json
@@ -13,6 +14,7 @@ import threading
 import time
 import uuid
 from datetime import datetime, timezone
+from html import escape
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -48,6 +50,18 @@ _cached_snapshot_ts = 0.0
 
 def utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def human_timestamp(value: Any) -> str:
+    raw = str(value or "").strip()
+    if not raw:
+        return "-"
+    try:
+        parsed = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return raw
+    local = parsed.astimezone()
+    return local.strftime("%b %-d, %Y at %-I:%M %p %Z")
 
 
 def load_json(path: Path, default: Any) -> Any:
@@ -119,10 +133,24 @@ def client_allowed(client_ip: str, config: Mapping[str, Any]) -> bool:
 def authorize(headers: Mapping[str, str], token: str) -> bool:
     auth = str(headers.get("Authorization") or "")
     prefix = "Bearer "
-    if not auth.startswith(prefix):
+    if auth.startswith(prefix):
+        supplied = auth[len(prefix) :].strip()
+        return bool(token) and hmac.compare_digest(supplied, token)
+    cookie = str(headers.get("Cookie") or "")
+    expected = monitor_session_cookie(token)
+    if not expected:
         return False
-    supplied = auth[len(prefix) :].strip()
-    return bool(token) and hmac.compare_digest(supplied, token)
+    for part in cookie.split(";"):
+        name, _, value = part.strip().partition("=")
+        if name == "qual_monitor_session" and hmac.compare_digest(value, expected):
+            return True
+    return False
+
+
+def monitor_session_cookie(token: str) -> str:
+    if not token:
+        return ""
+    return hmac.new(token.encode("utf-8"), b"qual-remote-monitor-session-v1", hashlib.sha256).hexdigest()
 
 
 def _run_control_command(args: list[str], *, timeout: float = CONTROL_TIMEOUT_SECONDS) -> Dict[str, Any]:
@@ -165,33 +193,298 @@ def summary_text(payload: Mapping[str, Any]) -> str:
     pause = payload.get("pause") if isinstance(payload.get("pause"), dict) else {}
     git = payload.get("git") if isinstance(payload.get("git"), dict) else {}
     memory = payload.get("memory_pressure") if isinstance(payload.get("memory_pressure"), dict) else {}
+    lanes = payload.get("lanes") if isinstance(payload.get("lanes"), list) else []
+    daemon = "RUNNING" if payload.get("daemon_running") else "STOPPED"
+    paused = "PAUSED" if pause.get("paused") else "active"
+    cloud = "available" if str(payload.get("cloud_available", "")).lower() == "true" else str(
+        payload.get("cloud_available", "-")
+    )
     lines = [
-        f"generated_at={payload.get('generated_at', '-')}",
-        f"daemon_running={payload.get('daemon_running', '-')}",
-        f"paused={pause.get('paused', False)}",
+        "Exegesis daemon",
+        "===============",
+        f"Generated: {human_timestamp(payload.get('generated_at'))}",
+        f"Daemon:    {daemon} ({paused})",
+        f"Runtime:   {payload.get('runtime_mode', '-')}",
+        f"Cloud:     {cloud}",
+        "",
+        "Capacity",
+        "--------",
+        f"Local LMS: {payload.get('local_lms_jobs', '-')}",
+        f"Cloud:     {payload.get('cloud_jobs', '-')}",
+        "",
+        "Queue",
+        "-----",
+        f"Feature packets:       {payload.get('pending_feature', 0)}",
+        f"Reviewer notes:        {payload.get('reviewer_notes', 0)}",
+        f"Ready for integrator:  {payload.get('approved_for_integrator', 0)}",
+        f"Blocker:               {payload.get('active_blocker', '-')}",
     ]
     if pause.get("paused"):
-        lines.append(f"pause_reason={pause.get('reason', '-')}")
-    lines.extend(
-        [
-            f"runtime_mode={payload.get('runtime_mode', '-')}",
-            f"cloud_available={payload.get('cloud_available', '-')}",
-            f"local_lms_jobs={payload.get('local_lms_jobs', '-')}",
-            f"cloud_jobs={payload.get('cloud_jobs', '-')}",
-            f"pending_feature={payload.get('pending_feature', 0)}",
-            f"reviewer_notes={payload.get('reviewer_notes', 0)}",
-            f"approved_for_integrator={payload.get('approved_for_integrator', 0)}",
-            f"active_blocker={payload.get('active_blocker', '-')}",
-        ]
-    )
+        lines.append(f"Pause reason:          {pause.get('reason', '-')}")
+    if lanes:
+        lines.extend(["", "Lanes", "-----"])
+        for lane in lanes[:12]:
+            if not isinstance(lane, dict):
+                continue
+            running = _format_lane_running(lane)
+            lines.append(
+                f"{lane.get('lane', '-')}: {lane.get('state', '-')} "
+                f"(feature {lane.get('pending_feature', 0)}, review {lane.get('reviewer_notes', 0)}, "
+                f"integrator {lane.get('approved_for_integrator', 0)}) [{running}]"
+            )
     if git:
-        lines.append(f"git_clean_tracked={git.get('clean_tracked', '-')}")
-        lines.append(f"git_tracked_change_count={git.get('tracked_change_count', '-')}")
+        lines.extend(
+            [
+                "",
+                "Repo",
+                "----",
+                f"Tracked clean: {git.get('clean_tracked', '-')}",
+                f"Tracked changes: {git.get('tracked_change_count', '-')}",
+            ]
+        )
     if memory:
         summary = memory.get("summary") if isinstance(memory.get("summary"), list) else []
         if summary:
-            lines.append("memory=" + " | ".join(str(line) for line in summary[:2]))
+            lines.extend(["", "Memory", "------"])
+            lines.extend(str(line) for line in summary[:3])
     return "\n".join(lines) + "\n"
+
+
+def _format_lane_running(lane: Mapping[str, Any]) -> str:
+    running = lane.get("running")
+    if not isinstance(running, list) or not running:
+        return "not running"
+    labels: list[str] = []
+    for item in running:
+        if not isinstance(item, dict):
+            continue
+        provider = str(item.get("provider") or "unknown")
+        role = str(item.get("role") or "job")
+        labels.append(f"{provider} {role}")
+    return ", ".join(labels) if labels else "not running"
+
+
+def summary_html(payload: Mapping[str, Any]) -> str:
+    pause = payload.get("pause") if isinstance(payload.get("pause"), dict) else {}
+    git = payload.get("git") if isinstance(payload.get("git"), dict) else {}
+    memory = payload.get("memory_pressure") if isinstance(payload.get("memory_pressure"), dict) else {}
+    lanes = payload.get("lanes") if isinstance(payload.get("lanes"), list) else []
+    daemon_running = bool(payload.get("daemon_running"))
+    daemon_label = "RUNNING" if daemon_running else "STOPPED"
+    daemon_class = "ok" if daemon_running else "bad"
+    cloud_value = str(payload.get("cloud_available", "-"))
+    cloud_class = "ok" if cloud_value.lower() == "true" else "warn"
+    blocker = str(payload.get("active_blocker", "-"))
+    blocker_class = "ok" if blocker in {"-", "", "none", "None"} else "warn"
+    memory_lines = memory.get("summary") if isinstance(memory.get("summary"), list) else []
+    toggle_action = "stop" if daemon_running else "start"
+    toggle_label = "Stop daemon" if daemon_running else "Start daemon"
+    toggle_class = "danger" if daemon_running else "primary"
+    rows = [
+        ("Runtime", payload.get("runtime_mode", "-"), ""),
+        ("Cloud", cloud_value, cloud_class),
+        ("Local LMS", payload.get("local_lms_jobs", "-"), ""),
+        ("Cloud jobs", payload.get("cloud_jobs", "-"), ""),
+        ("Feature packets", payload.get("pending_feature", 0), ""),
+        ("Reviewer notes", payload.get("reviewer_notes", 0), ""),
+        ("Ready for integrator", payload.get("approved_for_integrator", 0), ""),
+        ("Blocker", blocker, blocker_class),
+    ]
+    if pause.get("paused"):
+        rows.append(("Pause reason", pause.get("reason", "-"), "warn"))
+    if git:
+        rows.extend(
+            [
+                ("Tracked clean", git.get("clean_tracked", "-"), "ok" if git.get("clean_tracked") else "warn"),
+                ("Tracked changes", git.get("tracked_change_count", "-"), ""),
+            ]
+        )
+    row_html = "\n".join(
+        f"<div class='row'><span>{escape(str(label))}</span><strong class='{escape(str(css))}'>{escape(str(value))}</strong></div>"
+        for label, value, css in rows
+    )
+    memory_html = ""
+    if memory_lines:
+        memory_html = "<section><h2>Memory</h2><pre>" + escape("\n".join(str(line) for line in memory_lines[:4])) + "</pre></section>"
+    lane_html = ""
+    lane_rows: list[str] = []
+    for lane in lanes[:12]:
+        if not isinstance(lane, dict):
+            continue
+        pending = int(lane.get("pending_feature", 0) or 0)
+        review = int(lane.get("reviewer_notes", 0) or 0)
+        approved = int(lane.get("approved_for_integrator", 0) or 0)
+        state = str(lane.get("state", "-"))
+        css = "ok"
+        if approved:
+            css = "warn"
+        elif review:
+            css = "warn"
+        elif pending:
+            css = ""
+        lane_rows.append(
+            "<div class='lane-row'>"
+            f"<strong>{escape(str(lane.get('lane', '-')))}</strong>"
+            f"<span class='{escape(css)}'>{escape(state)}</span>"
+            f"<small>{escape(_format_lane_running(lane))} · feature {pending} · review {review} · integrator {approved}</small>"
+            "</div>"
+        )
+    if lane_rows:
+        lane_html = "<section><h2>Lanes</h2><div class='lanes'>" + "\n".join(lane_rows) + "</div></section>"
+    generated = human_timestamp(payload.get("generated_at"))
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Exegesis Status</title>
+  <style>
+    :root {{
+      color-scheme: dark;
+      --bg: #0d1f31;
+      --panel: #152d45;
+      --line: #18d17f;
+      --text: #e8f1ff;
+      --muted: #a7bad0;
+      --ok: #5dff9b;
+      --warn: #ffd16a;
+      --bad: #ff7d7d;
+    }}
+    body {{
+      margin: 0;
+      padding: 22px;
+      background: radial-gradient(circle at top, #193a58 0, var(--bg) 46%);
+      color: var(--text);
+      font: 16px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }}
+    main {{
+      max-width: 720px;
+      margin: 0 auto;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--panel) 92%, black);
+      box-shadow: 0 0 0 1px #0a1623, 0 18px 50px rgb(0 0 0 / 35%);
+      padding: 20px;
+    }}
+    h1 {{ margin: 0 0 4px; font-size: 22px; color: var(--line); }}
+    h2 {{ margin: 22px 0 10px; font-size: 15px; color: #1a96ff; }}
+    .stamp {{ color: var(--muted); margin-bottom: 18px; }}
+    .pill {{
+      display: inline-block;
+      margin: 8px 0 10px;
+      padding: 7px 11px;
+      border: 1px solid color-mix(in srgb, var(--line) 70%, white);
+      background: #0e8ce3;
+      color: white;
+      font-weight: 700;
+    }}
+    .controls {{
+      display: flex;
+      gap: 10px;
+      margin: 0 0 18px;
+      flex-wrap: wrap;
+    }}
+    button {{
+      appearance: none;
+      border: 1px solid color-mix(in srgb, var(--line) 70%, white);
+      background: #0e8ce3;
+      color: white;
+      font: inherit;
+      font-weight: 700;
+      padding: 10px 13px;
+      min-width: 130px;
+      cursor: pointer;
+    }}
+    button:hover {{ background: #0768ab; }}
+    button.danger {{
+      background: #dba057;
+      color: #06111d;
+      border-color: #ffd193;
+    }}
+    button.danger:hover {{ background: #bd8542; }}
+    #control-status {{
+      min-height: 1.3em;
+      margin: -8px 0 14px;
+      color: var(--muted);
+      font-size: 14px;
+    }}
+    .row {{
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      border-top: 1px solid rgb(255 255 255 / 8%);
+      padding: 11px 0;
+    }}
+    .row span {{ color: var(--muted); }}
+    .lanes {{
+      display: grid;
+      gap: 8px;
+    }}
+    .lane-row {{
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 12px;
+      padding: 10px;
+      background: #10263a;
+      border: 1px solid rgb(255 255 255 / 10%);
+    }}
+    .lane-row strong {{ text-align: left; color: var(--text); }}
+    .lane-row span {{ text-align: right; }}
+    .lane-row small {{ grid-column: 1 / -1; color: var(--muted); }}
+    strong {{ text-align: right; }}
+    .ok {{ color: var(--ok); }}
+    .warn {{ color: var(--warn); }}
+    .bad {{ color: var(--bad); }}
+    pre {{
+      white-space: pre-wrap;
+      background: #10263a;
+      border: 1px solid rgb(255 255 255 / 10%);
+      padding: 12px;
+      color: var(--text);
+    }}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Exegesis Status</h1>
+    <div class="stamp">{escape(generated)}</div>
+    <div class="pill {daemon_class}">Daemon: {daemon_label}</div>
+    <div class="controls">
+      <button class="{toggle_class}" data-action="{toggle_action}">{toggle_label}</button>
+      <button class="primary" data-action="kick">Kick</button>
+    </div>
+    <div id="control-status" aria-live="polite"></div>
+    <section>{row_html}</section>
+    {lane_html}
+    {memory_html}
+  </main>
+  <script>
+    const statusLine = document.getElementById("control-status");
+    async function runControl(action) {{
+      statusLine.textContent = `Sending ${{action}}...`;
+      try {{
+        const response = await fetch(`/api/control/${{action}}`, {{
+          method: "POST",
+          credentials: "same-origin",
+          headers: {{ "Content-Type": "application/json", "Accept": "application/json" }},
+          body: JSON.stringify({{ operator: "status-page", reason: `${{action}} from status page` }})
+        }});
+        if (!response.ok) {{
+          const text = await response.text();
+          throw new Error(`${{response.status}} ${{text}}`);
+        }}
+        statusLine.textContent = `${{action}} complete; refreshing...`;
+        setTimeout(() => window.location.reload(), 650);
+      }} catch (error) {{
+        statusLine.textContent = `Control failed: ${{error.message}}`;
+      }}
+    }}
+    for (const button of document.querySelectorAll("button[data-action]")) {{
+      button.addEventListener("click", () => runControl(button.dataset.action));
+    }}
+  </script>
+</body>
+</html>
+"""
 
 
 def _invalidate_snapshot() -> None:
@@ -280,6 +573,20 @@ class RemoteMonitorHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(encoded)
 
+    def _send_html(self, status: int, body: str, *, session_cookie: str = "") -> None:
+        encoded = body.encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(encoded)))
+        self.send_header("Cache-Control", "no-store")
+        if session_cookie:
+            self.send_header(
+                "Set-Cookie",
+                f"qual_monitor_session={session_cookie}; Path=/; Max-Age=86400; HttpOnly; SameSite=Strict",
+            )
+        self.end_headers()
+        self.wfile.write(encoded)
+
     def _guard(self, *, auth: bool = True) -> bool:
         if not client_allowed(self.client_address[0], self.monitor_config):
             self._send_json(HTTPStatus.FORBIDDEN, {"error": "remote address not allowed"})
@@ -304,6 +611,15 @@ class RemoteMonitorHandler(BaseHTTPRequestHandler):
             if not self._guard():
                 return
             self._send_text(HTTPStatus.OK, summary_text(_fresh_snapshot(self.monitor_config, full=False)))
+            return
+        if self.path == "/api/status/html":
+            if not self._guard():
+                return
+            self._send_html(
+                HTTPStatus.OK,
+                summary_html(_fresh_snapshot(self.monitor_config, full=False)),
+                session_cookie=monitor_session_cookie(self.monitor_token),
+            )
             return
         if self.path == "/api/status":
             if not self._guard():

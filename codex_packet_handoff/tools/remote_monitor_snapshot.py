@@ -35,6 +35,8 @@ SECRET_PATTERNS = [
     re.compile(r"(?i)(mistral|openai|anthropic|nanonets)[A-Za-z0-9_-]{20,}"),
 ]
 PATH_PATTERN = re.compile(r"/Users/[^\s'\"]+")
+ROUTER_STATE = REPO_ROOT / ".codex/packet_router/state.json"
+FEATURE_STATE = REPO_ROOT / ".codex/feature_runner/state.json"
 
 
 @dataclass(frozen=True)
@@ -110,6 +112,109 @@ def _parse_pipeline(output: str) -> Dict[str, Any]:
                 }
             )
     return {"totals": totals, "lanes": lanes}
+
+
+def _load_json(path: Path, default: Any) -> Any:
+    try:
+        return json.loads(path.read_text())
+    except Exception:
+        return default
+
+
+def _pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    return True
+
+
+def _lane_from_job_key(key: str, job: Mapping[str, Any]) -> str:
+    lane = str(job.get("lane") or "")
+    if lane:
+        return lane
+    return key.split(":", 1)[0]
+
+
+def _add_lane_placement(
+    placements: Dict[str, List[Dict[str, str]]],
+    lane: str,
+    *,
+    provider: str,
+    role: str,
+    pid: int,
+    profile: str = "",
+) -> None:
+    if not lane or not _pid_alive(pid):
+        return
+    item = {"provider": provider, "role": role, "pid": str(pid)}
+    if profile:
+        item["profile"] = profile
+    placements.setdefault(lane, []).append(item)
+
+
+def _lane_placements() -> Dict[str, List[Dict[str, str]]]:
+    placements: Dict[str, List[Dict[str, str]]] = {}
+    feature_state = _load_json(FEATURE_STATE, {})
+    feature_lanes = feature_state.get("lanes") if isinstance(feature_state, dict) else {}
+    if isinstance(feature_lanes, dict):
+        for lane, lane_state in feature_lanes.items():
+            if not isinstance(lane_state, dict):
+                continue
+            if str(lane_state.get("status") or "") != "direct_exec_running":
+                continue
+            mode = str(lane_state.get("mode") or "")
+            provider = "cloud" if mode == "cloud_primary" else "local" if mode == "local_fallback" else mode or "unknown"
+            _add_lane_placement(
+                placements,
+                str(lane),
+                provider=provider,
+                role="feature",
+                pid=int(lane_state.get("pid") or 0),
+                profile=str(lane_state.get("profile") or ""),
+            )
+
+    router_state = _load_json(ROUTER_STATE, {})
+    if not isinstance(router_state, dict):
+        return placements
+
+    job_groups = [
+        ("local_reviewer_jobs", "local", "reviewer"),
+        ("cloud_reviewer_jobs", "cloud", "reviewer"),
+        ("local_integrator_jobs", "local", "integrator"),
+        ("cloud_integrator_jobs", "cloud", "integrator"),
+    ]
+    for key, provider, role in job_groups:
+        jobs = router_state.get(key)
+        if not isinstance(jobs, dict):
+            continue
+        for job_key, job in jobs.items():
+            if not isinstance(job, dict):
+                continue
+            _add_lane_placement(
+                placements,
+                _lane_from_job_key(str(job_key), job),
+                provider=provider,
+                role=role,
+                pid=int(job.get("pid") or 0),
+            )
+
+    fixer_jobs = router_state.get("fixer_fallback_jobs")
+    if isinstance(fixer_jobs, dict):
+        for lane, job in fixer_jobs.items():
+            if not isinstance(job, dict):
+                continue
+            provider = "local" if bool(job.get("local")) else "cloud"
+            _add_lane_placement(
+                placements,
+                str(lane),
+                provider=provider,
+                role="fixer",
+                pid=int(job.get("pid") or 0),
+            )
+    return placements
 
 
 def _parse_monitor(output: str) -> Dict[str, Any]:
@@ -245,6 +350,7 @@ def build_snapshot(*, include_monitor_output: bool = False) -> Dict[str, Any]:
         "process_view": _process_view(),
         "memory_pressure": _memory_pressure(),
         "git": _git_status(),
+        "lane_placements": _lane_placements(),
     }
     snapshot["summary"] = _summary_from(daemon, pipeline, monitor)
     if include_monitor_output:
@@ -258,10 +364,24 @@ def build_snapshot(*, include_monitor_output: bool = False) -> Dict[str, Any]:
 
 def compact_summary(snapshot: Mapping[str, Any]) -> Dict[str, Any]:
     summary = dict(snapshot.get("summary", {}) if isinstance(snapshot.get("summary"), dict) else {})
+    pipeline = snapshot.get("pipeline") if isinstance(snapshot.get("pipeline"), dict) else {}
+    lanes = pipeline.get("lanes", []) if isinstance(pipeline.get("lanes"), list) else []
+    lane_placements = snapshot.get("lane_placements", {})
+    active_lanes = []
+    for lane in lanes:
+        if not isinstance(lane, dict):
+            continue
+        if str(lane.get("state", "")).lower() == "disabled":
+            continue
+        lane = dict(lane)
+        placement = lane_placements.get(str(lane.get("lane") or "")) if isinstance(lane_placements, dict) else None
+        lane["running"] = placement if isinstance(placement, list) else []
+        active_lanes.append(lane)
     summary["generated_at"] = snapshot.get("generated_at", "")
     summary["pause"] = snapshot.get("pause", {"paused": False})
     summary["git"] = snapshot.get("git", {})
     summary["memory_pressure"] = snapshot.get("memory_pressure", {})
+    summary["lanes"] = active_lanes
     return summary
 
 

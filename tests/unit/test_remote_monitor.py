@@ -37,6 +37,26 @@ class RemoteMonitorSnapshotTests(unittest.TestCase):
         self.assertEqual(view["counts"]["daemon"], 1)
         self.assertNotIn("command", view["processes"][0])
 
+    def test_compact_summary_filters_disabled_lanes(self) -> None:
+        payload = remote_monitor_snapshot.compact_summary(
+            {
+                "summary": {},
+                "lane_placements": {
+                    "feat-engine-runs": [{"provider": "local", "role": "feature", "pid": "123"}],
+                },
+                "pipeline": {
+                    "lanes": [
+                        {"lane": "feat-engine-runs", "state": "feature_in_progress"},
+                        {"lane": "feat-console-shell", "state": "disabled"},
+                    ]
+                },
+            }
+        )
+
+        lanes = payload["lanes"]
+        self.assertEqual([lane["lane"] for lane in lanes], ["feat-engine-runs"])
+        self.assertEqual(lanes[0]["running"][0]["provider"], "local")
+
 
 class RemoteMonitorServerTests(unittest.TestCase):
     def test_authorize_requires_bearer_token(self) -> None:
@@ -44,6 +64,12 @@ class RemoteMonitorServerTests(unittest.TestCase):
         self.assertFalse(remote_monitor_server.authorize({}, "abc"))
         self.assertFalse(remote_monitor_server.authorize({"Authorization": "Basic abc"}, "abc"))
         self.assertFalse(remote_monitor_server.authorize({"Authorization": "Bearer wrong"}, "abc"))
+
+    def test_authorize_accepts_monitor_session_cookie(self) -> None:
+        cookie = remote_monitor_server.monitor_session_cookie("abc")
+
+        self.assertTrue(remote_monitor_server.authorize({"Cookie": f"qual_monitor_session={cookie}"}, "abc"))
+        self.assertFalse(remote_monitor_server.authorize({"Cookie": "qual_monitor_session=wrong"}, "abc"))
 
     def test_client_allowed_requires_loopback_or_configured_cidr(self) -> None:
         cfg = {"allowed_remote_cidrs": ["100.64.0.0/10"]}
@@ -56,27 +82,15 @@ class RemoteMonitorServerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             remote_monitor_server.validate_bind_config({"host": "0.0.0.0", "allowed_remote_cidrs": ["100.64.0.0/10"]})
 
-    def test_pause_resume_and_kick_use_state_files_only(self) -> None:
+    def test_kick_uses_state_file_only(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
-            pause = Path(tmp) / "pause.json"
             kick = Path(tmp) / "kick.json"
-            with mock.patch.object(remote_monitor_server, "PAUSE_FILE", pause), mock.patch.object(
-                remote_monitor_server, "KICK_FILE", kick
-            ):
-                pause_result = remote_monitor_server.run_control_action("pause", operator="test", reason="sleep")
-                self.assertEqual(pause_result["rc"], 0)
-                self.assertTrue(pause.exists())
-                self.assertEqual(json.loads(pause.read_text())["reason"], "sleep")
-
+            with mock.patch.object(remote_monitor_server, "KICK_FILE", kick):
                 kick_result = remote_monitor_server.run_control_action("kick", operator="test", reason="wake")
                 self.assertEqual(kick_result["rc"], 0)
                 self.assertTrue(kick.exists())
                 self.assertEqual(json.loads(kick.read_text())["action"], "kick")
-
-                resume_result = remote_monitor_server.run_control_action("resume", operator="test", reason="resume")
-                self.assertEqual(resume_result["rc"], 0)
-                self.assertFalse(pause.exists())
-                self.assertEqual(json.loads(kick.read_text())["action"], "resume")
+                self.assertEqual(json.loads(kick.read_text())["reason"], "wake")
 
     def test_control_command_output_is_sanitized(self) -> None:
         completed = mock.Mock(
@@ -95,7 +109,7 @@ class RemoteMonitorServerTests(unittest.TestCase):
 
     def test_summary_text_is_phone_readable(self) -> None:
         payload = {
-            "generated_at": "now",
+            "generated_at": "2026-05-17T01:10:00Z",
             "daemon_running": True,
             "runtime_mode": "hybrid",
             "cloud_available": True,
@@ -106,13 +120,69 @@ class RemoteMonitorServerTests(unittest.TestCase):
             "approved_for_integrator": 0,
             "active_blocker": "-",
             "pause": {"paused": False},
+            "lanes": [
+                {
+                    "lane": "feat-engine-runs",
+                    "pending_feature": 1,
+                    "reviewer_notes": 0,
+                    "approved_for_integrator": 0,
+                    "state": "active",
+                    "running": [{"provider": "local", "role": "feature", "pid": "123"}],
+                }
+            ],
         }
 
         text = remote_monitor_server.summary_text(payload)
 
-        self.assertIn("daemon_running=True", text)
-        self.assertIn("runtime_mode=hybrid", text)
+        self.assertIn("Exegesis daemon", text)
+        self.assertIn("Generated: ", text)
+        self.assertIn("Daemon:    RUNNING", text)
+        self.assertIn("Runtime:   hybrid", text)
+        self.assertIn("feat-engine-runs: active", text)
+        self.assertIn("[local feature]", text)
         self.assertTrue(text.endswith("\n"))
+
+    def test_human_timestamp_formats_iso_timestamp(self) -> None:
+        formatted = remote_monitor_server.human_timestamp("2026-05-17T01:10:00Z")
+
+        self.assertIn("2026", formatted)
+        self.assertIn(" at ", formatted)
+
+    def test_summary_html_is_small_status_view(self) -> None:
+        payload = {
+            "generated_at": "2026-05-17T01:10:00Z",
+            "daemon_running": True,
+            "runtime_mode": "hybrid",
+            "cloud_available": True,
+            "local_lms_jobs": "2/4",
+            "cloud_jobs": "1/4",
+            "pending_feature": 1,
+            "reviewer_notes": 0,
+            "approved_for_integrator": 0,
+            "active_blocker": "<none>",
+            "pause": {"paused": False},
+            "lanes": [
+                {
+                    "lane": "feat-engine-runs",
+                    "pending_feature": 1,
+                    "reviewer_notes": 0,
+                    "approved_for_integrator": 0,
+                    "state": "active",
+                    "running": [{"provider": "cloud", "role": "integrator", "pid": "123"}],
+                }
+            ],
+        }
+
+        html = remote_monitor_server.summary_html(payload)
+
+        self.assertIn("<title>Exegesis Status</title>", html)
+        self.assertIn("Daemon: RUNNING", html)
+        self.assertIn("&lt;none&gt;", html)
+        self.assertIn('data-action="stop"', html)
+        self.assertIn("Kick", html)
+        self.assertIn("feat-engine-runs", html)
+        self.assertIn("cloud integrator", html)
+        self.assertIn("feature 1", html)
 
     def test_status_endpoint_requires_auth(self) -> None:
         config = {"allowed_remote_cidrs": [], "snapshot_ttl_seconds": 0}
@@ -170,7 +240,79 @@ class RemoteMonitorServerTests(unittest.TestCase):
                     body = response.read().decode("utf-8")
                     content_type = response.headers.get("Content-Type", "")
                 self.assertIn("text/plain", content_type)
-                self.assertIn("daemon_running=True", body)
+                self.assertIn("Daemon:    RUNNING", body)
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
+            server.server_close()
+
+    def test_html_status_endpoint_requires_auth_and_returns_html(self) -> None:
+        config = {"allowed_remote_cidrs": [], "snapshot_ttl_seconds": 0}
+        server = remote_monitor_server.ThreadingHTTPServer(("127.0.0.1", 0), remote_monitor_server.RemoteMonitorHandler)
+        server.monitor_config = config  # type: ignore[attr-defined]
+        server.monitor_token = "token"  # type: ignore[attr-defined]
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        base = f"http://127.0.0.1:{server.server_address[1]}"
+        try:
+            with mock.patch.object(
+                remote_monitor_server,
+                "_fresh_snapshot",
+                return_value={
+                    "daemon_running": True,
+                    "generated_at": "now",
+                    "runtime_mode": "hybrid",
+                    "cloud_available": True,
+                    "pause": {"paused": False},
+                },
+            ):
+                req = urllib.request.Request(
+                    f"{base}/api/status/html",
+                    headers={"Authorization": "Bearer token"},
+                )
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    body = response.read().decode("utf-8")
+                    content_type = response.headers.get("Content-Type", "")
+                    cookie = response.headers.get("Set-Cookie", "")
+                self.assertIn("text/html", content_type)
+                self.assertIn("Exegesis Status", body)
+                self.assertIn("qual_monitor_session=", cookie)
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
+            server.server_close()
+
+    def test_control_endpoint_accepts_html_session_cookie(self) -> None:
+        config = {"allowed_remote_cidrs": [], "snapshot_ttl_seconds": 0}
+        server = remote_monitor_server.ThreadingHTTPServer(("127.0.0.1", 0), remote_monitor_server.RemoteMonitorHandler)
+        server.monitor_config = config  # type: ignore[attr-defined]
+        server.monitor_token = "token"  # type: ignore[attr-defined]
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        base = f"http://127.0.0.1:{server.server_address[1]}"
+        try:
+            with mock.patch.object(
+                remote_monitor_server,
+                "run_control_action",
+                return_value={"rc": 0, "output": ["kick requested"], "timed_out": False},
+            ), mock.patch.object(
+                remote_monitor_server,
+                "_fresh_snapshot",
+                return_value={"daemon_running": True, "generated_at": "now"},
+            ):
+                cookie = remote_monitor_server.monitor_session_cookie("token")
+                req = urllib.request.Request(
+                    f"{base}/api/control/kick",
+                    data=b'{"operator":"test"}',
+                    method="POST",
+                    headers={
+                        "Cookie": f"qual_monitor_session={cookie}",
+                        "Content-Type": "application/json",
+                    },
+                )
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    payload = json.loads(response.read().decode("utf-8"))
+                self.assertEqual(payload["action"], "kick")
         finally:
             server.shutdown()
             thread.join(timeout=5)
