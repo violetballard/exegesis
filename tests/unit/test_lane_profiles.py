@@ -150,7 +150,7 @@ class LaneProfileDefaultsTests(unittest.TestCase):
 
         self.assertEqual(
             ordered,
-            ["feat-engine-runs", "feat-commands", "feat-context-storage", "feat-a2ui-contract"],
+            ["feat-context-storage", "feat-commands", "feat-engine-runs", "feat-a2ui-contract"],
         )
 
 

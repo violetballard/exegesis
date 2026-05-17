@@ -32,11 +32,11 @@ FEATURE_ROOT = REPO_ROOT / ".codex/feature_runner"
 FEATURE_STATE_FILE = FEATURE_ROOT / "state.json"
 COORD_STATE_FILE = REPO_ROOT / ".codex/packet_coordinator/state.json"
 DEFAULT_LANES = [
-    "feat-commands",
     "feat-context-storage",
+    "feat-commands",
     "feat-retrieval-fts",
-    "feat-a2ui-contract",
     "feat-engine-runs",
+    "feat-a2ui-contract",
     "feat-console-shell",
     "feat-console-workflow",
     "feat-ocr-import",

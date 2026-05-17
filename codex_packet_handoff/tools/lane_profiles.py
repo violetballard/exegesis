@@ -12,10 +12,10 @@ ENGINE_MILESTONE_FOCUS = (
 )
 
 ENGINE_PRIORITY_ORDER = [
-    "feat-engine-runs",
-    "feat-retrieval-fts",
-    "feat-commands",
     "feat-context-storage",
+    "feat-commands",
+    "feat-retrieval-fts",
+    "feat-engine-runs",
     "feat-a2ui-contract",
 ]
 
