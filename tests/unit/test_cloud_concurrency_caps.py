@@ -786,7 +786,7 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 kicked, _ = router.process_reviewer_backlog(object(), cfg, {}, str(packet_root))
 
         self.assertEqual(kicked, 2)
-        self.assertEqual(kicked_lanes, ["feat-engine-runs", "feat-retrieval-fts"])
+        self.assertEqual(kicked_lanes, ["feat-context-storage", "feat-retrieval-fts"])
 
     def test_process_reviewer_backlog_ignores_stale_cloud_quota_in_local_mode(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
