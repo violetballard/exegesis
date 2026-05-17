@@ -5,7 +5,6 @@ from dataclasses import dataclass
 from functools import lru_cache
 
 
-# Keep the command catalog deterministic so CLI contract checks remain stable.
 @dataclass(frozen=True)
 class CommandSpec:
     name: str
@@ -156,9 +155,8 @@ def _normalize_flow_steps(flow_steps: tuple[str, ...]) -> tuple[str, ...]:
     return tuple(_normalize_token(flow_step) for flow_step in flow_steps)
 
 
-def _validated_cli_entrypoints() -> tuple[str, ...]:
+def _validate_cli_entrypoints() -> None:
     # Keep the parser surface explicit so the command contract stays deterministic.
-    validated_entrypoints: list[str] = []
     seen_entrypoints: set[str] = set()
     for entrypoint in _CLI_ENTRYPOINTS:
         normalized_entrypoint = _normalize_token(entrypoint)
@@ -167,10 +165,9 @@ def _validated_cli_entrypoints() -> tuple[str, ...]:
         if normalized_entrypoint in seen_entrypoints:
             raise ValueError(f"Duplicate command CLI entrypoint: {entrypoint}")
         seen_entrypoints.add(normalized_entrypoint)
-        if command_spec_for(COMMAND_SPECS, normalized_entrypoint) is None:
+        if command_spec_for(COMMAND_SPECS, entrypoint) is None:
             raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
-        validated_entrypoints.append(normalized_entrypoint)
-    return tuple(validated_entrypoints)
+
 
 def _command_cli_tokens_by_name() -> dict[str, tuple[str, ...]]:
     tokens_by_name: dict[str, list[str]] = {}
@@ -471,13 +468,15 @@ def command_lookup_table(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> tupl
 
 @lru_cache(maxsize=None)
 def command_cli_tokens() -> tuple[str, ...]:
-    return _validated_cli_entrypoints()
+    _validate_cli_entrypoints()
+    return tuple(_CLI_ENTRYPOINTS)
 
 
 @lru_cache(maxsize=None)
 def command_cli_lookup_table() -> tuple[tuple[str, str], ...]:
+    _validate_cli_entrypoints()
     lookup_table: list[tuple[str, str]] = []
-    for entrypoint in _validated_cli_entrypoints():
+    for entrypoint in _CLI_ENTRYPOINTS:
         spec = command_spec_for(COMMAND_SPECS, entrypoint)
         if spec is None:
             raise ValueError(f"Unknown CLI command entrypoint: {entrypoint}")
