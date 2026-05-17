@@ -198,10 +198,10 @@ def write_example_config():
         "max_local_fixer_jobs": 3,
         "lanes": lanes_cfg,
         "feature_lane_priority": [
-            "feat-engine-runs",
-            "feat-retrieval-fts",
-            "feat-commands",
             "feat-context-storage",
+            "feat-commands",
+            "feat-retrieval-fts",
+            "feat-engine-runs",
             "feat-a2ui-contract",
         ],
         "planner": {

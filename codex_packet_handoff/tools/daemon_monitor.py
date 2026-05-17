@@ -32,11 +32,11 @@ COORD_LEASE = Path(".codex/packet_coordinator/lease.json")
 LEASE_FRESH_SECONDS = 3600
 STALE_LOG_SECONDS = 1800
 DEFAULT_LANES = [
-    "feat-commands",
     "feat-context-storage",
+    "feat-commands",
     "feat-retrieval-fts",
-    "feat-a2ui-contract",
     "feat-engine-runs",
+    "feat-a2ui-contract",
     "feat-console-shell",
     "feat-console-workflow",
     "feat-ocr-import",
