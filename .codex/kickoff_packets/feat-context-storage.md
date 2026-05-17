@@ -7,7 +7,18 @@
 ### Priority outcomes
 1. Keep vault and context persistence deterministic and recoverable.
 2. Make excerpt/context-set storage easy to audit and resilient to malformed local state.
-3. Support the minimum demo loop: evidence selection, context attachment, patch generation, export.
+3. Support the engine-side workflow loop without introducing UI-specific state semantics.
+
+### Definition of done
+- Document state persists cleanly.
+- Basket and context state persist cleanly.
+- Malformed or partial local state is recovered or quarantined safely.
+- Engine flows can rely on storage without defensive one-off repair logic.
+
+### Do not spend time on
+- UI-facing basket semantics or interaction patterns.
+- Speculative sync or collaboration features.
+- Storage abstractions that do not improve determinism or recovery.
 
 ### Guardrails
 - Shared file edits require explicit approval.

@@ -1,12 +1,30 @@
 {
-  "approved_exception_note": "",
-  "kickoff_budget_note": "",
-  "proposed_readme_patch": "",
+  "scope_goal": "Correct the A2UI handoff metadata so the submitted review surface is auditable and aligned with the canonical Milestone 3 demo path.",
+  "scope_completed": [
+    "Corrected the A2UI handoff packet around the actual branch-tip review surface and removed stale packet-planner source/test claims.",
+    "Aligned the packet and handoff wording with ROADMAP.md Milestone 3 and PRODUCT_VISION.md Capability 4 without expanding A2UI runtime scope."
+  ],
+  "kickoff_budget_note": "This re-review packet is metadata-only and stays under the high-risk 4-task cap; no runtime A2UI, Textual, retrieval, daemon, or packet-planner source changes are part of this review surface.",
+  "approved_exception_note": "No new shared runtime/source exception is requested for this metadata-only re-review packet.",
+  "tasks_completed": [
+    "Regenerated the handoff packet around the actual branch-tip merge surface.",
+    "Removed unsupported changed-file claims for `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py`.",
+    "Set the handoff review target to one branch-tip merge surface: `HEAD` against `main`.",
+    "Added the explicit canonical demo-path step advanced: `preview and apply or reject a patch`."
+  ],
   "risk": "LOW",
-  "roadmap_items": [],
+  "roadmap_items": [
+    "Milestone 3: Real workflow loop - A2UI contracts support the engine loop without UI ambition.",
+    "feat-a2ui-contract - shared card/action contracts and selection models for the engine loop."
+  ],
+  "vision_capabilities": [
+    "Shared UI contract (A2UI)",
+    "Canonical engine contract"
+  ],
   "routing_provider_impact": "None",
-  "scope_goal": "Stabilize the A2UI schema and CLI fallback rendering used by engine-driven MVP workflows.",
   "shared_file_exception": false,
-  "tasks_completed": [],
-  "vision_capabilities": []
+  "reviewed_files": [
+    ".codex/kickoff_packets/feat-a2ui-contract.md",
+    "THREAD_PACKET.md"
+  ]
 }

@@ -1,12 +1,40 @@
 {
-  "approved_exception_note": "",
   "kickoff_budget_note": "",
   "proposed_readme_patch": "",
   "risk": "LOW",
-  "roadmap_items": [],
+  "roadmap_items": [
+    "Milestone 4: Retrieval Layer (Planned)",
+    "Milestone 3: Product Readiness (Planned)"
+  ],
+  "source_commits": [
+    "7b1bcaa8..2a1d2267"
+  ],
   "routing_provider_impact": "None",
-  "scope_goal": "Harden the engine run lifecycle so retrieval, patching, provenance, and export flow through one deterministic pipeline.",
-  "shared_file_exception": false,
-  "tasks_completed": [],
-  "vision_capabilities": []
+  "reviewed_source_files": [
+    "src/qual/engine/run_pipeline.py",
+    "src/qual/engine/tools/retrieval_tools.py",
+    "tests/unit/test_engine_run_pipeline.py",
+    "tests/unit/test_packet_planner.py"
+  ],
+  "scope_completed": "This metadata-only handoff reissue covers the reviewed source range `7b1bcaa8..2a1d2267`, which hardens run-flow terminal snapshot canonicalization, terminal validation, retrieval provenance, and patch/export alignment in `src/qual/engine/run_pipeline.py`, `src/qual/engine/tools/retrieval_tools.py`, `tests/unit/test_engine_run_pipeline.py`, and `tests/unit/test_packet_planner.py`; this commit does not modify `src/qual/engine/**`.",
+  "scope_goal": "This commit is a metadata-only handoff reissue for the reviewed source range `7b1bcaa8..2a1d2267`; it only synchronizes handoff metadata and does not change `src/qual/engine/**` or the feature implementation.",
+  "shared_file_exception": true,
+  "approved_exception_note": "The companion shared packet carries the approved shared/integrator-locked maintenance artifacts (`.codex/kickoff_packets/feat-engine-runs.shared.md`, `.codex/lane_meta/feat-engine-runs.json`, and `THREAD_PACKET.md`) so the lane packet can stay lane-only while still describing the reviewed source range accurately.",
+  "packet_files_changed": [
+    ".codex/kickoff_packets/feat-engine-runs.md",
+    ".codex/kickoff_packets/feat-engine-runs.shared.md",
+    ".codex/lane_meta/feat-engine-runs.json",
+    "THREAD_PACKET.md"
+  ],
+  "tasks_completed": [
+    "Named the reviewed engine-run source range `7b1bcaa8..2a1d2267` instead of treating the packet files as the feature itself.",
+    "Recorded the concrete engine-run files from the reviewed source range as evidence only, not as files changed by this metadata-only commit: `src/qual/engine/run_pipeline.py`, `src/qual/engine/tools/retrieval_tools.py`, `tests/unit/test_engine_run_pipeline.py`, and `tests/unit/test_packet_planner.py`.",
+    "Tightened the scope to terminal snapshot canonicalization, terminal validation, retrieval provenance, and patch/export alignment.",
+    "Mapped the handoff to `Milestone 4: Retrieval Layer (Planned)` and `Milestone 3: Product Readiness (Planned)`, plus `Retrieval-first context handling` and `Auditable generation`.",
+    "Kept the lane, shared, lane-meta, and thread packets synchronized with the reviewed source range while keeping the lane packet lane-only and the shared packet responsible for the shared/integrator-locked maintenance artifacts."
+  ],
+  "vision_capabilities": [
+    "Retrieval-first context handling",
+    "Auditable generation"
+  ]
 }
