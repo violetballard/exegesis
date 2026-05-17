@@ -1,3 +1,64 @@
 {
-  "lanes": {}
+  "lanes": {
+    "feat-retrieval-fts": {
+      "last_submitted_sha": "d42bd3ad194676eb508982af640a5253b6679845",
+      "last_emitted_packet": "F__codex-feat-retrieval-fts__d42bd3ad194676eb508982af640a5253b6679845__20260517T014253Z.md",
+      "last_gate_results": [
+        [
+          "make scope-check",
+          0
+        ],
+        [
+          "./quality-format.sh --check",
+          0
+        ],
+        [
+          "./quality-lint.sh",
+          0
+        ],
+        [
+          "./quality-test.sh",
+          0
+        ],
+        [
+          "./typecheck-test.sh",
+          0
+        ],
+        [
+          "make ci",
+          0
+        ]
+      ]
+    },
+    "feat-engine-runs": {
+      "last_submitted_sha": "90ab5dc63befea22b95de188505a2e64d9a24302",
+      "last_emitted_packet": "F__codex-feat-engine-runs__90ab5dc63befea22b95de188505a2e64d9a24302__20260517T014453Z.md",
+      "last_gate_results": [
+        [
+          "make scope-check",
+          0
+        ],
+        [
+          "./quality-format.sh --check",
+          0
+        ],
+        [
+          "./quality-lint.sh",
+          0
+        ],
+        [
+          "./quality-test.sh",
+          0
+        ],
+        [
+          "./typecheck-test.sh",
+          0
+        ],
+        [
+          "make ci",
+          0
+        ]
+      ]
+    }
+  }
 }
