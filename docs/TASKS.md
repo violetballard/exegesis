@@ -18,6 +18,8 @@ This file expands the canonical roadmap and lane mapping while the Textual lanes
 - after Milestone 5 stands, implement encrypted SQLite-backed MVP trust storage for durable app/project metadata, sessions, workflow artifacts, provenance, audit events, notebook compaction records, and generated A2UI promotion candidates
 - keep Markdown documents/assets portable while richer trust state lives in SQLite
 - include migration, backup/recovery, and clear failure behavior for encrypted SQLite storage
+- after Milestone 5 stands, generate redacted support/diagnostic bundles that exclude document content, basket content, transcript text, credentials, file paths, and raw prompts by default
+- define first-run/onboarding and recovery/failure-state copy for CoP launch
 
 ### `feat-retrieval-fts`
 - keep the FTS-first retrieval path authoritative
@@ -42,6 +44,23 @@ This file expands the canonical roadmap and lane mapping while the Textual lanes
 - preserve engine-first dependency direction during the migration
 - implement request budgeting, compaction trigger policy, compaction-mode model calls, and compacted model request assembly
 - after Milestone 5 stands, record provenance for each model request, context/basket input, generated output, rewrite proposal, patch preview, apply/reject decision, and save-to-project artifact
+
+## MVP CoP Gateway Lane
+
+### `feat-cop-lite-licensing` early CoP Gateway MVP profile
+- activate only after Milestone 5A trust substrate stands
+- stand up the minimal Cloudflare Workers/D1/R2 License Gateway needed for first CoP beta use
+- implement admin-issued Initial CoP/course invite creation, revocation, claim, activation, and license refresh
+- collect minimal claim identity, such as display name and email when available, without adding a full username/password account system
+- support manual activation-code entry and optional `exegesis://claim?token=...` custom URL handoff after installer download
+- store refresh tokens in the OS credential store and preserve access across normal app updates
+- return signed Lite entitlement payloads without storing provider secrets or Paddle state in the client
+- ingest redacted A2UI promotion bundles from opted-in CoP/beta builds
+- ingest redacted support/diagnostic bundles from CoP/beta builds
+- reject confidential-project promotion uploads
+- provide bearer-token-protected HTML admin review/export/status dashboard for promotion candidates
+- keep Paddle checkout, paid Lite subscriptions, Studio/Pro inherited Lite access, and OCR top-up purchases out of this early profile
+- use `docs/FUTURE_MVP_FEATURES_SPEC.md` Milestone 5B as the lane-ready build sheet
 
 ## Defined but disabled
 
@@ -251,17 +270,17 @@ Activation rule:
 Implementation batches:
 - use `docs/FUTURE_MVP_FEATURES_SPEC.md` as the lane-ready build sheet
 
-### `feat-cop-lite-licensing`
-Own later:
+### `feat-cop-lite-licensing` paid expansion profile
+Own later, after the Milestone 5B CoP Gateway MVP is standing:
 - individual paid Lite licensing through website checkout and Paddle webhooks
 - Studio and Pro subscription licensing that includes Lite access for secondary-machine use
 - course licensing through one instructor-distributed self-serve student link
 - Tally intake form accessible through MCP for Claude cowork-assisted classification and manual approval preparation
 - initial CoP unlimited Lite course access with no seat cap
 - Developer/Lite boundary where Developer never uses hosted Lite workflows
-- hosted License Gateway for license invites, claim, refresh, managed Lite provider proxy, Studio/Pro managed OCR fallback, Paddle webhooks, and Nanonets page state
-- hosted A2UI promotion intake service for opted-in CoP/beta builds, implemented as narrow redacted candidate-bundle upload rather than broad telemetry
-- admin-side A2UI promotion candidate access through CLI-first listing/export and a small bearer-token-protected HTML dashboard
+- extensions to the hosted License Gateway for managed Lite provider proxy, Studio/Pro managed OCR fallback, Paddle webhooks, and Nanonets page state
+- preserve the Cloudflare Workers/D1/R2 hosting target from Milestone 5B
+- preserve the hosted A2UI promotion intake service and bearer-token admin dashboard from Milestone 5B
 - consent, redaction, pseudonymous install/license identifiers, and confidential-project upload prohibition for A2UI promotion intake
 - Nanonets page ledger with 150-page default initial CoP balance
 - Studio managed cloud OCR bucket of 250 pages per month and Pro managed cloud OCR bucket of 500 pages per month

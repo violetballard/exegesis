@@ -50,6 +50,8 @@ The user should always understand:
 - Richer encrypted SQLite-backed storage is required for MVP trust state after the demo path stands: provenance, audit events, workflow artifacts, compaction records, A2UI promotion candidates, and durable app/project metadata.
 - Full provenance/tracking is a core MVP feature, not later polish. Exegesis must explain what context was used, what was generated, what was promoted, what was applied, and why the user can trust the chain.
 - Trusted CoP dogfooding should capture generated A2UI promotion candidates early, alongside human feedback, so useful workflow surfaces can be promoted from real use.
+- The first CoP also needs a minimal hosted Cloudflare gateway before broad feature expansion: basic CoP/course access claim and refresh plus privacy-preserving A2UI promotion ingest. Paid licensing and Paddle can arrive later.
+- CoP launch support must include redacted diagnostic bundle upload through the gateway, plus clear consent/onboarding/error-state copy; support tooling should not require users to expose research content by default.
 
 ## Near-term product truth
 

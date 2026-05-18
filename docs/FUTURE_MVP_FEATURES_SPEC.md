@@ -1,14 +1,221 @@
 # Future Summer MVP Feature Specs
 
 This document defines disabled future work for the real summer MVP. It is specification scaffolding only:
-no runtime editor basics, qualitative coding, citation, export, Zotero import, formatting-bar, developer provider configuration, desktop packaging, or Lite licensing behavior should be active until the relevant lane is explicitly enabled.
+no runtime CoP gateway, editor basics, qualitative coding, citation, export, Zotero import, formatting-bar, developer provider configuration, desktop packaging, or paid Lite licensing behavior should be active until the relevant lane is explicitly enabled.
 
 Implementation rule:
 - Each milestone below is written so its lane can be enabled in batches later without another planning pass.
 - Each lane should still create its own kickoff packet and stop at normal review/integration gates.
 - Do not activate these lanes until Milestones 1-5 are standing and the engine/client contract is ready for the relevant feature.
 
-## Shared Conventions For Milestones 9-17
+## Milestone 5B: CoP Gateway MVP
+
+Lane: `feat-cop-lite-licensing` (disabled, early CoP Gateway MVP profile)
+
+Intent:
+- Stand up the minimum hosted gateway needed for the first CoP beta before the broader paid licensing milestone.
+- Support basic admin-issued Initial CoP and course Lite access.
+- Support Lite claim/refresh from the app through signed gateway responses.
+- Support A2UI promotion bundle ingest and bearer-token admin review.
+- Support redacted support/diagnostic bundle upload for CoP/beta troubleshooting.
+- Host this on Cloudflare Workers/D1/R2.
+- Do not implement Paddle checkout, paid Lite subscriptions, Studio/Pro subscription inheritance, OCR top-up purchase flows, or a full login system in this milestone.
+
+### Hosting Decision
+
+Use Cloudflare as the default deployment target:
+- Workers: gateway API routes, admin routes, webhook-compatible route scaffolds where needed later.
+- D1: license invites, claimed license records, refresh token metadata, A2UI promotion bundle metadata, promotion review status, and audit records.
+- R2: static admin exports, dashboard assets, release manifests, app artifacts where appropriate, and later licensed multipart model downloads.
+
+Keep this a small serverless gateway, not a general product backend or analytics warehouse.
+
+### Minimal Data Concepts
+
+Add only the data needed for CoP launch:
+- `LiteAccessInvite`
+  - opaque token
+  - type: `initial_cop` or `course`
+  - status: active, claimed, revoked, expired
+  - optional intended email or label
+  - created by admin actor
+  - created/updated/claimed timestamps
+- `LiteClaimIdentity`
+  - display name, optional but requested at claim time
+  - email, optional for initial CoP but recommended for support/revocation
+  - pseudonymous install ID
+  - coarse cohort/source label
+  - no password, username handle, or full account profile in the MVP gateway
+- `LiteLicenseClaim`
+  - account/user/install reference when available
+  - minimal claim identity reference
+  - access source: `initial_cop`, `course`, or `admin_manual`
+  - active/revoked state
+  - created/updated timestamps
+- `LicenseRefreshToken`
+  - opaque token
+  - tied to the claim
+  - revocable
+  - last-used timestamp
+- `ActivationToken`
+  - short-lived one-time token created after claim
+  - can be displayed as a short code or carried in an `exegesis://claim?token=...` activation link
+  - exchanged by the installed app for a refresh token and signed entitlement cache
+  - expires quickly and cannot be reused after successful activation
+- `SignedLicenseCache`
+  - gateway-signed entitlement payload returned to the app
+  - expiration and grace-period metadata
+  - no managed provider secrets
+- `A2UIPromotionBundle`
+  - redacted generated surface structure
+  - validation result
+  - action summary
+  - client capability set
+  - usage counters
+  - coarse workflow label
+  - app/build version
+  - pseudonymous install/license reference
+  - optional user feedback
+  - no document text, basket content, transcript text, credentials, file paths, or raw prompts by default
+- `A2UIPromotionReview`
+  - status: new, observing, rejected, promoted
+  - reviewer notes
+  - promotion catalog reference if promoted
+  - created/updated timestamps
+- `SupportDiagnosticBundle`
+  - app/build version
+  - platform and distribution profile
+  - license status summary and claim source
+  - gateway request correlation IDs
+  - project schema/storage version
+  - recent error summaries and subsystem health
+  - model/provider/OCR availability status with secrets redacted
+  - user-provided issue note
+  - optional explicit user-approved attachments
+  - no document content, basket content, transcript text, credentials, file paths, raw prompts, provider keys, or local endpoint URLs by default
+
+### Required Endpoints
+
+Admin endpoints use bearer-token authorization. `/healthz` may be unauthenticated.
+
+- `GET /healthz`
+  - liveness only; exposes no account, license, bundle, provider, or secret state.
+- `POST /admin/lite/invites`
+  - create a basic Initial CoP or course Lite access invite.
+- `POST /admin/lite/invites/{id}/revoke`
+  - revoke an invite.
+- `POST /licenses/claim`
+  - claim an invite token with minimal claim identity and return a short-lived activation token, optional human-enterable activation code, installer/download URL, and signed Lite entitlement preview.
+- `POST /licenses/activate`
+  - installed app exchanges an activation token or activation code for a refresh token and signed entitlement cache.
+  - supports activation from a custom URL handoff such as `exegesis://claim?token=...`.
+- `POST /licenses/refresh`
+  - refresh Lite entitlement state and return a signed local-cache payload.
+- `POST /a2ui/promotion-bundles`
+  - accept opted-in CoP/beta A2UI promotion bundles.
+  - reject confidential-project uploads.
+  - reject bundles that fail redaction/schema validation.
+- `GET /admin/a2ui/dashboard`
+  - bearer-token-protected HTML review dashboard.
+  - renders safe A2UI primitives approximately with inert action chips.
+- `GET /admin/a2ui/promotion-bundles`
+  - list candidate bundles with filters for status, workflow, app version, validation state, and date.
+- `GET /admin/a2ui/promotion-bundles/{id}`
+  - show a candidate bundle and validation/review state.
+- `POST /admin/a2ui/promotion-bundles/{id}/status`
+  - set status to observing, rejected, or promoted.
+- `GET /admin/a2ui/promotion-bundles/export`
+  - export review data for offline catalog review.
+- `POST /support/bundles`
+  - accept redacted CoP/beta support bundles.
+  - reject or strip prohibited content by schema and field allowlist.
+  - return a support bundle ID the user can reference.
+- `GET /admin/support/bundles`
+  - bearer-token-protected list of submitted support bundles.
+- `GET /admin/support/bundles/{id}`
+  - bearer-token-protected support bundle detail.
+
+### Security Rules
+
+- Managed provider keys are not part of this minimal milestone.
+- Admin bearer tokens must be long, revocable, stored outside git, and never logged.
+- Claim links are enough for MVP access, but claim should request minimal identity so we can support users, revoke the right grant, and correlate support bundles. Do not add passwords, usernames, user profile pages, or a full account system in this milestone.
+- The installer itself should not require license entry. License activation happens in the app after install through an activation code or custom URL handoff.
+- `exegesis://claim?token=...` custom URL activation is allowed and preferred when practical, but the app must also support manual activation-code entry as a fallback.
+- Refresh tokens must be stored in the OS credential store, such as macOS Keychain. Signed entitlement caches may be stored in Keychain or app support storage if signed and non-secret.
+- App updates must preserve credential-store access by keeping stable bundle identity, team identity, and keychain access-group behavior.
+- CORS is disabled by default except for explicitly allowed app origins when needed.
+- The dashboard must require HTTPS and bearer-token authorization when internet accessible.
+- The dashboard must not mutate user projects; generated actions are displayed as inert chips.
+- Promotion ingest is not general telemetry.
+- Support bundle ingest is not general telemetry and must use an allowlist schema.
+- Confidential projects cannot upload promotion bundles.
+- Confidential projects cannot upload support bundles unless the bundle is redacted to the same no-content standard and the user explicitly confirms.
+- Developer builds never call the hosted Lite gateway.
+- Lite entitlement caches must not include provider keys, Paddle state, or machine activation data.
+
+### CoP Launch UX Requirements
+
+- Claim/download flow:
+  1. User opens claim link.
+  2. Gateway asks for minimal claim identity.
+  3. Gateway creates the Lite claim.
+  4. Gateway shows/downloads the installer.
+  5. Gateway shows an activation code and, when possible, an `Open Exegesis to activate` link using `exegesis://claim?token=...`.
+  6. User installs Exegesis Lite.
+  7. On first launch, the app accepts the activation code or receives the custom URL token.
+  8. App calls `/licenses/activate`, stores refresh token and signed entitlement state, and then silently uses `/licenses/refresh` on future launches/updates.
+- First-run flow should explain: open/create project, import Markdown/PDF, use basket, draft, rewrite, save/export, and where provenance appears.
+- A short in-app or bundled guide must define the basket, notebook, drafting, rewrite review, citations/provenance, and how to ask for help.
+- Promotion sharing copy must say that generated interface candidates can be shared, not research content, and must expose an opt-in/out control for eligible CoP/beta builds.
+- Failure states need plain-language copy for: license refresh failed, gateway unavailable, promotion upload failed, support bundle upload failed, managed OCR unavailable, model request failed, project schema mismatch, and update required.
+- Support bundle creation should show a preview of included categories before upload and a clear statement that research content is excluded by default.
+
+### Implementation Batches
+
+1. Gateway project scaffold
+   - Add Cloudflare Worker app, D1 schema migrations, R2 bucket binding config, local dev docs, and example untracked secret config.
+2. Minimal license/invite contracts
+   - Implement invite create/revoke, claim, activation token/code exchange, refresh, signed entitlement payloads, and revocation handling.
+3. A2UI promotion ingest
+   - Implement bundle schema validation, redaction guardrails, confidential-project rejection, and D1 metadata persistence.
+4. Support bundle ingest
+   - Implement local support bundle schema, redaction guardrails, upload endpoint, D1 metadata persistence, and admin detail/list views.
+5. Admin review dashboard
+   - Implement bearer-token HTML dashboard, list/detail/export/status actions, inert A2UI rendering, and audit logging.
+6. CoP onboarding and failure copy
+   - Add first-run guide text, consent copy, support-bundle preview copy, and failure-state copy hooks.
+7. Client integration contracts
+   - Add app-facing claim/activate/refresh and promotion upload contract tests without activating UI work beyond the consuming integration points.
+8. Deployment and acceptance checks
+   - Add deploy documentation, secret handling, D1 migration checks, R2 export checks, and smoke tests.
+
+### Test Plan
+
+- Missing/bad admin bearer token is rejected.
+- `/healthz` exposes no sensitive data.
+- Admin can create and revoke Initial CoP/course invites.
+- Claimed invite returns activation token/code and installer/download information without requiring a password account.
+- Installed app can activate from activation code.
+- Installed app can activate from `exegesis://claim?token=...` custom URL handoff.
+- Activation token cannot be reused after successful activation.
+- Refresh token is stored in OS credential store and survives normal app updates when bundle/keychain identity remains stable.
+- First launch can fall back to manual activation-code entry if custom URL handoff fails.
+- Claim can collect minimal display name/email identity when available without requiring a password account.
+- Revoked invite or revoked claim cannot refresh active access.
+- Developer build path does not call gateway endpoints.
+- A2UI upload rejects confidential-project bundles.
+- A2UI upload rejects bundles containing prohibited raw text/path/secret fields.
+- Dashboard list/detail/export/status routes require bearer token.
+- Dashboard renders action controls as inert review chips.
+- Support bundle upload excludes document content, basket content, transcript text, credentials, file paths, raw prompts, provider keys, and local endpoint URLs by default.
+- Support bundle upload returns a support bundle ID.
+- Admin support bundle list/detail routes require bearer token.
+- First-run guide and launch-critical failure-state copy are present.
+- D1 migrations apply cleanly from empty state.
+- R2 export writes and reads expected static review/export artifacts.
+
+## Shared Conventions For Future Feature Milestones
 
 Project entities:
 - Stable IDs should be opaque strings generated by storage, not derived from names.
@@ -1469,15 +1676,16 @@ Runtime status:
 - Required update blocks confidential project open.
 - Required update does not block non-confidential project open unless storage schema compatibility requires it.
 
-## Milestone 18: Lite Website Licensing And CoP Launch Gate
+## Milestone 18: Paid Lite Licensing And Course Expansion
 
-Lane: `feat-cop-lite-licensing` (disabled)
+Lane: `feat-cop-lite-licensing` (disabled, later paid licensing expansion profile)
 
 Intent:
-- Add a fully specified but disabled Lite licensing lane for individual paid Lite users, course licensing, and the initial Community of Practice beta group.
+- Extend the Milestone 5B CoP Gateway MVP into the paid licensing and course expansion layer.
+- Keep the Initial CoP/course access and A2UI promotion ingest path available from Milestone 5B.
 - Support individual paid Lite purchases through the Exegesis website and Paddle.
 - Support future Studio and Pro subscriptions as account licenses that include Lite client access for secondary machines.
-- Support course licensing through one instructor-distributed self-serve link that students can use to claim access.
+- Support fuller course licensing through one instructor-distributed self-serve link that students can use to claim access.
 - Support course-license request intake through a Tally form accessible via MCP for Claude cowork-assisted classification and manual approval preparation.
 - Give initial CoP users unlimited Lite course access without seat limits.
 - Keep Nanonets online OCR page-metered with a 150-page default balance and fixed top-up packages.
@@ -1486,8 +1694,9 @@ Intent:
 - Treat licenses as per-user/account entitlements, not per-machine activations.
 
 Non-activation rule:
-- This milestone is specification and lane scaffolding only.
-- Do not implement runtime licensing, hosted gateway code, Paddle checkout, OCR metering, Textual import-window behavior, or course-access enforcement until this lane is explicitly enabled.
+- This milestone is specification and lane scaffolding for paid expansion only.
+- Do not implement Paddle checkout, paid subscription handling, OCR metering, Textual import-window top-up behavior, or full course billing until this expansion profile is explicitly enabled.
+- The minimal Milestone 5B gateway may be implemented earlier for CoP access and A2UI promotion ingest without activating this paid expansion scope.
 
 ### Distribution Boundary
 
@@ -1797,6 +2006,14 @@ Required access copy:
 ### Exegesis License Gateway
 
 Lite requires a small hosted License Gateway because managed provider credentials and Paddle webhooks cannot safely live inside the desktop app. Studio and Pro also use the gateway for subscription entitlement refresh and managed cloud OCR fallback when local OCR cannot load safely.
+
+Initial hosting decision:
+- Host the MVP gateway on Cloudflare Workers.
+- Use Cloudflare D1 for license records, Nanonets page ledgers, Paddle webhook idempotency, A2UI promotion bundle metadata, and admin review state.
+- Use Cloudflare R2 for static admin exports, dashboard assets, release manifests, app artifacts where appropriate, and later licensed multipart model downloads.
+- Keep this as a small serverless gateway, not a general product backend or analytics warehouse.
+- Start with bearer-token admin access for protected review/admin routes; do not add a full login/session system in MVP unless the product need becomes unavoidable.
+- Treat Cloudflare as the default low-cost deployment target for the hosted Lite gateway, while keeping provider proxy and OCR upload boundaries narrow enough to split out later if traffic or streaming needs exceed Workers limits.
 
 Gateway responsibilities:
 - Store individual paid Lite licenses.
@@ -2169,13 +2386,14 @@ Future access workflow:
 - Claude cowork flow may prepare the approval packet and generate course license links through the gateway admin endpoint after human approval.
 
 Milestone 18 boundary:
-- Define the hooks and endpoint compatibility only.
+- Extend the already-standing Milestone 5B gateway; do not duplicate the minimal CoP claim/refresh or A2UI promotion-ingest work.
+- Define the Tally/Claude cowork hooks and endpoint compatibility only.
 - Do not make Tally classification or Claude cowork automation authoritative for access decisions.
 
 ### Implementation Batches
 
-1. Spec and lane scaffolding
-   - Add docs, disabled lane registration, ownership, profile, and scope policy.
+1. Paid expansion scope check
+   - Confirm the Milestone 5B gateway is standing, then open only the paid licensing/course expansion profile for this lane.
 2. Gateway contract and shared models
    - Define license, invite, refresh token, signed cache, usage account, ledger, top-up, and job contracts.
 3. Lite licensing behavior
