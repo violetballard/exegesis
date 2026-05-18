@@ -22,7 +22,7 @@ Access path selection:
 - Local `remote_monitor_ctl.py start/status` only manages the phone/VPN monitor process. It is not the remote HTTP status path.
 
 CLI-first note:
-- assume the operator launched Codex CLI with `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+- assume the operator launched Codex CLI with `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/projects/exegesis`
 - use only the Python scripts above for resume/status control
 
 This performs:

@@ -25,7 +25,7 @@ Manual breakdown if you need to inspect each step:
 - `tail -n 80 .codex/packet_coordinator/daemon.log 2>/dev/null || true`
 
 CLI-first note:
-- assume the operator launched Codex CLI with `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+- assume the operator launched Codex CLI with `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/projects/exegesis`
 - use the Python scripts above as the authoritative status sources
 - when the controller itself is local `gpt-oss-20b`, prefer showing the full script outputs first and then summarize them; do not rely on memory or prior chat context for status
 

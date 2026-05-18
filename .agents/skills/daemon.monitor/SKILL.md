@@ -21,7 +21,7 @@ Access path selection:
 - Local `remote_monitor_ctl.py status` is a process-health check only. Do not replace local daemon/status scripts with `remote_monitor_client.py` when the repo is mounted.
 
 CLI-first note:
-- assume the operator launched Codex CLI with `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+- assume the operator launched Codex CLI with `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/projects/exegesis`
 - use the Python scripts above; do not infer daemon state from chat history alone
 - when the controller is local `gpt-oss-20b`, print the full script-derived status first, then layer in the live-log evidence
 

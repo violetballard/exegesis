@@ -17,7 +17,7 @@ Access path selection:
 - A remote kick requests a daemon wake/reconcile; it does not duplicate jobs and does not expose arbitrary command execution.
 
 CLI-first note:
-- assume the operator launched Codex CLI with `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+- assume the operator launched Codex CLI with `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/projects/exegesis`
 - this skill should call the Python coordinator directly rather than using app-side automation features
 
 Summarize:

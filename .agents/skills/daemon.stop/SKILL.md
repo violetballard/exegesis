@@ -16,4 +16,4 @@ Then verify:
 - Remote verification fallback: `python codex_packet_handoff/tools/remote_monitor_client.py status`
 
 CLI-first note:
-- run this from a Codex CLI session launched with `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+- run this from a Codex CLI session launched with `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/projects/exegesis`
