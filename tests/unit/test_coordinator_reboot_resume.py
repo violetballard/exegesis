@@ -9,6 +9,29 @@ from unittest.mock import patch
 
 
 class CoordinatorRebootResumeTests(unittest.TestCase):
+    def test_lane_queue_empty_ignores_shared_feature_packets(self) -> None:
+        from codex_packet_handoff.tools import agents_coordinator as coordinator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            feature_dir = root / ".codex/packets/lanes/feat-retrieval-fts/inbox/feature"
+            feature_dir.mkdir(parents=True)
+            (feature_dir / "F__codex-feat-retrieval-fts__abc123__20260517T000000Z.shared.md").write_text(
+                "# shared packet\n",
+                encoding="utf-8",
+            )
+
+            with patch.object(coordinator, "REPO_ROOT", root):
+                self.assertTrue(coordinator._lane_queue_empty("feat-retrieval-fts"))
+
+            (feature_dir / "F__codex-feat-retrieval-fts__def456__20260517T000001Z.md").write_text(
+                "# actionable packet\n",
+                encoding="utf-8",
+            )
+
+            with patch.object(coordinator, "REPO_ROOT", root):
+                self.assertFalse(coordinator._lane_queue_empty("feat-retrieval-fts"))
+
     def test_reconcile_marks_pruned_direct_exec_lane_for_forced_resume(self) -> None:
         from codex_packet_handoff.tools import agents_coordinator as coordinator
 

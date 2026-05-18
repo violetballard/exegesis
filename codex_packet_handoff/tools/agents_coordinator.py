@@ -1615,7 +1615,10 @@ def _git_rev(branch: str) -> str:
 
 def _lane_digest(lane: str) -> Dict[str, object]:
     base = REPO_ROOT / ".codex/packets/lanes" / lane
-    feat = sorted((base / "inbox/feature").glob("*.md"))
+    feat = sorted(
+        p for p in (base / "inbox/feature").glob("*.md")
+        if not p.name.endswith(".shared.md")
+    )
     rev = sorted((base / "inbox/reviewer").glob("*.md"))
     appr = sorted((base / "outbox/integrator").glob("*.md"))
     arch = sorted((base / "archive").glob("*.md"))

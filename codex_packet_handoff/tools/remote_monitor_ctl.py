@@ -69,6 +69,10 @@ def _pid_alive(pid: int) -> bool:
     try:
         os.kill(pid, 0)
         return True
+    except PermissionError:
+        # Sandboxed local checks may not be allowed to signal a live detached
+        # process. Treat EPERM as alive rather than reporting a false negative.
+        return True
     except OSError:
         return False
 

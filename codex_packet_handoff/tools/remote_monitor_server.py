@@ -135,7 +135,10 @@ def authorize(headers: Mapping[str, str], token: str) -> bool:
     prefix = "Bearer "
     if auth.startswith(prefix):
         supplied = auth[len(prefix) :].strip()
-        return bool(token) and hmac.compare_digest(supplied, token)
+        return bool(token) and (
+            hmac.compare_digest(supplied, token)
+            or hmac.compare_digest(supplied, monitor_session_cookie(token))
+        )
     cookie = str(headers.get("Cookie") or "")
     expected = monitor_session_cookie(token)
     if not expected:
@@ -264,7 +267,7 @@ def _format_lane_running(lane: Mapping[str, Any]) -> str:
     return ", ".join(labels) if labels else "not running"
 
 
-def summary_html(payload: Mapping[str, Any]) -> str:
+def summary_html(payload: Mapping[str, Any], *, session_token: str = "") -> str:
     pause = payload.get("pause") if isinstance(payload.get("pause"), dict) else {}
     git = payload.get("git") if isinstance(payload.get("git"), dict) else {}
     memory = payload.get("memory_pressure") if isinstance(payload.get("memory_pressure"), dict) else {}
@@ -332,6 +335,7 @@ def summary_html(payload: Mapping[str, Any]) -> str:
     if lane_rows:
         lane_html = "<section><h2>Lanes</h2><div class='lanes'>" + "\n".join(lane_rows) + "</div></section>"
     generated = human_timestamp(payload.get("generated_at"))
+    safe_session_token = json.dumps(session_token)
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -459,13 +463,18 @@ def summary_html(payload: Mapping[str, Any]) -> str:
   </main>
   <script>
     const statusLine = document.getElementById("control-status");
+    const monitorSessionToken = {safe_session_token};
     async function runControl(action) {{
       statusLine.textContent = `Sending ${{action}}...`;
       try {{
+        const headers = {{ "Content-Type": "application/json", "Accept": "application/json" }};
+        if (monitorSessionToken) {{
+          headers.Authorization = `Bearer ${{monitorSessionToken}}`;
+        }}
         const response = await fetch(`/api/control/${{action}}`, {{
           method: "POST",
           credentials: "same-origin",
-          headers: {{ "Content-Type": "application/json", "Accept": "application/json" }},
+          headers,
           body: JSON.stringify({{ operator: "status-page", reason: `${{action}} from status page` }})
         }});
         if (!response.ok) {{
@@ -615,10 +624,11 @@ class RemoteMonitorHandler(BaseHTTPRequestHandler):
         if self.path == "/api/status/html":
             if not self._guard():
                 return
+            session = monitor_session_cookie(self.monitor_token)
             self._send_html(
                 HTTPStatus.OK,
-                summary_html(_fresh_snapshot(self.monitor_config, full=False)),
-                session_cookie=monitor_session_cookie(self.monitor_token),
+                summary_html(_fresh_snapshot(self.monitor_config, full=False), session_token=session),
+                session_cookie=session,
             )
             return
         if self.path == "/api/status":
