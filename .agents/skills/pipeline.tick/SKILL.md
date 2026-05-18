@@ -4,16 +4,16 @@ description: "Run the event-driven coordinator to process planner/review/fix/int
 ---
 
 Run from repo root:
-- `python codex_packet_handoff/tools/agents_coordinator.py --once`
-- `python codex_packet_handoff/tools/status.py`
-- `python codex_packet_handoff/tools/daemon_monitor.py`
+- `python packet_garden/tools/agents_coordinator.py --once`
+- `python packet_garden/tools/status.py`
+- `python packet_garden/tools/daemon_monitor.py`
 - `tail -n 60 .codex/packet_coordinator/daemon.log 2>/dev/null || true`
 - `for f in $(ls -1t .codex/packet_router/logs/*.log 2>/dev/null | head -n 3); do echo "FILE:$f"; tail -n 30 "$f"; done`
 
 Access path selection:
 - If this session is local to the development machine, use the direct coordinator tick above.
 - If this session is remote over VPN and local scripts are unavailable, do not attempt to run planner/router/coordinator directly.
-- Remote equivalent is limited to `python codex_packet_handoff/tools/remote_monitor_client.py kick`, followed by `... status` or `... full`.
+- Remote equivalent is limited to `python packet_garden/tools/remote_monitor_client.py kick`, followed by `... status` or `... full`.
 - A remote kick requests a daemon wake/reconcile; it does not duplicate jobs and does not expose arbitrary command execution.
 
 CLI-first note:
@@ -31,6 +31,6 @@ Summarize:
 Mode notes:
 - Default is direct event-driven orchestration (`--execution-mode direct`).
 - Use daemon for continuous orchestration:
-- `python codex_packet_handoff/tools/agents_coordinator.py --daemon`
+- `python packet_garden/tools/agents_coordinator.py --daemon`
 - Use subprocess mode only for break-glass fallback:
-- `python codex_packet_handoff/tools/agents_coordinator.py --execution-mode subprocess`
+- `python packet_garden/tools/agents_coordinator.py --execution-mode subprocess`

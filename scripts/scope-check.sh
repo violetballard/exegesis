@@ -88,7 +88,7 @@ is_feature_branch() {
 is_control_plane_file() {
   local f="$1"
   case "$f" in
-    codex_packet_handoff/*|codex_packet_handoff/*/*)
+    packet_garden/*|packet_garden/*/*)
       return 0
       ;;
     .agents/*|.agents/*/*)

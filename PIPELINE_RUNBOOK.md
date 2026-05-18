@@ -4,16 +4,16 @@ This file is the operator-facing reference for the packet pipeline, daemon dashb
 
 ## Canonical Commands
 
-- Full operator dashboard: `./codex_packet_handoff/tools/status_report.sh`
-- Git hygiene sweep: `python codex_packet_handoff/tools/git_hygiene.py`
-- LaunchAgent install/start: `python codex_packet_handoff/tools/launchd_ctl.py install`
-- LaunchAgent status: `python codex_packet_handoff/tools/launchd_ctl.py status`
-- Isolated control-plane commit: `python codex_packet_handoff/tools/control_repo_commit.py --message "..." <paths...>`
-- Filesystem truth: `python codex_packet_handoff/tools/status.py`
-- Rich dashboard: `python codex_packet_handoff/tools/daemon_monitor.py`
-- Start daemon: `python codex_packet_handoff/tools/daemon_ctl.py start`
-- Stop daemon: `python codex_packet_handoff/tools/daemon_ctl.py stop`
-- Process view: `ps -axo pid,etime,command | rg "codex exec|codex_packet_handoff/tools/agents_coordinator.py" || true`
+- Full operator dashboard: `./packet_garden/tools/status_report.sh`
+- Git hygiene sweep: `python packet_garden/tools/git_hygiene.py`
+- LaunchAgent install/start: `python packet_garden/tools/launchd_ctl.py install`
+- LaunchAgent status: `python packet_garden/tools/launchd_ctl.py status`
+- Isolated control-plane commit: `python packet_garden/tools/control_repo_commit.py --message "..." <paths...>`
+- Filesystem truth: `python packet_garden/tools/status.py`
+- Rich dashboard: `python packet_garden/tools/daemon_monitor.py`
+- Start daemon: `python packet_garden/tools/daemon_ctl.py start`
+- Stop daemon: `python packet_garden/tools/daemon_ctl.py stop`
+- Process view: `ps -axo pid,etime,command | rg "codex exec|packet_garden/tools/agents_coordinator.py" || true`
 - Manual feature logs: `ls -1t .codex/feature_runner/logs/*.log | head`
 
 ## How To Read Status
@@ -106,10 +106,10 @@ Why keep `fallback_model` explicit for LM Studio:
 - leave `fallback_model` empty only when the selected local profile already hard-codes a safe model choice elsewhere
 
 Useful commands:
-- inspect runtime mode: `python codex_packet_handoff/tools/runtime_mode_ctl.py status`
-- force local mode now: `python codex_packet_handoff/tools/runtime_mode_ctl.py local_fallback --reason "manual switch"`
-- switch back to cloud: `python codex_packet_handoff/tools/runtime_mode_ctl.py cloud_primary --reason "manual switch"`
-- launch feature lanes using current runtime mode: `python codex_packet_handoff/tools/launch_feature_lanes.py`
+- inspect runtime mode: `python packet_garden/tools/runtime_mode_ctl.py status`
+- force local mode now: `python packet_garden/tools/runtime_mode_ctl.py local_fallback --reason "manual switch"`
+- switch back to cloud: `python packet_garden/tools/runtime_mode_ctl.py cloud_primary --reason "manual switch"`
+- launch feature lanes using current runtime mode: `python packet_garden/tools/launch_feature_lanes.py`
 
 ## CLI Runbook
 
@@ -119,11 +119,11 @@ Launch your operator session from Codex CLI on the local orchestrator profile:
 ### Normal Day
 
 Use this when cloud quota is available and you want workers to use cloud by default:
-1. `python codex_packet_handoff/tools/runtime_mode_ctl.py cloud_primary --reason "normal day"`
-2. `python codex_packet_handoff/tools/daemon_ctl.py start`
-3. `python codex_packet_handoff/tools/daemon_monitor.py`
+1. `python packet_garden/tools/runtime_mode_ctl.py cloud_primary --reason "normal day"`
+2. `python packet_garden/tools/daemon_ctl.py start`
+3. `python packet_garden/tools/daemon_monitor.py`
 4. If you want to seed feature work manually from kickoff packets:
-   `python codex_packet_handoff/tools/launch_feature_lanes.py`
+   `python packet_garden/tools/launch_feature_lanes.py`
 
 Behavior:
 - your interactive Codex CLI stays on local `gpt-oss-20b`
@@ -135,11 +135,11 @@ Behavior:
 ### Quota Exhausted
 
 Use this when cloud quota is gone and you want to keep feeding the pipeline locally:
-1. `python codex_packet_handoff/tools/runtime_mode_ctl.py local_fallback --reason "quota exhausted"`
-2. `python codex_packet_handoff/tools/daemon_ctl.py start`
-3. `python codex_packet_handoff/tools/daemon_monitor.py`
+1. `python packet_garden/tools/runtime_mode_ctl.py local_fallback --reason "quota exhausted"`
+2. `python packet_garden/tools/daemon_ctl.py start`
+3. `python packet_garden/tools/daemon_monitor.py`
 4. If you need fresh local feature sessions:
-   `python codex_packet_handoff/tools/launch_feature_lanes.py`
+   `python packet_garden/tools/launch_feature_lanes.py`
 
 Behavior:
 - orchestrator remains local `gpt-oss-20b`
@@ -148,11 +148,11 @@ Behavior:
 
 ### Quick Checks
 
-- queue truth: `python codex_packet_handoff/tools/status.py`
-- full dashboard: `python codex_packet_handoff/tools/daemon_monitor.py`
-- planner only: `python codex_packet_handoff/tools/planner.py`
-- router once: `python codex_packet_handoff/tools/router.py`
-- one coordinator drain cycle: `python codex_packet_handoff/tools/agents_coordinator.py --once`
+- queue truth: `python packet_garden/tools/status.py`
+- full dashboard: `python packet_garden/tools/daemon_monitor.py`
+- planner only: `python packet_garden/tools/planner.py`
+- router once: `python packet_garden/tools/router.py`
+- one coordinator drain cycle: `python packet_garden/tools/agents_coordinator.py --once`
 
 Quota safeguard:
 - reviewer, fixer, and integrator outputs are scanned for quota/rate-limit text

@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 class CoordinatorRebootResumeTests(unittest.TestCase):
     def test_lane_queue_empty_ignores_shared_feature_packets(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -33,7 +33,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 self.assertFalse(coordinator._lane_queue_empty("feat-retrieval-fts"))
 
     def test_reconcile_marks_pruned_direct_exec_lane_for_forced_resume(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -84,7 +84,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         )
 
     def test_launch_free_lanes_bypasses_cooldown_for_forced_resume(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         commands: list[list[str]] = []
 
@@ -120,7 +120,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         self.assertNotIn("force_resume_once", lane_state)
 
     def test_launch_free_lanes_clears_forced_resume_when_lane_already_active(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         state_doc = {
             "lane_refill": {
@@ -147,7 +147,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         self.assertIn("force_resume_cleared_at", lane_state)
 
     def test_launch_free_lanes_reserves_last_local_slot_for_reviewer_fixers(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         state_doc = {"lane_refill": {"feat-commands": {"queue_empty": True}}}
 
@@ -167,7 +167,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         run_cmd.assert_not_called()
 
     def test_reconcile_terminates_malformed_apply_patch_loop(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -235,7 +235,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         )
 
     def test_reconcile_terminates_reconnect_idle_timeout_loop(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -310,7 +310,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         )
 
     def test_reconcile_terminates_repeated_malformed_tool_call_loop(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -382,7 +382,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         )
 
     def test_reconcile_terminates_orphan_local_exec_processes(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -420,7 +420,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         self.assertEqual(summary["orphan_local_exec_pids_removed"], [111, 222])
 
     def test_reconcile_terminates_stale_repo_test_runners(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -458,7 +458,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         self.assertEqual(summary["stale_test_runner_pids_removed"], [333, 444])
 
     def test_reconcile_router_state_prunes_missing_packet_jobs_and_expired_retries(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -518,7 +518,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         self.assertEqual(saved["reviewer_quota_global_retry_ts"], 0)
 
     def test_reconcile_router_state_terminates_reconnect_looping_fixer(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -575,7 +575,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         self.assertEqual(saved["fixer_fallback_jobs"], {})
 
     def test_reconcile_router_state_keeps_reparented_tracked_router_job(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -618,7 +618,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         self.assertIn("feat-retrieval-fts", saved["fixer_fallback_jobs"])
 
     def test_reconcile_terminates_runaway_feature_child_process_tree(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -687,7 +687,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         self.assertIn("runaway child process", summary["feature_runner_terminated"]["feat-a2ui-contract"])
 
     def test_reconcile_duplicate_feature_exec_processes_keeps_current_lane_pid(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

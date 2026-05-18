@@ -234,7 +234,7 @@ def _pid_matches_daemon(pid: int) -> bool:
     if p.returncode != 0:
         return True
     cmd = (p.stdout or "").strip()
-    return bool(cmd and "codex_packet_handoff/tools/agents_coordinator.py --daemon" in cmd)
+    return bool(cmd and "packet_garden/tools/agents_coordinator.py --daemon" in cmd)
 
 
 def _matching_pids() -> list[int]:
@@ -264,7 +264,7 @@ def _matching_pids() -> list[int]:
         cmd = parts[1]
         if pid == os.getpid():
             continue
-        if "codex_packet_handoff/tools/agents_coordinator.py --daemon" not in cmd:
+        if "packet_garden/tools/agents_coordinator.py --daemon" not in cmd:
             continue
         if "daemon_monitor.py" in cmd or "daemon_ctl.py" in cmd or "pgrep" in cmd:
             continue

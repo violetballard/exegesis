@@ -8,11 +8,11 @@ Prints per-lane:
 - latest integrator output (if any)
 
 This script does not inspect live Codex sessions. Pair it with:
-  python codex_packet_handoff/tools/daemon_monitor.py
+  python packet_garden/tools/daemon_monitor.py
 for reviewer/integrator live state and manual feature-session activity.
 
 Run:
-  python codex_packet_handoff/tools/status.py
+  python packet_garden/tools/status.py
 """
 
 from __future__ import annotations

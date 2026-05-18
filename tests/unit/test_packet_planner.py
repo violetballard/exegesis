@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from codex_packet_handoff.tools.planner import build_packet, build_shared_packet, validate_meta
+from packet_garden.tools.planner import build_packet, build_shared_packet, validate_meta
 
 
 class PacketPlannerTests(unittest.TestCase):
@@ -98,7 +98,7 @@ class PacketPlannerTests(unittest.TestCase):
                 "src/qual/engine/run_pipeline.py",
                 ".codex/kickoff_packets/feat-engine-runs.shared.md",
                 "THREAD_PACKET.md",
-                "codex_packet_handoff/tools/planner.py",
+                "packet_garden/tools/planner.py",
                 "tests/unit/test_packet_planner.py",
             ],
             gate_results=[("make scope-check", 0)],
@@ -147,7 +147,7 @@ class PacketPlannerTests(unittest.TestCase):
             files=[
                 "src/qual/engine/run_pipeline.py",
                 "THREAD_PACKET.md",
-                "codex_packet_handoff/tools/planner.py",
+                "packet_garden/tools/planner.py",
                 "tests/unit/test_packet_planner.py",
             ],
             gate_results=[("make scope-check", 0), ("./quality-test.sh", 0)],
@@ -166,7 +166,7 @@ class PacketPlannerTests(unittest.TestCase):
         self.assertIn("- Companion lane packet: .codex/kickoff_packets/feat-engine-runs.md", packet)
         self.assertIn("### Approved shared/integrator-locked files", packet)
         self.assertIn("`THREAD_PACKET.md`", packet)
-        self.assertIn("`codex_packet_handoff/tools/planner.py`", packet)
+        self.assertIn("`packet_garden/tools/planner.py`", packet)
         self.assertIn("`tests/unit/test_packet_planner.py`", packet)
 
 

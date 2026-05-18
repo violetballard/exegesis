@@ -36,8 +36,8 @@ LOG_FILE = COORD_DIR / "daemon.log"
 LEASE_FILE = COORD_DIR / "lease.json"
 FEATURE_RUNNER_STATE_FILE = Path(".codex/feature_runner/state.json")
 ROUTER_STATE_FILE = Path(".codex/packet_router/state.json")
-CMD = [sys.executable, "codex_packet_handoff/tools/agents_coordinator.py", "--daemon"]
-PROC_MATCH = "codex_packet_handoff/tools/agents_coordinator.py --daemon"
+CMD = [sys.executable, "packet_garden/tools/agents_coordinator.py", "--daemon"]
+PROC_MATCH = "packet_garden/tools/agents_coordinator.py --daemon"
 LEASE_FRESH_SECONDS = 3600
 REPO_ROOT = Path(__file__).resolve().parents[2]
 AUTOMATION_MARKERS = (
@@ -239,7 +239,7 @@ def _clear_stale_lease() -> None:
 
 def _prune_control_plane_bytecode() -> None:
     """Avoid adopting stale or half-written pyc files during daemon bootstrap."""
-    for root in (REPO_ROOT / "codex_packet_handoff").glob("**/__pycache__"):
+    for root in (REPO_ROOT / "packet_garden").glob("**/__pycache__"):
         if root.is_dir():
             shutil.rmtree(root, ignore_errors=True)
 
@@ -418,7 +418,7 @@ def _launchd_run() -> int:
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     os.execvpe(
         sys.executable,
-        [sys.executable, str(REPO_ROOT / "codex_packet_handoff/tools/agents_coordinator.py"), "--daemon"],
+        [sys.executable, str(REPO_ROOT / "packet_garden/tools/agents_coordinator.py"), "--daemon"],
         env,
     )
     return 0

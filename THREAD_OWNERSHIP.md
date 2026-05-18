@@ -318,7 +318,7 @@ needs a change, it should stop and report the blocker for an integrator/control
 plane patch instead of making the edit on the feature branch.
 
 Control-plane paths include:
-- `codex_packet_handoff/**`
+- `packet_garden/**`
 - `.agents/**`
 - `.codex/**`
 - `THREAD.md`

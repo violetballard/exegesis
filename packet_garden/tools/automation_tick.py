@@ -10,8 +10,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import List, Tuple
 
-PLANNER_CMD = [sys.executable, "codex_packet_handoff/tools/planner.py"]
-ROUTER_CMD = [sys.executable, "codex_packet_handoff/tools/router.py"]
+PLANNER_CMD = [sys.executable, "packet_garden/tools/planner.py"]
+ROUTER_CMD = [sys.executable, "packet_garden/tools/router.py"]
 EMITTED_RE = re.compile(r"\[planner\] emitted (?P<path>\S+)")
 PROCESSED_RE = re.compile(r"\[router\] processed (?P<count>\d+) packet\(s\)")
 LANE_FILE_RE = re.compile(
@@ -77,11 +77,11 @@ def main() -> int:
         print("[error] --tick-seconds must be > 0")
         return 2
 
-    if not Path("codex_packet_handoff/tools/planner.py").exists():
-        print("[error] Missing codex_packet_handoff/tools/planner.py in current cwd")
+    if not Path("packet_garden/tools/planner.py").exists():
+        print("[error] Missing packet_garden/tools/planner.py in current cwd")
         return 2
-    if not Path("codex_packet_handoff/tools/router.py").exists():
-        print("[error] Missing codex_packet_handoff/tools/router.py in current cwd")
+    if not Path("packet_garden/tools/router.py").exists():
+        print("[error] Missing packet_garden/tools/router.py in current cwd")
         return 2
 
     planner_emitted: List[Tuple[str, str]] = []

@@ -25,7 +25,7 @@ from exegesis_engine.metrics import MetricsExporter as CanonicalMetricsExporter
 from exegesis_engine.retrieval.search_service import RetrievalService as CanonicalRetrievalService
 from exegesis_engine.storage import VaultService as CanonicalVaultService
 from exegesis_shared.contracts.cards import A2UICapabilities as CanonicalA2UICapabilities
-from codex_packet_handoff.tools.agents_coordinator import DirectRouterCtx, _should_run_cycle
+from packet_garden.tools.agents_coordinator import DirectRouterCtx, _should_run_cycle
 from src.qual.audit import AuditLog as CompatAuditLog
 from src.qual.config import AppConfig as CompatAppConfig
 from src.qual.app import run_bootstrap as compat_run_bootstrap
@@ -217,7 +217,7 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         self.assertIn("scope-check: passed", proc.stdout)
 
     def test_planner_runs_repo_scope_check_script_against_lane_worktree(self) -> None:
-        from codex_packet_handoff.tools import planner as planner_mod
+        from packet_garden.tools import planner as planner_mod
 
         with patch.object(planner_mod, "run", return_value=(0, "scope-check: passed")) as run_mock:
             rc, out = planner_mod.run_scope_check("/tmp/lane-worktree", env={"SCOPE_ALLOW_SHARED": "1"})
@@ -233,7 +233,7 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         self.assertEqual(run_mock.call_args.kwargs["timeout"], 900)
 
     def test_planner_runs_repo_managed_ci_steps_against_lane_worktree(self) -> None:
-        from codex_packet_handoff.tools import planner as planner_mod
+        from packet_garden.tools import planner as planner_mod
 
         calls: list[tuple[str, str, dict[str, str], int]] = []
 
@@ -258,7 +258,7 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         self.assertTrue(any("quality-test.sh" in call[0] for call in calls))
 
     def test_planner_run_timeout_terminates_process_group(self) -> None:
-        from codex_packet_handoff.tools import planner as planner_mod
+        from packet_garden.tools import planner as planner_mod
 
         class FakeProc:
             pid = 4242
@@ -287,14 +287,14 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         killpg_mock.assert_called_once_with(4242, planner_mod.signal.SIGTERM)
 
     def test_planner_list_git_remotes_returns_empty_without_remote(self) -> None:
-        from codex_packet_handoff.tools import planner as planner_mod
+        from packet_garden.tools import planner as planner_mod
 
         remotes = planner_mod.list_git_remotes(str(self.root))
 
         self.assertEqual(remotes, [])
 
     def test_planner_skips_fetch_when_no_remotes_exist(self) -> None:
-        from codex_packet_handoff.tools import planner as planner_mod
+        from packet_garden.tools import planner as planner_mod
 
         cfg = {
             "lanes": {
@@ -318,7 +318,7 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         self.assertFalse(run_mock.called)
 
     def test_planner_skips_gate_run_for_active_feature_lane(self) -> None:
-        from codex_packet_handoff.tools import planner as planner_mod
+        from packet_garden.tools import planner as planner_mod
 
         cfg = {
             "lanes": {
@@ -352,7 +352,7 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         required_gate.assert_not_called()
 
     def test_compute_changed_files_falls_back_to_branch_ref_diff_tree(self) -> None:
-        from codex_packet_handoff.tools import planner as planner_mod
+        from packet_garden.tools import planner as planner_mod
 
         calls: list[tuple[list[str], str, int]] = []
 
@@ -435,7 +435,7 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         self.assertFalse(_should_run_cycle(args, "snapshot-a", "snapshot-a", 4, False))
 
     def test_direct_router_bootstraps_integrator_thread_in_cloud_mode(self) -> None:
-        from codex_packet_handoff.tools.agents_coordinator import _bootstrap_direct_integrator_thread
+        from packet_garden.tools.agents_coordinator import _bootstrap_direct_integrator_thread
 
         calls: list[tuple[str, object]] = []
 
@@ -475,7 +475,7 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         self.assertTrue(any(call[0] == "save_json" for call in calls))
 
     def test_direct_router_skips_integrator_thread_bootstrap_when_cli_integrator_preferred(self) -> None:
-        from codex_packet_handoff.tools.agents_coordinator import _bootstrap_direct_integrator_thread
+        from packet_garden.tools.agents_coordinator import _bootstrap_direct_integrator_thread
 
         class FakeRouterMod:
             STATE_FILE = Path("/tmp/router-state.json")
@@ -510,7 +510,7 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         self.assertEqual(state, {})
 
     def test_init_direct_router_ctx_restores_cloud_before_building_clients(self) -> None:
-        from codex_packet_handoff.tools.agents_coordinator import _init_direct_router_ctx
+        from packet_garden.tools.agents_coordinator import _init_direct_router_ctx
 
         calls: list[tuple[str, object, object]] = []
 
@@ -535,7 +535,7 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
             _build_mcp_client=fake_build_mcp_client,
         )
 
-        with patch("codex_packet_handoff.tools.agents_coordinator._load_tool_module", return_value=fake_router):
+        with patch("packet_garden.tools.agents_coordinator._load_tool_module", return_value=fake_router):
             ctx = _init_direct_router_ctx()
 
         self.assertFalse(ctx.local_mode)
@@ -545,7 +545,7 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         self.assertNotIn(("profile", "integrator", True), calls)
 
     def test_run_router_direct_once_rebuilds_clients_after_mode_restore(self) -> None:
-        from codex_packet_handoff.tools.agents_coordinator import _run_router_direct_once
+        from packet_garden.tools.agents_coordinator import _run_router_direct_once
 
         close_calls: list[str] = []
         build_calls: list[str] = []
@@ -599,7 +599,7 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         self.assertIn("integrator-cloud", build_calls)
 
     def test_run_router_direct_falls_back_to_subprocess_when_profiles_are_cli_only(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         ctx = SimpleNamespace()
         with (
@@ -618,7 +618,7 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         subprocess_router.assert_called_once_with(2)
 
     def test_launch_free_lanes_relaunches_idle_lane_without_active_feature_session(self) -> None:
-        from codex_packet_handoff.tools.agents_coordinator import _launch_free_lanes
+        from packet_garden.tools.agents_coordinator import _launch_free_lanes
 
         commands: list[list[str]] = []
 
@@ -628,14 +628,14 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
 
         state_doc = {"lane_refill": {"feat-commands": {"queue_empty": True}}}
         with (
-            patch("codex_packet_handoff.tools.agents_coordinator._enabled_lanes", return_value=["feat-commands"]),
-            patch("codex_packet_handoff.tools.agents_coordinator._lane_queue_empty", return_value=True),
-            patch("codex_packet_handoff.tools.agents_coordinator._lane_has_active_feature_session", return_value=False),
-            patch("codex_packet_handoff.tools.agents_coordinator._cloud_feature_launch_slots", return_value=0),
-            patch("codex_packet_handoff.tools.agents_coordinator._local_lms_feature_launch_slots", return_value=1),
-            patch("codex_packet_handoff.tools.agents_coordinator._has_lane_backlog", return_value=False),
-            patch("codex_packet_handoff.tools.agents_coordinator._has_router_priority_backlog", return_value=False),
-            patch("codex_packet_handoff.tools.agents_coordinator.run_cmd", side_effect=fake_run_cmd),
+            patch("packet_garden.tools.agents_coordinator._enabled_lanes", return_value=["feat-commands"]),
+            patch("packet_garden.tools.agents_coordinator._lane_queue_empty", return_value=True),
+            patch("packet_garden.tools.agents_coordinator._lane_has_active_feature_session", return_value=False),
+            patch("packet_garden.tools.agents_coordinator._cloud_feature_launch_slots", return_value=0),
+            patch("packet_garden.tools.agents_coordinator._local_lms_feature_launch_slots", return_value=1),
+            patch("packet_garden.tools.agents_coordinator._has_lane_backlog", return_value=False),
+            patch("packet_garden.tools.agents_coordinator._has_router_priority_backlog", return_value=False),
+            patch("packet_garden.tools.agents_coordinator.run_cmd", side_effect=fake_run_cmd),
         ):
             launched = _launch_free_lanes(state_doc)
 
@@ -643,7 +643,7 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         self.assertEqual(commands[0][-2:], ["--lanes", "feat-commands"])
 
     def test_launch_free_lanes_fills_cloud_before_local(self) -> None:
-        from codex_packet_handoff.tools.agents_coordinator import _launch_free_lanes
+        from packet_garden.tools.agents_coordinator import _launch_free_lanes
 
         commands: list[list[str]] = []
 
@@ -654,16 +654,16 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         lanes = ["feat-commands", "feat-retrieval-fts", "feat-a2ui-contract"]
         state_doc = {"lane_refill": {lane: {"queue_empty": True} for lane in lanes}}
         with (
-            patch("codex_packet_handoff.tools.agents_coordinator._enabled_lanes", return_value=lanes),
-            patch("codex_packet_handoff.tools.agents_coordinator._lane_queue_empty", return_value=True),
-            patch("codex_packet_handoff.tools.agents_coordinator._lane_has_active_feature_session", return_value=False),
-            patch("codex_packet_handoff.tools.agents_coordinator._cloud_feature_launch_slots", return_value=1),
-            patch("codex_packet_handoff.tools.agents_coordinator._local_lms_feature_launch_slots", return_value=2),
-            patch("codex_packet_handoff.tools.agents_coordinator._active_local_fixer_jobs", return_value=0),
-            patch("codex_packet_handoff.tools.agents_coordinator._has_reviewer_notes_backlog", return_value=False),
-            patch("codex_packet_handoff.tools.agents_coordinator._has_lane_backlog", return_value=False),
-            patch("codex_packet_handoff.tools.agents_coordinator._has_router_priority_backlog", return_value=False),
-            patch("codex_packet_handoff.tools.agents_coordinator.run_cmd", side_effect=fake_run_cmd),
+            patch("packet_garden.tools.agents_coordinator._enabled_lanes", return_value=lanes),
+            patch("packet_garden.tools.agents_coordinator._lane_queue_empty", return_value=True),
+            patch("packet_garden.tools.agents_coordinator._lane_has_active_feature_session", return_value=False),
+            patch("packet_garden.tools.agents_coordinator._cloud_feature_launch_slots", return_value=1),
+            patch("packet_garden.tools.agents_coordinator._local_lms_feature_launch_slots", return_value=2),
+            patch("packet_garden.tools.agents_coordinator._active_local_fixer_jobs", return_value=0),
+            patch("packet_garden.tools.agents_coordinator._has_reviewer_notes_backlog", return_value=False),
+            patch("packet_garden.tools.agents_coordinator._has_lane_backlog", return_value=False),
+            patch("packet_garden.tools.agents_coordinator._has_router_priority_backlog", return_value=False),
+            patch("packet_garden.tools.agents_coordinator.run_cmd", side_effect=fake_run_cmd),
         ):
             launched = _launch_free_lanes(state_doc)
 
@@ -675,14 +675,14 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         self.assertEqual(commands[1][-3:], ["--lanes", "feat-retrieval-fts", "feat-a2ui-contract"])
 
     def test_launch_free_lanes_skips_idle_lane_with_active_feature_session(self) -> None:
-        from codex_packet_handoff.tools.agents_coordinator import _launch_free_lanes
+        from packet_garden.tools.agents_coordinator import _launch_free_lanes
 
         state_doc = {"lane_refill": {"feat-commands": {"queue_empty": True}}}
         with (
-            patch("codex_packet_handoff.tools.agents_coordinator._enabled_lanes", return_value=["feat-commands"]),
-            patch("codex_packet_handoff.tools.agents_coordinator._lane_queue_empty", return_value=True),
-            patch("codex_packet_handoff.tools.agents_coordinator._lane_has_active_feature_session", return_value=True),
-            patch("codex_packet_handoff.tools.agents_coordinator.run_cmd") as run_cmd,
+            patch("packet_garden.tools.agents_coordinator._enabled_lanes", return_value=["feat-commands"]),
+            patch("packet_garden.tools.agents_coordinator._lane_queue_empty", return_value=True),
+            patch("packet_garden.tools.agents_coordinator._lane_has_active_feature_session", return_value=True),
+            patch("packet_garden.tools.agents_coordinator.run_cmd") as run_cmd,
         ):
             launched = _launch_free_lanes(state_doc)
 
@@ -690,7 +690,7 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         run_cmd.assert_not_called()
 
     def test_launch_free_lanes_throttles_repeat_relaunch_attempts(self) -> None:
-        from codex_packet_handoff.tools.agents_coordinator import _launch_free_lanes
+        from packet_garden.tools.agents_coordinator import _launch_free_lanes
 
         state_doc = {
             "lane_refill": {
@@ -701,10 +701,10 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
             }
         }
         with (
-            patch("codex_packet_handoff.tools.agents_coordinator._enabled_lanes", return_value=["feat-commands"]),
-            patch("codex_packet_handoff.tools.agents_coordinator._lane_queue_empty", return_value=True),
-            patch("codex_packet_handoff.tools.agents_coordinator._lane_has_active_feature_session", return_value=False),
-            patch("codex_packet_handoff.tools.agents_coordinator.run_cmd") as run_cmd,
+            patch("packet_garden.tools.agents_coordinator._enabled_lanes", return_value=["feat-commands"]),
+            patch("packet_garden.tools.agents_coordinator._lane_queue_empty", return_value=True),
+            patch("packet_garden.tools.agents_coordinator._lane_has_active_feature_session", return_value=False),
+            patch("packet_garden.tools.agents_coordinator.run_cmd") as run_cmd,
         ):
             launched = _launch_free_lanes(state_doc)
 
@@ -712,7 +712,7 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         run_cmd.assert_not_called()
 
     def test_lane_has_active_feature_session_handles_direct_exec_pid_state(self) -> None:
-        from codex_packet_handoff.tools.agents_coordinator import _lane_has_active_feature_session
+        from packet_garden.tools.agents_coordinator import _lane_has_active_feature_session
 
         self.assertFalse(
             _lane_has_active_feature_session(
@@ -729,7 +729,7 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
 
 class StatusStateTests(unittest.TestCase):
     def test_queue_empty_but_active_feature_session_is_not_reported_idle(self) -> None:
-        from codex_packet_handoff.tools.status import _derive_lane_state
+        from packet_garden.tools.status import _derive_lane_state
 
         state, note = _derive_lane_state([], [], [], "abc123", "abc123", feature_active=True)
         self.assertEqual(state, "feature_in_progress")
@@ -738,7 +738,7 @@ class StatusStateTests(unittest.TestCase):
 
 class CoordinatorStateReconcileTests(unittest.TestCase):
     def test_reconcile_control_plane_state_prunes_dead_feature_and_router_jobs(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -806,7 +806,7 @@ class CoordinatorStateReconcileTests(unittest.TestCase):
             self.assertNotIn("feat-cloud:packet", router_doc["cloud_integrator_jobs"])
 
     def test_run_cycle_reloads_cleaned_router_state_before_direct_router(self) -> None:
-        from codex_packet_handoff.tools import agents_coordinator as coordinator
+        from packet_garden.tools import agents_coordinator as coordinator
 
         router_state = {"runtime_mode": "local_fallback", "fixer_fallback_jobs": {}}
         fake_router_mod = SimpleNamespace(
@@ -839,7 +839,7 @@ class CoordinatorStateReconcileTests(unittest.TestCase):
 
 class RouterReviewerBootstrapTests(unittest.TestCase):
     def test_offline_reviewer_fallback_never_approves_without_live_review(self) -> None:
-        from codex_packet_handoff.tools import router
+        from packet_garden.tools import router
 
         packet = "\n".join(
             [
@@ -865,14 +865,14 @@ class RouterReviewerBootstrapTests(unittest.TestCase):
         self.assertNotIn("Verdict: `APPROVED`", result)
 
     def test_offline_reviewer_fallback_note_is_not_fixer_work(self) -> None:
-        from codex_packet_handoff.tools import router
+        from packet_garden.tools import router
 
         note = router._offline_reviewer_fallback("feature packet", "timed out after 600.0s")
 
         self.assertTrue(router._requires_live_reviewer_rerun(note))
 
     def test_reviewer_backlog_restores_archived_packet_for_fallback_note(self) -> None:
-        from codex_packet_handoff.tools import router
+        from packet_garden.tools import router
 
         with tempfile.TemporaryDirectory() as tmp:
             lane_dir = Path(tmp)
@@ -911,7 +911,7 @@ class RouterReviewerBootstrapTests(unittest.TestCase):
         run_fixer.assert_not_called()
 
     def test_local_reviewer_failure_keeps_packet_pending(self) -> None:
-        from codex_packet_handoff.tools import router
+        from packet_garden.tools import router
 
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -949,7 +949,7 @@ class RouterReviewerBootstrapTests(unittest.TestCase):
         self.assertEqual(new_state["local_reviewer_jobs"], {})
 
     def test_process_once_prefers_cli_reviewer_in_cloud_mode(self) -> None:
-        from codex_packet_handoff.tools import router
+        from packet_garden.tools import router
 
         with tempfile.TemporaryDirectory() as tmp:
             lane_dir = Path(tmp)
@@ -996,7 +996,7 @@ class RouterReviewerBootstrapTests(unittest.TestCase):
         ensure_thread.assert_not_called()
 
     def test_process_once_cli_reviewer_timeout_does_not_flip_to_local_fallback(self) -> None:
-        from codex_packet_handoff.tools import router
+        from packet_garden.tools import router
 
         with tempfile.TemporaryDirectory() as tmp:
             lane_dir = Path(tmp)
@@ -1052,7 +1052,7 @@ class RouterReviewerBootstrapTests(unittest.TestCase):
         switch_to_local_fallback.assert_not_called()
 
     def test_process_once_passes_local_flag_when_bootstrapping_reviewer_thread(self) -> None:
-        from codex_packet_handoff.tools import router
+        from packet_garden.tools import router
 
         with tempfile.TemporaryDirectory() as tmp:
             lane_dir = Path(tmp)
@@ -1110,7 +1110,7 @@ class RouterReviewerBootstrapTests(unittest.TestCase):
 
 class CloudDirectExecLaunchTests(unittest.TestCase):
     def test_runtime_launch_config_prefers_cloud_direct_exec_by_default(self) -> None:
-        from codex_packet_handoff.tools.launch_feature_lanes import runtime_launch_config
+        from packet_garden.tools.launch_feature_lanes import runtime_launch_config
 
         cfg = {
             "runtime_mode_default": "cloud_primary",
@@ -1126,14 +1126,14 @@ class CloudDirectExecLaunchTests(unittest.TestCase):
         state = {"runtime_mode": "cloud_primary"}
 
         with (
-            patch("codex_packet_handoff.tools.launch_feature_lanes.load_json", side_effect=[cfg, state]),
+            patch("packet_garden.tools.launch_feature_lanes.load_json", side_effect=[cfg, state]),
         ):
             launch_cfg = runtime_launch_config()
 
         self.assertTrue(launch_cfg["prefer_direct_exec_cloud"])
 
     def test_launch_one_lane_uses_cloud_direct_exec_by_default(self) -> None:
-        from codex_packet_handoff.tools.launch_feature_lanes import _launch_one_lane
+        from packet_garden.tools.launch_feature_lanes import _launch_one_lane
 
         with tempfile.TemporaryDirectory() as tmp:
             tmp_path = Path(tmp)
@@ -1165,8 +1165,8 @@ class CloudDirectExecLaunchTests(unittest.TestCase):
             args = argparse.Namespace(restart_existing=False, dry_run=False)
 
             with (
-                patch("codex_packet_handoff.tools.launch_feature_lanes.build_prompt", return_value="prompt"),
-                patch("codex_packet_handoff.tools.launch_feature_lanes._spawn_direct_exec", return_value=4242),
+                patch("packet_garden.tools.launch_feature_lanes.build_prompt", return_value="prompt"),
+                patch("packet_garden.tools.launch_feature_lanes._spawn_direct_exec", return_value=4242),
             ):
                 result = _launch_one_lane(
                     "feat-commands",

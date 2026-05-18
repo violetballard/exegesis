@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from codex_packet_handoff.tools import agents_coordinator, packet_progress
+from packet_garden.tools import agents_coordinator, packet_progress
 
 
 class PacketProgressTests(unittest.TestCase):

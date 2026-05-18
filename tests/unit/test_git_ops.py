@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from codex_packet_handoff.tools.git_ops import (
+from packet_garden.tools.git_ops import (
     commit_paths_via_fast_import,
     commit_tracked_changes_via_fast_import,
     run_git,

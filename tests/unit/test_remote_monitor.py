@@ -9,7 +9,7 @@ import urllib.request
 from pathlib import Path
 from unittest import mock
 
-from codex_packet_handoff.tools import agents_coordinator, remote_monitor_ctl, remote_monitor_server, remote_monitor_snapshot
+from packet_garden.tools import agents_coordinator, remote_monitor_ctl, remote_monitor_server, remote_monitor_snapshot
 
 
 class RemoteMonitorSnapshotTests(unittest.TestCase):
@@ -26,7 +26,7 @@ class RemoteMonitorSnapshotTests(unittest.TestCase):
     def test_process_view_does_not_return_full_commands(self) -> None:
         ps_output = (
             " 111 2048 00:01 codex exec --dangerous secret-token\n"
-            " 222 4096 00:02 /usr/bin/python codex_packet_handoff/tools/agents_coordinator.py --daemon\n"
+            " 222 4096 00:02 /usr/bin/python packet_garden/tools/agents_coordinator.py --daemon\n"
         )
         completed = mock.Mock(returncode=0, stdout=ps_output)
 

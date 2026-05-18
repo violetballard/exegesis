@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from codex_packet_handoff.tools import daemon_monitor
+from packet_garden.tools import daemon_monitor
 
 
 class DaemonMonitorTests(unittest.TestCase):

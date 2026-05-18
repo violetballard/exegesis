@@ -86,7 +86,7 @@ REPO_ROOT={str(REPO_ROOT)!r}
 cd "$REPO_ROOT"
 export PYTHONUNBUFFERED=1
 export PYTHONDONTWRITEBYTECODE=1
-exec {str(PYTHON)!r} "$REPO_ROOT/codex_packet_handoff/tools/daemon_ctl.py" launchd-run
+exec {str(PYTHON)!r} "$REPO_ROOT/packet_garden/tools/daemon_ctl.py" launchd-run
 """,
     ),
     "monitor": Service(
@@ -102,7 +102,7 @@ REPO_ROOT={str(REPO_ROOT)!r}
 cd "$REPO_ROOT"
 export PYTHONUNBUFFERED=1
 export PYTHONDONTWRITEBYTECODE=1
-exec {str(PYTHON)!r} "$REPO_ROOT/codex_packet_handoff/tools/remote_monitor_ctl.py" launchd-run
+exec {str(PYTHON)!r} "$REPO_ROOT/packet_garden/tools/remote_monitor_ctl.py" launchd-run
 """,
     ),
     "shell": Service(

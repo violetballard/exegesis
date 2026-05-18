@@ -1928,7 +1928,7 @@ def _sync_lane_runbook_files(repo_cwd: str, workdir: Optional[str]) -> None:
             continue
 
 def fixer_prompt(lane: str, branch: str, reviewer_packet: str, workdir: Optional[str]) -> str:
-    lane_commit_helper = REPO_ROOT / "codex_packet_handoff/tools/lane_repo_commit.py"
+    lane_commit_helper = REPO_ROOT / "packet_garden/tools/lane_repo_commit.py"
     if workdir:
         return (
             f"You are the FEATURE FIXER for lane `{lane}`.\n"

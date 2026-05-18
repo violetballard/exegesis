@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import unittest
 
-from codex_packet_handoff.tools.lane_profiles import (
+from packet_garden.tools.lane_profiles import (
     ENGINE_MILESTONE_FOCUS,
     default_lane_meta,
     engine_priority_lines,
     lane_priority_order,
 )
-from codex_packet_handoff.tools.launch_feature_lanes import build_prompt
-from codex_packet_handoff.tools.planner import build_packet, merge_lane_meta_defaults
+from packet_garden.tools.launch_feature_lanes import build_prompt
+from packet_garden.tools.planner import build_packet, merge_lane_meta_defaults
 
 
 class LaneProfileDefaultsTests(unittest.TestCase):

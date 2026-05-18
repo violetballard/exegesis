@@ -4,20 +4,20 @@ description: "Start the event-driven coordinator daemon and immediately verify t
 ---
 
 Run from repo root:
-- `python codex_packet_handoff/tools/launchd_ctl.py start all`
-- `python codex_packet_handoff/tools/launchd_ctl.py status all`
-- `python codex_packet_handoff/tools/daemon_ctl.py status`
-- `python codex_packet_handoff/tools/remote_monitor_ctl.py status`
-- `python codex_packet_handoff/tools/status.py`
-- `python codex_packet_handoff/tools/daemon_monitor.py`
-- `ps -axo pid,etime,command | rg "codex exec|codex_packet_handoff/tools/agents_coordinator.py" || true`
+- `python packet_garden/tools/launchd_ctl.py start all`
+- `python packet_garden/tools/launchd_ctl.py status all`
+- `python packet_garden/tools/daemon_ctl.py status`
+- `python packet_garden/tools/remote_monitor_ctl.py status`
+- `python packet_garden/tools/status.py`
+- `python packet_garden/tools/daemon_monitor.py`
+- `ps -axo pid,etime,command | rg "codex exec|packet_garden/tools/agents_coordinator.py" || true`
 - `for f in $(ls -1t .codex/feature_runner/logs/*.log 2>/dev/null | head -n 3); do echo "FILE:$f"; tail -n 20 "$f"; done`
 - `tail -n 50 .codex/packet_coordinator/daemon.log 2>/dev/null || true`
 
 Access path selection:
 - If this session is local to the development machine and `daemon_ctl.py` exists, start with the direct local command above.
-- If this session is remote over VPN and local scripts are unavailable, use `python codex_packet_handoff/tools/remote_monitor_client.py start`.
-- After remote start, use `python codex_packet_handoff/tools/remote_monitor_client.py status` or `full` for the sanitized verification snapshot.
+- If this session is remote over VPN and local scripts are unavailable, use `python packet_garden/tools/remote_monitor_client.py start`.
+- After remote start, use `python packet_garden/tools/remote_monitor_client.py status` or `full` for the sanitized verification snapshot.
 - Do not use remote monitor as the default when direct local scripts are available.
 - Local `remote_monitor_ctl.py status` only checks the phone/VPN monitor process. Launchd owns local daemon, monitor, and shell startup.
 

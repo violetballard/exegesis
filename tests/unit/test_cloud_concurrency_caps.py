@@ -6,7 +6,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from codex_packet_handoff.tools import agents_coordinator, launch_feature_lanes, router
+from packet_garden.tools import agents_coordinator, launch_feature_lanes, router
 
 
 class CloudConcurrencyCapsTests(unittest.TestCase):

@@ -4,9 +4,9 @@ description: "Show real milestone status as feature/capability closure, using li
 ---
 
 Run from repo root:
-- `python codex_packet_handoff/tools/daemon_ctl.py status`
-- `python codex_packet_handoff/tools/status.py`
-- `python codex_packet_handoff/tools/daemon_monitor.py`
+- `python packet_garden/tools/daemon_ctl.py status`
+- `python packet_garden/tools/status.py`
+- `python packet_garden/tools/daemon_monitor.py`
 - Read:
   - `ROADMAP.md`
   - `docs/milestones.md`
@@ -16,7 +16,7 @@ Run from repo root:
 
 Access path selection:
 - If this session is local to the development machine and the repo is mounted, use the direct local scripts and docs listed above.
-- If this session is remote over VPN and local scripts are unavailable, use `python codex_packet_handoff/tools/remote_monitor_client.py status` or `full` for operational evidence, but still rely on checked-out roadmap/spec docs only if they are locally available.
+- If this session is remote over VPN and local scripts are unavailable, use `python packet_garden/tools/remote_monitor_client.py status` or `full` for operational evidence, but still rely on checked-out roadmap/spec docs only if they are locally available.
 - Say when operational evidence is remote-derived and sanitized.
 - Remote monitor is not a substitute for reading milestone docs; it only supplies daemon/pipeline evidence.
 

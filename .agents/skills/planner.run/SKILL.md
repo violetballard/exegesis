@@ -4,12 +4,12 @@ description: "Emit feature→review packets into .codex by running the local pla
 ---
 
 Execute from repo root:
-- `python codex_packet_handoff/tools/planner.py`
+- `python packet_garden/tools/planner.py`
 
 Access path selection:
 - This is a local-only direct script skill.
 - If this session is remote over VPN and local scripts are unavailable, do not run planner remotely.
-- Use `python codex_packet_handoff/tools/remote_monitor_client.py kick` only to wake the already-running daemon; remote monitor intentionally does not expose direct planner execution.
+- Use `python packet_garden/tools/remote_monitor_client.py kick` only to wake the already-running daemon; remote monitor intentionally does not expose direct planner execution.
 
 CLI-first note:
 - run from a Codex CLI session launched with `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/projects/exegesis`

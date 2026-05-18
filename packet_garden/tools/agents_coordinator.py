@@ -52,10 +52,10 @@ if hasattr(sys.stderr, "reconfigure"):
 
 TOOLS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TOOLS_DIR.parent.parent
-PLANNER_PATH = REPO_ROOT / "codex_packet_handoff/tools/planner.py"
-ROUTER_PATH = REPO_ROOT / "codex_packet_handoff/tools/router.py"
-INIT_META_PATH = REPO_ROOT / "codex_packet_handoff/tools/init_lane_meta.py"
-LAUNCH_FEATURE_LANES_PATH = REPO_ROOT / "codex_packet_handoff/tools/launch_feature_lanes.py"
+PLANNER_PATH = REPO_ROOT / "packet_garden/tools/planner.py"
+ROUTER_PATH = REPO_ROOT / "packet_garden/tools/router.py"
+INIT_META_PATH = REPO_ROOT / "packet_garden/tools/init_lane_meta.py"
+LAUNCH_FEATURE_LANES_PATH = REPO_ROOT / "packet_garden/tools/launch_feature_lanes.py"
 
 PLANNER_CMD = [sys.executable, str(PLANNER_PATH)]
 ROUTER_CMD = [sys.executable, str(ROUTER_PATH)]

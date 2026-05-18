@@ -4,19 +4,19 @@ description: "Show the full live pipeline dashboard: daemon state, queue truth, 
 ---
 
 Run from repo root:
-- `python codex_packet_handoff/tools/launchd_ctl.py status all`
-- `python codex_packet_handoff/tools/daemon_ctl.py status`
-- `python codex_packet_handoff/tools/status.py`
-- `python codex_packet_handoff/tools/daemon_monitor.py`
-- `python codex_packet_handoff/tools/remote_monitor_ctl.py status`
-- `ps -axo pid,etime,command | rg "codex exec|codex_packet_handoff/tools/agents_coordinator.py" || true`
+- `python packet_garden/tools/launchd_ctl.py status all`
+- `python packet_garden/tools/daemon_ctl.py status`
+- `python packet_garden/tools/status.py`
+- `python packet_garden/tools/daemon_monitor.py`
+- `python packet_garden/tools/remote_monitor_ctl.py status`
+- `ps -axo pid,etime,command | rg "codex exec|packet_garden/tools/agents_coordinator.py" || true`
 - `for f in $(ls -1t .codex/feature_runner/logs/*.log 2>/dev/null | head -n 5); do echo "FILE:$f"; tail -n 30 "$f"; done`
 - `for f in $(ls -1t .codex/packet_router/logs/*.log 2>/dev/null | head -n 5); do echo "FILE:$f"; tail -n 40 "$f"; done`
 - `tail -n 80 .codex/packet_coordinator/daemon.log 2>/dev/null || true`
 
 Access path selection:
 - If this session is on the development machine and local scripts exist, use the direct Python/script workflow above.
-- If this session is remote over VPN and local scripts are unavailable, use `python codex_packet_handoff/tools/remote_monitor_client.py full` with `QUAL_MONITOR_URL` and `QUAL_MONITOR_TOKEN`.
+- If this session is remote over VPN and local scripts are unavailable, use `python packet_garden/tools/remote_monitor_client.py full` with `QUAL_MONITOR_URL` and `QUAL_MONITOR_TOKEN`.
 - Remote monitor access is narrower by design: it gives sanitized status and control, not raw logs or arbitrary commands.
 - Prefer local direct scripts whenever possible; use remote monitor only for VPN/home access.
 - Local `remote_monitor_ctl.py status` is a process-health check only. Do not replace local daemon/status scripts with `remote_monitor_client.py` when the repo is mounted.
@@ -27,7 +27,7 @@ CLI-first note:
 - when the controller is local `gpt-oss-20b`, print the full script-derived status first, then layer in the live-log evidence
 
 If daemon is not running, also run:
-- `python codex_packet_handoff/tools/daemon_ctl.py status`
+- `python packet_garden/tools/daemon_ctl.py status`
 
 Then summarize all of these together:
 - launchd loaded/running state for daemon, monitor, and shell

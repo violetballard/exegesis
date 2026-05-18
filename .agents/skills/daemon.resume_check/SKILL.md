@@ -4,21 +4,21 @@ description: "Safely resume automation after a pause by starting daemon, verifyi
 ---
 
 Run from repo root:
-- `python codex_packet_handoff/tools/launchd_ctl.py start all`
-- `python codex_packet_handoff/tools/launchd_ctl.py status all`
-- `python codex_packet_handoff/tools/daemon_resume_check.py`
-- `python codex_packet_handoff/tools/daemon_ctl.py status`
-- `python codex_packet_handoff/tools/remote_monitor_ctl.py status`
-- `python codex_packet_handoff/tools/status.py`
-- `python codex_packet_handoff/tools/daemon_monitor.py`
-- `ps -axo pid,etime,command | rg "codex exec|codex_packet_handoff/tools/agents_coordinator.py" || true`
+- `python packet_garden/tools/launchd_ctl.py start all`
+- `python packet_garden/tools/launchd_ctl.py status all`
+- `python packet_garden/tools/daemon_resume_check.py`
+- `python packet_garden/tools/daemon_ctl.py status`
+- `python packet_garden/tools/remote_monitor_ctl.py status`
+- `python packet_garden/tools/status.py`
+- `python packet_garden/tools/daemon_monitor.py`
+- `ps -axo pid,etime,command | rg "codex exec|packet_garden/tools/agents_coordinator.py" || true`
 - `for f in $(ls -1t .codex/feature_runner/logs/*.log 2>/dev/null | head -n 3); do echo "FILE:$f"; tail -n 20 "$f"; done`
 - `for f in $(ls -1t .codex/packet_router/logs/*.log 2>/dev/null | head -n 3); do echo "FILE:$f"; tail -n 30 "$f"; done`
 - `tail -n 60 .codex/packet_coordinator/daemon.log 2>/dev/null || true`
 
 Access path selection:
 - If local scripts exist, use the direct resume/status workflow above.
-- If this session is remote over VPN and local scripts are unavailable, use `python codex_packet_handoff/tools/remote_monitor_client.py start`, then `python codex_packet_handoff/tools/remote_monitor_client.py kick` if a fresh reconcile is needed, followed by `... status` or `... full`.
+- If this session is remote over VPN and local scripts are unavailable, use `python packet_garden/tools/remote_monitor_client.py start`, then `python packet_garden/tools/remote_monitor_client.py kick` if a fresh reconcile is needed, followed by `... status` or `... full`.
 - Remote start and kick are the only remote equivalents; they do not run arbitrary local scripts.
 - Local `remote_monitor_ctl.py status` only checks the phone/VPN monitor process. Launchd owns local daemon, monitor, and shell startup.
 

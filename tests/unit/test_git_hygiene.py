@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from codex_packet_handoff.tools import git_hygiene
+from packet_garden.tools import git_hygiene
 
 
 class GitHygieneTests(unittest.TestCase):

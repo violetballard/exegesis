@@ -4,7 +4,7 @@ import subprocess
 import unittest
 from unittest import mock
 
-from codex_packet_handoff.tools import daemon_ctl
+from packet_garden.tools import daemon_ctl
 
 
 class DaemonCtlTests(unittest.TestCase):

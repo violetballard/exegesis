@@ -31,8 +31,8 @@ DEFAULT_CONFIG = REMOTE_ROOT / "config.json"
 DEFAULT_TOKEN_FILE = REMOTE_ROOT / "token"
 COORD_ROOT = REPO_ROOT / ".codex/packet_coordinator"
 KICK_FILE = COORD_ROOT / "kick.json"
-DAEMON_CTL = [sys.executable, "codex_packet_handoff/tools/daemon_ctl.py"]
-COORDINATOR_ONCE = [sys.executable, "codex_packet_handoff/tools/agents_coordinator.py", "--once", "--max-cycles", "1"]
+DAEMON_CTL = [sys.executable, "packet_garden/tools/daemon_ctl.py"]
+COORDINATOR_ONCE = [sys.executable, "packet_garden/tools/agents_coordinator.py", "--once", "--max-cycles", "1"]
 CONTROL_TIMEOUT_SECONDS = 30.0
 SNAPSHOT_TTL_SECONDS = 10.0
 

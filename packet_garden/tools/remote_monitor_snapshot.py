@@ -12,10 +12,10 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Sequence
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DAEMON_CTL = ["python", "codex_packet_handoff/tools/daemon_ctl.py", "status"]
-STATUS_CMD = ["python", "codex_packet_handoff/tools/status.py"]
-MONITOR_CMD = ["python", "codex_packet_handoff/tools/daemon_monitor.py"]
-PROCESS_MATCH_RE = re.compile(r"codex exec|opencode run|codex_packet_handoff/tools/agents_coordinator.py")
+DAEMON_CTL = ["python", "packet_garden/tools/daemon_ctl.py", "status"]
+STATUS_CMD = ["python", "packet_garden/tools/status.py"]
+MONITOR_CMD = ["python", "packet_garden/tools/daemon_monitor.py"]
+PROCESS_MATCH_RE = re.compile(r"codex exec|opencode run|packet_garden/tools/agents_coordinator.py")
 KEY_VALUE_RE = re.compile(r"^(?P<key>[A-Za-z0-9_.-]+)=(?P<value>.*)$")
 TOTALS_RE = re.compile(
     r"Totals:\s+pending_feature=(?P<pending>\d+)\s+"

@@ -15,7 +15,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 REMOTE_ROOT = REPO_ROOT / ".codex/remote_monitor"
 PID_FILE = REMOTE_ROOT / "server.pid"
 LOG_FILE = REMOTE_ROOT / "server.log"
-SERVER = REPO_ROOT / "codex_packet_handoff/tools/remote_monitor_server.py"
+SERVER = REPO_ROOT / "packet_garden/tools/remote_monitor_server.py"
 DEFAULT_CONFIG = REMOTE_ROOT / "config.json"
 DEFAULT_TOKEN_FILE = REMOTE_ROOT / "token"
 

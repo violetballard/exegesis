@@ -17,9 +17,9 @@ print_heading() {
 
 print_process_view() {
   if have_rg; then
-    ps -axo pid,etime,command | rg 'codex exec|opencode run|codex_packet_handoff/tools/agents_coordinator.py' || true
+    ps -axo pid,etime,command | rg 'codex exec|opencode run|packet_garden/tools/agents_coordinator.py' || true
   else
-    ps -axo pid,etime,command | grep -E 'codex exec|opencode run|codex_packet_handoff/tools/agents_coordinator.py' || true
+    ps -axo pid,etime,command | grep -E 'codex exec|opencode run|packet_garden/tools/agents_coordinator.py' || true
   fi
 }
 
@@ -46,16 +46,16 @@ print_latest_logs() {
 }
 
 print_heading "DAEMON STATUS"
-"${PYTHON_BIN}" codex_packet_handoff/tools/remote_monitor_ctl.py status || true
+"${PYTHON_BIN}" packet_garden/tools/remote_monitor_ctl.py status || true
 
 print_heading "COORDINATOR DAEMON STATUS"
-"${PYTHON_BIN}" codex_packet_handoff/tools/daemon_ctl.py status
+"${PYTHON_BIN}" packet_garden/tools/daemon_ctl.py status
 
 print_heading "PIPELINE STATUS"
-"${PYTHON_BIN}" codex_packet_handoff/tools/status.py
+"${PYTHON_BIN}" packet_garden/tools/status.py
 
 print_heading "DAEMON MONITOR"
-"${PYTHON_BIN}" codex_packet_handoff/tools/daemon_monitor.py
+"${PYTHON_BIN}" packet_garden/tools/daemon_monitor.py
 
 print_heading "PROCESS VIEW"
 print_process_view

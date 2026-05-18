@@ -5,7 +5,7 @@ import unittest
 
 class DaemonResumeCheckTests(unittest.TestCase):
     def test_resume_state_waiting_without_new_epoch(self) -> None:
-        from codex_packet_handoff.tools import daemon_resume_check as resume_check
+        from packet_garden.tools import daemon_resume_check as resume_check
 
         previous = {
             "current_resume_epoch": "epoch-1",
@@ -21,7 +21,7 @@ class DaemonResumeCheckTests(unittest.TestCase):
         self.assertEqual(resume_check._resume_state(previous, current), "waiting")
 
     def test_resume_state_started_with_new_epoch_before_cycle_end(self) -> None:
-        from codex_packet_handoff.tools import daemon_resume_check as resume_check
+        from packet_garden.tools import daemon_resume_check as resume_check
 
         previous = {
             "current_resume_epoch": "epoch-1",
@@ -38,7 +38,7 @@ class DaemonResumeCheckTests(unittest.TestCase):
         self.assertEqual(resume_check._resume_state(previous, current), "started")
 
     def test_resume_state_completed_with_new_epoch_and_cycle_count(self) -> None:
-        from codex_packet_handoff.tools import daemon_resume_check as resume_check
+        from packet_garden.tools import daemon_resume_check as resume_check
 
         previous = {
             "current_resume_epoch": "epoch-1",

@@ -4,23 +4,23 @@ description: "Show the real full status report for daemon, reviewer lanes, integ
 ---
 
 Run from repo root:
-- `./codex_packet_handoff/tools/status_report.sh`
+- `./packet_garden/tools/status_report.sh`
 
 Access path selection:
 - First check whether this Codex session is running on the development machine with this repo mounted locally.
-- If `codex_packet_handoff/tools/daemon_ctl.py` exists locally, use the direct scripts in this skill. Local direct access remains the authoritative path.
-- If local scripts are unavailable but `QUAL_MONITOR_URL` and `QUAL_MONITOR_TOKEN` are set, use `python codex_packet_handoff/tools/remote_monitor_client.py status` for compact status or `... full` for the sanitized full snapshot.
+- If `packet_garden/tools/daemon_ctl.py` exists locally, use the direct scripts in this skill. Local direct access remains the authoritative path.
+- If local scripts are unavailable but `QUAL_MONITOR_URL` and `QUAL_MONITOR_TOKEN` are set, use `python packet_garden/tools/remote_monitor_client.py status` for compact status or `... full` for the sanitized full snapshot.
 - Remote monitor access is only for VPN/home access; do not use it as a replacement for direct local scripts when working on the machine.
 - Remote monitor output is sanitized and narrower than local script output, so say when a report is remote-derived.
 - Local `remote_monitor_ctl.py status` is allowed only as a process-health check for the phone/VPN monitor. It is not the HTTP/network status path.
 
 Manual breakdown if you need to inspect each step:
-- `python codex_packet_handoff/tools/launchd_ctl.py status all`
-- `python codex_packet_handoff/tools/remote_monitor_ctl.py status`
-- `python codex_packet_handoff/tools/daemon_ctl.py status`
-- `python codex_packet_handoff/tools/status.py`
-- `python codex_packet_handoff/tools/daemon_monitor.py`
-- `ps -axo pid,etime,command | rg "codex exec|opencode run|codex_packet_handoff/tools/agents_coordinator.py" || true`
+- `python packet_garden/tools/launchd_ctl.py status all`
+- `python packet_garden/tools/remote_monitor_ctl.py status`
+- `python packet_garden/tools/daemon_ctl.py status`
+- `python packet_garden/tools/status.py`
+- `python packet_garden/tools/daemon_monitor.py`
+- `ps -axo pid,etime,command | rg "codex exec|opencode run|packet_garden/tools/agents_coordinator.py" || true`
 - `for f in $(ls -1t .codex/feature_runner/logs/*.log 2>/dev/null | head -n 5); do echo "FILE:$f"; tail -n 20 "$f"; done`
 - `for f in $(ls -1t .codex/packet_router/logs/*.log 2>/dev/null | head -n 5); do echo "FILE:$f"; tail -n 40 "$f"; done`
 - `tail -n 80 .codex/packet_coordinator/daemon.log 2>/dev/null || true`

@@ -158,13 +158,13 @@ Codex-specific surfaces to migrate behind the runtime layer:
 - config keys that assume every worker profile is `codex_cmd` + `model_args`
 
 Concrete files likely involved:
-- `codex_packet_handoff/tools/router.py`
-- `codex_packet_handoff/tools/launch_feature_lanes.py`
-- `codex_packet_handoff/tools/agents_coordinator.py`
-- `codex_packet_handoff/tools/daemon_monitor.py`
-- `codex_packet_handoff/tools/daemon_ctl.py`
-- `codex_packet_handoff/tools/local_exec_sweeper.py`
-- `codex_packet_handoff/tools/setup.py`
+- `packet_garden/tools/router.py`
+- `packet_garden/tools/launch_feature_lanes.py`
+- `packet_garden/tools/agents_coordinator.py`
+- `packet_garden/tools/daemon_monitor.py`
+- `packet_garden/tools/daemon_ctl.py`
+- `packet_garden/tools/local_exec_sweeper.py`
+- `packet_garden/tools/setup.py`
 - `.codex/packet_router/config.json`
 - `.codex/packet_router/example.json`
 
