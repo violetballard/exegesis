@@ -1,6 +1,6 @@
 # Exegesis MVP Milestones
 
-This file expands the canonical roadmap in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/ROADMAP.md`.
+This file expands the canonical roadmap in `/Users/doctor-violet/projects/exegesis/ROADMAP.md`.
 
 ## Milestone 1: Standing shell
 
@@ -47,7 +47,7 @@ Active engine ownership:
 - `feat-commands`: CLI compatibility while the package/layout migration is underway
 
 Notebook context compaction:
-- implement against `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/NOTEBOOK_CONTEXT_COMPACTION_SPEC.md`
+- implement against `/Users/doctor-violet/projects/exegesis/docs/NOTEBOOK_CONTEXT_COMPACTION_SPEC.md`
 - preserve raw notebook transcript history while assembling compacted model requests
 - keep pinned entries, unresolved rewrite cards, current document context, and basket source-type labels verbatim
 - store compaction blocks with source entry IDs, token counts, validation status, and restore support

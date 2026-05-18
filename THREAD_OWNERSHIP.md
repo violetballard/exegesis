@@ -2,7 +2,7 @@
 
 Use these branch lanes to avoid duplicate work and keep the staged migration coherent.
 
-Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/TASKS.md`.
+Detailed task breakdown lives in `/Users/doctor-violet/projects/exegesis/docs/TASKS.md`.
 
 ## Active engine lanes
 

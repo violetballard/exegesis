@@ -114,7 +114,7 @@ Useful commands:
 ## CLI Runbook
 
 Launch your operator session from Codex CLI on the local orchestrator profile:
-- `codex -p gpt-oss-20b-lms -c model_provider="lms" -C /Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual`
+- `codex -p gpt-oss-20b-lms -c model_provider="lms" -C /Users/doctor-violet/projects/exegesis`
 
 ### Normal Day
 
