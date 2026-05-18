@@ -114,6 +114,16 @@ class CommandFlowRouteContract:
     entries: tuple[CommandFlowRouteEntry, ...]
 
 
+@dataclass(frozen=True)
+class CommandCliSmokeStep:
+    flow_step: str
+    name: str
+    cli_token: str
+    argv: tuple[str, ...]
+    lookup_tokens: tuple[str, ...]
+    description: str
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -646,6 +656,35 @@ def command_flow_route_summary(
 ) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
     route_catalog = command_flow_route_catalog(flow_steps=flow_steps, specs=specs)
     return tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in route_catalog)
+
+
+@lru_cache(maxsize=None)
+def command_cli_smoke_steps(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandCliSmokeStep, ...]:
+    route_catalog = command_flow_route_catalog(flow_steps=flow_steps, specs=specs)
+    if specs == COMMAND_SPECS:
+        _validate_route_cli_tokens(route_catalog, command_cli_tokens())
+    return tuple(
+        CommandCliSmokeStep(
+            flow_step=entry.flow_step,
+            name=entry.name,
+            cli_token=entry.cli_tokens[0],
+            argv=(entry.cli_tokens[0],),
+            lookup_tokens=entry.lookup_tokens,
+            description=entry.description,
+        )
+        for entry in route_catalog
+    )
+
+
+def command_demo_cli_smoke_steps() -> tuple[CommandCliSmokeStep, ...]:
+    return command_cli_smoke_steps(flow_steps=command_demo_flow_steps())
+
+
+def command_mvp_cli_smoke_steps() -> tuple[CommandCliSmokeStep, ...]:
+    return command_demo_cli_smoke_steps()
 
 
 @lru_cache(maxsize=None)
