@@ -591,10 +591,12 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         ):
             self.assertEqual(agents_coordinator._launch_free_lanes(state_doc), ["feat-a", "feat-b"])
 
-        self.assertEqual(len(calls), 1)
+        self.assertEqual(len(calls), 2)
         self.assertIn("--provider", calls[0])
-        self.assertEqual(calls[0][calls[0].index("--provider") + 1], "cloud")
-        self.assertEqual(calls[0][-3:], ["--lanes", "feat-a", "feat-b"])
+        self.assertEqual(calls[0][calls[0].index("--provider") + 1], "local")
+        self.assertEqual(calls[0][-2:], ["--lanes", "feat-a"])
+        self.assertEqual(calls[1][calls[1].index("--provider") + 1], "cloud")
+        self.assertEqual(calls[1][-2:], ["--lanes", "feat-b"])
 
     def test_router_tick_prioritizes_integrator_before_reviewer_fixer(self) -> None:
         cfg = SimpleNamespace(lanes={"feat-a": {}, "feat-b": {}})

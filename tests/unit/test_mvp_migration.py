@@ -642,7 +642,7 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         self.assertEqual(launched, ["feat-commands"])
         self.assertEqual(commands[0][-2:], ["--lanes", "feat-commands"])
 
-    def test_launch_free_lanes_fills_cloud_before_local(self) -> None:
+    def test_launch_free_lanes_fills_local_before_cloud(self) -> None:
         from packet_garden.tools.agents_coordinator import _launch_free_lanes
 
         commands: list[list[str]] = []
@@ -669,10 +669,10 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
 
         self.assertEqual(launched, lanes)
         self.assertIn("--provider", commands[0])
-        self.assertEqual(commands[0][commands[0].index("--provider") + 1], "cloud")
-        self.assertEqual(commands[0][-2:], ["--lanes", "feat-commands"])
-        self.assertEqual(commands[1][commands[1].index("--provider") + 1], "local")
-        self.assertEqual(commands[1][-3:], ["--lanes", "feat-retrieval-fts", "feat-a2ui-contract"])
+        self.assertEqual(commands[0][commands[0].index("--provider") + 1], "local")
+        self.assertEqual(commands[0][-3:], ["--lanes", "feat-commands", "feat-retrieval-fts"])
+        self.assertEqual(commands[1][commands[1].index("--provider") + 1], "cloud")
+        self.assertEqual(commands[1][-2:], ["--lanes", "feat-a2ui-contract"])
 
     def test_launch_free_lanes_skips_idle_lane_with_active_feature_session(self) -> None:
         from packet_garden.tools.agents_coordinator import _launch_free_lanes
