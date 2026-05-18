@@ -1810,6 +1810,8 @@ Gateway responsibilities:
 - Receive and verify Paddle webhook events.
 - Mediate Lite managed Mistral Small 4 and Nanonets OCR-3 requests.
 - Mediate Studio/Pro managed Nanonets OCR-3 fallback requests when local OCR is unavailable and policy allows cloud processing.
+- Receive privacy-preserving A2UI promotion bundles from opted-in CoP/beta builds.
+- Expose admin-only A2UI promotion candidate review/export/status workflows.
 - Keep managed provider keys out of Lite app bundles, local logs, project files, transcripts, and local license cache.
 
 Gateway data concepts:
@@ -1861,6 +1863,15 @@ Gateway data concepts:
   - never contains managed provider secrets
 - `ManagedProviderProxy`
   - gateway-side mediation for Lite Mistral Small 4 and Nanonets OCR-3 calls
+- `A2UIPromotionBundle`
+  - uploaded by opted-in CoP/beta clients
+  - contains generated A2UI surface structure, validation result, action summary, client capability set, usage counters, coarse workflow label, app/build version, pseudonymous install/license reference, and optional user feedback
+  - must not contain document text, basket content, transcript text, credentials, file paths, or raw prompts by default
+- `A2UIPromotionReview`
+  - admin-visible review status: `new`, `observing`, `rejected`, `promoted`
+  - reviewer notes
+  - promotion catalog reference if promoted
+  - created/updated timestamps
 
 Required gateway endpoints:
 - `POST /admin/course-licenses`
@@ -1891,6 +1902,18 @@ Required gateway endpoints:
 - `POST /webhooks/paddle`
   - verifies Paddle signature
   - creates individual Lite, Studio, Pro, and page top-up ledger updates idempotently
+- `POST /a2ui/promotion-bundles`
+  - accepts opted-in CoP/beta generated A2UI promotion bundles
+  - validates payload schema and redaction requirements
+  - rejects confidential-project uploads
+- `GET /admin/a2ui/promotion-bundles`
+  - admin-only list of candidate bundles with filters for status, workflow, validation state, app version, and date
+- `GET /admin/a2ui/promotion-bundles/{id}`
+  - admin-only detail payload for CLI/static HTML review
+- `POST /admin/a2ui/promotion-bundles/{id}/status`
+  - admin-only status update for observing, rejected, or promoted decisions
+- `GET /admin/a2ui/promotion-bundles/export`
+  - admin-only export for static HTML review pages and offline catalog review
 - Managed provider proxy endpoints
   - mediate Mistral Small 4 calls for Lite
   - mediate Nanonets OCR-3 calls for Lite
@@ -1902,6 +1925,60 @@ Gateway security rules:
 - Paddle webhook processing is idempotent.
 - Managed provider keys never appear in app bundles, logs, project files, transcripts, local cache, or client responses.
 - Developer builds must not call these gateway endpoints.
+- A2UI promotion intake is not general telemetry; it accepts only redacted candidate bundles needed for promotion review.
+- A2UI promotion intake must use pseudonymous install/license identifiers and must not upload document text, basket content, transcript text, credentials, file paths, or raw prompts by default.
+- Confidential projects cannot upload A2UI promotion bundles.
+- A2UI promotion upload requires explicit CoP/beta profile enablement and user-facing disclosure.
+- Admin A2UI review/export pages must render action buttons as inert chips by default; review UI must not mutate user projects.
+
+### A2UI Promotion Intake And Review
+
+This gateway responsibility supports the Milestone 5A MVP trust substrate. The goal is to learn which generated declarative task surfaces are useful during trusted CoP/beta dogfooding without collecting research or writing content.
+
+Local client behavior:
+- Store generated A2UI candidates first in local encrypted SQLite-backed trust storage.
+- Keep local records available for support/export even when upload is disabled.
+- Upload only when the build profile enables CoP/beta promotion intake and the user has consented.
+- Disable upload for confidential projects.
+- Redact or summarize provenance into safe references before upload.
+
+Promotion bundle content:
+- generated card/surface JSON shape using safe A2UI primitives
+- action type list and policy-sensitive flags
+- schema validation result
+- client capability set
+- app version/build profile
+- coarse workflow label such as `rewrite_review`, `retrieval_card`, `context_budget`, or `draft_assist`
+- usage counters such as rendered, dismissed, action used, validation error, and user feedback count
+- optional explicit user feedback note/rating
+- pseudonymous install/license reference
+
+Promotion bundle exclusions:
+- document text
+- basket content
+- transcript text
+- raw prompts by default
+- credentials, API keys, tokens, authorization headers, or endpoints
+- local file paths
+- private project names unless explicitly redacted to a coarse project type
+
+Admin review access:
+- First implementation should be CLI-first:
+  - list candidates
+  - show candidate detail
+  - set status
+  - export static HTML review pages
+- Static HTML review should render safe A2UI primitives roughly:
+  - markdown block
+  - key/value block
+  - list block
+  - table block
+  - alert block
+  - progress block
+  - code block
+  - inert action chips
+- Review pages should show raw JSON, validation state, provenance summary, usage counters, feedback, and status.
+- Promotion into the named/versioned A2UI component catalog requires explicit human review.
 
 ### Nanonets Page Usage Model
 

@@ -111,6 +111,8 @@ Scope:
 - make provenance/tracking first-class for retrieval, basket promotion, model request assembly, generated outputs, rewrite proposals, patch apply/reject decisions, citations, imports, notebook compactions, and A2UI promotion candidates
 - move beyond shim-level A2UI by implementing full MVP protocol compatibility: handshake, capability negotiation, primitive block schemas, known card schemas, unknown-card fallback, typed action allowlist, payload validation, streaming event shape, and engine-side policy revalidation
 - capture generated A2UI draft surfaces as reviewable promotion candidates in trusted CoP/beta dogfooding, without executing arbitrary generated code
+- add privacy-preserving A2UI promotion intake through the hosted License Gateway for opted-in CoP/beta builds
+- add local/admin review access for promotion candidates through CLI-first listing/export plus rough static HTML rendering of safe A2UI primitives
 - keep generated A2UI constrained to declarative data rendered through shipped clients and mapped only to typed allowlisted engine actions
 
 Lane mapping:
@@ -118,6 +120,7 @@ Lane mapping:
 - `feat-a2ui-contract`: owns full A2UI protocol compatibility and generated-surface promotion records when this gate is activated
 - `feat-engine-runs`: owns model-request/output/patch provenance hooks when this gate is activated
 - `feat-retrieval-fts`: owns retrieval and basket-promotion provenance hooks when this gate is activated
+- `feat-cop-lite-licensing`: owns hosted promotion intake endpoints and admin export/review access when the Lite Gateway lane is activated
 
 Exit criteria:
 - encrypted SQLite-backed storage exists for durable metadata, sessions, workflow artifacts, provenance, audit events, compaction records, and A2UI promotion candidates
@@ -125,6 +128,8 @@ Exit criteria:
 - provenance records can explain the context-to-output-to-patch chain for normal writing workflows
 - A2UI protocol compatibility is complete enough that future Textual/native clients do not depend on a shim-only contract
 - generated A2UI drafts can be stored, reviewed, rejected, or promoted from CoP use without allowing generated code execution
+- opted-in CoP/beta builds can upload redacted A2UI promotion bundles to the License Gateway without sending document text, basket content, transcript text, credentials, file paths, or raw prompts by default
+- promotion candidates can be examined through an admin CLI/static HTML workbench before any pattern is promoted
 
 ## Milestone 6: OCR import
 
@@ -384,6 +389,7 @@ Scope:
 - include Pro BYOK/BYOM provider configuration for OpenAI, Claude, Mistral, and local OpenAI-compatible backends with provider/model/reasoning selection for non-confidential projects only
 - keep Quantitative Analysis and Advanced Qualitative Coding Visualizations gated to Pro-only `pro_feature_access`
 - keep the hosted License Gateway as the place for license claim/refresh, managed Lite Mistral access, managed Nanonets OCR fallback, Paddle webhooks, and Nanonets page-credit state
+- include the A2UI promotion intake service in the hosted License Gateway so opted-in CoP/beta clients can submit privacy-preserving generated-surface bundles for review
 - make project transfer license-safe: imported project zips require the current user to have a valid license, but licenses are never machine-bound or included in project archives
 
 Lane mapping:
@@ -393,6 +399,7 @@ Exit criteria:
 - individual paid Lite, Studio/Pro inherited Lite access, course licensing, initial CoP access, and Nanonets page-credit rules are specified
 - Pro BYOK/BYOM provider configuration is specified as non-confidential provider routing and remains separate from local confidential mode
 - Paddle website purchase, course-license link, Tally/MCP approval workflow, and License Gateway contracts are specified
+- A2UI promotion intake, redaction, consent, admin review/export, and candidate-status workflows are specified
 - per-user licensing, subscription inheritance, and project-transfer boundaries are specified
 - no runtime licensing, gateway, Paddle, OCR metering, or shell behavior is active until the lane is enabled
 
