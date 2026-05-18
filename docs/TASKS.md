@@ -33,7 +33,7 @@ This file expands the canonical roadmap and lane mapping while the Textual lanes
 - define context-budget, compaction-block, and recovered-notebook-context cards/actions
 - after Milestone 5 stands, complete full MVP A2UI protocol compatibility: handshake, capability negotiation, primitive block schemas, known card schemas, unknown-card fallback, typed action allowlist, payload validation, streaming event shape, and engine-side policy revalidation
 - after Milestone 5 stands, define and persist generated A2UI draft records, usage telemetry, user feedback, review status, and promotion metadata for trusted CoP/beta dogfooding
-- after Milestone 5 stands, add CLI-first promotion review commands for list/show/status/export and rough static HTML previews of safe A2UI primitives with inert action chips
+- after Milestone 5 stands, add CLI-first promotion review commands for list/show/status/export plus a small bearer-token-protected HTML dashboard that renders safe A2UI primitives with inert action chips
 - ensure generated A2UI surfaces are declarative data only and cannot execute arbitrary generated Swift, Python, JavaScript, shell, or downloaded code
 
 ### `feat-engine-runs`
@@ -261,7 +261,7 @@ Own later:
 - Developer/Lite boundary where Developer never uses hosted Lite workflows
 - hosted License Gateway for license invites, claim, refresh, managed Lite provider proxy, Studio/Pro managed OCR fallback, Paddle webhooks, and Nanonets page state
 - hosted A2UI promotion intake service for opted-in CoP/beta builds, implemented as narrow redacted candidate-bundle upload rather than broad telemetry
-- admin-side A2UI promotion candidate access through CLI-first listing/export and optional static HTML review pages
+- admin-side A2UI promotion candidate access through CLI-first listing/export and a small bearer-token-protected HTML dashboard
 - consent, redaction, pseudonymous install/license identifiers, and confidential-project upload prohibition for A2UI promotion intake
 - Nanonets page ledger with 150-page default initial CoP balance
 - Studio managed cloud OCR bucket of 250 pages per month and Pro managed cloud OCR bucket of 500 pages per month

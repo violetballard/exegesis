@@ -1914,6 +1914,10 @@ Required gateway endpoints:
   - admin-only status update for observing, rejected, or promoted decisions
 - `GET /admin/a2ui/promotion-bundles/export`
   - admin-only export for static HTML review pages and offline catalog review
+- `GET /admin/a2ui/dashboard`
+  - admin-only bearer-token-protected HTML dashboard for promotion candidate review
+  - renders safe A2UI primitives approximately with inert action chips
+  - no full login system is required for MVP
 - Managed provider proxy endpoints
   - mediate Mistral Small 4 calls for Lite
   - mediate Nanonets OCR-3 calls for Lite
@@ -1930,6 +1934,8 @@ Gateway security rules:
 - Confidential projects cannot upload A2UI promotion bundles.
 - A2UI promotion upload requires explicit CoP/beta profile enablement and user-facing disclosure.
 - Admin A2UI review/export pages must render action buttons as inert chips by default; review UI must not mutate user projects.
+- Internet-accessible admin A2UI dashboard routes must require HTTPS and bearer-token authorization on every request.
+- The MVP admin dashboard should not implement a full login/session system; bearer-token auth is sufficient if tokens are long, revocable, stored outside git, and never logged.
 
 ### A2UI Promotion Intake And Review
 
@@ -1963,12 +1969,19 @@ Promotion bundle exclusions:
 - private project names unless explicitly redacted to a coarse project type
 
 Admin review access:
-- First implementation should be CLI-first:
+- First implementation should include CLI access and a small HTML dashboard:
   - list candidates
   - show candidate detail
   - set status
   - export static HTML review pages
-- Static HTML review should render safe A2UI primitives roughly:
+- HTML dashboard requirements:
+  - bearer-token authorization on every request, matching the remote monitor's simple auth posture
+  - HTTPS-only when internet accessible
+  - filters for status, workflow, validation state, app version, and date
+  - candidate detail page with rendered preview, raw JSON, validation state, provenance summary, usage counters, feedback, and status
+  - status update controls for observing, rejected, and promoted
+  - no full login/session system in MVP
+- Static/exported HTML review should render safe A2UI primitives roughly:
   - markdown block
   - key/value block
   - list block

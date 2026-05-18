@@ -112,7 +112,7 @@ Scope:
 - move beyond shim-level A2UI by implementing full MVP protocol compatibility: handshake, capability negotiation, primitive block schemas, known card schemas, unknown-card fallback, typed action allowlist, payload validation, streaming event shape, and engine-side policy revalidation
 - capture generated A2UI draft surfaces as reviewable promotion candidates in trusted CoP/beta dogfooding, without executing arbitrary generated code
 - add privacy-preserving A2UI promotion intake through the hosted License Gateway for opted-in CoP/beta builds
-- add local/admin review access for promotion candidates through CLI-first listing/export plus rough static HTML rendering of safe A2UI primitives
+- add admin review access for promotion candidates through CLI-first listing/export plus a small bearer-token-protected HTML dashboard that roughly renders safe A2UI primitives
 - keep generated A2UI constrained to declarative data rendered through shipped clients and mapped only to typed allowlisted engine actions
 
 Lane mapping:
@@ -129,7 +129,7 @@ Exit criteria:
 - A2UI protocol compatibility is complete enough that future Textual/native clients do not depend on a shim-only contract
 - generated A2UI drafts can be stored, reviewed, rejected, or promoted from CoP use without allowing generated code execution
 - opted-in CoP/beta builds can upload redacted A2UI promotion bundles to the License Gateway without sending document text, basket content, transcript text, credentials, file paths, or raw prompts by default
-- promotion candidates can be examined through an admin CLI/static HTML workbench before any pattern is promoted
+- promotion candidates can be examined through an admin CLI and bearer-token-protected HTML dashboard before any pattern is promoted
 
 ## Milestone 6: OCR import
 

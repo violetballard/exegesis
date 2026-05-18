@@ -110,7 +110,7 @@ Deliverables:
 - full MVP A2UI protocol compatibility beyond the current shim: handshake, capability negotiation, primitive blocks, known cards, unknown-card fallback, typed action allowlist, payload validation, streaming event shape, and engine-side policy revalidation
 - generated A2UI drafts captured as reviewable CoP/beta promotion candidates with source prompt/context, model/provider, client capability set, allowed actions, usage outcome, user feedback, review status, and promotion status
 - optional hosted A2UI promotion intake through the License Gateway for opted-in CoP/beta builds, with privacy-preserving redaction rules
-- local/admin promotion candidate review through CLI-first list/show/status/export commands and rough static HTML previews of safe A2UI primitives
+- local/admin promotion candidate review through CLI-first list/show/status/export commands and a small bearer-token-protected HTML dashboard with rough previews of safe A2UI primitives
 
 Status:
 - MVP planned and disabled until Milestone 5 stands
@@ -352,7 +352,7 @@ Deliverables:
 - Tally intake form accessible through MCP for Claude cowork-assisted course license classification and manual approval workflow
 - initial CoP unlimited Lite course access
 - hosted License Gateway for license claim, refresh, managed Mistral/Nanonets access, Paddle webhooks, and Nanonets page state
-- hosted A2UI promotion intake for opted-in CoP/beta builds, with redacted candidate bundles, admin review/export, and no default upload of document text, basket content, transcript text, credentials, file paths, or raw prompts
+- hosted A2UI promotion intake for opted-in CoP/beta builds, with redacted candidate bundles, bearer-token-protected admin dashboard/review/export, and no default upload of document text, basket content, transcript text, credentials, file paths, or raw prompts
 - 150 default Nanonets pages plus fixed top-ups for 150, 500, and 1000 pages
 - Studio 250-page monthly managed cloud OCR bucket and Pro 500-page monthly managed cloud OCR bucket
 - Pro BYOK/BYOM provider configuration for OpenAI, Claude, Mistral, and local OpenAI-compatible backends with provider/model/reasoning selection for non-confidential projects only
