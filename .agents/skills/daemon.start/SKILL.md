@@ -4,10 +4,10 @@ description: "Start the event-driven coordinator daemon and immediately verify t
 ---
 
 Run from repo root:
-- `python codex_packet_handoff/tools/remote_monitor_ctl.py start`
-- `python codex_packet_handoff/tools/remote_monitor_ctl.py status`
-- `python codex_packet_handoff/tools/daemon_ctl.py start`
+- `python codex_packet_handoff/tools/launchd_ctl.py start all`
+- `python codex_packet_handoff/tools/launchd_ctl.py status all`
 - `python codex_packet_handoff/tools/daemon_ctl.py status`
+- `python codex_packet_handoff/tools/remote_monitor_ctl.py status`
 - `python codex_packet_handoff/tools/status.py`
 - `python codex_packet_handoff/tools/daemon_monitor.py`
 - `ps -axo pid,etime,command | rg "codex exec|codex_packet_handoff/tools/agents_coordinator.py" || true`
@@ -19,15 +19,15 @@ Access path selection:
 - If this session is remote over VPN and local scripts are unavailable, use `python codex_packet_handoff/tools/remote_monitor_client.py start`.
 - After remote start, use `python codex_packet_handoff/tools/remote_monitor_client.py status` or `full` for the sanitized verification snapshot.
 - Do not use remote monitor as the default when direct local scripts are available.
-- Local `remote_monitor_ctl.py start/status` only manages the phone/VPN monitor process. It is not the remote HTTP status path.
+- Local `remote_monitor_ctl.py status` only checks the phone/VPN monitor process. Launchd owns local daemon, monitor, and shell startup.
 
 CLI-first note:
 - assume the operator launched Codex CLI with `codex --oss --local-provider lmstudio -m gpt-oss-20b -C /Users/doctor-violet/projects/exegesis`
 - do not rely on app automations; use the Python scripts above as the source of control
 
 Then print:
-- whether the remote monitor started or was already running, with PID and log path
-- whether it started or was already running
+- whether launchd loaded/runs daemon, monitor, and shell
+- whether the remote monitor is running, with PID and log path
 - daemon PID
 - daemon log path
 - the full queue truth from `status.py`
@@ -37,4 +37,4 @@ Then print:
 - any important live-log lines that explain the current state
 
 Restart note:
-- After a full machine restart, the remote monitor is not launchd-managed because the repo currently lives under Box. Always start/check `remote_monitor_ctl.py` as part of daemon startup so phone/VPN status access comes back with the daemon.
+- After relocation to `/Users/doctor-violet/projects/exegesis`, launchd owns daemon, remote monitor, and shell startup. Use `launchd_ctl.py start/status all` after a reboot if any service does not come back cleanly.

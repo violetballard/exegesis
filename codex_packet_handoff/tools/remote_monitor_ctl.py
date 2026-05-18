@@ -141,9 +141,20 @@ def stop() -> int:
     return 0
 
 
+def launchd_run(config: Path) -> int:
+    REMOTE_ROOT.mkdir(parents=True, exist_ok=True)
+    PID_FILE.write_text(str(os.getpid()))
+    os.execvpe(
+        sys.executable,
+        [sys.executable, str(SERVER), "--config", str(config)],
+        os.environ.copy(),
+    )
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Start/stop/status for the qual remote monitor server.")
-    parser.add_argument("action", choices=["init", "start", "stop", "status"])
+    parser.add_argument("action", choices=["init", "start", "stop", "status", "launchd-run"])
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
@@ -166,6 +177,8 @@ def main() -> int:
         return start(args.config)
     if args.action == "stop":
         return stop()
+    if args.action == "launchd-run":
+        return launchd_run(args.config)
     return status()
 
 

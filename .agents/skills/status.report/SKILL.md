@@ -15,6 +15,7 @@ Access path selection:
 - Local `remote_monitor_ctl.py status` is allowed only as a process-health check for the phone/VPN monitor. It is not the HTTP/network status path.
 
 Manual breakdown if you need to inspect each step:
+- `python codex_packet_handoff/tools/launchd_ctl.py status all`
 - `python codex_packet_handoff/tools/remote_monitor_ctl.py status`
 - `python codex_packet_handoff/tools/daemon_ctl.py status`
 - `python codex_packet_handoff/tools/status.py`
@@ -30,6 +31,7 @@ CLI-first note:
 - when the controller itself is local `gpt-oss-20b`, prefer showing the full script outputs first and then summarize them; do not rely on memory or prior chat context for status
 
 Then summarize:
+- launchd loaded/running state for daemon, monitor, and shell
 - local remote monitor process running/stopped state, PID, and whether phone/VPN status access should be available
 - daemon running/stopped state from `daemon_ctl.py status`
 - filesystem truth per lane (`status.py`)
@@ -40,7 +42,7 @@ Then summarize:
 - whether any stale fixer/log noise should be ignored because the queue is clean
 
 Reading order:
-1. Start with `status_report.sh`; within it, treat `remote_monitor_ctl.py status` as only a local process-health precheck.
+1. Start with `status_report.sh`; when doing manual checks, read `launchd_ctl.py status all` before process-health checks.
 2. Use `daemon_monitor.py` to read `bottleneck`, `active_blocker`, heartbeat, and live lane discussion.
 3. Only then read process list, feature-runner logs, packet-router logs, and daemon-log tail.
 4. If logs conflict with queue truth, say so explicitly and prefer `status.py` for queue state.
