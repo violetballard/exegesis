@@ -112,7 +112,9 @@ ROUTER_RETRY_STATE_KEYS = (
 )
 FEATURE_LANE_RE = re.compile(r"feature lane agent for\s+`?([A-Za-z0-9._-]+)`?", re.IGNORECASE)
 CODEX_EXEC_RE = re.compile(r"\bcodex\b.*\bexec\b", re.IGNORECASE)
-MANAGED_WORKTREE_ROOT = Path.home() / ".codex/worktrees"
+MANAGED_WORKTREE_ROOT = Path(
+    os.environ.get("QUAL_MANAGED_WORKTREE_ROOT", str(REPO_ROOT / ".codex/worktrees"))
+).expanduser()
 WORKTREE_HEALTH_TIMEOUT_SECONDS = 15.0
 WORKTREE_REBUILD_TIMEOUT_SECONDS = 180.0
 GIT_HYGIENE_ALERT_THRESHOLD = 3
