@@ -39,6 +39,7 @@ The user should always understand:
 4. Shared UI contract (`A2UI`)
 - Cards/actions/selection types must live in a client-agnostic shared layer.
 - Rendering adapters stay outside shared.
+- Full MVP A2UI protocol compatibility includes handshake, capability negotiation, primitive blocks, known cards, unknown-card fallback, typed actions, validation, streaming event shape, and promotion tracking for generated declarative surfaces.
 
 5. Keyboard-first client behavior
 - The Textual MVP must eventually support pane focus, command palette, basket promotion, patch apply/reject, and inspector-follow-selection from the keyboard.
@@ -46,6 +47,9 @@ The user should always understand:
 6. Auditable state and workflow
 - Project/document/basket/session state must be persistent enough for real dogfooding.
 - Workflow actions must be explicit and traceable.
+- Richer encrypted SQLite-backed storage is required for MVP trust state after the demo path stands: provenance, audit events, workflow artifacts, compaction records, A2UI promotion candidates, and durable app/project metadata.
+- Full provenance/tracking is a core MVP feature, not later polish. Exegesis must explain what context was used, what was generated, what was promoted, what was applied, and why the user can trust the chain.
+- Trusted CoP dogfooding should capture generated A2UI promotion candidates early, alongside human feedback, so useful workflow surfaces can be promoted from real use.
 
 ## Near-term product truth
 

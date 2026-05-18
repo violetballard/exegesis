@@ -98,6 +98,23 @@ Current operating rule:
   - continue working
 - Code churn, contract cleanup, or infra work do not count toward this milestone unless they directly unblock or harden that specific path.
 
+## Milestone 5A: MVP trust substrate
+
+Outcome:
+- After the demo path stands, Exegesis gains the trust substrate needed for real MVP use before broad import/RAG/coding expansion.
+
+Deliverables:
+- encrypted SQLite-backed storage for durable app/project metadata, sessions, workflow artifacts, provenance, audit events, notebook compaction records, and generated A2UI promotion candidates
+- portable Markdown documents and assets remain outside opaque storage where appropriate
+- provenance/tracking for retrieval hits, query/filter/ranking metadata, basket promotion, model request context assembly, generated outputs, rewrite proposals, patch apply/reject decisions, citations, imports, notebook compactions, and A2UI-generated surface candidates
+- full MVP A2UI protocol compatibility beyond the current shim: handshake, capability negotiation, primitive blocks, known cards, unknown-card fallback, typed action allowlist, payload validation, streaming event shape, and engine-side policy revalidation
+- generated A2UI drafts captured as reviewable CoP/beta promotion candidates with source prompt/context, model/provider, client capability set, allowed actions, usage outcome, user feedback, review status, and promotion status
+
+Status:
+- MVP planned and disabled until Milestone 5 stands
+- This is a post-demo MVP gate before Milestone 6 OCR/import/RAG activation
+- Uses the existing engine lanes when activated rather than starting speculative UI polish
+
 ## Milestone 6: OCR import
 
 Outcome:

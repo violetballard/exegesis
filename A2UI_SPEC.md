@@ -58,6 +58,19 @@ Promotion rules:
 - App Store/iPad builds may ship only the promoted/preapproved catalog unless
   current Apple policy allows dynamic generation for that build profile
 
+MVP dogfooding requirement:
+- generated A2UI promotion tracking starts after the Milestone 5 demo path
+  stands and before broad import/RAG/coding expansion
+- trusted CoP/beta builds may collect generated A2UI draft candidates early so
+  promotion decisions come from real workflow use, not only human speculation
+- every generated draft is stored as declarative data, not executable code
+- every generated draft keeps provenance linking it to the triggering workflow,
+  source prompt/context, project mode, client capability set, model/provider,
+  allowed action schemas, usage outcome, user feedback, review status, and
+  promotion status
+- promotion into the named/versioned component catalog requires explicit human
+  review
+
 ## Card Model
 
 Required default:

@@ -15,24 +15,32 @@ This file expands the canonical roadmap and lane mapping while the Textual lanes
 - keep basket/document/session persistence deterministic
 - preserve current `src/qual/context/*` and `src/qual/storage/*` flows through shims or wrappers
 - store raw notebook entries, compaction blocks, pin state, source entry IDs, validation status, and restore metadata from `docs/NOTEBOOK_CONTEXT_COMPACTION_SPEC.md`
+- after Milestone 5 stands, implement encrypted SQLite-backed MVP trust storage for durable app/project metadata, sessions, workflow artifacts, provenance, audit events, notebook compaction records, and generated A2UI promotion candidates
+- keep Markdown documents/assets portable while richer trust state lives in SQLite
+- include migration, backup/recovery, and clear failure behavior for encrypted SQLite storage
 
 ### `feat-retrieval-fts`
 - keep the FTS-first retrieval path authoritative
 - expose retrieval through the canonical engine contract
 - keep structured results suitable for workflow cards and basket promotion
 - support FTS backfill over archived notebook entries and compaction summaries
+- after Milestone 5 stands, record provenance for retrieval hits, query/filter/ranking metadata, source documents/chunks, and basket-promotion links
 
 ### `feat-a2ui-contract`
 - move card/action contracts and selection types into `shared/src/exegesis_shared`
 - keep terminal/CLI rendering outside the shared package
 - preserve `src/qual/ui/a2ui.py` as a compatibility layer while the migration settles
 - define context-budget, compaction-block, and recovered-notebook-context cards/actions
+- after Milestone 5 stands, complete full MVP A2UI protocol compatibility: handshake, capability negotiation, primitive block schemas, known card schemas, unknown-card fallback, typed action allowlist, payload validation, streaming event shape, and engine-side policy revalidation
+- after Milestone 5 stands, define and persist generated A2UI draft records, usage telemetry, user feedback, review status, and promotion metadata for trusted CoP/beta dogfooding
+- ensure generated A2UI surfaces are declarative data only and cannot execute arbitrary generated Swift, Python, JavaScript, shell, or downloaded code
 
 ### `feat-engine-runs`
 - expose the canonical app service surface
 - keep plan/draft/revise/apply/reject reachable through the engine contract
 - preserve engine-first dependency direction during the migration
 - implement request budgeting, compaction trigger policy, compaction-mode model calls, and compacted model request assembly
+- after Milestone 5 stands, record provenance for each model request, context/basket input, generated output, rewrite proposal, patch preview, apply/reject decision, and save-to-project artifact
 
 ## Defined but disabled
 

@@ -33,6 +33,39 @@ Exit criteria:
 - A2UI contracts are stable enough for later Textual integration.
 - No later sprint is activated before this loop is real.
 
+## Sprint 0.5: MVP Trust Substrate
+
+Activate after:
+- Milestone 5 demo readiness stands.
+
+Do not activate before:
+- the retrieve -> basket -> plan/revise -> patch -> apply demo path is real and reproducible.
+
+Lanes:
+- continue through the existing engine lanes as targeted follow-up packets:
+  - `feat-context-storage`
+  - `feat-retrieval-fts`
+  - `feat-engine-runs`
+  - `feat-a2ui-contract`
+  - `feat-commands`
+
+Goal:
+- Add the MVP trust substrate after the demo path is real, before expanding into OCR/import/RAG/coding.
+
+Shared integration target:
+- Store durable app/project metadata, session state, workflow artifacts, provenance, audit events, notebook compaction records, and generated A2UI promotion candidates in encrypted SQLite-backed storage where appropriate.
+- Keep raw Markdown documents and assets portable and exportable.
+- Track the full context chain from retrieval result to basket entry to model request to generated output to patch proposal to apply/reject decision.
+- Track generated A2UI draft surfaces as reviewable promotion candidates during trusted CoP/beta dogfooding.
+- Validate full MVP A2UI protocol compatibility beyond the current shim: handshake, capability negotiation, primitive blocks, known cards, unknown-card fallback, typed action allowlist, payload validation, streaming event shape, and policy revalidation.
+
+Exit criteria:
+- SQLite-backed encrypted storage has migration, backup/recovery, and clear failure behavior.
+- Provenance/tracking can explain normal writing, retrieval, basket, generation, revision, patch, compaction, citation/import, and A2UI promotion flows.
+- A2UI generated surfaces remain declarative data rendered through shipped clients; no arbitrary generated Swift, Python, JavaScript, shell, or downloaded code can execute.
+- Generated A2UI candidates can be stored, reviewed, rejected, or promoted into a named/versioned component catalog.
+- Sprint 1 import/RAG work does not start until this trust substrate is stable enough for real CoP data.
+
 ## Sprint 1: Import And Knowledge Foundation
 
 Activate together:
