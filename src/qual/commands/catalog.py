@@ -184,6 +184,20 @@ def _route_cli_tokens_by_name(specs: tuple[CommandSpec, ...]) -> dict[str, tuple
     return {spec.name: _lookup_tokens(spec) for spec in specs}
 
 
+def _validate_route_cli_tokens(
+    route_catalog: tuple[CommandFlowRouteEntry, ...],
+    cli_tokens: tuple[str, ...],
+) -> None:
+    parseable_tokens = set(cli_tokens)
+    for entry in route_catalog:
+        missing_tokens = tuple(
+            token for token in entry.cli_tokens if token not in parseable_tokens
+        )
+        if missing_tokens:
+            joined_tokens = ", ".join(missing_tokens)
+            raise ValueError(f"Command CLI route has unparseable tokens for {entry.name}: {joined_tokens}")
+
+
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         name="bootstrap",
@@ -539,6 +553,7 @@ def _validate_command_cli_route_contract(
         raise ValueError("Command CLI route lookup surface is inconsistent")
     if contract.flow_surface_tokens != command_flow_surface_tokens(specs, flow_steps):
         raise ValueError("Command CLI route surface tokens are inconsistent")
+    _validate_route_cli_tokens(contract.route_catalog, cli_contract.tokens)
 
 
 @lru_cache(maxsize=None)
