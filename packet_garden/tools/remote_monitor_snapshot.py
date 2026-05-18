@@ -5,6 +5,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -12,9 +13,10 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Mapping, Sequence
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DAEMON_CTL = ["python", "packet_garden/tools/daemon_ctl.py", "status"]
-STATUS_CMD = ["python", "packet_garden/tools/status.py"]
-MONITOR_CMD = ["python", "packet_garden/tools/daemon_monitor.py"]
+PYTHON = sys.executable
+DAEMON_CTL = [PYTHON, "packet_garden/tools/daemon_ctl.py", "status"]
+STATUS_CMD = [PYTHON, "packet_garden/tools/status.py"]
+MONITOR_CMD = [PYTHON, "packet_garden/tools/daemon_monitor.py"]
 PROCESS_MATCH_RE = re.compile(r"codex exec|opencode run|packet_garden/tools/agents_coordinator.py")
 KEY_VALUE_RE = re.compile(r"^(?P<key>[A-Za-z0-9_.-]+)=(?P<value>.*)$")
 TOTALS_RE = re.compile(
@@ -36,7 +38,11 @@ SECRET_PATTERNS = [
 ]
 PATH_PATTERN = re.compile(r"/Users/[^\s'\"]+")
 ROUTER_STATE = REPO_ROOT / ".codex/packet_router/state.json"
+ROUTER_CONFIG = REPO_ROOT / ".codex/packet_router/config.json"
 FEATURE_STATE = REPO_ROOT / ".codex/feature_runner/state.json"
+DAEMON_PID_FILE = REPO_ROOT / ".codex/packet_coordinator/daemon.pid"
+DAEMON_LEASE_FILE = REPO_ROOT / ".codex/packet_coordinator/lease.json"
+DAEMON_LEASE_FRESH_SECONDS = 3600
 
 
 @dataclass(frozen=True)
@@ -131,6 +137,33 @@ def _pid_alive(pid: int) -> bool:
     return True
 
 
+def _read_int_file(path: Path) -> int:
+    try:
+        return int(path.read_text().strip() or "0")
+    except Exception:
+        return 0
+
+
+def _daemon_running_fallback() -> bool:
+    lease = _load_json(DAEMON_LEASE_FILE, {})
+    if not isinstance(lease, dict):
+        lease = {}
+    try:
+        lease_pid = int(lease.get("pid") or 0)
+    except (TypeError, ValueError):
+        lease_pid = 0
+    try:
+        lease_ts = float(lease.get("ts") or 0)
+    except (TypeError, ValueError):
+        lease_ts = 0
+    pid = _read_int_file(DAEMON_PID_FILE) or lease_pid
+    if not pid or not _pid_alive(pid):
+        return False
+    if lease_pid != pid or not lease_ts:
+        return False
+    return (time.time() - lease_ts) <= DAEMON_LEASE_FRESH_SECONDS
+
+
 def _lane_from_job_key(key: str, job: Mapping[str, Any]) -> str:
     lane = str(job.get("lane") or "")
     if lane:
@@ -215,6 +248,109 @@ def _lane_placements() -> Dict[str, List[Dict[str, str]]]:
                 pid=int(job.get("pid") or 0),
             )
     return placements
+
+
+def _count_active_pid_jobs(jobs: Any, *, local: bool | None = None) -> int:
+    if not isinstance(jobs, dict):
+        return 0
+    count = 0
+    for job in jobs.values():
+        if not isinstance(job, dict):
+            continue
+        if local is not None and bool(job.get("local")) != local:
+            continue
+        try:
+            pid = int(job.get("pid") or 0)
+        except (TypeError, ValueError):
+            pid = 0
+        if _pid_alive(pid):
+            count += 1
+    return count
+
+
+def _active_feature_mode_count(mode: str) -> int:
+    feature_state = _load_json(FEATURE_STATE, {})
+    lanes = feature_state.get("lanes") if isinstance(feature_state, dict) else {}
+    if not isinstance(lanes, dict):
+        return 0
+    count = 0
+    for lane_state in lanes.values():
+        if not isinstance(lane_state, dict):
+            continue
+        if str(lane_state.get("status") or "") != "direct_exec_running":
+            continue
+        if str(lane_state.get("mode") or "") != mode:
+            continue
+        try:
+            pid = int(lane_state.get("pid") or 0)
+        except (TypeError, ValueError):
+            pid = 0
+        if _pid_alive(pid):
+            count += 1
+    return count
+
+
+def _runtime_fallbacks(
+    pipeline: Mapping[str, Any],
+    monitor_values: Mapping[str, str],
+) -> Dict[str, str]:
+    router_state = _load_json(ROUTER_STATE, {})
+    router_cfg = _load_json(ROUTER_CONFIG, {})
+    if not isinstance(router_state, dict):
+        router_state = {}
+    if not isinstance(router_cfg, dict):
+        router_cfg = {}
+
+    local_cap = int(router_cfg.get("max_total_local_lms_jobs", 4) or 4)
+    cloud_cap = int(router_cfg.get("max_total_cloud_jobs", 4) or 4)
+    local_jobs = (
+        _active_feature_mode_count("local_fallback")
+        + _count_active_pid_jobs(router_state.get("local_reviewer_jobs"))
+        + _count_active_pid_jobs(router_state.get("local_integrator_jobs"))
+        + _count_active_pid_jobs(router_state.get("fixer_fallback_jobs"), local=True)
+    )
+    cloud_features = _active_feature_mode_count("cloud_primary")
+    cloud_reviewers = _count_active_pid_jobs(router_state.get("cloud_reviewer_jobs"))
+    cloud_integrators = _count_active_pid_jobs(router_state.get("cloud_integrator_jobs"))
+    cloud_fixers = _count_active_pid_jobs(router_state.get("fixer_fallback_jobs"), local=False)
+    cloud_total = cloud_features + cloud_reviewers + cloud_integrators + cloud_fixers
+
+    totals = pipeline.get("totals", {}) if isinstance(pipeline, dict) else {}
+    approved = int(totals.get("approved_for_integrator", 0) or 0)
+    pending = int(totals.get("pending_feature", 0) or 0)
+    reviewer = int(totals.get("reviewer_notes", 0) or 0)
+    waiting = int(totals.get("waiting_feature_update", 0) or 0)
+    reemit = int(totals.get("ready_for_reemit", 0) or 0)
+    if approved:
+        blocker = f"integrator backlog active ({approved} packet(s) ready)"
+    elif pending:
+        blocker = f"reviewer backlog active ({pending} packet(s) pending)"
+    elif reviewer or waiting or reemit:
+        blocker = f"feature rework needed ({reviewer + waiting + reemit} lane(s) still on reviewer notes)"
+    else:
+        blocker = "-"
+
+    return {
+        "runtime_mode": str(
+            monitor_values.get("runtime_mode")
+            or router_state.get("runtime_mode")
+            or router_cfg.get("runtime_mode_default")
+            or "-"
+        ),
+        "cloud_available": str(
+            monitor_values.get("cloud_available")
+            if monitor_values.get("cloud_available")
+            else router_state.get("cloud_available", "-")
+        ),
+        "local_lms_jobs": monitor_values.get("local_lms_jobs") or f"{local_jobs} / {local_cap}",
+        "cloud_jobs": monitor_values.get("cloud_jobs")
+        or (
+            f"{cloud_total}/{cloud_cap} total "
+            f"(features {cloud_features}, reviewer {cloud_reviewers}, "
+            f"integrator {cloud_integrators}, fixer {cloud_fixers})"
+        ),
+        "active_blocker": monitor_values.get("active_blocker") or blocker,
+    }
 
 
 def _parse_monitor(output: str) -> Dict[str, Any]:
@@ -305,13 +441,15 @@ def _pause_state() -> Dict[str, Any]:
 def _summary_from(daemon: Mapping[str, str], pipeline: Mapping[str, Any], monitor: Mapping[str, Any]) -> Dict[str, Any]:
     monitor_values = monitor.get("values", {}) if isinstance(monitor, dict) else {}
     totals = pipeline.get("totals", {}) if isinstance(pipeline, dict) else {}
+    fallback = _runtime_fallbacks(pipeline, monitor_values)
+    daemon_running = str(daemon.get("daemon_running", "False")) == "True" or _daemon_running_fallback()
     return {
-        "daemon_running": str(daemon.get("daemon_running", "False")) == "True",
-        "runtime_mode": monitor_values.get("runtime_mode", "-"),
-        "cloud_available": monitor_values.get("cloud_available", "-"),
-        "local_lms_jobs": monitor_values.get("local_lms_jobs", "-"),
-        "cloud_jobs": monitor_values.get("cloud_jobs", "-"),
-        "active_blocker": monitor_values.get("active_blocker", "-"),
+        "daemon_running": daemon_running,
+        "runtime_mode": fallback["runtime_mode"],
+        "cloud_available": fallback["cloud_available"],
+        "local_lms_jobs": fallback["local_lms_jobs"],
+        "cloud_jobs": fallback["cloud_jobs"],
+        "active_blocker": fallback["active_blocker"],
         "pending_feature": int(totals.get("pending_feature", 0) or 0),
         "reviewer_notes": int(totals.get("reviewer_notes", 0) or 0),
         "approved_for_integrator": int(totals.get("approved_for_integrator", 0) or 0),

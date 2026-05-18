@@ -562,13 +562,14 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             mock.patch.object(agents_coordinator, "_active_local_router_jobs", return_value=0),
             mock.patch.object(agents_coordinator, "_has_router_priority_backlog", return_value=True),
             mock.patch.object(agents_coordinator, "_has_lane_backlog", return_value=True),
+            mock.patch.object(agents_coordinator, "_cloud_feature_launch_slots", return_value=0),
             mock.patch.object(agents_coordinator, "run_cmd", side_effect=fake_run_cmd),
         ):
             self.assertEqual(agents_coordinator._launch_free_lanes(state_doc), ["feat-a", "feat-b"])
 
         self.assertEqual(launched, ["feat-a", "feat-b"])
 
-    def test_coordinator_blocks_cloud_free_lanes_when_any_router_backlog_exists(self) -> None:
+    def test_coordinator_uses_spare_cloud_capacity_with_router_backlog(self) -> None:
         state_doc: dict[str, object] = {}
         calls: list[list[str]] = []
 
@@ -588,11 +589,12 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             mock.patch.object(agents_coordinator, "_cloud_feature_launch_slots", return_value=2),
             mock.patch.object(agents_coordinator, "run_cmd", side_effect=fake_run_cmd),
         ):
-            self.assertEqual(agents_coordinator._launch_free_lanes(state_doc), ["feat-a"])
+            self.assertEqual(agents_coordinator._launch_free_lanes(state_doc), ["feat-a", "feat-b"])
 
         self.assertEqual(len(calls), 1)
         self.assertIn("--provider", calls[0])
-        self.assertEqual(calls[0][calls[0].index("--provider") + 1], "local")
+        self.assertEqual(calls[0][calls[0].index("--provider") + 1], "cloud")
+        self.assertEqual(calls[0][-3:], ["--lanes", "feat-a", "feat-b"])
 
     def test_router_tick_prioritizes_integrator_before_reviewer_fixer(self) -> None:
         cfg = SimpleNamespace(lanes={"feat-a": {}, "feat-b": {}})

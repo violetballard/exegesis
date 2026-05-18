@@ -32,6 +32,7 @@ DEFAULT_TOKEN_FILE = REMOTE_ROOT / "token"
 COORD_ROOT = REPO_ROOT / ".codex/packet_coordinator"
 KICK_FILE = COORD_ROOT / "kick.json"
 DAEMON_CTL = [sys.executable, "packet_garden/tools/daemon_ctl.py"]
+LAUNCHD_CTL = [sys.executable, "packet_garden/tools/launchd_ctl.py"]
 COORDINATOR_ONCE = [sys.executable, "packet_garden/tools/agents_coordinator.py", "--once", "--max-cycles", "1"]
 CONTROL_TIMEOUT_SECONDS = 30.0
 SNAPSHOT_TTL_SECONDS = 10.0
@@ -521,9 +522,23 @@ def run_control_action(action: str, *, operator: str, reason: str = "") -> Dict[
         return {"rc": 2, "output": ["unsupported action"], "timed_out": False}
     with _control_lock:
         if action == "start":
-            result = _run_control_command([*DAEMON_CTL, "start"])
+            result = _run_control_command([*LAUNCHD_CTL, "start", "daemon"])
         elif action == "stop":
-            result = _run_control_command([*DAEMON_CTL, "stop"], timeout=60.0)
+            # The daemon is launchd-managed with KeepAlive. Boot it out first so
+            # launchd does not immediately undo a remote stop, then run the
+            # daemon cleanup path to terminate tracked workers and stale tests.
+            launchd_result = _run_control_command([*LAUNCHD_CTL, "stop", "daemon"], timeout=30.0)
+            cleanup_result = _run_control_command([*DAEMON_CTL, "stop"], timeout=60.0)
+            result = {
+                "rc": int(launchd_result.get("rc", 1)) or int(cleanup_result.get("rc", 1)),
+                "output": [
+                    "launchd:",
+                    *list(launchd_result.get("output", [])),
+                    "cleanup:",
+                    *list(cleanup_result.get("output", [])),
+                ],
+                "timed_out": bool(launchd_result.get("timed_out") or cleanup_result.get("timed_out")),
+            }
         else:
             result = _kick(operator, reason)
         _invalidate_snapshot()

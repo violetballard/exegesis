@@ -1820,7 +1820,11 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
         # router can advance the current feature loop instead of letting free
         # lane launches continually steal capacity.
         local_slots = max(0, local_slots - 1)
-    cloud_slots = 0 if _has_lane_backlog() else _cloud_feature_launch_slots()
+    # Router work runs before feature refill, so reviewer/integrator/fixer jobs
+    # have already claimed any cloud slots they can use this cycle. Use remaining
+    # cloud capacity for idle feature lanes instead of leaving the fifth active
+    # engine lane dormant while local LMS is full.
+    cloud_slots = _cloud_feature_launch_slots()
     if local_slots <= 0 and cloud_slots <= 0:
         print("[coordinator] local/cloud feature caps reached; deferring feature lane launch")
         return []

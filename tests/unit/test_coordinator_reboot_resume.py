@@ -159,6 +159,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
             patch.object(coordinator, "_active_local_router_jobs", return_value=0),
             patch.object(coordinator, "_has_router_priority_backlog", return_value=True),
             patch.object(coordinator, "_has_lane_backlog", return_value=True),
+            patch.object(coordinator, "_cloud_feature_launch_slots", return_value=0),
             patch.object(coordinator, "run_cmd") as run_cmd,
         ):
             launched = coordinator._launch_free_lanes(state_doc)
