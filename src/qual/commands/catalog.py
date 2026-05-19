@@ -130,6 +130,7 @@ class CommandCliSmokePlan:
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
     steps: tuple[CommandCliSmokeStep, ...]
     argv: tuple[tuple[str, ...], ...]
+    demo_path_steps: tuple[CommandDemoPathStep, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -735,6 +736,39 @@ def _validate_command_cli_smoke_plan(plan: CommandCliSmokePlan) -> None:
         raise ValueError("Command CLI smoke plan primary tokens are inconsistent")
     if plan.argv != tuple(step.argv for step in plan.steps):
         raise ValueError("Command CLI smoke plan argv is inconsistent")
+    if plan.demo_path_steps:
+        if plan.flow_steps != tuple(step.flow_step for step in plan.demo_path_steps):
+            raise ValueError("Command CLI smoke plan demo path steps are inconsistent")
+        if tuple(step.name for step in plan.demo_path_steps) != tuple(step.name for step in plan.steps):
+            raise ValueError("Command CLI smoke plan demo path names are inconsistent")
+        if tuple(step.argv for step in plan.demo_path_steps) != plan.argv:
+            raise ValueError("Command CLI smoke plan demo path argv is inconsistent")
+
+
+def _command_demo_path_steps_for_smoke_steps(
+    smoke_steps: tuple[CommandCliSmokeStep, ...],
+) -> tuple[CommandDemoPathStep, ...]:
+    labels_by_flow_step = _demo_path_labels_by_flow_step()
+    if _missing_demo_path_flow_steps(smoke_steps):
+        return ()
+    return tuple(
+        CommandDemoPathStep(
+            demo_step=labels_by_flow_step[step.flow_step],
+            flow_step=step.flow_step,
+            name=step.name,
+            cli_token=step.cli_token,
+            argv=step.argv,
+            description=step.description,
+        )
+        for step in smoke_steps
+    )
+
+
+def _missing_demo_path_flow_steps(
+    smoke_steps: tuple[CommandCliSmokeStep, ...],
+) -> tuple[str, ...]:
+    labels_by_flow_step = _demo_path_labels_by_flow_step()
+    return tuple(step.flow_step for step in smoke_steps if step.flow_step not in labels_by_flow_step)
 
 
 @lru_cache(maxsize=None)
@@ -749,6 +783,7 @@ def command_cli_smoke_plan(
         route_summary=route_summary,
         steps=steps,
         argv=tuple(step.argv for step in steps),
+        demo_path_steps=_command_demo_path_steps_for_smoke_steps(steps),
     )
     _validate_command_cli_smoke_plan(plan)
     return plan
@@ -765,25 +800,11 @@ def command_demo_path_steps(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[CommandDemoPathStep, ...]:
-    labels_by_flow_step = _demo_path_labels_by_flow_step()
-    smoke_steps = command_cli_smoke_steps(specs, flow_steps)
-    missing_steps = tuple(
-        step.flow_step for step in smoke_steps if step.flow_step not in labels_by_flow_step
-    )
-    if missing_steps:
-        joined_steps = ", ".join(missing_steps)
+    smoke_plan = command_cli_smoke_plan(specs, flow_steps)
+    if not smoke_plan.demo_path_steps:
+        joined_steps = ", ".join(_missing_demo_path_flow_steps(smoke_plan.steps))
         raise ValueError(f"Command demo path labels are missing for flow steps: {joined_steps}")
-    return tuple(
-        CommandDemoPathStep(
-            demo_step=labels_by_flow_step[step.flow_step],
-            flow_step=step.flow_step,
-            name=step.name,
-            cli_token=step.cli_token,
-            argv=step.argv,
-            description=step.description,
-        )
-        for step in smoke_steps
-    )
+    return smoke_plan.demo_path_steps
 
 
 def command_demo_path_argv(
