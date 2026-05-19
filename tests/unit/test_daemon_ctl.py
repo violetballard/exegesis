@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import subprocess
+import signal
 import tempfile
 import unittest
 from pathlib import Path
@@ -59,6 +60,52 @@ class DaemonCtlTests(unittest.TestCase):
                 self.assertTrue(daemon_ctl._is_running())
 
             self.assertEqual(pid_file.read_text(encoding="utf-8"), "12345")
+
+    def test_stop_escalates_stale_matching_daemons(self) -> None:
+        alive = {111, 222}
+        signaled: list[tuple[int, int]] = []
+
+        def fake_kill(pid: int, sig: int) -> None:
+            signaled.append((pid, sig))
+            if sig == signal.SIGKILL:
+                alive.discard(pid)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            pid_file = Path(tmp) / "daemon.pid"
+            pid_file.write_text("111", encoding="utf-8")
+            with mock.patch.object(daemon_ctl, "PID_FILE", pid_file), mock.patch.object(
+                daemon_ctl, "_lease_state", return_value=(111, 1000.0)
+            ), mock.patch.object(
+                daemon_ctl, "_read_pid", return_value=111
+            ), mock.patch.object(
+                daemon_ctl, "_find_matching_pids", return_value=[111, 222]
+            ), mock.patch.object(
+                daemon_ctl, "_pid_alive", side_effect=lambda pid: pid in alive
+            ), mock.patch.object(
+                daemon_ctl.os, "getpgid", side_effect=OSError("no pgid")
+            ), mock.patch.object(
+                daemon_ctl.os, "kill", side_effect=fake_kill
+            ), mock.patch.object(
+                daemon_ctl, "_feature_runner_pids", return_value=[]
+            ), mock.patch.object(
+                daemon_ctl, "_find_automation_worker_pids", return_value=[]
+            ), mock.patch.object(
+                daemon_ctl, "_router_job_pids", return_value=[]
+            ), mock.patch.object(
+                daemon_ctl, "find_repo_owned_local_exec_pids", return_value=[]
+            ), mock.patch.object(
+                daemon_ctl, "find_stale_repo_test_runner_pids", return_value=[]
+            ), mock.patch.object(
+                daemon_ctl.time, "sleep", return_value=None
+            ), mock.patch.object(
+                daemon_ctl.time, "time", side_effect=[0, 10, 20, 30, 40, 50]
+            ):
+                self.assertEqual(daemon_ctl._stop(), 0)
+
+        self.assertIn((111, signal.SIGTERM), signaled)
+        self.assertIn((222, signal.SIGTERM), signaled)
+        self.assertIn((111, signal.SIGKILL), signaled)
+        self.assertIn((222, signal.SIGKILL), signaled)
 
 
 if __name__ == "__main__":

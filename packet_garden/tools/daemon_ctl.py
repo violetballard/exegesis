@@ -335,6 +335,9 @@ def _stop() -> int:
     lease_pid, _ = _lease_state()
     pid = _read_pid() or lease_pid
     stopped_any = False
+    daemon_pids: set[int] = set(_find_matching_pids())
+    if pid:
+        daemon_pids.add(pid)
     if pid and _pid_alive(pid):
         try:
             os.killpg(os.getpgid(pid), signal.SIGTERM)
@@ -353,9 +356,25 @@ def _stop() -> int:
                 os.kill(pid, signal.SIGKILL)
 
     # Ensure no stray matching daemons remain.
-    for mpid in _find_matching_pids():
+    for mpid in sorted(daemon_pids | set(_find_matching_pids())):
+        if mpid == os.getpid() or not _pid_alive(mpid):
+            continue
         try:
             os.kill(mpid, signal.SIGTERM)
+            stopped_any = True
+        except OSError:
+            pass
+    deadline = time.time() + 5
+    while time.time() < deadline:
+        still_alive = [mpid for mpid in sorted(daemon_pids | set(_find_matching_pids())) if mpid != os.getpid() and _pid_alive(mpid)]
+        if not still_alive:
+            break
+        time.sleep(0.2)
+    for mpid in sorted(daemon_pids | set(_find_matching_pids())):
+        if mpid == os.getpid() or not _pid_alive(mpid):
+            continue
+        try:
+            os.kill(mpid, signal.SIGKILL)
             stopped_any = True
         except OSError:
             pass
