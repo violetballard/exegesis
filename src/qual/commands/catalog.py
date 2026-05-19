@@ -132,6 +132,16 @@ class CommandCliSmokePlan:
     argv: tuple[tuple[str, ...], ...]
 
 
+@dataclass(frozen=True)
+class CommandDemoPathStep:
+    demo_step: str
+    flow_step: str
+    name: str
+    cli_token: str
+    argv: tuple[str, ...]
+    description: str
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -258,6 +268,12 @@ DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "export-handoff",
 )
 MVP_COMMAND_FLOW_STEPS: tuple[str, ...] = DEMO_COMMAND_FLOW_STEPS
+DEMO_PATH_STEPS_BY_FLOW_STEP: tuple[tuple[str, str], ...] = (
+    ("project-open", "open-project-document"),
+    ("retrieval", "retrieve-relevant-material"),
+    ("patch-review", "preview-apply-or-reject-patch"),
+    ("export-handoff", "persist-and-continue"),
+)
 
 
 def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> None:
@@ -738,6 +754,45 @@ def command_cli_smoke_plan(
     return plan
 
 
+def _demo_path_labels_by_flow_step() -> dict[str, str]:
+    return {
+        _normalize_token(flow_step): _normalize_token(demo_step)
+        for flow_step, demo_step in DEMO_PATH_STEPS_BY_FLOW_STEP
+    }
+
+
+def command_demo_path_steps(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandDemoPathStep, ...]:
+    labels_by_flow_step = _demo_path_labels_by_flow_step()
+    smoke_steps = command_cli_smoke_steps(specs, flow_steps)
+    missing_steps = tuple(
+        step.flow_step for step in smoke_steps if step.flow_step not in labels_by_flow_step
+    )
+    if missing_steps:
+        joined_steps = ", ".join(missing_steps)
+        raise ValueError(f"Command demo path labels are missing for flow steps: {joined_steps}")
+    return tuple(
+        CommandDemoPathStep(
+            demo_step=labels_by_flow_step[step.flow_step],
+            flow_step=step.flow_step,
+            name=step.name,
+            cli_token=step.cli_token,
+            argv=step.argv,
+            description=step.description,
+        )
+        for step in smoke_steps
+    )
+
+
+def command_demo_path_argv(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, ...], ...]:
+    return tuple(step.argv for step in command_demo_path_steps(specs, flow_steps))
+
+
 def command_demo_cli_smoke_steps() -> tuple[CommandCliSmokeStep, ...]:
     return command_cli_smoke_steps(flow_steps=command_demo_flow_steps())
 
@@ -768,6 +823,14 @@ def command_demo_cli_smoke_plan() -> CommandCliSmokePlan:
 
 def command_mvp_cli_smoke_plan() -> CommandCliSmokePlan:
     return command_demo_cli_smoke_plan()
+
+
+def command_mvp_demo_path_steps() -> tuple[CommandDemoPathStep, ...]:
+    return command_demo_path_steps(flow_steps=command_mvp_flow_steps())
+
+
+def command_mvp_demo_path_argv() -> tuple[tuple[str, ...], ...]:
+    return command_demo_path_argv(flow_steps=command_mvp_flow_steps())
 
 
 @lru_cache(maxsize=None)
