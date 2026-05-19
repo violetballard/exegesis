@@ -1,8 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from copy import deepcopy
+import json
 from typing import Any, Callable, Protocol
 
+ACTION_SELECTION_CONTRACT_VERSION = 1
 ALLOWED_ACTION_IDS: tuple[str, ...] = (
     "apply_patch",
     "reject_patch",
@@ -17,6 +20,41 @@ ALLOWED_ACTION_IDS: tuple[str, ...] = (
 )
 
 _ALLOWED_ACTION_SET = set(ALLOWED_ACTION_IDS)
+
+CANONICAL_PATCH_WORKFLOW_ACTIONS: tuple[str, ...] = ("apply_patch", "reject_patch")
+CANONICAL_NAVIGATION_ACTIONS: tuple[str, ...] = (
+    "open_section",
+    "open_corpus_item",
+    "pin_to_context_set",
+    "create_context_set",
+)
+CANONICAL_UTILITY_ACTIONS: tuple[str, ...] = (
+    "copy_to_clipboard",
+    "export_document",
+    "refresh_license",
+)
+CANONICAL_AGENT_ACTIONS: tuple[str, ...] = ("run_agent",)
+CANONICAL_ACTION_GROUPS: tuple[tuple[str, ...], ...] = (
+    CANONICAL_PATCH_WORKFLOW_ACTIONS,
+    CANONICAL_NAVIGATION_ACTIONS,
+    CANONICAL_UTILITY_ACTIONS,
+    CANONICAL_AGENT_ACTIONS,
+)
+CANONICAL_ACTION_ORDER: tuple[str, ...] = tuple(
+    action_id for group in CANONICAL_ACTION_GROUPS for action_id in group
+)
+CANONICAL_ACTION_PRIORITY: dict[str, int] = {
+    action_id: index for index, action_id in enumerate(CANONICAL_ACTION_ORDER)
+}
+UNKNOWN_ACTION_PRIORITY = len(CANONICAL_ACTION_ORDER)
+_UNORDERED_ALLOWED_ACTION_IDS = tuple(
+    action_id for action_id in ALLOWED_ACTION_IDS if action_id not in CANONICAL_ACTION_PRIORITY
+)
+if _UNORDERED_ALLOWED_ACTION_IDS:
+    raise RuntimeError(
+        "A2UI canonical action order is missing allowed actions: "
+        f"{', '.join(_UNORDERED_ALLOWED_ACTION_IDS)}"
+    )
 
 _ACTION_SCHEMAS: dict[str, dict[str, type]] = {
     "apply_patch": {"patch_id": str},
@@ -44,6 +82,137 @@ class ActionRef:
 class PolicyGate(Protocol):
     def allow_action(self, action_id: str, payload: dict[str, Any], *, policy_sensitive: bool) -> bool:
         ...
+
+
+def canonical_action_key(action: dict[str, Any]) -> str:
+    return json.dumps(action, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+
+
+def canonical_action_identity_key(action: dict[str, Any]) -> str:
+    identity = {
+        "confirm": action.get("confirm"),
+        "id": action.get("id"),
+        "payload": action.get("payload"),
+        "policy_sensitive": action.get("policy_sensitive", False),
+    }
+    return json.dumps(identity, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
+
+
+def action_priority(action: dict[str, Any]) -> tuple[int, str, str, str]:
+    action_id = str(action.get("id", ""))
+    priority = CANONICAL_ACTION_PRIORITY.get(action_id, UNKNOWN_ACTION_PRIORITY)
+    return (priority, action_id, canonical_action_identity_key(action), canonical_action_key(action))
+
+
+def canonicalize_action_order(actions: list[Any]) -> list[dict[str, Any]]:
+    valid_actions: list[dict[str, Any]] = []
+    for action in actions:
+        if not isinstance(action, dict):
+            continue
+        try:
+            validate_action_ref(action)
+        except ValueError:
+            continue
+        valid_actions.append(action)
+    return [deepcopy(action) for action in sorted(valid_actions, key=action_priority)]
+
+
+def materialize_card_actions(card: dict[str, Any]) -> list[dict[str, Any]]:
+    raw_actions = card.get("actions", [])
+    if not isinstance(raw_actions, list):
+        return []
+
+    by_identity: dict[str, dict[str, Any]] = {}
+    for action in raw_actions:
+        if not isinstance(action, dict):
+            continue
+        try:
+            validate_action_ref(action)
+        except ValueError:
+            continue
+        identity_key = canonical_action_identity_key(action)
+        current = by_identity.get(identity_key)
+        if current is None or canonical_action_key(action) < canonical_action_key(current):
+            by_identity[identity_key] = deepcopy(action)
+    return canonicalize_action_order(list(by_identity.values()))
+
+
+def materialize_action_slots(card: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        {
+            "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+            "slot": slot,
+            "action_id": str(action["id"]),
+            "action_identity": canonical_action_identity_key(action),
+            "action": action,
+        }
+        for slot, action in enumerate(materialize_card_actions(card), start=1)
+    ]
+
+
+def materialize_action_sequence(card: dict[str, Any]) -> list[tuple[int, dict[str, Any]]]:
+    return [(slot["slot"], slot["action"]) for slot in materialize_action_slots(card)]
+
+
+def materialize_action_order(card: dict[str, Any]) -> tuple[str, ...]:
+    return tuple(str(action["id"]) for action in materialize_card_actions(card))
+
+
+def materialize_action_selection_contract(card: dict[str, Any]) -> dict[str, Any]:
+    slots = materialize_action_slots(card)
+    return {
+        "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+        "selection_model": "one_based_action_slot",
+        "order": [
+            {
+                "slot": slot["slot"],
+                "action_id": slot["action_id"],
+                "action_identity": slot["action_identity"],
+            }
+            for slot in slots
+        ],
+    }
+
+
+def materialize_cli_fallback_card(card: dict[str, Any]) -> dict[str, Any]:
+    materialized = deepcopy(card)
+    materialized["actions"] = materialize_card_actions(card)
+    materialized["action_selection"] = materialize_action_selection_contract(card)
+    return materialized
+
+
+def resolve_card_selection(card: dict[str, Any], selected_action_id: str) -> dict[str, Any]:
+    actions = materialize_card_actions(card)
+    matches = [action for action in actions if action.get("id") == selected_action_id]
+    if len(matches) == 1:
+        action = matches[0]
+        validate_action_ref(action)
+        return action
+    if len(matches) > 1:
+        raise ValueError(
+            f"Action '{selected_action_id}' is ambiguous on card. "
+            "Use one-based action selection for duplicate action IDs."
+        )
+    action_ids = [a.get("id", "<unknown>") for a in actions]
+    raise ValueError(f"Action '{selected_action_id}' not found on card. Available: {action_ids}")
+
+
+def resolve_card_selection_by_index(card: dict[str, Any], selected_action_index: int) -> dict[str, Any]:
+    if not isinstance(selected_action_index, int) or isinstance(selected_action_index, bool):
+        raise TypeError("Action selection index must be an integer")
+    if selected_action_index < 1:
+        raise ValueError("Action selection index must be one-based")
+
+    action_sequence = materialize_action_sequence(card)
+    try:
+        _, action = action_sequence[selected_action_index - 1]
+    except IndexError as exc:
+        raise ValueError(
+            f"Action selection index {selected_action_index} not found. "
+            f"Available range: 1..{len(action_sequence)}"
+        ) from exc
+    validate_action_ref(action)
+    return action
 
 
 def validate_action_ref(action: Any) -> None:

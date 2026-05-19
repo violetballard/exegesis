@@ -4,7 +4,11 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
-from exegesis_shared.contracts.actions import ALLOWED_ACTION_IDS, validate_action_ref
+from exegesis_shared.contracts.actions import (
+    ALLOWED_ACTION_IDS,
+    materialize_cli_fallback_card,
+    validate_action_ref,
+)
 
 A2UI_VERSION = 1
 GENERIC_CARD_TYPE = "GenericCard"
@@ -95,10 +99,10 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
     card_type = str(card.get("type", "")).strip()
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card, strict_actions=False)
-        return _studio_filter_actions(card, capabilities)
+        return materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
     if card_type in set(capabilities.cards_supported):
-        return _studio_filter_actions(card, capabilities)
-    return build_unknown_card(card)
+        return materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
+    return materialize_cli_fallback_card(_studio_filter_actions(build_unknown_card(card), capabilities))
 
 
 def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:

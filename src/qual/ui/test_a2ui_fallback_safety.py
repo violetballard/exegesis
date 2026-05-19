@@ -7,7 +7,6 @@ from exegesis_shared.contracts.actions import (
     ACTION_SELECTION_CONTRACT_VERSION,
     materialize_action_selection_contract,
 )
-from exegesis_shared.contracts import studio_materialize_card as shared_studio_materialize_card
 from src.qual.ui.a2ui import (
     A2UICapabilities,
     A2UISessionStore,
@@ -88,6 +87,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["type"], "UnknownCard")
         self.assertIn("Unsupported card type", card["title"])
         self.assertEqual(card["actions"][0]["id"], "copy_to_clipboard")
+        self.assertEqual(card["action_selection"]["contract_version"], ACTION_SELECTION_CONTRACT_VERSION)
 
     def test_unknown_card_fallback_honors_supported_actions(self) -> None:
         caps = _capabilities(
@@ -115,6 +115,7 @@ class A2UIContractTests(unittest.TestCase):
         filtered = studio_materialize_card(card, caps)
         self.assertEqual(len(filtered["actions"]), 1)
         self.assertEqual(filtered["actions"][0]["id"], "apply_patch")
+        self.assertEqual(filtered["action_selection"]["order"][0]["action_id"], "apply_patch")
 
     def test_filtered_actions_are_canonicalized_by_identity(self) -> None:
         caps = _capabilities(actions_supported=("reject_patch", "copy_to_clipboard", "apply_patch"))
@@ -136,29 +137,10 @@ class A2UIContractTests(unittest.TestCase):
             [action["id"] for action in filtered["actions"]],
             ["apply_patch", "reject_patch", "copy_to_clipboard"],
         )
-
-    def test_shared_contract_export_materializes_versioned_action_selection(self) -> None:
-        caps = _capabilities(actions_supported=("reject_patch", "apply_patch"))
-        card = {
-            "type": "GenericCard",
-            "title": "Patch",
-            "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
-            "actions": [
-                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
-                {"id": "run_agent", "label": "Run", "payload": {"operation": "draft"}},
-                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
-            ],
-        }
-
-        materialized = shared_studio_materialize_card(card, caps)
-
-        self.assertEqual(materialized["action_selection"]["contract_version"], ACTION_SELECTION_CONTRACT_VERSION)
-        self.assertEqual(materialized["action_selection"]["selection_model"], "one_based_action_slot")
         self.assertEqual(
-            [(entry["slot"], entry["action_id"]) for entry in materialized["action_selection"]["order"]],
-            [(1, "apply_patch"), (2, "reject_patch")],
+            [(entry["slot"], entry["action_id"]) for entry in filtered["action_selection"]["order"]],
+            [(1, "apply_patch"), (2, "reject_patch"), (3, "copy_to_clipboard")],
         )
-        self.assertEqual([action["id"] for action in materialized["actions"]], ["apply_patch", "reject_patch"])
 
     def test_shared_selection_contract_is_versioned_and_cli_consumable(self) -> None:
         card = {
