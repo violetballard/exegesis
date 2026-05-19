@@ -314,6 +314,27 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         ):
             self.assertEqual(agents_coordinator._local_lms_feature_launch_slots(), 0)
 
+    def test_coordinator_local_feature_slots_ignore_cloud_feature_pids(self) -> None:
+        with (
+            mock.patch.object(
+                agents_coordinator,
+                "load_json",
+                side_effect=[
+                    {"runtime_mode": "hybrid"},
+                    {"max_total_local_lms_jobs": 4},
+                    {
+                        "lanes": {
+                            "feat-cloud": {"mode": "cloud_primary", "pid": 1001},
+                            "feat-local": {"mode": "local_fallback", "pid": 1002},
+                        }
+                    },
+                ],
+            ),
+            mock.patch.object(agents_coordinator, "find_repo_owned_local_exec_pids", return_value=[]),
+            mock.patch.object(agents_coordinator, "_pid_alive", return_value=True),
+        ):
+            self.assertEqual(agents_coordinator._local_lms_feature_launch_slots(), 3)
+
     def test_coordinator_counts_active_local_fixer_jobs(self) -> None:
         router_state = {
             "fixer_fallback_jobs": {

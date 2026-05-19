@@ -848,13 +848,15 @@ def _tracked_local_exec_pids() -> List[int]:
     return sorted(set(tracked))
 
 
-def _tracked_feature_exec_pids() -> List[int]:
+def _tracked_feature_exec_pids(mode: str | None = None) -> List[int]:
     tracked: List[int] = []
     feature_state = load_json(FEATURE_RUNNER_STATE_FILE, {})
     lanes = feature_state.get("lanes") if isinstance(feature_state, dict) else {}
     if isinstance(lanes, dict):
         for lane_state in lanes.values():
             if not isinstance(lane_state, dict):
+                continue
+            if mode is not None and str(lane_state.get("mode") or "") != mode:
                 continue
             pid = int(lane_state.get("pid") or 0)
             if pid > 0:
@@ -1727,7 +1729,7 @@ def _local_lms_feature_launch_slots() -> int:
         return 999999
     active = len(
         set(find_repo_owned_local_exec_pids(REPO_ROOT))
-        | {pid for pid in _tracked_feature_exec_pids() if _pid_alive(pid)}
+        | {pid for pid in _tracked_feature_exec_pids("local_fallback") if _pid_alive(pid)}
     )
     return max(0, cap - active)
 
