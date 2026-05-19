@@ -828,7 +828,7 @@ def main()->None:
     if not cfg or "lanes" not in cfg:
         raise SystemExit(f"Missing {CONFIG_FILE} (copy example.json).")
     planner_cfg=cfg.get("planner",{}) or {}
-    base_ref=str(planner_cfg.get("base_ref","codex/integrator"))
+    base_ref=str(planner_cfg.get("base_ref","main"))
     gates=list(planner_cfg.get("required_gates", REQUIRED_GATES_DEFAULT))
     state=load_json(STATE_FILE,{})
     lane_state=state.get("lanes",{})
