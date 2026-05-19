@@ -92,6 +92,7 @@ FEATURE_LOOP_LOG_TAIL_BYTES = 32768
 FEATURE_LOOP_BAD_APPLYPATCH_THRESHOLD = 6
 FEATURE_LOOP_RECONNECT_THRESHOLD = 4
 ROUTER_JOB_LOOP_MIN_RUNTIME_SECONDS = 300.0
+ROUTER_FIXER_NO_TOOL_MIN_RUNTIME_SECONDS = 180.0
 FEATURE_LOOP_PARSE_ERROR_THRESHOLD = 2
 FEATURE_CHILD_RSS_LIMIT_KB = int(os.environ.get("FEATURE_CHILD_RSS_LIMIT_KB", "2500000"))
 FEATURE_TOTAL_CHILD_RSS_LIMIT_KB = int(os.environ.get("FEATURE_TOTAL_CHILD_RSS_LIMIT_KB", "8000000"))
@@ -648,6 +649,37 @@ def _router_job_loop_reason(job: Dict[str, object]) -> Optional[str]:
     return None
 
 
+def _router_fixer_no_tool_reason(job: Dict[str, object]) -> Optional[str]:
+    pid = int(job.get("pid") or 0)
+    if pid <= 0 or not _pid_alive(pid):
+        return None
+    started_at = float(job.get("started_at") or 0)
+    if not started_at:
+        ts = str(job.get("ts") or "").strip()
+        if ts:
+            try:
+                started_at = datetime.strptime(ts, "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc).timestamp()
+            except ValueError:
+                started_at = 0
+    if started_at and (time.time() - started_at) < ROUTER_FIXER_NO_TOOL_MIN_RUNTIME_SECONDS:
+        return None
+
+    log_path = str(job.get("log") or "").strip()
+    if not log_path:
+        return None
+    path = Path(log_path)
+    if not path.is_absolute():
+        path = REPO_ROOT / path
+    text = _read_text_tail(path)
+    if not text.strip():
+        return None
+    if any(marker in text for marker in ("exec", "succeeded in", "ERROR:", "thinking")):
+        return None
+    if "> build" in text or "build ·" in text:
+        return "fixer startup/no tool activity"
+    return None
+
+
 def _reconcile_feature_runner_state() -> Dict[str, object]:
     state = load_json(FEATURE_RUNNER_STATE_FILE, {})
     lanes = state.get("lanes") if isinstance(state, dict) else {}
@@ -718,6 +750,22 @@ def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = Non
                 continue
             pid = int(job.get("pid") or 0)
             if _pid_alive(pid):
+                if key == "fixer_fallback_jobs":
+                    no_tool_reason = _router_fixer_no_tool_reason(job)
+                    if no_tool_reason:
+                        _terminate_pid_tree(pid)
+                        jobs.pop(job_name, None)
+                        stale.append(f"{job_name} ({no_tool_reason})")
+                        prefer_cloud_once = state.get("fixer_prefer_cloud_once")
+                        if not isinstance(prefer_cloud_once, dict):
+                            prefer_cloud_once = {}
+                        prefer_cloud_once[lane] = {
+                            "reason": no_tool_reason,
+                            "marked_at": utc_now(),
+                        }
+                        state["fixer_prefer_cloud_once"] = prefer_cloud_once
+                        changed = True
+                        continue
                 loop_reason = _router_job_loop_reason(job)
                 if not loop_reason:
                     continue

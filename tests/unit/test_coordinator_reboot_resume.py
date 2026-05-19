@@ -575,6 +575,53 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         self.assertIn("feat-retrieval-fts", removed["fixer_fallback_jobs"][0])
         self.assertEqual(saved["fixer_fallback_jobs"], {})
 
+    def test_reconcile_router_state_terminates_no_tool_fixer_and_marks_cloud_retry(self) -> None:
+        from packet_garden.tools import agents_coordinator as coordinator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            router_state = root / "router_state.json"
+            packets_root = root / "packets"
+            reviewer_dir = packets_root / "feat-engine-runs" / "inbox" / "reviewer"
+            reviewer_dir.mkdir(parents=True, exist_ok=True)
+            (reviewer_dir / "R__CHANGES__keep.md").write_text("changes", encoding="utf-8")
+            log_path = root / "fixer.log"
+            log_path.write_text("\x1b[0m\n> build · gemma-4-31b-it\n\x1b[0m\n", encoding="utf-8")
+            router_state.write_text(
+                json.dumps(
+                    {
+                        "fixer_fallback_jobs": {
+                            "feat-engine-runs": {
+                                "lane": "feat-engine-runs",
+                                "packet_name": "R__CHANGES__keep.md",
+                                "pid": 7030,
+                                "local": True,
+                                "log": str(log_path),
+                                "ts": "20260518T235458Z",
+                            },
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with (
+                patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
+                patch.object(coordinator, "PACKETS_ROOT", packets_root),
+                patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 7030),
+                patch.object(coordinator, "_terminate_pid_tree") as terminate_mock,
+                patch.object(coordinator, "time") as time_mod,
+            ):
+                time_mod.time.return_value = 1_779_148_800.0
+                removed = coordinator._reconcile_router_state({"current_resume_epoch": ""})
+
+            saved = json.loads(router_state.read_text())
+
+        terminate_mock.assert_called_once_with(7030)
+        self.assertIn("fixer startup/no tool activity", removed["fixer_fallback_jobs"][0])
+        self.assertEqual(saved["fixer_fallback_jobs"], {})
+        self.assertIn("feat-engine-runs", saved["fixer_prefer_cloud_once"])
+
     def test_reconcile_router_state_keeps_reparented_tracked_router_job(self) -> None:
         from packet_garden.tools import agents_coordinator as coordinator
 

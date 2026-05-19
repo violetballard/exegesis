@@ -2574,6 +2574,9 @@ def process_reviewer_backlog(
     cursor = state.get("reviewer_fixer_cursor") or {}
     retry_ts = state.get("reviewer_fixer_retry_ts") or {}
     quota_retry_ts = state.get("fixer_quota_retry_ts") or {}
+    prefer_cloud_once = state.get("fixer_prefer_cloud_once") or {}
+    if not isinstance(prefer_cloud_once, dict):
+        prefer_cloud_once = {}
     local_mode = True
     if not _local_lms_slot_available(cfg, state) and _cloud_role_slot_available(cfg, state, "fixer"):
         local_mode = False
@@ -2669,7 +2672,10 @@ def process_reviewer_backlog(
                 continue
         state = _maybe_restore_cloud(cfg, state, repo_cwd)
         local_mode = True
-        if not _local_lms_slot_available(cfg, state) and _cloud_role_slot_available(cfg, state, "fixer"):
+        prefer_cloud_for_lane = lane in prefer_cloud_once and _cloud_role_slot_available(cfg, state, "fixer")
+        if prefer_cloud_for_lane:
+            local_mode = False
+        elif not _local_lms_slot_available(cfg, state) and _cloud_role_slot_available(cfg, state, "fixer"):
             local_mode = False
         if local_mode and not _local_lms_slot_available(cfg, state):
             break
@@ -2683,6 +2689,7 @@ def process_reviewer_backlog(
             repo_cwd,
             local_mode=local_mode,
         )
+        prefer_cloud_once.pop(lane, None)
         cursor[lane] = newest_note.name
         retry_ts[lane] = now
         kicked += 1
@@ -2690,6 +2697,7 @@ def process_reviewer_backlog(
     state["reviewer_fixer_cursor"] = cursor
     state["reviewer_fixer_retry_ts"] = retry_ts
     state["fixer_quota_retry_ts"] = quota_retry_ts
+    state["fixer_prefer_cloud_once"] = prefer_cloud_once
     return kicked, state
 
 
