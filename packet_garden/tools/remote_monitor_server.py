@@ -267,6 +267,14 @@ def summary_text(payload: Mapping[str, Any]) -> str:
             title = str(milestone.get("title") or "-")
             status = str(milestone.get("status") or "-")
             lines.append(f"[{mark}] M{number}: {title} ({status})")
+            details = milestone.get("details") if isinstance(milestone.get("details"), list) else []
+            for detail in details:
+                if not isinstance(detail, dict):
+                    continue
+                detail_mark = str(detail.get("mark") or " ")
+                detail_text = str(detail.get("text") or "")
+                if detail_text:
+                    lines.append(f"  [{detail_mark}] {detail_text}")
     if memory:
         summary = memory.get("summary") if isinstance(memory.get("summary"), list) else []
         if summary:
@@ -387,12 +395,31 @@ def summary_html(payload: Mapping[str, Any], *, session_token: str = "", base_ur
         number = str(milestone.get("number") or "-")
         title = str(milestone.get("title") or "-")
         status = str(milestone.get("status") or "-")
+        details = milestone.get("details") if isinstance(milestone.get("details"), list) else []
+        detail_items: list[str] = []
+        for detail in details:
+            if not isinstance(detail, dict):
+                continue
+            detail_mark = str(detail.get("mark") or " ")
+            detail_text = str(detail.get("text") or "")
+            if detail_text:
+                detail_css = "ok" if detail_mark == "x" else "warn" if detail_mark == "~" else ""
+                detail_items.append(
+                    "<li>"
+                    f"<span class='{escape(detail_css)}'>[{escape(detail_mark)}]</span> "
+                    f"{escape(detail_text)}"
+                    "</li>"
+                )
+        detail_html = "<ul>" + "\n".join(detail_items) + "</ul>" if detail_items else ""
         milestone_rows.append(
-            "<div class='milestone-row'>"
+            "<details class='milestone-row'>"
+            "<summary>"
             f"<strong>[{escape(mark)}] M{escape(number)}</strong>"
             f"<span class='{escape(css)}'>{escape(title)}</span>"
             f"<small>{escape(status)}</small>"
-            "</div>"
+            "</summary>"
+            f"{detail_html}"
+            "</details>"
         )
     if milestone_rows:
         milestone_html = (
@@ -505,12 +532,24 @@ def summary_html(payload: Mapping[str, Any], *, session_token: str = "", base_ur
     }}
     .lane-row,
     .milestone-row {{
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 4px 12px;
       padding: 10px;
       background: #10263a;
       border: 1px solid rgb(255 255 255 / 10%);
+    }}
+    .lane-row {{
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 12px;
+    }}
+    .milestone-row summary {{
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 12px;
+      cursor: pointer;
+      list-style-position: inside;
+    }}
+    .milestone-row summary::-webkit-details-marker {{
+      color: var(--muted);
     }}
     .lane-row strong,
     .milestone-row strong {{ text-align: left; color: var(--text); }}
@@ -518,6 +557,14 @@ def summary_html(payload: Mapping[str, Any], *, session_token: str = "", base_ur
     .milestone-row span {{ text-align: right; }}
     .lane-row small,
     .milestone-row small {{ grid-column: 1 / -1; color: var(--muted); }}
+    .milestone-row ul {{
+      margin: 10px 0 0;
+      padding-left: 18px;
+      color: var(--text);
+    }}
+    .milestone-row li {{
+      margin: 6px 0;
+    }}
     strong {{ text-align: right; }}
     .ok {{ color: var(--ok); }}
     .warn {{ color: var(--warn); }}

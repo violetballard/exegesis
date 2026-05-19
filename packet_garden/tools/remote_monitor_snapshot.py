@@ -512,7 +512,50 @@ def _milestone_mark(number: int, status: str) -> str:
     return " "
 
 
-def _milestone_status() -> List[Dict[str, str]]:
+def _milestone_details(number: int, mark: str) -> List[Dict[str, str]]:
+    details: Dict[int, List[Dict[str, str]]] = {
+        1: [
+            {"mark": "x", "text": "5-pane Textual shell stands as a mockup baseline"},
+            {"mark": "x", "text": "Focus model, shortcut bar, and pane boundaries are defined"},
+            {"mark": "x", "text": "Shell remains explicitly mockup-only until engine wiring is enabled"},
+        ],
+        2: [
+            {"mark": "~", "text": "Project/document/workflow/basket/inspector interaction contract is defined"},
+            {"mark": "~", "text": "Selection model and inspector-follow-selection rule are specified"},
+            {"mark": " ", "text": "Product-real pane actions wait on the Milestone 3 engine contract"},
+        ],
+        3: [
+            {"mark": "~", "text": "Persist project/document/basket/session state"},
+            {"mark": "~", "text": "Retrieve/search FTS-first through canonical engine contract"},
+            {"mark": "~", "text": "Return structured retrieval results suitable for basket promotion"},
+            {"mark": "~", "text": "Promote/gather context into basket through engine path"},
+            {"mark": "~", "text": "Produce plan/draft/revision through canonical app service"},
+            {"mark": "~", "text": "Preview patch/revision proposal"},
+            {"mark": "~", "text": "Apply/reject patch through canonical service"},
+            {"mark": "~", "text": "CLI can run the MVP loop while Textual remains disabled"},
+            {"mark": " ", "text": "One engine-side retrieve -> basket -> plan/revise -> apply path works end to end"},
+        ],
+        4: [
+            {"mark": "~", "text": "Engine state survives repeated sessions"},
+            {"mark": "~", "text": "Workflow artifacts are durable/readable enough for real writing sessions"},
+            {"mark": "~", "text": "Save-to-project workflow output paths are stable"},
+            {"mark": "~", "text": "Minimal audit/proposal logging exists for traceability"},
+            {"mark": "~", "text": "Command palette/client actions have corresponding engine contracts"},
+            {"mark": "~", "text": "Future Textual client is unblocked by engine contract gaps"},
+            {"mark": " ", "text": "Dogfooding can proceed without hand-editing state or relying on mock-only behavior"},
+        ],
+        5: [
+            {"mark": " ", "text": "One clean 60-180 second retrieve -> basket -> plan -> revise -> apply demo path exists"},
+            {"mark": " ", "text": "Demo project and repeatable scenario are prepared"},
+            {"mark": " ", "text": "App reads as a writing environment rather than a terminal trick"},
+        ],
+    }
+    if mark == "x" and number in {1}:
+        return details[number]
+    return details.get(number, [])
+
+
+def _milestone_status() -> List[Dict[str, Any]]:
     fallback = [
         {"number": "1", "title": "Standing shell", "status": "standing", "mark": "x"},
         {"number": "2", "title": "Core pane interactions", "status": "planned", "mark": "~"},
@@ -523,6 +566,8 @@ def _milestone_status() -> List[Dict[str, str]]:
     try:
         lines = ROADMAP.read_text(encoding="utf-8").splitlines()
     except Exception:
+        for item in fallback:
+            item["details"] = _milestone_details(int(item["number"]), item.get("mark", " "))
         return fallback
 
     milestones: List[Dict[str, str]] = []
@@ -559,7 +604,9 @@ def _milestone_status() -> List[Dict[str, str]]:
     result = []
     for item in fallback:
         parsed = by_number.get(item["number"])
-        result.append(parsed if parsed else item)
+        selected = dict(parsed if parsed else item)
+        selected["details"] = _milestone_details(int(selected["number"]), selected.get("mark", " "))
+        result.append(selected)
     return result
 
 

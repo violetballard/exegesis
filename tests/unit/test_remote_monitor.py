@@ -86,6 +86,7 @@ class RemoteMonitorSnapshotTests(unittest.TestCase):
 
         self.assertEqual([item["number"] for item in milestones], ["1", "2", "3", "4", "5"])
         self.assertEqual([item["mark"] for item in milestones], ["x", "~", "~", "~", " "])
+        self.assertTrue(milestones[2]["details"])
 
 
 class RemoteMonitorServerTests(unittest.TestCase):
@@ -150,7 +151,15 @@ class RemoteMonitorServerTests(unittest.TestCase):
             "approved_for_integrator": 0,
             "active_blocker": "-",
             "pause": {"paused": False},
-            "milestones": [{"number": "3", "title": "Real workflow loop", "status": "in progress", "mark": "~"}],
+            "milestones": [
+                {
+                    "number": "3",
+                    "title": "Real workflow loop",
+                    "status": "in progress",
+                    "mark": "~",
+                    "details": [{"mark": "~", "text": "Preview patch/revision proposal"}],
+                }
+            ],
             "lanes": [
                 {
                     "lane": "feat-engine-runs",
@@ -172,6 +181,7 @@ class RemoteMonitorServerTests(unittest.TestCase):
         self.assertIn("feat-engine-runs: active", text)
         self.assertIn("[local feature]", text)
         self.assertIn("[~] M3: Real workflow loop", text)
+        self.assertIn("  [~] Preview patch/revision proposal", text)
         self.assertTrue(text.endswith("\n"))
 
     def test_human_timestamp_formats_iso_timestamp(self) -> None:
@@ -194,8 +204,20 @@ class RemoteMonitorServerTests(unittest.TestCase):
             "active_blocker": "<none>",
             "pause": {"paused": False},
             "milestones": [
-                {"number": "1", "title": "Standing shell", "status": "standing (mockup only)", "mark": "x"},
-                {"number": "3", "title": "Real workflow loop", "status": "in progress", "mark": "~"},
+                {
+                    "number": "1",
+                    "title": "Standing shell",
+                    "status": "standing (mockup only)",
+                    "mark": "x",
+                    "details": [{"mark": "x", "text": "5-pane Textual shell stands as a mockup baseline"}],
+                },
+                {
+                    "number": "3",
+                    "title": "Real workflow loop",
+                    "status": "in progress",
+                    "mark": "~",
+                    "details": [{"mark": "~", "text": "Preview patch/revision proposal"}],
+                },
             ],
             "lanes": [
                 {
@@ -222,8 +244,10 @@ class RemoteMonitorServerTests(unittest.TestCase):
         self.assertIn("cloud integrator", html)
         self.assertIn("feature 1", html)
         self.assertIn("Milestones", html)
+        self.assertIn("<details class='milestone-row'>", html)
         self.assertIn("[x] M1", html)
         self.assertIn("Real workflow loop", html)
+        self.assertIn("Preview patch/revision proposal", html)
 
     def test_status_endpoint_requires_auth(self) -> None:
         config = {"allowed_remote_cidrs": [], "snapshot_ttl_seconds": 0}
