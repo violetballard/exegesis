@@ -171,6 +171,36 @@ def _lane_from_job_key(key: str, job: Mapping[str, Any]) -> str:
     return key.split(":", 1)[0]
 
 
+def _cloud_profile_tier(profile: str) -> str:
+    name = str(profile or "").strip()
+    if not name:
+        return ""
+    if name == "integrator_cloud" or "high" in name:
+        return "heavy"
+    if "medium" in name:
+        return "medium"
+    if name == "worker_cloud" or "low" in name:
+        return "light"
+    return name
+
+
+def _profile_name_for_job(cfg: Mapping[str, Any], role: str, *, provider: str, lane: str) -> str:
+    local = provider == "local"
+    suffix = "local" if local else "cloud"
+    lanes = cfg.get("lanes") if isinstance(cfg.get("lanes"), dict) else {}
+    lane_cfg = lanes.get(lane) if isinstance(lanes, dict) else {}
+    if not isinstance(lane_cfg, dict):
+        lane_cfg = {}
+    role_profiles = cfg.get("role_profiles") if isinstance(cfg.get("role_profiles"), dict) else {}
+    return str(
+        lane_cfg.get(f"{role}_{suffix}_profile")
+        or lane_cfg.get(f"{role}_profile")
+        or role_profiles.get(f"{role}_{suffix}")
+        or role_profiles.get(role)
+        or ("worker_local" if local else "worker_cloud")
+    )
+
+
 def _add_lane_placement(
     placements: Dict[str, List[Dict[str, str]]],
     lane: str,
@@ -185,6 +215,10 @@ def _add_lane_placement(
     item = {"provider": provider, "role": role, "pid": str(pid)}
     if profile:
         item["profile"] = profile
+    if provider == "cloud":
+        tier = _cloud_profile_tier(profile)
+        if tier:
+            item["tier"] = tier
     placements.setdefault(lane, []).append(item)
 
 
@@ -210,8 +244,11 @@ def _lane_placements() -> Dict[str, List[Dict[str, str]]]:
             )
 
     router_state = _load_json(ROUTER_STATE, {})
+    router_cfg = _load_json(ROUTER_CONFIG, {})
     if not isinstance(router_state, dict):
         return placements
+    if not isinstance(router_cfg, dict):
+        router_cfg = {}
 
     job_groups = [
         ("local_reviewer_jobs", "local", "reviewer"),
@@ -226,12 +263,14 @@ def _lane_placements() -> Dict[str, List[Dict[str, str]]]:
         for job_key, job in jobs.items():
             if not isinstance(job, dict):
                 continue
+            lane = _lane_from_job_key(str(job_key), job)
             _add_lane_placement(
                 placements,
-                _lane_from_job_key(str(job_key), job),
+                lane,
                 provider=provider,
                 role=role,
                 pid=int(job.get("pid") or 0),
+                profile=_profile_name_for_job(router_cfg, role, provider=provider, lane=lane),
             )
 
     fixer_jobs = router_state.get("fixer_fallback_jobs")
@@ -246,6 +285,7 @@ def _lane_placements() -> Dict[str, List[Dict[str, str]]]:
                 provider=provider,
                 role="fixer",
                 pid=int(job.get("pid") or 0),
+                profile=_profile_name_for_job(router_cfg, "fixer", provider=provider, lane=str(lane)),
             )
     return placements
 

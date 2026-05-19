@@ -264,7 +264,14 @@ def _format_lane_running(lane: Mapping[str, Any]) -> str:
             continue
         provider = str(item.get("provider") or "unknown")
         role = str(item.get("role") or "job")
-        labels.append(f"{provider} {role}")
+        tier = str(item.get("tier") or "").strip()
+        profile = str(item.get("profile") or "").strip()
+        if provider == "cloud" and tier:
+            labels.append(f"{provider} {tier} {role}")
+        elif provider == "cloud" and profile:
+            labels.append(f"{provider} {role} ({profile})")
+        else:
+            labels.append(f"{provider} {role}")
     return ", ".join(labels) if labels else "not running"
 
 

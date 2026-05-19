@@ -105,6 +105,19 @@ def _enabled_lanes() -> List[str]:
     return [lane for lane, lane_cfg in lane_map.items() if bool((lane_cfg or {}).get("enabled", True))]
 
 
+def _cloud_profile_tier(profile: str) -> str:
+    name = str(profile or "").strip()
+    if not name:
+        return ""
+    if name == "integrator_cloud" or "high" in name:
+        return "heavy"
+    if "medium" in name:
+        return "medium"
+    if name == "worker_cloud" or "low" in name:
+        return "light"
+    return name
+
+
 
 
 def _read_pid() -> int | None:
@@ -1028,7 +1041,9 @@ def _feature_runner_state(lane: str, live_sessions: Dict[str, dict[str, str]]) -
                 runtime_mode = str(thread_state.get("mode") or "unknown")
                 profile = str(thread_state.get("profile") or "-")
                 if runtime_mode == "cloud_primary":
-                    summary = f"direct exec cloud session running pid={pid} profile={profile}"
+                    tier = _cloud_profile_tier(profile)
+                    tier_text = f" tier={tier}" if tier else ""
+                    summary = f"direct exec cloud session running pid={pid}{tier_text} profile={profile}"
                 elif runtime_mode == "local_fallback":
                     summary = f"direct exec local fallback running pid={pid} profile={profile}"
                 else:
