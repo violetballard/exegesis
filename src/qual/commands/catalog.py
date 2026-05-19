@@ -368,6 +368,24 @@ def canonical_command_for(specs: tuple[CommandSpec, ...], name: str) -> str:
     return spec.name
 
 
+def normalize_command_argv(
+    argv: tuple[str, ...] | list[str] | None,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    raw = tuple(argv or ())
+    if not raw:
+        return ("bootstrap",)
+
+    first, *rest = raw
+    if first.startswith("-"):
+        return ("bootstrap", *raw)
+
+    canonical_name = canonical_command_for(specs, first)
+    if not canonical_name:
+        return raw
+    return (canonical_name, *rest)
+
+
 @lru_cache(maxsize=None)
 def _build_command_spec_by_alias(specs: tuple[CommandSpec, ...]) -> dict[str, CommandSpec]:
     validate_command_catalog(specs)
