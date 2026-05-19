@@ -67,6 +67,7 @@ LANE_OWNED_PATHS = {
         "shared/src/exegesis_shared/contracts/**",
         "shared/src/exegesis_shared/models/**",
         "shared/src/exegesis_shared/types/**",
+        "tests/unit/test_a2ui_contract.py",
     ],
     "feat-engine-runs": [
         "src/qual/engine/**",

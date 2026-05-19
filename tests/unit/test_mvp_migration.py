@@ -174,6 +174,24 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         self.assertEqual(proc.returncode, 0, proc.stdout)
         self.assertIn("scope-check: passed", proc.stdout)
 
+    def test_scope_check_allows_a2ui_contract_unit_test(self) -> None:
+        proc = self._commit_on_branch(
+            "codex/feat-a2ui-contract",
+            "tests/unit/test_a2ui_contract.py",
+            "a2ui contract tests\n",
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout)
+        self.assertIn("scope-check: passed", proc.stdout)
+
+    def test_scope_check_allows_engine_run_pipeline_unit_test(self) -> None:
+        proc = self._commit_on_branch(
+            "codex/feat-engine-runs",
+            "tests/unit/test_engine_run_pipeline.py",
+            "engine run pipeline tests\n",
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout)
+        self.assertIn("scope-check: passed", proc.stdout)
+
     def test_scope_check_allows_approved_shared_commands_tests(self) -> None:
         subprocess.run(["git", "checkout", "-qb", "codex/feat-commands"], cwd=self.root, check=True)
         path = self.root / "tests" / "unit" / "test_commands_catalog.py"
