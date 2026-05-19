@@ -138,6 +138,23 @@ def _lease_pid_ts() -> tuple[int | None, float | None]:
         return None, None
 
 
+def _daemon_status_from_lease() -> tuple[bool, int | None]:
+    lease_pid, lease_ts = _lease_pid_ts()
+    if not lease_pid or not lease_ts:
+        return False, _read_pid()
+    if not _pid_alive(lease_pid) or not _pid_matches_daemon(lease_pid):
+        return False, _read_pid() or lease_pid
+    if (time.time() - lease_ts) > LEASE_FRESH_SECONDS:
+        return False, _read_pid() or lease_pid
+    pid = _read_pid()
+    if pid != lease_pid:
+        try:
+            DAEMON_PID.write_text(str(lease_pid))
+        except Exception:
+            pass
+    return True, lease_pid
+
+
 def _pid_alive(pid: int) -> bool:
     if pid <= 0:
         return False
@@ -1118,18 +1135,7 @@ def main() -> None:
         sys.stdout.reconfigure(line_buffering=True, write_through=True)
     except Exception:
         pass
-    pid = _read_pid()
-    lease_pid, lease_ts = _lease_pid_ts()
-    if not pid and lease_pid:
-        pid = lease_pid
-    running = bool(
-        pid
-        and _pid_alive(pid)
-        and _pid_matches_daemon(pid)
-        and lease_pid == pid
-        and lease_ts
-        and (time.time() - lease_ts) <= LEASE_FRESH_SECONDS
-    )
+    running, pid = _daemon_status_from_lease()
     mpids = _matching_pids()
     print("DAEMON")
     print(f"running={running}")
