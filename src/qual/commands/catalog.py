@@ -64,6 +64,7 @@ class CommandSurfaceContract:
     flow_surface_tokens: tuple[tuple[str, ...], ...] = ()
     route_catalog: tuple[CommandFlowRouteEntry, ...] = ()
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...] = ()
+    demo_path_steps: tuple[CommandDemoPathStep, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -1166,6 +1167,11 @@ def _validate_command_surface_contract(contract: CommandSurfaceContract) -> None
         raise ValueError("Command surface route surface tokens are inconsistent")
     if contract.lookup_surface != contract.lookup_index:
         raise ValueError("Command surface lookup surfaces must match")
+    if contract.demo_path_steps:
+        if tuple(step.flow_step for step in contract.demo_path_steps) != contract.flow_steps:
+            raise ValueError("Command surface demo path steps are inconsistent")
+        if tuple(step.name for step in contract.demo_path_steps) != contract.names:
+            raise ValueError("Command surface demo path names are inconsistent")
 
 
 @lru_cache(maxsize=None)
@@ -1177,6 +1183,7 @@ def command_flow_contract(
     sequence = command_flow_sequence(specs, ordered_flow_steps)
     route_catalog = command_flow_route_catalog(flow_steps=ordered_flow_steps, specs=specs)
     route_summary = command_flow_route_summary(specs, ordered_flow_steps)
+    smoke_steps = command_cli_smoke_steps(specs, ordered_flow_steps)
     contract = CommandSurfaceContract(
         flow_steps=sequence.flow_steps,
         names=sequence.names,
@@ -1190,6 +1197,7 @@ def command_flow_contract(
         flow_surface_tokens=command_flow_surface_tokens(specs, ordered_flow_steps),
         route_catalog=route_catalog,
         route_summary=route_summary,
+        demo_path_steps=_command_demo_path_steps_for_smoke_steps(smoke_steps),
     )
     _validate_command_surface_contract(contract)
     return contract
