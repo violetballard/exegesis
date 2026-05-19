@@ -109,6 +109,7 @@ class CommandFlowRouteEntry:
     lookup_tokens: tuple[str, ...]
     surface_tokens: tuple[str, ...]
     description: str
+    demo_step: str = ""
 
 
 @dataclass(frozen=True)
@@ -683,6 +684,7 @@ def command_flow_route_catalog(
     # that dispatch to each command.
     route_catalog = command_flow_surface_catalog(specs, ordered_flow_steps)
     cli_tokens_by_name = _route_cli_tokens_by_name(specs)
+    demo_labels_by_flow_step = _demo_path_labels_by_flow_step()
     return tuple(
         CommandFlowRouteEntry(
             flow_step=entry.flow_step,
@@ -691,6 +693,7 @@ def command_flow_route_catalog(
             lookup_tokens=entry.lookup_tokens,
             surface_tokens=entry.surface_tokens,
             description=entry.description,
+            demo_step=demo_labels_by_flow_step.get(entry.flow_step, ""),
         )
         for entry in route_catalog
     )
@@ -713,7 +716,6 @@ def command_cli_smoke_steps(
     route_catalog = command_flow_route_catalog(flow_steps=flow_steps, specs=specs)
     if specs == COMMAND_SPECS:
         _validate_route_cli_tokens(route_catalog, command_cli_tokens())
-    labels_by_flow_step = _demo_path_labels_by_flow_step()
     return tuple(
         CommandCliSmokeStep(
             flow_step=entry.flow_step,
@@ -722,7 +724,7 @@ def command_cli_smoke_steps(
             argv=(entry.cli_tokens[0], *_smoke_args_for_command(specs, entry.name)),
             lookup_tokens=entry.lookup_tokens,
             description=entry.description,
-            demo_step=labels_by_flow_step.get(entry.flow_step, ""),
+            demo_step=entry.demo_step,
         )
         for entry in route_catalog
     )
