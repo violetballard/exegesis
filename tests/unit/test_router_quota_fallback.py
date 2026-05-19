@@ -9,6 +9,7 @@ from unittest import mock
 from packet_garden.tools.router import (
     RouterConfig,
     _apply_quota_text_safeguard,
+    _branch_scope_violations,
     _effective_reviewed_files_for_dependency,
     _integration_dependency_blockers,
     _reviewed_files_for_integrator_packet,
@@ -116,6 +117,7 @@ class RouterQuotaFallbackTests(unittest.TestCase):
                 "packet_garden.tools.router._branch_changed_files",
                 return_value=["src/qual/commands/catalog.py"],
             ),
+            mock.patch("packet_garden.tools.router._branch_scope_violations", return_value=[]),
         ):
             blockers = _integration_dependency_blockers(
                 cfg,
@@ -247,6 +249,52 @@ class RouterQuotaFallbackTests(unittest.TestCase):
                     "THREAD_PACKET.md",
                     "shared/src/exegesis_shared/contracts/actions.py",
                 ],
+            )
+
+        self.assertEqual(blockers, [])
+
+    def test_branch_scope_violations_use_thread_ownership_paths(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+        }
+
+        violations = _branch_scope_violations(
+            cfg,
+            "/repo",
+            "feat-context-storage",
+            files=[
+                "src/qual/context/store.py",
+                "engine/src/exegesis_engine/storage/context.py",
+                "src/qual/retrieval/service.py",
+                "THREAD_PACKET.md",
+            ],
+        )
+
+        self.assertEqual(violations, ["THREAD_PACKET.md", "src/qual/retrieval/service.py"])
+
+    def test_invalid_prior_lane_does_not_block_independent_integrations(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+            "feat-retrieval-fts": {"branch": "codex/feat-retrieval-fts", "enabled": True},
+        }
+
+        with (
+            tempfile.TemporaryDirectory() as repo,
+            mock.patch("packet_garden.tools.router._branch_merged_to_head", return_value=False),
+            mock.patch(
+                "packet_garden.tools.router._branch_scope_violations",
+                side_effect=lambda _cfg, _repo, lane, files=None: ["src/qual/retrieval/service.py"]
+                if lane == "feat-context-storage"
+                else [],
+            ),
+        ):
+            blockers = _integration_dependency_blockers(
+                cfg,
+                repo,
+                "feat-retrieval-fts",
+                reviewed_files=["src/qual/retrieval/service.py"],
             )
 
         self.assertEqual(blockers, [])

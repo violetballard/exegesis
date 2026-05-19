@@ -2,10 +2,29 @@ from __future__ import annotations
 
 import unittest
 
-from packet_garden.tools.planner import build_packet, build_shared_packet, should_skip_for_active_feature, validate_meta
+from packet_garden.tools.planner import (
+    _full_branch_scope_violations,
+    build_packet,
+    build_shared_packet,
+    should_skip_for_active_feature,
+    validate_meta,
+)
 
 
 class PacketPlannerTests(unittest.TestCase):
+    def test_full_branch_scope_violations_use_lane_ownership(self) -> None:
+        violations = _full_branch_scope_violations(
+            "feat-context-storage",
+            [
+                "src/qual/context/store.py",
+                "engine/src/exegesis_engine/storage/context.py",
+                "src/qual/retrieval/service.py",
+                "THREAD_PACKET.md",
+            ],
+        )
+
+        self.assertEqual(violations, ["THREAD_PACKET.md", "src/qual/retrieval/service.py"])
+
     def test_active_feature_does_not_block_reemit_after_review_notes(self) -> None:
         state = {"lane_refill": {"feat-engine-runs": {"feature_active": True}}}
 

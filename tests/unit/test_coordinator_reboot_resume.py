@@ -4,6 +4,7 @@ import json
 import tempfile
 import time
 import unittest
+from types import SimpleNamespace
 from pathlib import Path
 from unittest.mock import patch
 
@@ -56,6 +57,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "FEATURE_RUNNER_STATE_FILE", feature_state),
                 patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
                 patch.object(coordinator, "_pid_alive", return_value=False),
+                patch.object(coordinator, "_lane_scope_violations", return_value=[]),
                 patch.object(coordinator, "_reconcile_lane_worktrees", return_value={
                     "gitdir_repaired": [],
                     "gitdir_backups": [],
@@ -73,6 +75,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 }),
                 patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
+                patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
             ):
                 summary = coordinator._reconcile_control_plane_state(coordinator_state)
 
@@ -82,6 +85,64 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
             coordinator_state["lane_refill"]["feat-commands"]["force_resume_reason"],
             "stale_direct_exec_pruned",
         )
+
+    def test_reconcile_holds_scope_invalid_feature_lane_without_forced_resume(self) -> None:
+        from packet_garden.tools import agents_coordinator as coordinator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            feature_state = root / "feature_runner_state.json"
+            router_state = root / "router_state.json"
+            feature_state.write_text(
+                json.dumps(
+                    {
+                        "lanes": {
+                            "feat-context-storage": {"status": "direct_exec_running", "pid": 4242},
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            router_state.write_text(json.dumps({}), encoding="utf-8")
+            coordinator_state = {"lane_refill": {}}
+
+            with (
+                patch.object(coordinator, "FEATURE_RUNNER_STATE_FILE", feature_state),
+                patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
+                patch.object(coordinator, "_pid_alive", return_value=True),
+                patch.object(coordinator, "_terminate_pid_tree") as terminate_mock,
+                patch.object(
+                    coordinator,
+                    "_lane_scope_violations",
+                    return_value=["src/qual/retrieval/service.py"],
+                ),
+                patch.object(coordinator, "_reconcile_lane_worktrees", return_value={
+                    "gitdir_repaired": [],
+                    "gitdir_backups": [],
+                    "artifacts_removed": {},
+                    "health_failures": {},
+                    "rebuilt": {},
+                    "rebuild_backups": {},
+                    "rebuild_failures": {},
+                }),
+                patch.object(coordinator, "run_hygiene", return_value={
+                    "stale_git_pids": [],
+                    "temp_worktrees_removed": [],
+                    "stale_commit_locks_removed": [],
+                    "stale_worktree_index_locks_removed": [],
+                }),
+                patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
+                patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
+                patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
+            ):
+                summary = coordinator._reconcile_control_plane_state(coordinator_state)
+
+        terminate_mock.assert_called_once_with(4242)
+        self.assertEqual(summary["feature_runner_removed"], ["feat-context-storage"])
+        self.assertEqual(summary["feature_runner_scope_invalid"], {"feat-context-storage": 1})
+        lane_state = coordinator_state["lane_refill"]["feat-context-storage"]
+        self.assertFalse(lane_state["force_resume_once"])
+        self.assertEqual(lane_state["force_resume_reason"], "full_branch_scope_violation")
 
     def test_launch_free_lanes_bypasses_cooldown_for_forced_resume(self) -> None:
         from packet_garden.tools import agents_coordinator as coordinator
@@ -107,6 +168,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
             patch.object(coordinator, "_enabled_lanes", return_value=["feat-commands"]),
             patch.object(coordinator, "_lane_queue_empty", return_value=True),
             patch.object(coordinator, "_lane_has_active_feature_session", return_value=False),
+            patch.object(coordinator, "_lane_scope_violations", return_value=[]),
             patch.object(coordinator, "_local_lms_feature_launch_slots", return_value=1),
             patch.object(coordinator, "_has_router_priority_backlog", return_value=False),
             patch.object(coordinator, "run_cmd", side_effect=fake_run_cmd),
@@ -136,6 +198,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
             patch.object(coordinator, "_enabled_lanes", return_value=["feat-commands"]),
             patch.object(coordinator, "_lane_queue_empty", return_value=True),
             patch.object(coordinator, "_lane_has_active_feature_session", return_value=True),
+            patch.object(coordinator, "_lane_scope_violations", return_value=[]),
             patch.object(coordinator, "run_cmd") as run_cmd,
         ):
             launched = coordinator._launch_free_lanes(state_doc)
@@ -145,6 +208,39 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         lane_state = state_doc["lane_refill"]["feat-commands"]
         self.assertNotIn("force_resume_once", lane_state)
         self.assertIn("force_resume_cleared_at", lane_state)
+
+    def test_launch_free_lanes_does_not_resume_scope_invalid_branch(self) -> None:
+        from packet_garden.tools import agents_coordinator as coordinator
+
+        state_doc = {
+            "lane_refill": {
+                "feat-context-storage": {
+                    "queue_empty": True,
+                    "force_resume_once": True,
+                    "force_resume_reason": "stale_direct_exec_pruned",
+                }
+            }
+        }
+
+        with (
+            patch.object(coordinator, "_enabled_lanes", return_value=["feat-context-storage"]),
+            patch.object(coordinator, "_lane_queue_empty", return_value=True),
+            patch.object(coordinator, "_lane_has_active_feature_session", return_value=False),
+            patch.object(
+                coordinator,
+                "_lane_scope_violations",
+                return_value=["src/qual/retrieval/service.py"],
+            ),
+            patch.object(coordinator, "run_cmd") as run_cmd,
+        ):
+            launched = coordinator._launch_free_lanes(state_doc)
+
+        self.assertEqual(launched, [])
+        run_cmd.assert_not_called()
+        lane_state = state_doc["lane_refill"]["feat-context-storage"]
+        self.assertTrue(lane_state["scope_invalid"])
+        self.assertEqual(lane_state["scope_violation_count"], 1)
+        self.assertNotIn("force_resume_once", lane_state)
 
     def test_launch_free_lanes_reserves_last_local_slot_for_reviewer_fixers(self) -> None:
         from packet_garden.tools import agents_coordinator as coordinator
@@ -221,6 +317,8 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 }),
                 patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
+                patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
+                patch.object(coordinator, "_lane_scope_violations", return_value=[]),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0
@@ -296,6 +394,8 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 }),
                 patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
+                patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
+                patch.object(coordinator, "_lane_scope_violations", return_value=[]),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0
@@ -364,6 +464,8 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 }),
                 patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
+                patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
+                patch.object(coordinator, "_lane_scope_violations", return_value=[]),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0
@@ -435,6 +537,8 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 }),
                 patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
+                patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
+                patch.object(coordinator, "_lane_scope_violations", return_value=[]),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_779_170_600.0
@@ -502,6 +606,8 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 }),
                 patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
+                patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
+                patch.object(coordinator, "_lane_scope_violations", return_value=[]),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0
@@ -548,6 +654,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[111, 222]),
                 patch.object(coordinator, "terminate_local_exec_pids", return_value=[111, 222]) as terminate_mock,
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
+                patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
             ):
                 summary = coordinator._reconcile_control_plane_state(coordinator_state)
 
@@ -585,6 +692,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 }),
                 patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[333, 444]),
+                patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
                 patch.object(coordinator, "terminate_process_groups", return_value=[333, 444]) as terminate_mock,
             ):
                 summary = coordinator._reconcile_control_plane_state(coordinator_state)
@@ -636,6 +744,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
                 patch.object(coordinator, "PACKETS_ROOT", packets_root),
                 patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 501),
+                patch.object(coordinator, "_lane_scope_violations", return_value=[]),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 100.0
@@ -651,6 +760,46 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         self.assertNotIn("feat-engine-runs:R__APPROVED__drop.md", saved["cloud_integrator_jobs"])
         self.assertEqual(saved["reviewer_fixer_retry_ts"], {"feat-commands": 10.0})
         self.assertEqual(saved["reviewer_quota_global_retry_ts"], 0)
+
+    def test_reconcile_router_state_terminates_scope_invalid_router_job(self) -> None:
+        from packet_garden.tools import agents_coordinator as coordinator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            router_state = root / "router_state.json"
+            packets_root = root / "packets"
+            approved_dir = packets_root / "feat-a2ui-contract" / "outbox" / "integrator"
+            approved_dir.mkdir(parents=True, exist_ok=True)
+            (approved_dir / "R__APPROVED__a2ui.md").write_text("ok", encoding="utf-8")
+            router_state.write_text(
+                json.dumps(
+                    {
+                        "cloud_integrator_jobs": {
+                            "feat-a2ui-contract:R__APPROVED__a2ui.md": {
+                                "lane": "feat-a2ui-contract",
+                                "packet_name": "R__APPROVED__a2ui.md",
+                                "pid": 57027,
+                            },
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with (
+                patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
+                patch.object(coordinator, "PACKETS_ROOT", packets_root),
+                patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 57027),
+                patch.object(coordinator, "_lane_scope_violations", return_value=["THREAD_PACKET.md"]),
+                patch.object(coordinator, "_terminate_pid_tree") as terminate_mock,
+            ):
+                removed = coordinator._reconcile_router_state({"current_resume_epoch": "epoch-2"})
+
+            saved = json.loads(router_state.read_text())
+
+        terminate_mock.assert_called_once_with(57027)
+        self.assertIn("feat-a2ui-contract:R__APPROVED__a2ui.md", removed["cloud_integrator_jobs"][0])
+        self.assertEqual(saved["cloud_integrator_jobs"], {})
 
     def test_reconcile_router_state_terminates_reconnect_looping_fixer(self) -> None:
         from packet_garden.tools import agents_coordinator as coordinator
@@ -744,6 +893,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "PACKETS_ROOT", packets_root),
                 patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 7030),
                 patch.object(coordinator, "_terminate_pid_tree") as terminate_mock,
+                patch.object(coordinator, "_lane_scope_violations", return_value=[]),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_779_148_800.0
@@ -858,6 +1008,8 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 }),
                 patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
+                patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
+                patch.object(coordinator, "_lane_scope_violations", return_value=[]),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0
@@ -908,6 +1060,28 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
 
         terminate_mock.assert_called_once_with(1002)
         self.assertEqual(removed, {"feat-context-storage": [1002]})
+
+    def test_manual_feature_exec_processes_detects_codex_and_opencode_workers(self) -> None:
+        from packet_garden.tools import agents_coordinator as coordinator
+
+        ps_output = "\n".join(
+            [
+                "1001 /Applications/Codex.app/Contents/Resources/codex exec You are the feature lane agent for feat-commands.",
+                "1002 /opt/homebrew/bin/opencode run --model lmstudio/gemma-4-31b-it You are the feature lane agent for feat-retrieval-fts.",
+                "1003 /opt/homebrew/bin/opencode run --model lmstudio/gemma-4-31b-it unrelated prompt",
+            ]
+        )
+
+        with patch.object(
+            coordinator.subprocess,
+            "run",
+            return_value=SimpleNamespace(returncode=0, stdout=ps_output),
+        ):
+            detected = coordinator._manual_feature_exec_processes()
+
+        self.assertEqual(detected["feat-commands"], [1001])
+        self.assertEqual(detected["feat-retrieval-fts"], [1002])
+        self.assertNotIn("unrelated", detected)
 
 
 if __name__ == "__main__":

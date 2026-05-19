@@ -10,6 +10,7 @@ import time
 import subprocess
 from datetime import datetime, timezone
 from dataclasses import dataclass
+from fnmatch import fnmatchcase
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -21,6 +22,7 @@ try:
     from log_maintenance import prune_log_dir
     from local_codex_runtime import agent_ripgrep_config_path, agent_runtime_env, isolated_codex_env
     from packet_progress import infer_last_submitted_sha
+    from planner import LANE_OWNED_PATHS
 except ImportError:  # pragma: no cover - test/import fallback for package execution
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
     from .git_ops import run_git
@@ -29,6 +31,7 @@ except ImportError:  # pragma: no cover - test/import fallback for package execu
     from .log_maintenance import prune_log_dir
     from .local_codex_runtime import agent_ripgrep_config_path, agent_runtime_env, isolated_codex_env
     from .packet_progress import infer_last_submitted_sha
+    from .planner import LANE_OWNED_PATHS
 
 PACKETS_ROOT = Path(".codex/packets/lanes")
 ROUTER_ROOT = Path(".codex/packet_router")
@@ -434,6 +437,31 @@ def _branch_changed_files(repo_cwd: str, branch: str) -> List[str]:
     return [line.strip() for line in (proc.stdout or "").splitlines() if line.strip()]
 
 
+def _branch_scope_violations(
+    cfg: RouterConfig,
+    repo_cwd: str,
+    lane: str,
+    files: Optional[List[str]] = None,
+) -> List[str]:
+    """Return full-branch files outside THREAD_OWNERSHIP lane ownership."""
+    patterns = list(LANE_OWNED_PATHS.get(lane, []))
+    if not patterns:
+        return []
+    if files is None:
+        lane_cfg = (cfg.lanes.get(lane) or {}) if isinstance(cfg.lanes, dict) else {}
+        branch = str(lane_cfg.get("branch") or f"codex/{lane}")
+        files = _branch_changed_files(repo_cwd, branch) if branch else []
+    violations: List[str] = []
+    for file_name in files:
+        normalized = str(file_name).strip().lstrip("./")
+        if not normalized:
+            continue
+        if any(fnmatchcase(normalized, pattern) for pattern in patterns):
+            continue
+        violations.append(normalized)
+    return sorted(set(violations))
+
+
 def _parse_packet_file_list(text: str) -> List[str]:
     files: List[str] = []
     in_files = False
@@ -568,6 +596,12 @@ def _integration_dependency_blockers(
             break
         lane_cfg = (cfg.lanes.get(prior_lane) or {}) if isinstance(cfg.lanes, dict) else {}
         if not bool(lane_cfg.get("enabled", True)):
+            continue
+        if _branch_scope_violations(cfg, repo_cwd, prior_lane):
+            # A lane whose full branch surface violates THREAD_OWNERSHIP is not
+            # a valid dependency anchor. It must be repaired/rebased rather than
+            # blocking independent approved integrations behind stale broad
+            # branch noise.
             continue
         branch = str(lane_cfg.get("branch") or f"codex/{prior_lane}")
         if not branch or _branch_merged_to_head(repo_cwd, branch):
@@ -2794,6 +2828,14 @@ def process_integrator_backlog(
             break
         approved_text = pkt.read_text()
         reviewed_files = _reviewed_files_for_integrator_packet(lane_dir, pkt, approved_text)
+        scope_violations = _branch_scope_violations(cfg, repo_cwd, _lane)
+        if scope_violations:
+            print(
+                f"[router] holding integrator packet for {_lane}; "
+                f"full branch violates THREAD_OWNERSHIP.md "
+                f"({len(scope_violations)} file(s) outside lane scope)"
+            )
+            continue
         blockers = _integration_dependency_blockers(cfg, repo_cwd, _lane, reviewed_files=reviewed_files)
         if blockers:
             print(f"[router] holding integrator packet for {_lane}; waiting on prior lane(s): {', '.join(blockers)}")

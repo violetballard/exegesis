@@ -64,6 +64,7 @@ LANE_OWNED_PATHS = {
     ],
     "feat-a2ui-contract": [
         "src/qual/ui/a2ui.py",
+        "src/qual/ui/test_a2ui_fallback_safety.py",
         "shared/src/exegesis_shared/contracts/**",
         "shared/src/exegesis_shared/models/**",
         "shared/src/exegesis_shared/types/**",
@@ -626,6 +627,22 @@ def _split_files(lane: str, files: List[str]) -> Tuple[List[str], List[str]]:
     return owned_files, shared_files
 
 
+def _full_branch_scope_violations(lane: str, files: List[str]) -> List[str]:
+    """Return files outside the lane ownership map for the full branch diff."""
+    owned_patterns = LANE_OWNED_PATHS.get(lane, [])
+    if not owned_patterns:
+        return []
+    violations: List[str] = []
+    for file_name in files:
+        normalized = str(file_name).strip().lstrip("./")
+        if not normalized:
+            continue
+        if any(fnmatchcase(normalized, pattern) for pattern in owned_patterns):
+            continue
+        violations.append(normalized)
+    return sorted(set(violations))
+
+
 def _owned_path_note(lane: str) -> str:
     patterns = LANE_OWNED_PATHS.get(lane, [])
     if not patterns:
@@ -906,6 +923,16 @@ def main()->None:
                 )
             except Exception as e:
                 print(f"[planner] {lane}: diff failed vs {base_ref}: {e}")
+                continue
+            scope_violations = _full_branch_scope_violations(lane, files)
+            if scope_violations:
+                preview = "\n".join(f"  - {path}" for path in scope_violations[:40])
+                extra = "" if len(scope_violations) <= 40 else f"\n  ... {len(scope_violations) - 40} more"
+                print(
+                    f"[planner] {lane}: full branch scope violation; "
+                    "THREAD_OWNERSHIP.md allows only "
+                    f"{_owned_path_note(lane)}\n{preview}{extra}"
+                )
                 continue
             if not active_repo:
                 print(f"[planner] {lane}: no usable worktree for {branch}; cannot rerun local gates")

@@ -24,6 +24,7 @@ try:
     from lane_profiles import ENGINE_PRIORITY_ORDER, lane_priority_order
     from git_ops import run_git
     from git_hygiene import run_hygiene
+    from planner import LANE_OWNED_PATHS
     from local_exec_sweeper import (
         find_context_exhausted_repo_local_exec_pids,
         find_repo_owned_local_exec_pids,
@@ -36,6 +37,7 @@ except ImportError:  # pragma: no cover - package execution fallback
     from .lane_profiles import ENGINE_PRIORITY_ORDER, lane_priority_order
     from .git_ops import run_git
     from .git_hygiene import run_hygiene
+    from .planner import LANE_OWNED_PATHS
     from .local_exec_sweeper import (
         find_context_exhausted_repo_local_exec_pids,
         find_repo_owned_local_exec_pids,
@@ -114,8 +116,8 @@ ROUTER_RETRY_STATE_KEYS = (
     "local_integrator_retry_ts",
     "cloud_integrator_retry_ts",
 )
-FEATURE_LANE_RE = re.compile(r"feature lane agent for\s+`?([A-Za-z0-9._-]+)`?", re.IGNORECASE)
-CODEX_EXEC_RE = re.compile(r"\bcodex\b.*\bexec\b", re.IGNORECASE)
+FEATURE_LANE_RE = re.compile(r"feature lane agent for\s+`?([A-Za-z0-9_-]+)`?", re.IGNORECASE)
+AGENT_EXEC_RE = re.compile(r"\b(?:codex\b.*\bexec|opencode\b.*\brun)\b", re.IGNORECASE)
 MANAGED_WORKTREE_ROOT = Path(
     os.environ.get("QUAL_MANAGED_WORKTREE_ROOT", str(REPO_ROOT / ".codex/worktrees"))
 ).expanduser()
@@ -386,7 +388,7 @@ def _current_resume_epoch(coordinator_state: Optional[Dict[str, object]] = None)
 def _manual_feature_exec_processes() -> Dict[str, List[int]]:
     try:
         proc = subprocess.run(
-            ["ps", "-axo", "pid=,command="],
+            ["ps", "-wwaxo", "pid=,command="],
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             text=True,
@@ -399,7 +401,7 @@ def _manual_feature_exec_processes() -> Dict[str, List[int]]:
     out: Dict[str, List[int]] = {}
     for line in (proc.stdout or "").splitlines():
         row = line.strip()
-        if not row or not CODEX_EXEC_RE.search(row):
+        if not row or not AGENT_EXEC_RE.search(row):
             continue
         parts = row.split(None, 1)
         if len(parts) != 2 or not parts[0].isdigit():
@@ -735,6 +737,7 @@ def _reconcile_feature_runner_state() -> Dict[str, object]:
 
     removed: List[str] = []
     terminated: Dict[str, str] = {}
+    scope_invalid: Dict[str, int] = {}
     for lane, lane_state in list(lanes.items()):
         if not isinstance(lane_state, dict):
             lanes.pop(lane, None)
@@ -743,6 +746,15 @@ def _reconcile_feature_runner_state() -> Dict[str, object]:
         if str(lane_state.get("status") or "") != "direct_exec_running":
             continue
         pid = int(lane_state.get("pid") or 0)
+        violations = _lane_scope_violations(str(lane))
+        if violations:
+            if _pid_alive(pid):
+                _terminate_pid_tree(pid)
+            lanes.pop(lane, None)
+            removed.append(str(lane))
+            terminated[str(lane)] = "full_branch_scope_violation"
+            scope_invalid[str(lane)] = len(violations)
+            continue
         if _pid_alive(pid):
             loop_reason = _feature_runner_loop_reason(lane_state)
             if loop_reason:
@@ -758,7 +770,7 @@ def _reconcile_feature_runner_state() -> Dict[str, object]:
     if removed:
         state["lanes"] = lanes
         save_json(FEATURE_RUNNER_STATE_FILE, state)
-    return {"removed": sorted(set(removed)), "terminated": terminated}
+    return {"removed": sorted(set(removed)), "terminated": terminated, "scope_invalid": scope_invalid}
 
 
 def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = None) -> Dict[str, List[str]]:
@@ -784,6 +796,19 @@ def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = Non
             packet_name = str(job.get("packet_name") or "")
             if not packet_name and ":" in str(job_name):
                 packet_name = str(job_name).split(":", 1)[-1]
+            scope_violations = _lane_scope_violations(lane) if lane else []
+            if scope_violations:
+                pid = int(job.get("pid") or 0)
+                if _pid_alive(pid):
+                    _terminate_pid_tree(pid)
+                jobs.pop(job_name, None)
+                stale.append(
+                    f"{job_name} (full_branch_scope_violation: "
+                    f"{', '.join(scope_violations[:3])}"
+                    f"{' ...' if len(scope_violations) > 3 else ''})"
+                )
+                changed = True
+                continue
             if _job_result_exists(job):
                 continue
             if packet_name and lane and not _packet_exists(lane, packet_name):
@@ -988,6 +1013,7 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
     feature_runner_reconcile = _reconcile_feature_runner_state()
     feature_runner_removed = list(feature_runner_reconcile.get("removed") or [])
     feature_runner_terminated = dict(feature_runner_reconcile.get("terminated") or {})
+    feature_runner_scope_invalid = dict(feature_runner_reconcile.get("scope_invalid") or {})
     duplicate_feature_pids_removed = _reconcile_duplicate_feature_exec_processes()
     router_removed = _reconcile_router_state(coordinator_state)
     orphan_local_exec_pids_removed = _reconcile_orphan_local_exec_processes()
@@ -1008,6 +1034,10 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
         if lane in feature_runner_terminated:
             lane_state["force_resume_reason"] = "feature_tool_loop_detected"
             lane_state["force_resume_detail"] = feature_runner_terminated[lane]
+            if lane in feature_runner_scope_invalid:
+                lane_state["force_resume_once"] = False
+                lane_state["force_resume_reason"] = "full_branch_scope_violation"
+                lane_state["scope_violation_count"] = feature_runner_scope_invalid[lane]
         else:
             lane_state["force_resume_reason"] = "stale_direct_exec_pruned"
             lane_state.pop("force_resume_detail", None)
@@ -1017,6 +1047,11 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
         print(f"[reconcile] pruned stale feature-runner state: {', '.join(feature_runner_removed)}")
     for lane, reason in sorted(feature_runner_terminated.items()):
         print(f"[reconcile] terminated looping feature-runner for {lane}: {reason}")
+    for lane, count in sorted(feature_runner_scope_invalid.items()):
+        print(
+            f"[reconcile] held feature lane {lane}: full branch violates THREAD_OWNERSHIP.md "
+            f"({count} file(s) outside lane scope)"
+        )
     for key, names in sorted(router_removed.items()):
         print(f"[reconcile] pruned stale router state from {key}: {', '.join(names)}")
     for lane, pids in sorted(duplicate_feature_pids_removed.items()):
@@ -1062,6 +1097,7 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
     return {
         "feature_runner_removed": feature_runner_removed,
         "feature_runner_terminated": feature_runner_terminated,
+        "feature_runner_scope_invalid": feature_runner_scope_invalid,
         "router_removed": router_removed,
         "duplicate_feature_pids_removed": duplicate_feature_pids_removed,
         "orphan_local_exec_pids_removed": orphan_local_exec_pids_removed,
@@ -1090,6 +1126,38 @@ def _lane_branch_map() -> Dict[str, str]:
         str(lane): str((lane_cfg or {}).get("branch") or f"codex/{lane}")
         for lane, lane_cfg in lanes.items()
     }
+
+
+def _branch_changed_files(branch: str) -> List[str]:
+    try:
+        base = run_git(["merge-base", "HEAD", branch], cwd=REPO_ROOT, timeout=30)
+        if base.returncode != 0:
+            return []
+        merge_base = (base.stdout or "").strip()
+        if not merge_base:
+            return []
+        diff = run_git(["diff", "--name-only", f"{merge_base}..{branch}"], cwd=REPO_ROOT, timeout=30)
+        if diff.returncode != 0:
+            return []
+        return [line.strip() for line in (diff.stdout or "").splitlines() if line.strip()]
+    except Exception:
+        return []
+
+
+def _lane_scope_violations(lane: str) -> List[str]:
+    patterns = list(LANE_OWNED_PATHS.get(lane, []))
+    if not patterns:
+        return []
+    branch = _lane_branch_map().get(lane, f"codex/{lane}")
+    violations: List[str] = []
+    for file_name in _branch_changed_files(branch):
+        normalized = str(file_name).strip().lstrip("./")
+        if not normalized:
+            continue
+        if any(fnmatch.fnmatchcase(normalized, pattern) for pattern in patterns):
+            continue
+        violations.append(normalized)
+    return sorted(set(violations))
 
 
 def _git_worktree_branch_map() -> Dict[str, str]:
@@ -1879,6 +1947,19 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
         lane_state = lane_refill.get(lane)
         if not isinstance(lane_state, dict):
             lane_state = {}
+        scope_violations = _lane_scope_violations(lane)
+        if scope_violations:
+            lane_state["queue_empty"] = queue_empty
+            lane_state["feature_active"] = feature_active
+            lane_state["scope_invalid"] = True
+            lane_state["scope_violation_count"] = len(scope_violations)
+            lane_state["last_launch_reason"] = "full_branch_scope_violation"
+            lane_state.pop("force_resume_once", None)
+            lane_state["last_seen_at"] = utc_now()
+            lane_refill[lane] = lane_state
+            continue
+        lane_state.pop("scope_invalid", None)
+        lane_state.pop("scope_violation_count", None)
         last_launch_attempt_ts = float(lane_state.get("last_launch_attempt_ts", 0) or 0)
         force_resume_once = bool(lane_state.get("force_resume_once"))
         if (

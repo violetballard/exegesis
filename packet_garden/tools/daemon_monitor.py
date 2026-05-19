@@ -471,6 +471,18 @@ def _integrator_dependency_blockers(lane_dir: Path, approval_packet: Path) -> Li
         return []
 
 
+def _lane_scope_violations(lane: str) -> List[str]:
+    """Return full-branch ownership violations for a lane, if available."""
+    try:
+        try:
+            from router import _branch_scope_violations, load_cfg  # type: ignore
+        except ImportError:  # pragma: no cover - package execution fallback
+            from .router import _branch_scope_violations, load_cfg  # type: ignore
+        return _branch_scope_violations(load_cfg(), str(Path.cwd()), lane)
+    except Exception:
+        return []
+
+
 def _integrator_dependency_blockers_for_lane(lane_dir: Path) -> Dict[str, List[str]]:
     blockers: Dict[str, List[str]] = {}
     for approval_packet in sorted((lane_dir / "outbox/integrator").glob("*.md")):
@@ -487,6 +499,7 @@ def _collect_lane_totals() -> Dict[str, int]:
         "approved_for_integrator": 0,
         "integrator_dependency_blocked": 0,
         "integrator_runnable": 0,
+        "scope_invalid": 0,
         "waiting_feature_update": 0,
         "ready_for_reemit": 0,
     }
@@ -500,12 +513,18 @@ def _collect_lane_totals() -> Dict[str, int]:
         if not lane_dir.exists():
             continue
         c = _lane_counts(lane_dir)
+        if _lane_scope_violations(lane):
+            totals["scope_invalid"] += 1
+            totals["integrator_dependency_blocked"] += c["approved"]
         totals["pending_feature"] += c["pending"]
         totals["reviewer_notes"] += c["review"]
         totals["approved_for_integrator"] += c["approved"]
         blocked = len(_integrator_dependency_blockers_for_lane(lane_dir))
         totals["integrator_dependency_blocked"] += blocked
-        totals["integrator_runnable"] += max(0, c["approved"] - blocked)
+        totals["integrator_runnable"] += max(
+            0,
+            c["approved"] - blocked - (c["approved"] if _lane_scope_violations(lane) else 0),
+        )
 
         if c["review"] <= 0:
             continue
@@ -591,6 +610,8 @@ def _tail_log(lines: int = 15) -> str:
 
 
 def _active_blocker_summary(totals: Dict[str, int]) -> str:
+    if totals.get("scope_invalid", 0) > 0:
+        return f"ownership scope violation ({totals['scope_invalid']} lane(s) outside THREAD_OWNERSHIP.md)"
     approved = totals["approved_for_integrator"]
     blocked = totals.get("integrator_dependency_blocked", 0)
     runnable = totals.get("integrator_runnable", max(0, approved - blocked))
@@ -1226,7 +1247,9 @@ def main() -> None:
     integrator_queue = totals["approved_for_integrator"]
     integrator_runnable = totals.get("integrator_runnable", integrator_queue)
     integrator_blocked = totals.get("integrator_dependency_blocked", 0)
-    if reviewer_queue > 0 and integrator_runnable == 0:
+    if totals.get("scope_invalid", 0) > 0:
+        bottleneck = "ownership scope"
+    elif reviewer_queue > 0 and integrator_runnable == 0:
         bottleneck = "reviewer"
     elif integrator_runnable > 0 and reviewer_queue == 0:
         bottleneck = "integrator"
@@ -1249,6 +1272,7 @@ def main() -> None:
     print(f"integrator_queue_approved={integrator_queue}")
     print(f"integrator_queue_runnable={integrator_runnable}")
     print(f"integrator_queue_dependency_blocked={integrator_blocked}")
+    print(f"scope_invalid_lanes={totals.get('scope_invalid', 0)}")
     print()
 
     print("CONTROL PLANE")
@@ -1370,6 +1394,11 @@ def main() -> None:
     print(f"latest_integrator_file={integ_h['latest_integrator_file']}")
     if PACKETS_ROOT.exists():
         for lane_dir in sorted([p for p in PACKETS_ROOT.iterdir() if p.is_dir()], key=lambda p: p.name):
+            scope_violations = _lane_scope_violations(lane_dir.name)
+            if scope_violations:
+                preview = ",".join(scope_violations[:8])
+                extra = "" if len(scope_violations) <= 8 else f",...{len(scope_violations) - 8} more"
+                print(f"scope_invalid={lane_dir.name} files={preview}{extra}")
             lane_blockers = _integrator_dependency_blockers_for_lane(lane_dir)
             for packet_name, blockers in lane_blockers.items():
                 print(

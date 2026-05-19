@@ -28,6 +28,10 @@ try:
     from packet_progress import infer_last_submitted_sha
 except ImportError:  # pragma: no cover - package execution fallback
     from .packet_progress import infer_last_submitted_sha
+try:
+    from router import _branch_scope_violations, load_cfg
+except ImportError:  # pragma: no cover - package execution fallback
+    from .router import _branch_scope_violations, load_cfg
 
 ROOT = Path('.codex/packets/lanes')
 CONFIG_FILE = Path('.codex/packet_router/config.json')
@@ -47,6 +51,7 @@ class LaneStatus:
     state: str
     note: str
     integration_blockers: List[str]
+    scope_violations: List[str]
 
 def newest(paths: List[Path]) -> Optional[Path]:
     if not paths:
@@ -166,6 +171,10 @@ def scan_lane(lane_dir: Path, lane_cfg: Dict, planner_lane_state: Dict) -> LaneS
     if not bool((lane_cfg or {}).get("enabled", True)):
         state, note = ("disabled", "lane disabled in router config")
     else:
+        try:
+            scope_violations = _branch_scope_violations(load_cfg(), str(Path.cwd()), lane)
+        except Exception:
+            scope_violations = []
         integration_blockers = sorted(
             {
                 blocker
@@ -173,17 +182,24 @@ def scan_lane(lane_dir: Path, lane_cfg: Dict, planner_lane_state: Dict) -> LaneS
                 for blocker in _integrator_dependency_blockers(lane_dir, approval_packet)
             }
         )
-        state, note = _derive_lane_state(
-            pending,
-            reviewer,
-            approved,
-            head_sha,
-            last_submitted_sha,
-            _feature_session_active(lane),
-            integration_blockers,
-        )
+        if scope_violations:
+            state, note = (
+                "scope_invalid",
+                f"full branch violates THREAD_OWNERSHIP.md ({len(scope_violations)} file(s) outside lane scope)",
+            )
+        else:
+            state, note = _derive_lane_state(
+                pending,
+                reviewer,
+                approved,
+                head_sha,
+                last_submitted_sha,
+                _feature_session_active(lane),
+                integration_blockers,
+            )
     if not bool((lane_cfg or {}).get("enabled", True)):
         integration_blockers = []
+        scope_violations = []
     return LaneStatus(
         lane,
         pending,
@@ -196,6 +212,7 @@ def scan_lane(lane_dir: Path, lane_cfg: Dict, planner_lane_state: Dict) -> LaneS
         state,
         note,
         integration_blockers,
+        scope_violations,
     )
 
 def main() -> None:
@@ -265,6 +282,10 @@ def main() -> None:
         )
         if s.note:
             print(f"{'':22}  note: {s.note}")
+        if s.scope_violations:
+            shown = ", ".join(s.scope_violations[:5])
+            suffix = "" if len(s.scope_violations) <= 5 else f", ... {len(s.scope_violations) - 5} more"
+            print(f"{'':22}  scope violations: {shown}{suffix}")
 
     print('\nHints:')
     print('- If pending>0 and review=0: router likely hasn\'t run recently or is blocked waiting on Codex.')
@@ -273,6 +294,7 @@ def main() -> None:
     print('- If state=ready_for_reemit: lane advanced and planner should emit a new feature packet.')
     print('- If approved>0 and state=ready_for_integrator: integrator run should fire; check INTEGRATOR__ outputs in archive.')
     print('- If approved>0 and state=integration_blocked: approved packet is waiting for prerequisite lane integration, not a stuck integrator.')
+    print('- If state=scope_invalid: full branch diff violates THREAD_OWNERSHIP.md and must be repaired before handoff/integration.')
     print('- Queue truth beats daemon-log chatter: stale scope-check text in older logs does not mean a live scope-check blocker.')
     print('- This script ignores live reviewer/integrator sessions and manual feature-lane sessions by design.')
     print('- For the full dashboard, also run daemon_monitor.py.')
