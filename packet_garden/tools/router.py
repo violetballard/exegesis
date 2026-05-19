@@ -2451,6 +2451,14 @@ def process_once(
                 state["reviewer_quota_retry_ts"] = reviewer_quota_retry_ts
                 state["reviewer_quota_global_retry_ts"] = global_quota_retry_ts
                 return processed, state, reviewer_thread_ids, integrator_tid
+            scope_violations = _branch_scope_violations(cfg, repo_cwd, lane)
+            if scope_violations:
+                print(
+                    f"[router] holding reviewer packet for {lane}; "
+                    f"full branch violates THREAD_OWNERSHIP.md "
+                    f"({len(scope_violations)} file(s) outside lane scope)"
+                )
+                continue
             pkt = pkt_path.read_text()
 
             reviewer_text = ""

@@ -39,6 +39,7 @@ Detailed task breakdown lives in `/Users/doctor-violet/projects/exegesis/docs/TA
     - `shared/src/exegesis_shared/contracts/**`
     - `shared/src/exegesis_shared/models/**`
     - `shared/src/exegesis_shared/types/**`
+    - `src/qual/ui/test_a2ui_fallback_safety.py`
     - `tests/unit/test_a2ui_contract.py`
 
 - `codex/feat-engine-runs*`
@@ -50,7 +51,10 @@ Detailed task breakdown lives in `/Users/doctor-violet/projects/exegesis/docs/TA
     - `engine/src/exegesis_engine/patches/**`
     - `engine/src/exegesis_engine/audit/**`
     - `engine/src/exegesis_engine/services/**`
+    - `tests/unit/test_bulk_draft_routing.py`
     - `tests/unit/test_engine_run_pipeline.py`
+    - `tests/unit/test_policy_gate.py`
+    - `tests/unit/test_retrieval_payload_basket.py`
 
 ## Defined but disabled UI lanes
 

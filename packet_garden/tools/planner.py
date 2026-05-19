@@ -80,6 +80,8 @@ LANE_OWNED_PATHS = {
         "engine/src/exegesis_engine/services/**",
         "tests/unit/test_bulk_draft_routing.py",
         "tests/unit/test_engine_run_pipeline.py",
+        "tests/unit/test_policy_gate.py",
+        "tests/unit/test_retrieval_payload_basket.py",
     ],
     "feat-console-shell": [
         "client-textual/**",
