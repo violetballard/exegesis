@@ -9,6 +9,7 @@ from unittest import mock
 from packet_garden.tools.router import (
     RouterConfig,
     _apply_quota_text_safeguard,
+    _effective_reviewed_files_for_dependency,
     _integration_dependency_blockers,
     _reviewed_files_for_integrator_packet,
     _has_real_quota_signal,
@@ -160,6 +161,59 @@ class RouterQuotaFallbackTests(unittest.TestCase):
             )
 
         self.assertEqual(blockers, [])
+
+    def test_dependency_checks_fall_back_to_branch_files_when_reviewed_files_missing(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+            "feat-commands": {"branch": "codex/feat-commands", "enabled": True},
+            "feat-retrieval-fts": {"branch": "codex/feat-retrieval-fts", "enabled": True},
+        }
+
+        def changed_files(_repo_cwd: str, branch: str) -> list[str]:
+            if branch == "codex/feat-retrieval-fts":
+                return ["src/qual/retrieval/service.py"]
+            return ["src/qual/context/store.py"]
+
+        with (
+            tempfile.TemporaryDirectory() as repo,
+            mock.patch("packet_garden.tools.router._branch_merged_to_head", return_value=False),
+            mock.patch("packet_garden.tools.router._latest_reviewed_files_for_lane", return_value=[]),
+            mock.patch("packet_garden.tools.router._branch_changed_files", side_effect=changed_files),
+        ):
+            blockers = _integration_dependency_blockers(
+                cfg,
+                repo,
+                "feat-retrieval-fts",
+                reviewed_files=[],
+            )
+
+        self.assertEqual(blockers, [])
+
+    def test_dependency_checks_fall_back_to_branch_files_when_reviewed_files_are_metadata_only(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+            "feat-a2ui-contract": {"branch": "codex/feat-a2ui-contract", "enabled": True},
+        }
+
+        def changed_files(_repo_cwd: str, branch: str) -> list[str]:
+            if branch == "codex/feat-a2ui-contract":
+                return ["shared/src/exegesis_shared/contracts/actions.py"]
+            return ["engine/src/exegesis_engine/context/store.py"]
+
+        with (
+            tempfile.TemporaryDirectory() as repo,
+            mock.patch("packet_garden.tools.router._branch_changed_files", side_effect=changed_files),
+        ):
+            files = _effective_reviewed_files_for_dependency(
+                cfg,
+                repo,
+                "feat-a2ui-contract",
+                reviewed_files=[".codex/kickoff_packets/feat-a2ui-contract.md", "THREAD_PACKET.md"],
+            )
+
+        self.assertEqual(files, ["shared/src/exegesis_shared/contracts/actions.py"])
 
     def test_reviewed_files_for_integrator_packet_reads_companion_feature_packet(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:

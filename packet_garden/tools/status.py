@@ -46,6 +46,7 @@ class LaneStatus:
     last_submitted_sha: Optional[str]
     state: str
     note: str
+    integration_blockers: List[str]
 
 def newest(paths: List[Path]) -> Optional[Path]:
     if not paths:
@@ -100,6 +101,33 @@ def _feature_session_active(lane: str) -> bool:
     return False
 
 
+def _integrator_dependency_blockers(lane_dir: Path, approval_packet: Path) -> List[str]:
+    """Return integration dependency blockers using the router's merge policy."""
+    try:
+        try:
+            from router import (  # type: ignore
+                _integration_dependency_blockers,
+                _reviewed_files_for_integrator_packet,
+                load_cfg,
+            )
+        except ImportError:  # pragma: no cover - package execution fallback
+            from .router import (  # type: ignore
+                _integration_dependency_blockers,
+                _reviewed_files_for_integrator_packet,
+                load_cfg,
+            )
+        approved_text = approval_packet.read_text(errors="ignore")
+        reviewed_files = _reviewed_files_for_integrator_packet(lane_dir, approval_packet, approved_text)
+        return _integration_dependency_blockers(
+            load_cfg(),
+            str(Path.cwd()),
+            lane_dir.name,
+            reviewed_files=reviewed_files,
+        )
+    except Exception:
+        return []
+
+
 def _derive_lane_state(
     pending: List[Path],
     reviewer: List[Path],
@@ -107,8 +135,14 @@ def _derive_lane_state(
     head_sha: Optional[str],
     last_submitted_sha: Optional[str],
     feature_active: bool = False,
+    integration_blockers: Optional[List[str]] = None,
 ) -> tuple[str, str]:
     if approved:
+        if integration_blockers:
+            return (
+                "integration_blocked",
+                "approved packet held for prerequisite lane(s): " + ", ".join(integration_blockers),
+            )
         return ("ready_for_integrator", "approved packet waiting for integrator")
     if pending:
         return ("pending_review", "feature packet waiting for reviewer")
@@ -132,6 +166,13 @@ def scan_lane(lane_dir: Path, lane_cfg: Dict, planner_lane_state: Dict) -> LaneS
     if not bool((lane_cfg or {}).get("enabled", True)):
         state, note = ("disabled", "lane disabled in router config")
     else:
+        integration_blockers = sorted(
+            {
+                blocker
+                for approval_packet in approved
+                for blocker in _integrator_dependency_blockers(lane_dir, approval_packet)
+            }
+        )
         state, note = _derive_lane_state(
             pending,
             reviewer,
@@ -139,8 +180,23 @@ def scan_lane(lane_dir: Path, lane_cfg: Dict, planner_lane_state: Dict) -> LaneS
             head_sha,
             last_submitted_sha,
             _feature_session_active(lane),
+            integration_blockers,
         )
-    return LaneStatus(lane, pending, reviewer, approved, integ, branch, head_sha, last_submitted_sha, state, note)
+    if not bool((lane_cfg or {}).get("enabled", True)):
+        integration_blockers = []
+    return LaneStatus(
+        lane,
+        pending,
+        reviewer,
+        approved,
+        integ,
+        branch,
+        head_sha,
+        last_submitted_sha,
+        state,
+        note,
+        integration_blockers,
+    )
 
 def main() -> None:
     if not ROOT.exists():
@@ -215,7 +271,8 @@ def main() -> None:
     print('- If state=feature_in_progress: no queue packet is waiting because the feature lane is actively working.')
     print('- If state=waiting_feature_update: lane branch has not advanced since reviewer notes.')
     print('- If state=ready_for_reemit: lane advanced and planner should emit a new feature packet.')
-    print('- If approved>0: integrator run should fire; check for INTEGRATOR__ outputs in archive.')
+    print('- If approved>0 and state=ready_for_integrator: integrator run should fire; check INTEGRATOR__ outputs in archive.')
+    print('- If approved>0 and state=integration_blocked: approved packet is waiting for prerequisite lane integration, not a stuck integrator.')
     print('- Queue truth beats daemon-log chatter: stale scope-check text in older logs does not mean a live scope-check blocker.')
     print('- This script ignores live reviewer/integrator sessions and manual feature-lane sessions by design.')
     print('- For the full dashboard, also run daemon_monitor.py.')

@@ -160,6 +160,36 @@ class DaemonMonitorTests(unittest.TestCase):
         with mock.patch.object(daemon_monitor, '_process_command_rows', return_value=None):
             self.assertIsNone(daemon_monitor._live_untracked_cloud_integrator_exec_pids({}))
 
+    def test_active_blocker_distinguishes_dependency_held_integrator_packets(self) -> None:
+        summary = daemon_monitor._active_blocker_summary(
+            {
+                'approved_for_integrator': 2,
+                'integrator_dependency_blocked': 2,
+                'integrator_runnable': 0,
+                'pending_feature': 0,
+                'ready_for_reemit': 0,
+                'waiting_feature_update': 0,
+            }
+        )
+
+        self.assertIn('integration dependency hold', summary)
+        self.assertNotIn('integrator backlog active', summary)
+
+    def test_active_blocker_reports_runnable_integrator_packets(self) -> None:
+        summary = daemon_monitor._active_blocker_summary(
+            {
+                'approved_for_integrator': 3,
+                'integrator_dependency_blocked': 1,
+                'integrator_runnable': 2,
+                'pending_feature': 0,
+                'ready_for_reemit': 0,
+                'waiting_feature_update': 0,
+            }
+        )
+
+        self.assertIn('integrator backlog active', summary)
+        self.assertIn('2 runnable approved', summary)
+
 
 if __name__ == '__main__':
     unittest.main()

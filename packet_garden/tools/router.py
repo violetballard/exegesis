@@ -110,6 +110,21 @@ INTEGRATION_DEPENDENCY_ORDER = (
     "feat-engine-runs",
     "feat-a2ui-contract",
 )
+CONTROL_PLANE_REVIEW_PATH_PREFIXES = (
+    ".agents/",
+    ".codex/",
+    "agents/",
+    "codex/",
+    "codex_packet_handoff/",
+    "packet_garden/",
+)
+CONTROL_PLANE_REVIEW_PATH_NAMES = {
+    "AGENTS.md",
+    "INTEGRATION.md",
+    "THREAD.md",
+    "THREAD_OWNERSHIP.md",
+    "THREAD_PACKET.md",
+}
 
 @dataclass
 class RouterConfig:
@@ -481,6 +496,46 @@ def _reviewed_files_for_integrator_packet(lane_dir: Path, approval_packet: Path,
     return _parse_packet_file_list(approved_text)
 
 
+def _metadata_only_review_files(files: List[str]) -> bool:
+    """Return True when packet file evidence is only control-plane metadata."""
+    if not files:
+        return False
+    for file_name in files:
+        normalized = file_name.strip().lstrip("./")
+        if not normalized:
+            continue
+        if normalized in CONTROL_PLANE_REVIEW_PATH_NAMES:
+            continue
+        if any(normalized.startswith(prefix) for prefix in CONTROL_PLANE_REVIEW_PATH_PREFIXES):
+            continue
+        return False
+    return True
+
+
+def _effective_reviewed_files_for_dependency(
+    cfg: RouterConfig,
+    repo_cwd: str,
+    lane: str,
+    reviewed_files: Optional[List[str]],
+) -> List[str]:
+    """Prefer reviewed packet files, but recover from missing/stale metadata evidence.
+
+    Approved packets should integrate as soon as they are safely mergeable. Some
+    older packets lack a parseable file list, and a few stale companion packets
+    list only control-plane metadata even though the branch diff contains the
+    reviewed source surface. In those cases, use the branch diff for dependency
+    overlap checks instead of treating the lane as unknowable and blocking every
+    later integration behind the global lane order.
+    """
+    files = [str(path) for path in list(reviewed_files or []) if str(path).strip()]
+    if files and not _metadata_only_review_files(files):
+        return files
+    lane_cfg = (cfg.lanes.get(lane) or {}) if isinstance(cfg.lanes, dict) else {}
+    branch = str(lane_cfg.get("branch") or f"codex/{lane}")
+    branch_files = _branch_changed_files(repo_cwd, branch) if branch else []
+    return branch_files or files
+
+
 def _integration_dependency_blockers(
     cfg: RouterConfig,
     repo_cwd: str,
@@ -492,7 +547,7 @@ def _integration_dependency_blockers(
     if lane not in INTEGRATION_DEPENDENCY_ORDER:
         return []
     blockers: List[str] = []
-    reviewed_set = set(reviewed_files or [])
+    reviewed_set = set(_effective_reviewed_files_for_dependency(cfg, repo_cwd, lane, reviewed_files))
     for prior_lane in INTEGRATION_DEPENDENCY_ORDER:
         if prior_lane == lane:
             break

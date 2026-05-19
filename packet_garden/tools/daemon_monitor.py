@@ -444,11 +444,49 @@ def _lane_counts(lane_dir: Path) -> Dict[str, int]:
     }
 
 
+def _integrator_dependency_blockers(lane_dir: Path, approval_packet: Path) -> List[str]:
+    """Return router dependency blockers for an approved packet, if known."""
+    try:
+        try:
+            from router import (  # type: ignore
+                _integration_dependency_blockers,
+                _reviewed_files_for_integrator_packet,
+                load_cfg,
+            )
+        except ImportError:  # pragma: no cover - package execution fallback
+            from .router import (  # type: ignore
+                _integration_dependency_blockers,
+                _reviewed_files_for_integrator_packet,
+                load_cfg,
+            )
+        approved_text = approval_packet.read_text(errors="ignore")
+        reviewed_files = _reviewed_files_for_integrator_packet(lane_dir, approval_packet, approved_text)
+        return _integration_dependency_blockers(
+            load_cfg(),
+            str(Path.cwd()),
+            lane_dir.name,
+            reviewed_files=reviewed_files,
+        )
+    except Exception:
+        return []
+
+
+def _integrator_dependency_blockers_for_lane(lane_dir: Path) -> Dict[str, List[str]]:
+    blockers: Dict[str, List[str]] = {}
+    for approval_packet in sorted((lane_dir / "outbox/integrator").glob("*.md")):
+        packet_blockers = _integrator_dependency_blockers(lane_dir, approval_packet)
+        if packet_blockers:
+            blockers[approval_packet.name] = packet_blockers
+    return blockers
+
+
 def _collect_lane_totals() -> Dict[str, int]:
     totals = {
         "pending_feature": 0,
         "reviewer_notes": 0,
         "approved_for_integrator": 0,
+        "integrator_dependency_blocked": 0,
+        "integrator_runnable": 0,
         "waiting_feature_update": 0,
         "ready_for_reemit": 0,
     }
@@ -465,6 +503,9 @@ def _collect_lane_totals() -> Dict[str, int]:
         totals["pending_feature"] += c["pending"]
         totals["reviewer_notes"] += c["review"]
         totals["approved_for_integrator"] += c["approved"]
+        blocked = len(_integrator_dependency_blockers_for_lane(lane_dir))
+        totals["integrator_dependency_blocked"] += blocked
+        totals["integrator_runnable"] += max(0, c["approved"] - blocked)
 
         if c["review"] <= 0:
             continue
@@ -550,8 +591,13 @@ def _tail_log(lines: int = 15) -> str:
 
 
 def _active_blocker_summary(totals: Dict[str, int]) -> str:
-    if totals["approved_for_integrator"] > 0:
-        return f"integrator backlog active ({totals['approved_for_integrator']} approved packet(s) waiting)"
+    approved = totals["approved_for_integrator"]
+    blocked = totals.get("integrator_dependency_blocked", 0)
+    runnable = totals.get("integrator_runnable", max(0, approved - blocked))
+    if approved > 0 and runnable <= 0 and blocked > 0:
+        return f"integration dependency hold ({blocked} approved packet(s) waiting on prerequisite lane merges)"
+    if runnable > 0:
+        return f"integrator backlog active ({runnable} runnable approved packet(s), {blocked} dependency-held)"
     if totals["pending_feature"] > 0:
         return f"reviewer backlog active ({totals['pending_feature']} feature packet(s) waiting)"
     if totals["ready_for_reemit"] > 0:
@@ -1178,12 +1224,16 @@ def main() -> None:
     totals = _collect_lane_totals()
     reviewer_queue = totals["pending_feature"]
     integrator_queue = totals["approved_for_integrator"]
-    if reviewer_queue > 0 and integrator_queue == 0:
+    integrator_runnable = totals.get("integrator_runnable", integrator_queue)
+    integrator_blocked = totals.get("integrator_dependency_blocked", 0)
+    if reviewer_queue > 0 and integrator_runnable == 0:
         bottleneck = "reviewer"
-    elif integrator_queue > 0 and reviewer_queue == 0:
+    elif integrator_runnable > 0 and reviewer_queue == 0:
         bottleneck = "integrator"
-    elif reviewer_queue > 0 and integrator_queue > 0:
+    elif reviewer_queue > 0 and integrator_runnable > 0:
         bottleneck = "both"
+    elif integrator_queue > 0 and integrator_blocked >= integrator_queue:
+        bottleneck = "integration dependencies"
     elif totals["reviewer_notes"] > 0:
         bottleneck = "reviewer/fixer handback loop"
     else:
@@ -1197,6 +1247,8 @@ def main() -> None:
     print(f"waiting_feature_update={totals['waiting_feature_update']}")
     print(f"ready_for_reemit={totals['ready_for_reemit']}")
     print(f"integrator_queue_approved={integrator_queue}")
+    print(f"integrator_queue_runnable={integrator_runnable}")
+    print(f"integrator_queue_dependency_blocked={integrator_blocked}")
     print()
 
     print("CONTROL PLANE")
@@ -1316,6 +1368,13 @@ def main() -> None:
     print(f"approved_waiting_now={integ_h['approved_now']}")
     print(f"integrated_archive_total={integ_h['integrated_archived']}")
     print(f"latest_integrator_file={integ_h['latest_integrator_file']}")
+    if PACKETS_ROOT.exists():
+        for lane_dir in sorted([p for p in PACKETS_ROOT.iterdir() if p.is_dir()], key=lambda p: p.name):
+            lane_blockers = _integrator_dependency_blockers_for_lane(lane_dir)
+            for packet_name, blockers in lane_blockers.items():
+                print(
+                    f"dependency_held={lane_dir.name} packet={packet_name} blockers={','.join(blockers)}"
+                )
     print()
 
     print("LANES")

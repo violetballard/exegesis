@@ -364,8 +364,23 @@ def _runtime_fallbacks(
     reviewer = int(totals.get("reviewer_notes", 0) or 0)
     waiting = int(totals.get("waiting_feature_update", 0) or 0)
     reemit = int(totals.get("ready_for_reemit", 0) or 0)
-    if approved:
-        blocker = f"integrator backlog active ({approved} packet(s) ready)"
+    lanes = pipeline.get("lanes", []) if isinstance(pipeline, dict) else []
+    dependency_blocked = sum(
+        int(lane.get("approved_for_integrator", 0) or 0)
+        for lane in lanes
+        if isinstance(lane, dict) and str(lane.get("state") or "") == "integration_blocked"
+    )
+    runnable_approved = max(0, approved - dependency_blocked)
+    if approved and runnable_approved <= 0 and dependency_blocked:
+        blocker = (
+            f"integration dependency hold "
+            f"({dependency_blocked} approved packet(s) waiting on prerequisite lane merges)"
+        )
+    elif runnable_approved:
+        blocker = (
+            f"integrator backlog active "
+            f"({runnable_approved} packet(s) ready, {dependency_blocked} dependency-held)"
+        )
     elif pending:
         blocker = f"reviewer backlog active ({pending} packet(s) pending)"
     elif reviewer or waiting or reemit:
