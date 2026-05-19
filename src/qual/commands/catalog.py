@@ -124,6 +124,14 @@ class CommandCliSmokeStep:
     description: str
 
 
+@dataclass(frozen=True)
+class CommandCliSmokePlan:
+    flow_steps: tuple[str, ...]
+    route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
+    steps: tuple[CommandCliSmokeStep, ...]
+    argv: tuple[tuple[str, ...], ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -686,6 +694,39 @@ def command_cli_smoke_argv(
     return tuple(step.argv for step in command_cli_smoke_steps(specs, flow_steps))
 
 
+def _validate_command_cli_smoke_plan(plan: CommandCliSmokePlan) -> None:
+    route_flow_steps = tuple(flow_step for flow_step, _, _ in plan.route_summary)
+    if plan.flow_steps != route_flow_steps:
+        raise ValueError("Command CLI smoke plan flow steps are inconsistent")
+    if plan.flow_steps != tuple(step.flow_step for step in plan.steps):
+        raise ValueError("Command CLI smoke plan steps are inconsistent")
+    route_names = tuple(name for _, name, _ in plan.route_summary)
+    if route_names != tuple(step.name for step in plan.steps):
+        raise ValueError("Command CLI smoke plan names are inconsistent")
+    primary_tokens = tuple(cli_tokens[0] for _, _, cli_tokens in plan.route_summary)
+    if primary_tokens != tuple(step.cli_token for step in plan.steps):
+        raise ValueError("Command CLI smoke plan primary tokens are inconsistent")
+    if plan.argv != tuple(step.argv for step in plan.steps):
+        raise ValueError("Command CLI smoke plan argv is inconsistent")
+
+
+@lru_cache(maxsize=None)
+def command_cli_smoke_plan(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> CommandCliSmokePlan:
+    route_summary = command_flow_route_summary(specs, flow_steps)
+    steps = command_cli_smoke_steps(specs, flow_steps)
+    plan = CommandCliSmokePlan(
+        flow_steps=tuple(flow_step for flow_step, _, _ in route_summary),
+        route_summary=route_summary,
+        steps=steps,
+        argv=tuple(step.argv for step in steps),
+    )
+    _validate_command_cli_smoke_plan(plan)
+    return plan
+
+
 def command_demo_cli_smoke_steps() -> tuple[CommandCliSmokeStep, ...]:
     return command_cli_smoke_steps(flow_steps=command_demo_flow_steps())
 
@@ -700,6 +741,14 @@ def command_demo_cli_smoke_argv() -> tuple[tuple[str, ...], ...]:
 
 def command_mvp_cli_smoke_argv() -> tuple[tuple[str, ...], ...]:
     return command_demo_cli_smoke_argv()
+
+
+def command_demo_cli_smoke_plan() -> CommandCliSmokePlan:
+    return command_cli_smoke_plan(flow_steps=command_demo_flow_steps())
+
+
+def command_mvp_cli_smoke_plan() -> CommandCliSmokePlan:
+    return command_demo_cli_smoke_plan()
 
 
 @lru_cache(maxsize=None)
