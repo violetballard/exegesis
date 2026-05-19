@@ -138,6 +138,18 @@ class CommandCliSmokePlan:
 
 
 @dataclass(frozen=True)
+class CommandCliSmokeCommand:
+    flow_step: str
+    name: str
+    cli_token: str
+    argv: tuple[str, ...]
+    command: tuple[str, ...]
+    lookup_tokens: tuple[str, ...]
+    description: str
+    demo_step: str = ""
+
+
+@dataclass(frozen=True)
 class CommandDemoPathStep:
     demo_step: str
     flow_step: str
@@ -752,10 +764,57 @@ def command_cli_smoke_commands(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[tuple[str, ...], ...]:
+    return tuple(entry.command for entry in command_cli_smoke_command_entries(program, specs, flow_steps))
+
+
+def command_cli_smoke_command_entries(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandCliSmokeCommand, ...]:
+    normalized_program = _normalize_smoke_program(program)
+    smoke_plan = command_cli_smoke_plan(specs, flow_steps)
+    entries = tuple(
+        CommandCliSmokeCommand(
+            flow_step=step.flow_step,
+            name=step.name,
+            cli_token=step.cli_token,
+            argv=step.argv,
+            command=(normalized_program, *step.argv),
+            lookup_tokens=step.lookup_tokens,
+            description=step.description,
+            demo_step=step.demo_step,
+        )
+        for step in smoke_plan.steps
+    )
+    _validate_command_cli_smoke_command_entries(entries, smoke_plan)
+    return entries
+
+
+def _validate_command_cli_smoke_command_entries(
+    entries: tuple[CommandCliSmokeCommand, ...],
+    smoke_plan: CommandCliSmokePlan,
+) -> None:
+    if tuple(entry.argv for entry in entries) != smoke_plan.argv:
+        raise ValueError("Command CLI smoke command argv is inconsistent")
+    if tuple(entry.flow_step for entry in entries) != smoke_plan.flow_steps:
+        raise ValueError("Command CLI smoke command flow steps are inconsistent")
+    if tuple(entry.name for entry in entries) != tuple(step.name for step in smoke_plan.steps):
+        raise ValueError("Command CLI smoke command names are inconsistent")
+    if tuple(entry.cli_token for entry in entries) != tuple(step.cli_token for step in smoke_plan.steps):
+        raise ValueError("Command CLI smoke command tokens are inconsistent")
+    if tuple(entry.demo_step for entry in entries) != tuple(step.demo_step for step in smoke_plan.steps):
+        raise ValueError("Command CLI smoke command demo steps are inconsistent")
+    for entry in entries:
+        if entry.command != (entry.command[0], *entry.argv):
+            raise ValueError("Command CLI smoke command tuple is inconsistent")
+
+
+def _normalize_smoke_program(program: str) -> str:
     normalized_program = program.strip()
     if not normalized_program:
         raise ValueError("Command CLI smoke program must not be empty")
-    return tuple((normalized_program, *argv) for argv in command_cli_smoke_argv(specs, flow_steps))
+    return normalized_program
 
 
 def _validate_command_cli_smoke_plan(plan: CommandCliSmokePlan) -> None:
@@ -875,6 +934,18 @@ def command_demo_cli_smoke_commands(program: str = "qual-bootstrap") -> tuple[tu
 
 def command_mvp_cli_smoke_commands(program: str = "qual-bootstrap") -> tuple[tuple[str, ...], ...]:
     return command_demo_cli_smoke_commands(program=program)
+
+
+def command_demo_cli_smoke_command_entries(
+    program: str = "qual-bootstrap",
+) -> tuple[CommandCliSmokeCommand, ...]:
+    return command_cli_smoke_command_entries(program=program, flow_steps=command_demo_flow_steps())
+
+
+def command_mvp_cli_smoke_command_entries(
+    program: str = "qual-bootstrap",
+) -> tuple[CommandCliSmokeCommand, ...]:
+    return command_demo_cli_smoke_command_entries(program=program)
 
 
 def command_demo_cli_smoke_plan() -> CommandCliSmokePlan:
