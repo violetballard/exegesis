@@ -31,6 +31,8 @@ LANE_ROW_RE = re.compile(
     r"(?P<pending>\d+)\s+(?P<review>\d+)\s+(?P<approved>\d+)\s+"
     r"(?P<state>[A-Za-z0-9_-]+)\s+"
 )
+MILESTONE_HEADING_RE = re.compile(r"^## Milestone (?P<number>[1-5])(?P<suffix>[A-Z]?):\s*(?P<title>.+)$")
+MILESTONE_STATUS_RE = re.compile(r"^Status:\s*(?P<status>.+)$")
 SECRET_PATTERNS = [
     re.compile(r"(?i)(api[_-]?key|token|authorization|bearer|secret|password)\s*[:=]\s*[^\s]+"),
     re.compile(r"sk-[A-Za-z0-9_-]{16,}"),
@@ -43,6 +45,7 @@ FEATURE_STATE = REPO_ROOT / ".codex/feature_runner/state.json"
 DAEMON_PID_FILE = REPO_ROOT / ".codex/packet_coordinator/daemon.pid"
 DAEMON_LEASE_FILE = REPO_ROOT / ".codex/packet_coordinator/lease.json"
 DAEMON_LEASE_FRESH_SECONDS = 3600
+ROADMAP = REPO_ROOT / "ROADMAP.md"
 
 
 @dataclass(frozen=True)
@@ -496,6 +499,70 @@ def _summary_from(daemon: Mapping[str, str], pipeline: Mapping[str, Any], monito
     }
 
 
+def _milestone_mark(number: int, status: str) -> str:
+    normalized = status.lower()
+    if number == 1 and "standing" in normalized:
+        return "x"
+    if "closed" in normalized or "complete" in normalized:
+        return "x"
+    if "in progress" in normalized:
+        return "~"
+    if number in {2, 4} and "planned" in normalized:
+        return "~"
+    return " "
+
+
+def _milestone_status() -> List[Dict[str, str]]:
+    fallback = [
+        {"number": "1", "title": "Standing shell", "status": "standing", "mark": "x"},
+        {"number": "2", "title": "Core pane interactions", "status": "planned", "mark": "~"},
+        {"number": "3", "title": "Real workflow loop", "status": "in progress", "mark": "~"},
+        {"number": "4", "title": "Dogfooding readiness", "status": "planned", "mark": "~"},
+        {"number": "5", "title": "YC demo readiness", "status": "planned", "mark": " "},
+    ]
+    try:
+        lines = ROADMAP.read_text(encoding="utf-8").splitlines()
+    except Exception:
+        return fallback
+
+    milestones: List[Dict[str, str]] = []
+    current: Dict[str, str] | None = None
+    for line in lines:
+        heading = MILESTONE_HEADING_RE.match(line.strip())
+        if heading:
+            if heading.group("suffix"):
+                if current is not None:
+                    milestones.append(current)
+                current = None
+                continue
+            if current is not None:
+                milestones.append(current)
+            number = int(heading.group("number"))
+            current = {
+                "number": str(number),
+                "title": heading.group("title").strip(),
+                "status": "unknown",
+                "mark": " ",
+            }
+            continue
+        if current is None:
+            continue
+        status_match = MILESTONE_STATUS_RE.match(line.strip())
+        if status_match:
+            status = status_match.group("status").strip()
+            current["status"] = status
+            current["mark"] = _milestone_mark(int(current["number"]), status)
+    if current is not None:
+        milestones.append(current)
+
+    by_number = {item.get("number"): item for item in milestones if item.get("number") in {"1", "2", "3", "4", "5"}}
+    result = []
+    for item in fallback:
+        parsed = by_number.get(item["number"])
+        result.append(parsed if parsed else item)
+    return result
+
+
 def build_snapshot(*, include_monitor_output: bool = False) -> Dict[str, Any]:
     started = time.time()
     daemon_result = _run_command(DAEMON_CTL, timeout=5.0)
@@ -529,6 +596,7 @@ def build_snapshot(*, include_monitor_output: bool = False) -> Dict[str, Any]:
         "memory_pressure": _memory_pressure(),
         "git": _git_status(),
         "lane_placements": _lane_placements(),
+        "milestones": _milestone_status(),
     }
     snapshot["summary"] = _summary_from(daemon, pipeline, monitor)
     if include_monitor_output:
@@ -560,6 +628,7 @@ def compact_summary(snapshot: Mapping[str, Any]) -> Dict[str, Any]:
     summary["git"] = snapshot.get("git", {})
     summary["memory_pressure"] = snapshot.get("memory_pressure", {})
     summary["lanes"] = active_lanes
+    summary["milestones"] = snapshot.get("milestones", [])
     return summary
 
 

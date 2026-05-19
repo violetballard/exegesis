@@ -208,6 +208,7 @@ def summary_text(payload: Mapping[str, Any]) -> str:
     git = payload.get("git") if isinstance(payload.get("git"), dict) else {}
     memory = payload.get("memory_pressure") if isinstance(payload.get("memory_pressure"), dict) else {}
     lanes = payload.get("lanes") if isinstance(payload.get("lanes"), list) else []
+    milestones = payload.get("milestones") if isinstance(payload.get("milestones"), list) else []
     daemon = "RUNNING" if payload.get("daemon_running") else "STOPPED"
     paused = "PAUSED" if pause.get("paused") else "active"
     cloud = "available" if str(payload.get("cloud_available", "")).lower() == "true" else str(
@@ -256,6 +257,16 @@ def summary_text(payload: Mapping[str, Any]) -> str:
                 f"Tracked changes: {git.get('tracked_change_count', '-')}",
             ]
         )
+    if milestones:
+        lines.extend(["", "Milestones", "----------"])
+        for milestone in milestones:
+            if not isinstance(milestone, dict):
+                continue
+            mark = str(milestone.get("mark") or " ")
+            number = str(milestone.get("number") or "-")
+            title = str(milestone.get("title") or "-")
+            status = str(milestone.get("status") or "-")
+            lines.append(f"[{mark}] M{number}: {title} ({status})")
     if memory:
         summary = memory.get("summary") if isinstance(memory.get("summary"), list) else []
         if summary:
@@ -301,6 +312,7 @@ def summary_html(payload: Mapping[str, Any], *, session_token: str = "", base_ur
     git = payload.get("git") if isinstance(payload.get("git"), dict) else {}
     memory = payload.get("memory_pressure") if isinstance(payload.get("memory_pressure"), dict) else {}
     lanes = payload.get("lanes") if isinstance(payload.get("lanes"), list) else []
+    milestones = payload.get("milestones") if isinstance(payload.get("milestones"), list) else []
     daemon_running = bool(payload.get("daemon_running"))
     daemon_label = "RUNNING" if daemon_running else "STOPPED"
     daemon_class = "ok" if daemon_running else "bad"
@@ -365,6 +377,30 @@ def summary_html(payload: Mapping[str, Any], *, session_token: str = "", base_ur
         )
     if lane_rows:
         lane_html = "<section><h2>Lanes</h2><div class='lanes'>" + "\n".join(lane_rows) + "</div></section>"
+    milestone_html = ""
+    milestone_rows: list[str] = []
+    for milestone in milestones[:5]:
+        if not isinstance(milestone, dict):
+            continue
+        mark = str(milestone.get("mark") or " ")
+        css = "ok" if mark == "x" else "warn" if mark == "~" else ""
+        number = str(milestone.get("number") or "-")
+        title = str(milestone.get("title") or "-")
+        status = str(milestone.get("status") or "-")
+        milestone_rows.append(
+            "<div class='milestone-row'>"
+            f"<strong>[{escape(mark)}] M{escape(number)}</strong>"
+            f"<span class='{escape(css)}'>{escape(title)}</span>"
+            f"<small>{escape(status)}</small>"
+            "</div>"
+        )
+    if milestone_rows:
+        milestone_html = (
+            "<section class='milestone-section'><h2>Milestones</h2>"
+            "<div class='milestones'>"
+            + "\n".join(milestone_rows)
+            + "</div></section>"
+        )
     generated = human_timestamp(payload.get("generated_at"))
     safe_session_token = json.dumps(session_token)
     return f"""<!doctype html>
@@ -463,7 +499,12 @@ def summary_html(payload: Mapping[str, Any], *, session_token: str = "", base_ur
       display: grid;
       gap: 8px;
     }}
-    .lane-row {{
+    .milestones {{
+      display: grid;
+      gap: 8px;
+    }}
+    .lane-row,
+    .milestone-row {{
       display: grid;
       grid-template-columns: 1fr auto;
       gap: 4px 12px;
@@ -471,9 +512,12 @@ def summary_html(payload: Mapping[str, Any], *, session_token: str = "", base_ur
       background: #10263a;
       border: 1px solid rgb(255 255 255 / 10%);
     }}
-    .lane-row strong {{ text-align: left; color: var(--text); }}
-    .lane-row span {{ text-align: right; }}
-    .lane-row small {{ grid-column: 1 / -1; color: var(--muted); }}
+    .lane-row strong,
+    .milestone-row strong {{ text-align: left; color: var(--text); }}
+    .lane-row span,
+    .milestone-row span {{ text-align: right; }}
+    .lane-row small,
+    .milestone-row small {{ grid-column: 1 / -1; color: var(--muted); }}
     strong {{ text-align: right; }}
     .ok {{ color: var(--ok); }}
     .warn {{ color: var(--warn); }}
@@ -500,6 +544,7 @@ def summary_html(payload: Mapping[str, Any], *, session_token: str = "", base_ur
     <section>{row_html}</section>
     {lane_html}
     {memory_html}
+    {milestone_html}
   </main>
   <script>
     const statusLine = document.getElementById("control-status");

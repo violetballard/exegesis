@@ -50,12 +50,42 @@ class RemoteMonitorSnapshotTests(unittest.TestCase):
                         {"lane": "feat-console-shell", "state": "disabled"},
                     ]
                 },
+                "milestones": [{"number": "3", "title": "Real workflow loop", "status": "in progress", "mark": "~"}],
             }
         )
 
         lanes = payload["lanes"]
         self.assertEqual([lane["lane"] for lane in lanes], ["feat-engine-runs"])
         self.assertEqual(lanes[0]["running"][0]["provider"], "local")
+        self.assertEqual(payload["milestones"][0]["number"], "3")
+
+    def test_milestone_status_reads_m1_to_m5_from_roadmap(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            roadmap = Path(tmp) / "ROADMAP.md"
+            roadmap.write_text(
+                "\n".join(
+                    [
+                        "## Milestone 1: Standing shell",
+                        "Status: standing (mockup only)",
+                        "## Milestone 2: Core pane interactions",
+                        "Status: planned",
+                        "## Milestone 3: Real workflow loop",
+                        "Status: in progress",
+                        "## Milestone 4: Dogfooding readiness",
+                        "Status: planned",
+                        "## Milestone 5: YC demo readiness",
+                        "Status: planned",
+                        "## Milestone 5B: CoP Gateway MVP",
+                        "Status: long-term conceptual, disabled",
+                    ]
+                )
+            )
+
+            with mock.patch.object(remote_monitor_snapshot, "ROADMAP", roadmap):
+                milestones = remote_monitor_snapshot._milestone_status()
+
+        self.assertEqual([item["number"] for item in milestones], ["1", "2", "3", "4", "5"])
+        self.assertEqual([item["mark"] for item in milestones], ["x", "~", "~", "~", " "])
 
 
 class RemoteMonitorServerTests(unittest.TestCase):
@@ -120,6 +150,7 @@ class RemoteMonitorServerTests(unittest.TestCase):
             "approved_for_integrator": 0,
             "active_blocker": "-",
             "pause": {"paused": False},
+            "milestones": [{"number": "3", "title": "Real workflow loop", "status": "in progress", "mark": "~"}],
             "lanes": [
                 {
                     "lane": "feat-engine-runs",
@@ -140,6 +171,7 @@ class RemoteMonitorServerTests(unittest.TestCase):
         self.assertIn("Runtime:   hybrid", text)
         self.assertIn("feat-engine-runs: active", text)
         self.assertIn("[local feature]", text)
+        self.assertIn("[~] M3: Real workflow loop", text)
         self.assertTrue(text.endswith("\n"))
 
     def test_human_timestamp_formats_iso_timestamp(self) -> None:
@@ -161,6 +193,10 @@ class RemoteMonitorServerTests(unittest.TestCase):
             "approved_for_integrator": 0,
             "active_blocker": "<none>",
             "pause": {"paused": False},
+            "milestones": [
+                {"number": "1", "title": "Standing shell", "status": "standing (mockup only)", "mark": "x"},
+                {"number": "3", "title": "Real workflow loop", "status": "in progress", "mark": "~"},
+            ],
             "lanes": [
                 {
                     "lane": "feat-engine-runs",
@@ -185,6 +221,9 @@ class RemoteMonitorServerTests(unittest.TestCase):
         self.assertIn("feat-engine-runs", html)
         self.assertIn("cloud integrator", html)
         self.assertIn("feature 1", html)
+        self.assertIn("Milestones", html)
+        self.assertIn("[x] M1", html)
+        self.assertIn("Real workflow loop", html)
 
     def test_status_endpoint_requires_auth(self) -> None:
         config = {"allowed_remote_cidrs": [], "snapshot_ttl_seconds": 0}
