@@ -50,15 +50,21 @@ def _deduped_sorted_actions(card: dict[str, Any]) -> list[dict[str, Any]]:
     return materialize_card_actions(card)
 
 
+def materialize_terminal_card(card: dict[str, Any]) -> dict[str, Any]:
+    """Materialize the A2UI card shape consumed by CLI fallback renderers."""
+    return materialize_cli_fallback_card(card)
+
+
 def studio_materialize_card(payload: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
-    return materialize_cli_fallback_card(_studio_materialize_card(payload, capabilities))
+    return materialize_terminal_card(_studio_materialize_card(payload, capabilities))
 
 
 def render_terminal_card(card: dict[str, Any]) -> str:
-    title = str(card.get("title", "<untitled>"))
-    card_type = str(card.get("type", "Card"))
+    materialized = materialize_terminal_card(card)
+    title = str(materialized.get("title", "<untitled>"))
+    card_type = str(materialized.get("type", "Card"))
     lines = [f"[{card_type}] {title}"]
-    for block in card.get("blocks", []):
+    for block in materialized.get("blocks", []):
         if not isinstance(block, dict):
             continue
         block_type = block.get("type")
@@ -93,7 +99,7 @@ def render_terminal_card(card: dict[str, Any]) -> str:
                 for row in rows:
                     if isinstance(row, list):
                         lines.append(" | ".join(str(value) for value in row))
-    for slot in materialize_action_slots(card):
+    for slot in materialize_action_slots(materialized):
         action = slot["action"]
         lines.append(f"* {slot['slot']}. {action.get('label', action.get('id', 'action'))}")
     return "\n".join(lines)
@@ -130,6 +136,7 @@ __all__ = [
     "materialize_action_slots",
     "materialize_cli_fallback_card",
     "materialize_card_actions",
+    "materialize_terminal_card",
     "render_terminal_card",
     "resolve_card_selection",
     "resolve_card_selection_by_index",

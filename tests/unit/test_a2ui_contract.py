@@ -16,6 +16,7 @@ from src.qual.ui.a2ui import (
     engine_prepare_card,
     execute_action_with_policy_gate,
     materialize_cli_fallback_card,
+    materialize_terminal_card,
     resolve_card_selection_by_index,
     render_terminal_card,
     studio_materialize_card,
@@ -183,6 +184,32 @@ class A2UIContractTests(unittest.TestCase):
             [(1, "apply_patch"), (2, "reject_patch"), (3, "run_agent")],
         )
         self.assertEqual(resolve_card_selection_by_index(fallback, 1)["payload"], {"patch_id": "p1"})
+
+    def test_terminal_materialization_canonicalizes_patch_action_slots(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+            "actions": [
+                {"id": "run_agent", "label": "Revise", "payload": {"operation": "revise"}},
+                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+            ],
+        }
+
+        fallback = materialize_terminal_card(card)
+        text = render_terminal_card(card)
+
+        self.assertEqual([action["id"] for action in fallback["actions"]], ["apply_patch", "reject_patch", "run_agent"])
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in fallback["action_selection"]["order"]],
+            [(1, "apply_patch"), (2, "reject_patch"), (3, "run_agent")],
+        )
+        self.assertEqual(
+            [line for line in text.splitlines() if line.startswith("* ")],
+            ["* 1. Apply", "* 2. Reject", "* 3. Revise"],
+        )
 
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []
