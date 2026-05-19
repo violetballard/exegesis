@@ -123,6 +123,7 @@ class CommandCliSmokeStep:
     argv: tuple[str, ...]
     lookup_tokens: tuple[str, ...]
     description: str
+    demo_step: str = ""
 
 
 @dataclass(frozen=True)
@@ -711,6 +712,7 @@ def command_cli_smoke_steps(
     route_catalog = command_flow_route_catalog(flow_steps=flow_steps, specs=specs)
     if specs == COMMAND_SPECS:
         _validate_route_cli_tokens(route_catalog, command_cli_tokens())
+    labels_by_flow_step = _demo_path_labels_by_flow_step()
     return tuple(
         CommandCliSmokeStep(
             flow_step=entry.flow_step,
@@ -719,6 +721,7 @@ def command_cli_smoke_steps(
             argv=(entry.cli_tokens[0], *_smoke_args_for_command(specs, entry.name)),
             lookup_tokens=entry.lookup_tokens,
             description=entry.description,
+            demo_step=labels_by_flow_step.get(entry.flow_step, ""),
         )
         for entry in route_catalog
     )
@@ -773,17 +776,20 @@ def _validate_command_cli_smoke_plan(plan: CommandCliSmokePlan) -> None:
             raise ValueError("Command CLI smoke plan demo path names are inconsistent")
         if tuple(step.argv for step in plan.demo_path_steps) != plan.argv:
             raise ValueError("Command CLI smoke plan demo path argv is inconsistent")
+        demo_path_labels = tuple(step.demo_step for step in plan.demo_path_steps)
+        smoke_step_labels = tuple(step.demo_step for step in plan.steps)
+        if demo_path_labels != smoke_step_labels:
+            raise ValueError("Command CLI smoke plan demo path labels are inconsistent")
 
 
 def _command_demo_path_steps_for_smoke_steps(
     smoke_steps: tuple[CommandCliSmokeStep, ...],
 ) -> tuple[CommandDemoPathStep, ...]:
-    labels_by_flow_step = _demo_path_labels_by_flow_step()
     if _missing_demo_path_flow_steps(smoke_steps):
         return ()
     return tuple(
         CommandDemoPathStep(
-            demo_step=labels_by_flow_step[step.flow_step],
+            demo_step=step.demo_step,
             flow_step=step.flow_step,
             name=step.name,
             cli_token=step.cli_token,
