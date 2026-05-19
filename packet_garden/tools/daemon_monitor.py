@@ -724,7 +724,7 @@ def _lane_latest_feature_archive(lane: str) -> Path | None:
 
 def _lane_latest_feature_pending(lane: str) -> Path | None:
     lane_dir = PACKETS_ROOT / lane / "inbox" / "feature"
-    return _latest_by_mtime(lane_dir.glob("*.md"))
+    return _latest_by_mtime(p for p in lane_dir.glob("*.md") if not p.name.endswith(".shared.md"))
 
 
 @lru_cache(maxsize=None)
