@@ -215,6 +215,42 @@ class RouterQuotaFallbackTests(unittest.TestCase):
 
         self.assertEqual(files, ["shared/src/exegesis_shared/contracts/actions.py"])
 
+    def test_integration_dependency_blockers_ignore_control_plane_only_overlap(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-engine-runs": {"branch": "codex/feat-engine-runs", "enabled": True},
+            "feat-a2ui-contract": {"branch": "codex/feat-a2ui-contract", "enabled": True},
+        }
+
+        def merged(_repo_cwd: str, branch: str) -> bool:
+            return branch == "codex/feat-a2ui-contract"
+
+        def reviewed_files(lane: str) -> list[str]:
+            if lane == "feat-engine-runs":
+                return ["THREAD_PACKET.md"]
+            return []
+
+        with (
+            tempfile.TemporaryDirectory() as repo,
+            mock.patch("packet_garden.tools.router._branch_merged_to_head", side_effect=merged),
+            mock.patch("packet_garden.tools.router._latest_reviewed_files_for_lane", side_effect=reviewed_files),
+            mock.patch(
+                "packet_garden.tools.router._branch_changed_files",
+                return_value=["THREAD_PACKET.md"],
+            ),
+        ):
+            blockers = _integration_dependency_blockers(
+                cfg,
+                repo,
+                "feat-a2ui-contract",
+                reviewed_files=[
+                    "THREAD_PACKET.md",
+                    "shared/src/exegesis_shared/contracts/actions.py",
+                ],
+            )
+
+        self.assertEqual(blockers, [])
+
     def test_reviewed_files_for_integrator_packet_reads_companion_feature_packet(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             lane_dir = Path(tmpdir)

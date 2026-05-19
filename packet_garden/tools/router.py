@@ -512,6 +512,21 @@ def _metadata_only_review_files(files: List[str]) -> bool:
     return True
 
 
+def _merge_relevant_review_files(files: List[str]) -> List[str]:
+    """Drop control-plane metadata paths from merge dependency comparisons."""
+    relevant: List[str] = []
+    for file_name in files:
+        normalized = str(file_name).strip().lstrip("./")
+        if not normalized:
+            continue
+        if normalized in CONTROL_PLANE_REVIEW_PATH_NAMES:
+            continue
+        if any(normalized.startswith(prefix) for prefix in CONTROL_PLANE_REVIEW_PATH_PREFIXES):
+            continue
+        relevant.append(normalized)
+    return relevant
+
+
 def _effective_reviewed_files_for_dependency(
     cfg: RouterConfig,
     repo_cwd: str,
@@ -529,11 +544,11 @@ def _effective_reviewed_files_for_dependency(
     """
     files = [str(path) for path in list(reviewed_files or []) if str(path).strip()]
     if files and not _metadata_only_review_files(files):
-        return files
+        return _merge_relevant_review_files(files)
     lane_cfg = (cfg.lanes.get(lane) or {}) if isinstance(cfg.lanes, dict) else {}
     branch = str(lane_cfg.get("branch") or f"codex/{lane}")
     branch_files = _branch_changed_files(repo_cwd, branch) if branch else []
-    return branch_files or files
+    return _merge_relevant_review_files(branch_files or files)
 
 
 def _integration_dependency_blockers(
@@ -561,6 +576,7 @@ def _integration_dependency_blockers(
             prior_files = set(_latest_reviewed_files_for_lane(prior_lane))
             if not prior_files:
                 prior_files = set(_branch_changed_files(repo_cwd, branch))
+            prior_files = set(_merge_relevant_review_files(list(prior_files)))
             if reviewed_set.isdisjoint(prior_files):
                 continue
         if branch:
