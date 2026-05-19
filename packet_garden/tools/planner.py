@@ -280,6 +280,9 @@ def lane_feature_active(coordinator_state: Dict[str, Any], lane: str) -> bool:
     lane_state = lane_refill.get(lane)
     return isinstance(lane_state, dict) and lane_state.get("feature_active") is True
 
+def should_skip_for_active_feature(coordinator_state: Dict[str, Any], lane: str, *, fast_reemit: bool) -> bool:
+    return lane_feature_active(coordinator_state, lane) and not fast_reemit
+
 def save_json(p: Path, data: Any) -> None:
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(data, indent=2))
@@ -830,9 +833,6 @@ def main()->None:
         ensure_lane_dirs(lane)
         if lane_has_pending_feature(lane):
             continue
-        if lane_feature_active(coordinator_state, lane):
-            print(f"[planner] {lane}: feature worker active; skipping gate run until handoff")
-            continue
         has_reviewer_notes = lane_has_reviewer_notes(lane)
         branch=str((lcfg or {}).get("branch") or f"codex/{lane}")
         lane_repo = find_worktree_for_branch(repo, branch)
@@ -857,6 +857,9 @@ def main()->None:
         if last_submitted_sha == sha:
             continue
         fast_reemit = bool(has_reviewer_notes and last_submitted_sha and last_submitted_sha != sha)
+        if should_skip_for_active_feature(coordinator_state, lane, fast_reemit=fast_reemit):
+            print(f"[planner] {lane}: feature worker active; skipping gate run until handoff")
+            continue
         if not active_repo and not fast_reemit:
             # Do not switch branches in the main repo from planner automation.
             # Lane automation is worktree-scoped; missing/stale worktrees should be fixed
