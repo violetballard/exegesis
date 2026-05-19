@@ -11,6 +11,7 @@ class CommandSpec:
     aliases: tuple[str, ...] = ()
     description: str = ""
     flow_step: str = "general"
+    smoke_args: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -245,6 +246,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         aliases=("context", "basket"),
         description="Manage retrieval context basket items.",
         flow_step="retrieval",
+        smoke_args=("list",),
     ),
     CommandSpec(
         name="terminal",
@@ -696,12 +698,22 @@ def command_cli_smoke_steps(
             flow_step=entry.flow_step,
             name=entry.name,
             cli_token=entry.cli_tokens[0],
-            argv=(entry.cli_tokens[0],),
+            argv=(entry.cli_tokens[0], *_smoke_args_for_command(specs, entry.name)),
             lookup_tokens=entry.lookup_tokens,
             description=entry.description,
         )
         for entry in route_catalog
     )
+
+
+def _smoke_args_for_command(
+    specs: tuple[CommandSpec, ...],
+    name: str,
+) -> tuple[str, ...]:
+    spec = command_spec_for(specs, name)
+    if spec is None:
+        raise ValueError(f"Unknown command smoke target: {name}")
+    return spec.smoke_args
 
 
 def command_cli_smoke_argv(
