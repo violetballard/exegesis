@@ -854,6 +854,28 @@ class CoordinatorStateReconcileTests(unittest.TestCase):
 
         self.assertEqual(ctx.state, router_state)
 
+    def test_run_cycle_refills_feature_lanes_after_planner_and_router(self) -> None:
+        from packet_garden.tools import agents_coordinator as coordinator
+
+        args = argparse.Namespace(execution_mode="subprocess", planner_retries=0, router_retries=0)
+        call_order: list[str] = []
+
+        def fake_launch(_state: dict[str, object]) -> list[str]:
+            call_order.append("launcher")
+            return ["feat-commands"]
+
+        with (
+            patch.object(coordinator, "_reconcile_control_plane_state", return_value={}),
+            patch.object(coordinator, "_run_planner_subprocess", side_effect=lambda _retries: call_order.append("planner") or (0, "", 1)),
+            patch.object(coordinator, "_run_router_subprocess", side_effect=lambda _retries: call_order.append("router") or (0, "", 1)),
+            patch.object(coordinator, "_launch_free_lanes", side_effect=fake_launch),
+        ):
+            event = coordinator._run_cycle(args, None, {})
+
+        self.assertEqual(call_order, ["planner", "router", "launcher"])
+        self.assertEqual(event["launcher"]["pre_planner"], [])
+        self.assertEqual(event["launcher"]["post_router"], ["feat-commands"])
+
 
 class RouterReviewerBootstrapTests(unittest.TestCase):
     def test_offline_reviewer_fallback_never_approves_without_live_review(self) -> None:

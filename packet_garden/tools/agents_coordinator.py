@@ -2072,11 +2072,6 @@ def _run_cycle(
     if args.execution_mode == "direct" and direct_ctx is not None:
         direct_ctx.state = direct_ctx.router_mod.load_json(direct_ctx.router_mod.STATE_FILE, {})
 
-    # Fill empty feature lanes before planner gates run. Planner gates can be
-    # expensive; once a lane is actively working, planner correctly skips gate
-    # reruns for that lane and the daemon stays useful instead of waiting on CI.
-    pre_planner_launched_lanes = _launch_free_lanes(coordinator_state)
-
     print("[planner]")
     if args.execution_mode == "direct":
         planner_rc, planner_out, planner_attempts = _run_planner_direct(args.planner_retries)
@@ -2104,13 +2099,15 @@ def _run_cycle(
         "integrated": router_stats["integrated"],
     }
 
+    # Refill feature lanes only after planner/router get first chance to turn
+    # completed lane commits into reviewer/integrator packets. Launching before
+    # planner can bury a finished commit under a fresh active worker and keep
+    # review/integration starved even though feature branches are advancing.
     post_router_launched_lanes = _launch_free_lanes(coordinator_state)
-    launched_lanes = pre_planner_launched_lanes + [
-        lane for lane in post_router_launched_lanes if lane not in set(pre_planner_launched_lanes)
-    ]
+    launched_lanes = post_router_launched_lanes
     cycle_event["launcher"] = {
         "launched": launched_lanes,
-        "pre_planner": pre_planner_launched_lanes,
+        "pre_planner": [],
         "post_router": post_router_launched_lanes,
     }
 
