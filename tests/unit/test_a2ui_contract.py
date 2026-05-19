@@ -211,6 +211,29 @@ class A2UIContractTests(unittest.TestCase):
             ["* 1. Apply", "* 2. Reject", "* 3. Revise"],
         )
 
+    def test_terminal_rendering_uses_materialized_selection_order(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+            "actions": [
+                {"id": "reject_patch", "label": "Reject patch", "payload": {"patch_id": "p9"}},
+                {"id": "apply_patch", "label": "Apply patch", "payload": {"patch_id": "p9"}},
+            ],
+        }
+
+        materialized = materialize_terminal_card(card)
+        text = render_terminal_card(materialized)
+
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in materialized["action_selection"]["order"]],
+            [(1, "apply_patch"), (2, "reject_patch")],
+        )
+        self.assertEqual(
+            [line for line in text.splitlines() if line.startswith("* ")],
+            ["* 1. Apply patch", "* 2. Reject patch"],
+        )
+
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []
         action = ActionRef(

@@ -55,6 +55,28 @@ def materialize_terminal_card(card: dict[str, Any]) -> dict[str, Any]:
     return materialize_cli_fallback_card(card)
 
 
+def _terminal_action_slots(materialized: dict[str, Any]) -> list[dict[str, Any]]:
+    actions = materialized.get("actions", [])
+    action_selection = materialized.get("action_selection", {})
+    order = action_selection.get("order") if isinstance(action_selection, dict) else None
+    if not isinstance(actions, list) or not isinstance(order, list):
+        return materialize_action_slots(materialized)
+
+    actions_by_identity = {
+        _canonical_action_identity_key(action): action for action in actions if isinstance(action, dict)
+    }
+    slots: list[dict[str, Any]] = []
+    for entry in order:
+        if not isinstance(entry, dict):
+            continue
+        slot = entry.get("slot")
+        action = actions_by_identity.get(str(entry.get("action_identity", "")))
+        if not isinstance(slot, int) or isinstance(slot, bool) or action is None:
+            continue
+        slots.append({"slot": slot, "action": action})
+    return slots if slots else materialize_action_slots(materialized)
+
+
 def studio_materialize_card(payload: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
     return materialize_terminal_card(_studio_materialize_card(payload, capabilities))
 
@@ -99,7 +121,7 @@ def render_terminal_card(card: dict[str, Any]) -> str:
                 for row in rows:
                     if isinstance(row, list):
                         lines.append(" | ".join(str(value) for value in row))
-    for slot in materialize_action_slots(materialized):
+    for slot in _terminal_action_slots(materialized):
         action = slot["action"]
         lines.append(f"* {slot['slot']}. {action.get('label', action.get('id', 'action'))}")
     return "\n".join(lines)
