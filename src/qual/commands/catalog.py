@@ -1240,6 +1240,12 @@ def _validate_command_surface_contract(contract: CommandSurfaceContract) -> None
         raise ValueError("Command surface route surface tokens are inconsistent")
     if contract.lookup_surface != contract.lookup_index:
         raise ValueError("Command surface lookup surfaces must match")
+    route_demo_steps = tuple(entry.demo_step for entry in contract.route_catalog)
+    if any(route_demo_steps):
+        if not contract.demo_path_steps:
+            raise ValueError("Command surface demo path steps are missing")
+        if tuple(step.demo_step for step in contract.demo_path_steps) != route_demo_steps:
+            raise ValueError("Command surface demo path labels are inconsistent")
     if contract.demo_path_steps:
         if tuple(step.flow_step for step in contract.demo_path_steps) != contract.flow_steps:
             raise ValueError("Command surface demo path steps are inconsistent")
