@@ -259,13 +259,21 @@ def _lease_state() -> tuple[int | None, float | None]:
 
 def _is_running() -> bool:
     lease_pid, lease_ts = _lease_state()
-    pid = _read_pid() or lease_pid
-    if not pid:
+    if not lease_pid or not lease_ts:
         return False
-    if not _pid_alive(pid) or not _pid_matches_daemon(pid):
+    if not _pid_alive(lease_pid) or not _pid_matches_daemon(lease_pid):
         return False
-    if lease_pid != pid or not lease_ts:
+    if (time.time() - lease_ts) > LEASE_FRESH_SECONDS:
         return False
+
+    # The daemon lease is the source of truth. A stale pidfile can be left
+    # behind by launchd/bootstrap races or detached restarts; do not let it
+    # mask a live coordinator that is actively refreshing its lease.
+    pid = _read_pid()
+    if pid != lease_pid:
+        with contextlib.suppress(Exception):
+            PID_FILE.write_text(str(lease_pid))
+        return True
     return (time.time() - lease_ts) <= LEASE_FRESH_SECONDS
 
 
@@ -273,6 +281,8 @@ def _status() -> int:
     pid = _read_pid()
     pids = _find_matching_pids()
     running = _is_running()
+    if running:
+        pid = _read_pid()
     print(f"daemon_running={running}")
     print(f"pidfile_pid={pid or '-'}")
     print(f"matching_pids={','.join(str(x) for x in pids) if pids else '-'}")

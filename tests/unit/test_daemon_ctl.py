@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import subprocess
+import tempfile
 import unittest
+from pathlib import Path
 from unittest import mock
 
 from packet_garden.tools import daemon_ctl
@@ -38,6 +40,25 @@ class DaemonCtlTests(unittest.TestCase):
             daemon_ctl.time, "time", return_value=1005.0
         ):
             self.assertTrue(daemon_ctl._is_running())
+
+    def test_is_running_repairs_stale_pidfile_from_fresh_lease(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            pid_file = Path(tmp) / "daemon.pid"
+            pid_file.write_text("99999", encoding="utf-8")
+            with mock.patch.object(daemon_ctl, "PID_FILE", pid_file), mock.patch.object(
+                daemon_ctl, "_read_pid", return_value=99999
+            ), mock.patch.object(
+                daemon_ctl, "_lease_state", return_value=(12345, 1000.0)
+            ), mock.patch.object(
+                daemon_ctl, "_pid_alive", return_value=True
+            ), mock.patch.object(
+                daemon_ctl, "_pid_matches_daemon", return_value=True
+            ), mock.patch.object(
+                daemon_ctl.time, "time", return_value=1005.0
+            ):
+                self.assertTrue(daemon_ctl._is_running())
+
+            self.assertEqual(pid_file.read_text(encoding="utf-8"), "12345")
 
 
 if __name__ == "__main__":
