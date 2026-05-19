@@ -318,6 +318,38 @@ class RemoteMonitorServerTests(unittest.TestCase):
             thread.join(timeout=5)
             server.server_close()
 
+    def test_get_kick_endpoint_accepts_bearer_for_shortcuts(self) -> None:
+        config = {"allowed_remote_cidrs": [], "snapshot_ttl_seconds": 0}
+        server = remote_monitor_server.ThreadingHTTPServer(("127.0.0.1", 0), remote_monitor_server.RemoteMonitorHandler)
+        server.monitor_config = config  # type: ignore[attr-defined]
+        server.monitor_token = "token"  # type: ignore[attr-defined]
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        base = f"http://127.0.0.1:{server.server_address[1]}"
+        try:
+            with mock.patch.object(
+                remote_monitor_server,
+                "run_control_action",
+                return_value={"rc": 0, "output": ["kick requested"], "timed_out": False},
+            ) as run_action, mock.patch.object(
+                remote_monitor_server,
+                "_fresh_snapshot",
+                return_value={"daemon_running": True, "generated_at": "now"},
+            ):
+                req = urllib.request.Request(
+                    f"{base}/api/control/kick?operator=iphone&reason=shortcut",
+                    headers={"Authorization": "Bearer token"},
+                    method="GET",
+                )
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    payload = json.loads(response.read().decode("utf-8"))
+                self.assertEqual(payload["action"], "kick")
+                run_action.assert_called_once_with("kick", operator="iphone", reason="shortcut")
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
+            server.server_close()
+
 
 class RemoteMonitorCtlTests(unittest.TestCase):
     def test_init_config_writes_chmod_600_token_and_config(self) -> None:

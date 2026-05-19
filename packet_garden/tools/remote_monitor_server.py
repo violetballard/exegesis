@@ -19,6 +19,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Dict, Mapping
+from urllib.parse import parse_qs, urlsplit
 
 try:
     from remote_monitor_snapshot import _sanitize_text, build_snapshot, compact_summary
@@ -628,22 +629,24 @@ class RemoteMonitorHandler(BaseHTTPRequestHandler):
         return True
 
     def do_GET(self) -> None:  # noqa: N802 - stdlib API
-        if self.path == "/healthz":
+        parsed = urlsplit(self.path)
+        path = parsed.path
+        if path == "/healthz":
             if not self._guard(auth=False):
                 return
             self._send_json(HTTPStatus.OK, {"status": "ok"})
             return
-        if self.path == "/api/status/summary":
+        if path == "/api/status/summary":
             if not self._guard():
                 return
             self._send_json(HTTPStatus.OK, _fresh_snapshot(self.monitor_config, full=False))
             return
-        if self.path == "/api/status/text":
+        if path == "/api/status/text":
             if not self._guard():
                 return
             self._send_text(HTTPStatus.OK, summary_text(_fresh_snapshot(self.monitor_config, full=False)))
             return
-        if self.path == "/api/status/html":
+        if path == "/api/status/html":
             if not self._guard():
                 return
             session = monitor_session_cookie(self.monitor_token)
@@ -653,15 +656,50 @@ class RemoteMonitorHandler(BaseHTTPRequestHandler):
                 session_cookie=session,
             )
             return
-        if self.path == "/api/status":
+        if path == "/api/status":
             if not self._guard():
                 return
             self._send_json(HTTPStatus.OK, _fresh_snapshot(self.monitor_config, full=True))
             return
+        if path == "/api/control/kick":
+            if not self._guard():
+                return
+            query = parse_qs(parsed.query)
+            operator = str((query.get("operator") or [self.monitor_config.get("operator_label") or "remote-monitor"])[0])
+            reason = str((query.get("reason") or ["kick from authenticated GET"])[0])
+            action_id = str(uuid.uuid4())
+            result = run_control_action("kick", operator=operator, reason=reason)
+            status_code = HTTPStatus.OK if int(result.get("rc", 1)) == 0 else HTTPStatus.INTERNAL_SERVER_ERROR
+            if "text/html" in str(self.headers.get("Accept") or ""):
+                session = monitor_session_cookie(self.monitor_token)
+                label = "sent" if status_code == HTTPStatus.OK else "failed"
+                body = (
+                    "<!doctype html><meta name='viewport' content='width=device-width, initial-scale=1'>"
+                    "<title>Exegesis Kick</title>"
+                    "<body style='font:16px ui-monospace,monospace;background:#0d1f31;color:#e8f1ff;padding:24px'>"
+                    f"<h1>Kick {escape(label)}</h1>"
+                    f"<p>Action id: {escape(action_id)}</p>"
+                    "<p><a style='color:#5dff9b' href='/api/status/html'>Back to status</a></p>"
+                    "</body>"
+                )
+                self._send_html(status_code, body, session_cookie=session)
+                return
+            self._send_json(
+                status_code,
+                {
+                    "action_id": action_id,
+                    "action": "kick",
+                    "operator": operator,
+                    "updated_at": utc_now(),
+                    "result": result,
+                    "summary": _fresh_snapshot(self.monitor_config, full=False),
+                },
+            )
+            return
         self._send_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
 
     def do_POST(self) -> None:  # noqa: N802 - stdlib API
-        action = CONTROL_ROUTES.get(self.path)
+        action = CONTROL_ROUTES.get(urlsplit(self.path).path)
         if not action:
             self._send_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
             return
