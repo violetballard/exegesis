@@ -1174,6 +1174,16 @@ def _validate_command_surface_contract(contract: CommandSurfaceContract) -> None
             raise ValueError("Command surface demo path steps are inconsistent")
         if tuple(step.name for step in contract.demo_path_steps) != contract.names:
             raise ValueError("Command surface demo path names are inconsistent")
+        route_cli_tokens = tuple(entry.cli_tokens[0] for entry in contract.route_catalog)
+        if tuple(step.cli_token for step in contract.demo_path_steps) != route_cli_tokens:
+            raise ValueError("Command surface demo path CLI tokens are inconsistent")
+        demo_argv_tokens = tuple(step.argv[0] if step.argv else "" for step in contract.demo_path_steps)
+        if demo_argv_tokens != route_cli_tokens:
+            raise ValueError("Command surface demo path argv tokens are inconsistent")
+        if tuple(step.description for step in contract.demo_path_steps) != tuple(
+            entry.description for entry in contract.route_catalog
+        ):
+            raise ValueError("Command surface demo path descriptions are inconsistent")
 
 
 @lru_cache(maxsize=None)
