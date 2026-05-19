@@ -310,6 +310,140 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
             "feature_tool_loop_detected",
         )
 
+    def test_reconcile_terminates_feature_startup_with_no_tool_activity(self) -> None:
+        from packet_garden.tools import agents_coordinator as coordinator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            log_path = root / "feat-commands.log"
+            log_path.write_text(
+                '{"action":"direct_exec_local_fallback","lane":"feat-commands"}\n'
+                "\nLocal fallback launched as direct exec.\n"
+                "\n> build · gemma-4-31b-it\n",
+                encoding="utf-8",
+            )
+            feature_state = root / "feature_runner_state.json"
+            router_state = root / "router_state.json"
+            feature_state.write_text(
+                json.dumps(
+                    {
+                        "lanes": {
+                            "feat-commands": {
+                                "status": "direct_exec_running",
+                                "pid": 9194,
+                                "log_path": str(log_path),
+                                "last_launch_at": "20260415T150000Z",
+                            },
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            router_state.write_text(json.dumps({}), encoding="utf-8")
+            coordinator_state = {"lane_refill": {}}
+
+            with (
+                patch.object(coordinator, "FEATURE_RUNNER_STATE_FILE", feature_state),
+                patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
+                patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 9194),
+                patch.object(coordinator, "_terminate_pid_tree") as terminate_mock,
+                patch.object(coordinator, "_reconcile_lane_worktrees", return_value={
+                    "gitdir_repaired": [],
+                    "gitdir_backups": [],
+                    "artifacts_removed": {},
+                    "health_failures": {},
+                    "rebuilt": {},
+                    "rebuild_backups": {},
+                    "rebuild_failures": {},
+                }),
+                patch.object(coordinator, "run_hygiene", return_value={
+                    "stale_git_pids": [],
+                    "temp_worktrees_removed": [],
+                    "stale_commit_locks_removed": [],
+                    "stale_worktree_index_locks_removed": [],
+                }),
+                patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
+                patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
+                patch.object(coordinator, "time") as time_mod,
+            ):
+                time_mod.time.return_value = 1_776_272_400.0
+                time_mod.sleep.return_value = None
+                summary = coordinator._reconcile_control_plane_state(coordinator_state)
+
+        terminate_mock.assert_called_once_with(9194)
+        self.assertEqual(summary["feature_runner_removed"], ["feat-commands"])
+        self.assertIn("feat-commands", summary["feature_runner_terminated"])
+        self.assertIn(
+            "feature startup/no tool activity",
+            summary["feature_runner_terminated"]["feat-commands"],
+        )
+        self.assertEqual(
+            coordinator_state["lane_refill"]["feat-commands"]["force_resume_reason"],
+            "feature_tool_loop_detected",
+        )
+
+    def test_reconcile_keeps_feature_startup_inside_no_tool_grace_window(self) -> None:
+        from packet_garden.tools import agents_coordinator as coordinator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            log_path = root / "feat-commands.log"
+            log_path.write_text(
+                "\nLocal fallback launched as direct exec.\n"
+                "\n> build · gemma-4-31b-it\n",
+                encoding="utf-8",
+            )
+            feature_state = root / "feature_runner_state.json"
+            router_state = root / "router_state.json"
+            feature_state.write_text(
+                json.dumps(
+                    {
+                        "lanes": {
+                            "feat-commands": {
+                                "status": "direct_exec_running",
+                                "pid": 9195,
+                                "log_path": str(log_path),
+                                "last_launch_at": "20260519T070000Z",
+                            },
+                        }
+                    }
+                ),
+                encoding="utf-8",
+            )
+            router_state.write_text(json.dumps({}), encoding="utf-8")
+            coordinator_state = {"lane_refill": {}}
+
+            with (
+                patch.object(coordinator, "FEATURE_RUNNER_STATE_FILE", feature_state),
+                patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
+                patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 9195),
+                patch.object(coordinator, "_terminate_pid_tree") as terminate_mock,
+                patch.object(coordinator, "_reconcile_lane_worktrees", return_value={
+                    "gitdir_repaired": [],
+                    "gitdir_backups": [],
+                    "artifacts_removed": {},
+                    "health_failures": {},
+                    "rebuilt": {},
+                    "rebuild_backups": {},
+                    "rebuild_failures": {},
+                }),
+                patch.object(coordinator, "run_hygiene", return_value={
+                    "stale_git_pids": [],
+                    "temp_worktrees_removed": [],
+                    "stale_commit_locks_removed": [],
+                    "stale_worktree_index_locks_removed": [],
+                }),
+                patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
+                patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
+                patch.object(coordinator, "time") as time_mod,
+            ):
+                time_mod.time.return_value = 1_779_170_600.0
+                time_mod.sleep.return_value = None
+                summary = coordinator._reconcile_control_plane_state(coordinator_state)
+
+        terminate_mock.assert_not_called()
+        self.assertEqual(summary["feature_runner_removed"], [])
+
     def test_reconcile_terminates_repeated_malformed_tool_call_loop(self) -> None:
         from packet_garden.tools import agents_coordinator as coordinator
 

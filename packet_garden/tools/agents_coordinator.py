@@ -91,6 +91,9 @@ FEATURE_LOOP_MIN_RUNTIME_SECONDS = 300.0
 FEATURE_LOOP_LOG_TAIL_BYTES = 32768
 FEATURE_LOOP_BAD_APPLYPATCH_THRESHOLD = 6
 FEATURE_LOOP_RECONNECT_THRESHOLD = 4
+FEATURE_NO_TOOL_ACTIVITY_MIN_RUNTIME_SECONDS = float(
+    os.environ.get("FEATURE_NO_TOOL_ACTIVITY_MIN_RUNTIME_SECONDS", "2700")
+)
 ROUTER_JOB_LOOP_MIN_RUNTIME_SECONDS = 300.0
 ROUTER_FIXER_NO_TOOL_MIN_RUNTIME_SECONDS = 180.0
 FEATURE_LOOP_PARSE_ERROR_THRESHOLD = 2
@@ -610,6 +613,50 @@ def _feature_runner_loop_reason(lane_state: Dict[str, object]) -> Optional[str]:
             "reconnect timeout loop "
             f"({reconnects} reconnect retries, {idle_timeouts} idle timeouts)"
         )
+    no_tool_reason = _feature_runner_no_tool_reason(lane_state, text=text)
+    if no_tool_reason:
+        return no_tool_reason
+    return None
+
+
+def _feature_runner_no_tool_reason(lane_state: Dict[str, object], *, text: str = "") -> Optional[str]:
+    pid = int(lane_state.get("pid") or 0)
+    if pid <= 0 or not _pid_alive(pid):
+        return None
+    launched_at = _parse_feature_runner_ts(str(lane_state.get("last_launch_at") or ""))
+    if not launched_at or (time.time() - launched_at) < FEATURE_NO_TOOL_ACTIVITY_MIN_RUNTIME_SECONDS:
+        return None
+    log_path = Path(str(lane_state.get("log_path") or ""))
+    if not log_path.exists():
+        return None
+    if not text:
+        text = _read_text_tail(log_path)
+    if not text.strip():
+        return None
+    activity_markers = (
+        "functions.exec_command",
+        "exec_command",
+        "apply_patch",
+        "succeeded in",
+        "Process exited",
+        "diff --git",
+        "git diff",
+        "pytest",
+        "quality-",
+        "typecheck",
+        "make ci",
+        "Committed",
+        "Ready for handoff",
+        "Handoff",
+        "files changed",
+        "tests pass",
+    )
+    if any(marker in text for marker in activity_markers):
+        return None
+    startup_markers = ("> build", "build ·", "Local fallback launched as direct exec.")
+    if any(marker in text for marker in startup_markers):
+        elapsed = int(time.time() - launched_at)
+        return f"feature startup/no tool activity after {elapsed}s"
     return None
 
 
