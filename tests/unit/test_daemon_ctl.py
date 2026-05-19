@@ -8,6 +8,11 @@ from packet_garden.tools import daemon_ctl
 
 
 class DaemonCtlTests(unittest.TestCase):
+    def test_pid_alive_rejects_non_positive_pid(self) -> None:
+        with mock.patch.object(daemon_ctl.os, "kill", side_effect=AssertionError("should not signal pid 0")):
+            self.assertFalse(daemon_ctl._pid_alive(0))
+            self.assertFalse(daemon_ctl._pid_alive(-1))
+
     def test_pid_match_allows_restricted_process_table(self) -> None:
         with mock.patch.object(subprocess, "run", side_effect=PermissionError("denied")):
             self.assertTrue(daemon_ctl._pid_matches_daemon(12345))

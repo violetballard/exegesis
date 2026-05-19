@@ -1182,6 +1182,38 @@ class CloudDirectExecLaunchTests(unittest.TestCase):
         self.assertEqual(result["mode"], "cloud_primary")
         self.assertEqual(result["pid"], 4242)
 
+    def test_launch_one_lane_skips_missing_kickoff_packet(self) -> None:
+        from packet_garden.tools.launch_feature_lanes import _launch_one_lane
+
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            prompts_dir = tmp_path / "prompts"
+            logs_dir = tmp_path / "logs"
+            prompts_dir.mkdir()
+            logs_dir.mkdir()
+            workdir = str(tmp_path / "worktree")
+            Path(workdir).mkdir()
+            launch_cfg = {
+                "branch": "codex/feat-retrieval-fts",
+                "mode": "local_fallback",
+                "profile_name": "worker_local",
+            }
+            args = argparse.Namespace(restart_existing=False, dry_run=False)
+
+            with patch("packet_garden.tools.launch_feature_lanes.build_prompt", side_effect=FileNotFoundError("missing")):
+                result = _launch_one_lane(
+                    "feat-retrieval-fts",
+                    args=args,
+                    launch_cfg=launch_cfg,
+                    worktrees={"refs/heads/codex/feat-retrieval-fts": workdir},
+                    prompts_dir=prompts_dir,
+                    logs_dir=logs_dir,
+                    feature_state={"lanes": {}},
+                )
+
+        self.assertEqual(result["status"], "skipped")
+        self.assertIn("missing kickoff packet", result["reason"])
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -9,6 +9,11 @@ from packet_garden.tools import daemon_monitor
 
 
 class DaemonMonitorTests(unittest.TestCase):
+    def test_pid_alive_rejects_non_positive_pid(self) -> None:
+        with mock.patch.object(daemon_monitor.os, 'kill', side_effect=AssertionError('should not signal pid 0')):
+            self.assertFalse(daemon_monitor._pid_alive(0))
+            self.assertFalse(daemon_monitor._pid_alive(-1))
+
     def test_read_log_tail_lines_returns_only_recent_tail(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / 'big.log'

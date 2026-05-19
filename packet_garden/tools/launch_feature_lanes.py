@@ -250,8 +250,13 @@ def runtime_launch_config(lane: str | None = None, *, provider: str = "auto") ->
     local_profile_name = _lane_profile_name(cfg, role_profiles, lane, local=True)
     prof = profiles[profile_name]
     local_prof = profiles[local_profile_name]
+    lane_cfg = dict(cfg.get("lanes") or {}).get(lane or "") or {}
+    if not isinstance(lane_cfg, dict):
+        lane_cfg = {}
+    branch = str(lane_cfg.get("branch") or (f"codex/{lane}" if lane else ""))
     return {
         "lane": lane or "",
+        "branch": branch,
         "mode": mode,
         "profile_name": profile_name,
         "launch_timeout_seconds": float(cfg.get("feature_launch_timeout_seconds", 120)),
@@ -280,6 +285,11 @@ def _bounded_kickoff_text(lane: str) -> str:
         "[KICKOFF PACKET TRUNCATED FOR CONTEXT SAFETY]\n"
         f"The full packet is available at `{kickoff_path}`. Read only targeted sections from it if needed.\n"
     )
+
+
+def _lane_branch_ref(lane: str, launch_cfg: Dict[str, object]) -> str:
+    branch_name = str(launch_cfg.get("branch") or f"codex/{lane}")
+    return f"refs/heads/{branch_name}"
 
 
 def build_prompt(lane: str, workdir: str) -> str:
@@ -568,12 +578,20 @@ def _launch_one_lane(
     logs_dir: Path,
     feature_state: Dict[str, Any],
 ) -> Dict[str, Any]:
-    branch = f"refs/heads/codex/{lane}"
-    workdir = worktrees.get(branch)
+    branch_ref = _lane_branch_ref(lane, launch_cfg)
+    workdir = worktrees.get(branch_ref)
     if not workdir:
-        return {"lane": lane, "status": "skipped", "reason": f"no worktree for {branch}"}
+        return {"lane": lane, "status": "skipped", "reason": f"no worktree for {branch_ref}"}
 
-    prompt = build_prompt(lane, workdir)
+    try:
+        prompt = build_prompt(lane, workdir)
+    except FileNotFoundError as exc:
+        missing = Path(getattr(exc, "filename", "") or (KICKOFF_DIR / f"{lane}.md"))
+        return {
+            "lane": lane,
+            "status": "skipped",
+            "reason": f"missing kickoff packet: {missing}",
+        }
     prompt_path = prompts_dir / f"{lane}__{_ts()}.md"
     prompt_path.write_text(prompt)
     log_path = logs_dir / f"{lane}__{_ts()}.log"
@@ -1068,9 +1086,9 @@ def main() -> int:
 
     if args.dry_run:
         for lane in args.lanes:
-            branch = f"refs/heads/codex/{lane}"
-            workdir = worktrees.get(branch)
             lane_launch_cfg = lane_launch_cfgs[lane]
+            branch = _lane_branch_ref(lane, lane_launch_cfg)
+            workdir = worktrees.get(branch)
             launched.append(
                 {
                     "lane": lane,
@@ -1092,7 +1110,22 @@ def main() -> int:
     if parallel_limit <= 0:
         print(json.dumps({"runtime_mode": launch_cfg["mode"], "launched": []}, indent=2))
         return 0
-    lanes_to_launch = list(args.lanes)[:parallel_limit]
+    launch_candidates: List[str] = []
+    for lane in args.lanes:
+        lane_launch_cfg = lane_launch_cfgs[lane]
+        branch_ref = _lane_branch_ref(lane, lane_launch_cfg)
+        if branch_ref not in worktrees:
+            launched.append({"lane": lane, "status": "skipped", "reason": f"no worktree for {branch_ref}"})
+            continue
+        kickoff_path = KICKOFF_DIR / f"{lane}.md"
+        if not kickoff_path.exists():
+            launched.append({"lane": lane, "status": "skipped", "reason": f"missing kickoff packet: {kickoff_path}"})
+            continue
+        launch_candidates.append(lane)
+    lanes_to_launch = launch_candidates[:parallel_limit]
+    if not lanes_to_launch:
+        print(json.dumps({"runtime_mode": launch_cfg["mode"], "launched": launched}, indent=2))
+        return 0
     max_workers = min(len(lanes_to_launch), parallel_limit)
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         futures = [

@@ -57,6 +57,8 @@ def _ensure_dirs() -> None:
 
 
 def _pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
     try:
         os.kill(pid, 0)
     except OSError as exc:
