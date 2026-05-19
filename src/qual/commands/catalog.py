@@ -679,12 +679,27 @@ def command_cli_smoke_steps(
     )
 
 
+def command_cli_smoke_argv(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, ...], ...]:
+    return tuple(step.argv for step in command_cli_smoke_steps(specs, flow_steps))
+
+
 def command_demo_cli_smoke_steps() -> tuple[CommandCliSmokeStep, ...]:
     return command_cli_smoke_steps(flow_steps=command_demo_flow_steps())
 
 
 def command_mvp_cli_smoke_steps() -> tuple[CommandCliSmokeStep, ...]:
     return command_demo_cli_smoke_steps()
+
+
+def command_demo_cli_smoke_argv() -> tuple[tuple[str, ...], ...]:
+    return command_cli_smoke_argv(flow_steps=command_demo_flow_steps())
+
+
+def command_mvp_cli_smoke_argv() -> tuple[tuple[str, ...], ...]:
+    return command_demo_cli_smoke_argv()
 
 
 @lru_cache(maxsize=None)
