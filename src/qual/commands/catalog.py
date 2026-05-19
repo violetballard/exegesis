@@ -694,6 +694,17 @@ def command_cli_smoke_argv(
     return tuple(step.argv for step in command_cli_smoke_steps(specs, flow_steps))
 
 
+def command_cli_smoke_commands(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, ...], ...]:
+    normalized_program = program.strip()
+    if not normalized_program:
+        raise ValueError("Command CLI smoke program must not be empty")
+    return tuple((normalized_program, *argv) for argv in command_cli_smoke_argv(specs, flow_steps))
+
+
 def _validate_command_cli_smoke_plan(plan: CommandCliSmokePlan) -> None:
     route_flow_steps = tuple(flow_step for flow_step, _, _ in plan.route_summary)
     if plan.flow_steps != route_flow_steps:
@@ -741,6 +752,14 @@ def command_demo_cli_smoke_argv() -> tuple[tuple[str, ...], ...]:
 
 def command_mvp_cli_smoke_argv() -> tuple[tuple[str, ...], ...]:
     return command_demo_cli_smoke_argv()
+
+
+def command_demo_cli_smoke_commands(program: str = "qual-bootstrap") -> tuple[tuple[str, ...], ...]:
+    return command_cli_smoke_commands(program=program, flow_steps=command_demo_flow_steps())
+
+
+def command_mvp_cli_smoke_commands(program: str = "qual-bootstrap") -> tuple[tuple[str, ...], ...]:
+    return command_demo_cli_smoke_commands(program=program)
 
 
 def command_demo_cli_smoke_plan() -> CommandCliSmokePlan:
