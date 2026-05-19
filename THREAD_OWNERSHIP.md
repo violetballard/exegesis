@@ -56,15 +56,11 @@ Detailed task breakdown lives in `/Users/doctor-violet/projects/exegesis/docs/TA
 
 - `codex/feat-console-shell*`
   - Owned paths:
-    - `client-textual/src/exegesis_textual/app/**`
-    - `client-textual/src/exegesis_textual/layout/**`
-    - `client-textual/src/exegesis_textual/panes/**`
-    - `client-textual/src/exegesis_textual/commands/**`
-    - `client-textual/src/exegesis_textual/shortcuts/**`
-    - `client-textual/src/exegesis_textual/inspectors/**`
-    - `client-textual/src/exegesis_textual/theme/**`
+    - `client-textual/**`
   - Current status:
     - disabled until the Textual dependency is intentionally added
+    - owns the current browser-facing Textual mockup branch as a single
+      preserved surface until Milestone 1 shell wiring is activated
 
 - `codex/feat-console-workflow*`
   - Owned paths:
@@ -73,6 +69,8 @@ Detailed task breakdown lives in `/Users/doctor-violet/projects/exegesis/docs/TA
     - `client-textual/src/exegesis_textual/events/**`
   - Current status:
     - disabled until the Textual dependency is intentionally added
+    - reserved for a later split only if workflow behavior needs to move
+      independently from the preserved shell mockup branch
 
 ## Defined but disabled future feature lanes
 

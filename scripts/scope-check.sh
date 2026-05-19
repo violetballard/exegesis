@@ -172,7 +172,7 @@ is_allowed() {
       ;;
     codex/feat-console-shell*)
       case "$f" in
-        client-textual/src/exegesis_textual/app/*|client-textual/src/exegesis_textual/app/*/*|client-textual/src/exegesis_textual/layout/*|client-textual/src/exegesis_textual/layout/*/*|client-textual/src/exegesis_textual/panes/*|client-textual/src/exegesis_textual/panes/*/*|client-textual/src/exegesis_textual/commands/*|client-textual/src/exegesis_textual/commands/*/*|client-textual/src/exegesis_textual/shortcuts/*|client-textual/src/exegesis_textual/shortcuts/*/*|client-textual/src/exegesis_textual/inspectors/*|client-textual/src/exegesis_textual/inspectors/*/*|client-textual/src/exegesis_textual/theme/*|client-textual/src/exegesis_textual/theme/*/*) return 0 ;;
+        client-textual/*|client-textual/*/*) return 0 ;;
       esac
       return 1
       ;;

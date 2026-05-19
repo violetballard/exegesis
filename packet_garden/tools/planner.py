@@ -82,13 +82,7 @@ LANE_OWNED_PATHS = {
         "tests/unit/test_engine_run_pipeline.py",
     ],
     "feat-console-shell": [
-        "client-textual/src/exegesis_textual/app/**",
-        "client-textual/src/exegesis_textual/layout/**",
-        "client-textual/src/exegesis_textual/panes/**",
-        "client-textual/src/exegesis_textual/commands/**",
-        "client-textual/src/exegesis_textual/shortcuts/**",
-        "client-textual/src/exegesis_textual/inspectors/**",
-        "client-textual/src/exegesis_textual/theme/**",
+        "client-textual/**",
     ],
     "feat-console-workflow": [
         "client-textual/src/exegesis_textual/workflow/**",
