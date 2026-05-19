@@ -19,7 +19,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Dict, Mapping
-from urllib.parse import parse_qs, urlsplit
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 try:
     from remote_monitor_snapshot import _sanitize_text, build_snapshot, compact_summary
@@ -194,6 +194,15 @@ def _fresh_snapshot(config: Mapping[str, Any], *, full: bool = False) -> Dict[st
     return snapshot if full else compact_summary(snapshot)
 
 
+def _request_base_url(handler: BaseHTTPRequestHandler) -> str:
+    host = str(handler.headers.get("Host") or "").strip()
+    if not host:
+        bind_host, bind_port = handler.server.server_address[:2]
+        host = f"{bind_host}:{bind_port}"
+    scheme = "https" if str(handler.headers.get("X-Forwarded-Proto") or "").lower() == "https" else "http"
+    return f"{scheme}://{host}"
+
+
 def summary_text(payload: Mapping[str, Any]) -> str:
     pause = payload.get("pause") if isinstance(payload.get("pause"), dict) else {}
     git = payload.get("git") if isinstance(payload.get("git"), dict) else {}
@@ -276,7 +285,18 @@ def _format_lane_running(lane: Mapping[str, Any]) -> str:
     return ", ".join(labels) if labels else "not running"
 
 
-def summary_html(payload: Mapping[str, Any], *, session_token: str = "") -> str:
+def _control_href(base_url: str, action: str, session_token: str) -> str:
+    query = urlencode(
+        {
+            "session": session_token,
+            "operator": "status-page",
+            "reason": f"{action} from status page",
+        }
+    )
+    return f"{base_url}/api/control/{action}?{query}"
+
+
+def summary_html(payload: Mapping[str, Any], *, session_token: str = "", base_url: str = "") -> str:
     pause = payload.get("pause") if isinstance(payload.get("pause"), dict) else {}
     git = payload.get("git") if isinstance(payload.get("git"), dict) else {}
     memory = payload.get("memory_pressure") if isinstance(payload.get("memory_pressure"), dict) else {}
@@ -292,6 +312,8 @@ def summary_html(payload: Mapping[str, Any], *, session_token: str = "") -> str:
     toggle_action = "stop" if daemon_running else "start"
     toggle_label = "Stop daemon" if daemon_running else "Start daemon"
     toggle_class = "danger" if daemon_running else "primary"
+    toggle_href = _control_href(base_url, toggle_action, session_token)
+    kick_href = _control_href(base_url, "kick", session_token)
     rows = [
         ("Runtime", payload.get("runtime_mode", "-"), ""),
         ("Cloud", cloud_value, cloud_class),
@@ -396,8 +418,12 @@ def summary_html(payload: Mapping[str, Any], *, session_token: str = "") -> str:
       margin: 0 0 18px;
       flex-wrap: wrap;
     }}
-    button {{
+    button,
+    a.button {{
       appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       border: 1px solid color-mix(in srgb, var(--line) 70%, white);
       background: #0e8ce3;
       color: white;
@@ -406,14 +432,19 @@ def summary_html(payload: Mapping[str, Any], *, session_token: str = "") -> str:
       padding: 10px 13px;
       min-width: 130px;
       cursor: pointer;
+      text-decoration: none;
+      box-sizing: border-box;
     }}
-    button:hover {{ background: #0768ab; }}
-    button.danger {{
+    button:hover,
+    a.button:hover {{ background: #0768ab; }}
+    button.danger,
+    a.button.danger {{
       background: #dba057;
       color: #06111d;
       border-color: #ffd193;
     }}
-    button.danger:hover {{ background: #bd8542; }}
+    button.danger:hover,
+    a.button.danger:hover {{ background: #bd8542; }}
     #control-status {{
       min-height: 1.3em;
       margin: -8px 0 14px;
@@ -462,8 +493,8 @@ def summary_html(payload: Mapping[str, Any], *, session_token: str = "") -> str:
     <div class="stamp">{escape(generated)}</div>
     <div class="pill {daemon_class}">Daemon: {daemon_label}</div>
     <div class="controls">
-      <button class="{toggle_class}" data-action="{toggle_action}">{toggle_label}</button>
-      <button class="primary" data-action="kick">Kick</button>
+      <a class="button {toggle_class}" data-action="{toggle_action}" href="{escape(toggle_href)}">{toggle_label}</a>
+      <a class="button primary" data-action="kick" href="{escape(kick_href)}">Kick</a>
     </div>
     <div id="control-status" aria-live="polite"></div>
     <section>{row_html}</section>
@@ -496,8 +527,11 @@ def summary_html(payload: Mapping[str, Any], *, session_token: str = "") -> str:
         statusLine.textContent = `Control failed: ${{error.message}}`;
       }}
     }}
-    for (const button of document.querySelectorAll("button[data-action]")) {{
-      button.addEventListener("click", () => runControl(button.dataset.action));
+    for (const button of document.querySelectorAll("[data-action]")) {{
+      button.addEventListener("click", (event) => {{
+        event.preventDefault();
+        runControl(button.dataset.action);
+      }});
     }}
   </script>
 </body>
@@ -628,6 +662,15 @@ class RemoteMonitorHandler(BaseHTTPRequestHandler):
             return False
         return True
 
+    def _guard_control_get(self, parsed: Any) -> bool:
+        if client_allowed(self.client_address[0], self.monitor_config):
+            query = parse_qs(parsed.query)
+            supplied_session = str((query.get("session") or [""])[0]).strip()
+            expected_session = monitor_session_cookie(self.monitor_token)
+            if supplied_session and expected_session and hmac.compare_digest(supplied_session, expected_session):
+                return True
+        return self._guard()
+
     def do_GET(self) -> None:  # noqa: N802 - stdlib API
         parsed = urlsplit(self.path)
         path = parsed.path
@@ -652,7 +695,11 @@ class RemoteMonitorHandler(BaseHTTPRequestHandler):
             session = monitor_session_cookie(self.monitor_token)
             self._send_html(
                 HTTPStatus.OK,
-                summary_html(_fresh_snapshot(self.monitor_config, full=False), session_token=session),
+                summary_html(
+                    _fresh_snapshot(self.monitor_config, full=False),
+                    session_token=session,
+                    base_url=_request_base_url(self),
+                ),
                 session_cookie=session,
             )
             return
@@ -661,25 +708,26 @@ class RemoteMonitorHandler(BaseHTTPRequestHandler):
                 return
             self._send_json(HTTPStatus.OK, _fresh_snapshot(self.monitor_config, full=True))
             return
-        if path == "/api/control/kick":
-            if not self._guard():
+        action = CONTROL_ROUTES.get(path)
+        if action:
+            if not self._guard_control_get(parsed):
                 return
             query = parse_qs(parsed.query)
             operator = str((query.get("operator") or [self.monitor_config.get("operator_label") or "remote-monitor"])[0])
-            reason = str((query.get("reason") or ["kick from authenticated GET"])[0])
+            reason = str((query.get("reason") or [f"{action} from authenticated GET"])[0])
             action_id = str(uuid.uuid4())
-            result = run_control_action("kick", operator=operator, reason=reason)
+            result = run_control_action(action, operator=operator, reason=reason)
             status_code = HTTPStatus.OK if int(result.get("rc", 1)) == 0 else HTTPStatus.INTERNAL_SERVER_ERROR
             if "text/html" in str(self.headers.get("Accept") or ""):
                 session = monitor_session_cookie(self.monitor_token)
                 label = "sent" if status_code == HTTPStatus.OK else "failed"
                 body = (
                     "<!doctype html><meta name='viewport' content='width=device-width, initial-scale=1'>"
-                    "<title>Exegesis Kick</title>"
+                    f"<title>Exegesis {escape(action.title())}</title>"
                     "<body style='font:16px ui-monospace,monospace;background:#0d1f31;color:#e8f1ff;padding:24px'>"
-                    f"<h1>Kick {escape(label)}</h1>"
+                    f"<h1>{escape(action.title())} {escape(label)}</h1>"
                     f"<p>Action id: {escape(action_id)}</p>"
-                    "<p><a style='color:#5dff9b' href='/api/status/html'>Back to status</a></p>"
+                    f"<p><a style='color:#5dff9b' href='/api/status/html?session={escape(session)}'>Back to status</a></p>"
                     "</body>"
                 )
                 self._send_html(status_code, body, session_cookie=session)
@@ -688,7 +736,7 @@ class RemoteMonitorHandler(BaseHTTPRequestHandler):
                 status_code,
                 {
                     "action_id": action_id,
-                    "action": "kick",
+                    "action": action,
                     "operator": operator,
                     "updated_at": utc_now(),
                     "result": result,

@@ -173,12 +173,14 @@ class RemoteMonitorServerTests(unittest.TestCase):
             ],
         }
 
-        html = remote_monitor_server.summary_html(payload)
+        html = remote_monitor_server.summary_html(payload, session_token="session", base_url="http://127.0.0.1:8765")
 
         self.assertIn("<title>Exegesis Status</title>", html)
         self.assertIn("Daemon: RUNNING", html)
         self.assertIn("&lt;none&gt;", html)
         self.assertIn('data-action="stop"', html)
+        self.assertIn('href="http://127.0.0.1:8765/api/control/stop?session=session', html)
+        self.assertIn('href="http://127.0.0.1:8765/api/control/kick?session=session', html)
         self.assertIn("Kick", html)
         self.assertIn("feat-engine-runs", html)
         self.assertIn("cloud integrator", html)
@@ -345,6 +347,38 @@ class RemoteMonitorServerTests(unittest.TestCase):
                     payload = json.loads(response.read().decode("utf-8"))
                 self.assertEqual(payload["action"], "kick")
                 run_action.assert_called_once_with("kick", operator="iphone", reason="shortcut")
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
+            server.server_close()
+
+    def test_get_control_endpoint_accepts_page_session_link(self) -> None:
+        config = {"allowed_remote_cidrs": [], "snapshot_ttl_seconds": 0}
+        server = remote_monitor_server.ThreadingHTTPServer(("127.0.0.1", 0), remote_monitor_server.RemoteMonitorHandler)
+        server.monitor_config = config  # type: ignore[attr-defined]
+        server.monitor_token = "token"  # type: ignore[attr-defined]
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        base = f"http://127.0.0.1:{server.server_address[1]}"
+        try:
+            with mock.patch.object(
+                remote_monitor_server,
+                "run_control_action",
+                return_value={"rc": 0, "output": ["kick requested"], "timed_out": False},
+            ) as run_action, mock.patch.object(
+                remote_monitor_server,
+                "_fresh_snapshot",
+                return_value={"daemon_running": True, "generated_at": "now"},
+            ):
+                session = remote_monitor_server.monitor_session_cookie("token")
+                req = urllib.request.Request(
+                    f"{base}/api/control/kick?session={session}&operator=status-page&reason=page-link",
+                    method="GET",
+                )
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    payload = json.loads(response.read().decode("utf-8"))
+                self.assertEqual(payload["action"], "kick")
+                run_action.assert_called_once_with("kick", operator="status-page", reason="page-link")
         finally:
             server.shutdown()
             thread.join(timeout=5)
