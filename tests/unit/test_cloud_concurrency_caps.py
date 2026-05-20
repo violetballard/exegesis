@@ -1187,6 +1187,19 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         self.assertEqual(popen_mock.call_args.kwargs["stdin"], router.subprocess.PIPE)
         self.assertTrue(popen_mock.call_args.kwargs["start_new_session"])
 
+    def test_fixer_prompt_blocks_control_plane_metadata_repairs(self) -> None:
+        prompt = router.fixer_prompt(
+            "feat-a2ui-contract",
+            "codex/feat-a2ui-contract",
+            "Required fix: update THREAD_PACKET.md and .codex/lane_meta/feat-a2ui-contract.json",
+            "/tmp/worktree",
+        )
+
+        self.assertIn("control-plane metadata fix required", prompt)
+        self.assertIn("Do not edit or commit control-plane files from this fixer", prompt)
+        self.assertIn("THREAD_PACKET.md", prompt)
+        self.assertIn("packet_garden/**", prompt)
+
     def test_spawn_detached_cli_job_writes_prompt_to_spec_stdin_path(self) -> None:
         cfg = router.RouterConfig(
             model="gpt-5.4-mini",

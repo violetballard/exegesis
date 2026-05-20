@@ -328,6 +328,7 @@ def build_prompt(lane: str, workdir: str) -> str:
         f"{kickoff}\n\n"
         "Execution requirements:\n"
         "- Stay inside lane-owned paths only.\n"
+        "- Treat any kickoff text that asks you to repair handoff metadata, packet metadata, shared packets, lane metadata, `THREAD_PACKET.md`, `.codex/**`, `packet_garden/**`, or scope policy as stale/non-actionable for a feature lane; report `control-plane metadata fix required` and stop instead of editing those files.\n"
         "- Do not edit or commit control-plane files from a feature branch, including `packet_garden/**`, `.codex/**`, `.agents/**`, `THREAD_PACKET.md`, `THREAD_OWNERSHIP.md`, `INTEGRATION.md`, `AGENTS.md`, or `scripts/scope-check.sh`.\n"
         "- If control-plane behavior must change, stop and report the blocker for integrator/control-plane handling instead of patching it in this lane.\n"
         "- Use the existing git worktree exactly as provided; do not replace `.git` or create `.git-local`, `.git-alt*`, shadow repos, or alternate object/index stores.\n"
