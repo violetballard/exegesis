@@ -245,6 +245,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
             patch.object(coordinator, "_enabled_lanes", return_value=["feat-commands"]),
             patch.object(coordinator, "_lane_queue_empty", return_value=True),
             patch.object(coordinator, "_lane_has_active_feature_session", return_value=False),
+            patch.object(coordinator, "_lane_has_current_head_integrated", return_value=False),
             patch.object(coordinator, "_lane_scope_violations", return_value=[]),
             patch.object(coordinator, "_local_lms_feature_launch_slots", return_value=1),
             patch.object(coordinator, "_has_router_priority_backlog", return_value=False),

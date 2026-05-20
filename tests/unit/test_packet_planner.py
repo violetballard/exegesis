@@ -31,8 +31,15 @@ class PacketPlannerTests(unittest.TestCase):
     def test_active_feature_does_not_block_reemit_after_review_notes(self) -> None:
         state = {"lane_refill": {"feat-engine-runs": {"feature_active": True}}}
 
-        self.assertTrue(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=False))
-        self.assertFalse(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=True))
+        with patch("packet_garden.tools.planner.lane_feature_process_active", return_value=True):
+            self.assertTrue(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=False))
+            self.assertFalse(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=True))
+
+    def test_stale_feature_active_flag_does_not_block_planner(self) -> None:
+        state = {"lane_refill": {"feat-engine-runs": {"feature_active": True}}}
+
+        with patch("packet_garden.tools.planner.lane_feature_process_active", return_value=False):
+            self.assertFalse(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=False))
 
     def test_source_commit_token_valid_checks_both_ends_of_range(self) -> None:
         with patch(

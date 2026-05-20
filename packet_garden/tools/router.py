@@ -131,7 +131,9 @@ CONTROL_PLANE_REVIEW_PATH_NAMES = {
 CONTROL_PLANE_METADATA_REPAIR_RE = re.compile(
     r"handoff metadata|packet metadata|lane metadata|THREAD_PACKET\.md|\.codex/|"
     r"implementation range|source commit|roadmap mapping|canonical demo-path|"
-    r"locally resolvable implementation|reissue the packet|handoff artifacts",
+    r"locally resolvable implementation|reissue the packet|handoff artifacts|"
+    r"handoff packet does not provide concrete completed tasks|missing handoff fields|"
+    r"placeholder task list|concrete numbered tasks completed",
     re.IGNORECASE,
 )
 
@@ -1681,15 +1683,24 @@ def _archive_shared_only_feature_packets(lane_dir: Path) -> int:
     return moved
 
 
-def _clear_planner_submission_for_lane(lane: str) -> None:
+def _mark_planner_reemit_for_lane(lane: str, sha: str, *, reason: str) -> None:
     planner_state_path = Path(".codex/packet_planner/state.json")
     state = load_json(planner_state_path, {})
-    lanes = state.get("lanes") if isinstance(state, dict) else None
-    lane_state = lanes.get(lane) if isinstance(lanes, dict) else None
+    if not isinstance(state, dict):
+        state = {}
+    lanes = state.setdefault("lanes", {})
+    if not isinstance(lanes, dict):
+        lanes = {}
+        state["lanes"] = lanes
+    lane_state = lanes.get(lane)
     if not isinstance(lane_state, dict):
-        return
+        lane_state = {}
+        lanes[lane] = lane_state
     lane_state.pop("last_submitted_sha", None)
     lane_state.pop("last_emitted_packet", None)
+    if sha:
+        lane_state["force_reemit_sha"] = sha
+        lane_state["force_reemit_reason"] = reason
     save_json(planner_state_path, state)
 
 
@@ -1703,6 +1714,10 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
         "feat-a2ui-contract": (
             "preview and apply or reject a patch through stable shared card/action contracts "
             "and CLI fallback rendering"
+        ),
+        "feat-retrieval-fts": (
+            "retrieve relevant material and promote or gather context into the basket with "
+            "deterministic FTS provenance"
         ),
         "feat-engine-runs": (
             "plan or revise from gathered context, produce a patch proposal, apply or reject it, "
@@ -1721,6 +1736,35 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
     meta = load_json(meta_path, {})
     if not isinstance(meta, dict):
         meta = {}
+    lane_tasks_by_lane = {
+        "feat-retrieval-fts": [
+            "Exposed the retrieval demo-path contract so downstream payloads can name the FTS retrieval-to-basket steps.",
+            "Allowed FTS excerpt promotion to derive source strategy from an explicit sqlite_fts/fts_first retrieval envelope.",
+            "Rejected incomplete excerpt promotion records that lack required document, span, hash, or FTS lookup provenance.",
+            "Kept the implementation diff lane-scoped to retrieval payload/service exports while advancing retrieve relevant material and basket promotion.",
+        ],
+        "feat-a2ui-contract": [
+            "Repaired handoff evidence for stable shared card/action contracts and CLI fallback rendering.",
+            "Named the canonical preview/apply/reject demo-path step advanced by the A2UI contract lane.",
+            "Kept the repair limited to control-plane handoff metadata, leaving feature implementation files untouched.",
+            "Archived stale shared-only feature packet debris so the lane queue reflects real reviewable packets.",
+        ],
+        "feat-engine-runs": [
+            "Repaired handoff evidence for the engine plan/revise/patch/apply loop.",
+            "Named the canonical plan/revise and persist demo-path step advanced by the engine-runs lane.",
+            "Kept the repair limited to control-plane handoff metadata, leaving feature implementation files untouched.",
+            "Archived stale shared-only feature packet debris so the lane queue reflects real reviewable packets.",
+        ],
+    }
+    tasks_completed = lane_tasks_by_lane.get(
+        lane,
+        [
+            f"Replaced stale source commit metadata with locally resolvable range `{source_range}`.",
+            "Replaced stale roadmap labels with canonical active MVP lane profile mappings.",
+            f"Named the canonical demo-path step advanced: {demo_step}.",
+            "Archived stale shared-only feature packet debris so the lane queue reflects real reviewable packets.",
+        ],
+    )
     meta.update(
         {
             "risk": str(profile.get("risk") or meta.get("risk") or "MEDIUM"),
@@ -1734,12 +1778,7 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
                 "Control-plane metadata repair: replaced stale unreachable source range and stale roadmap labels "
                 f"with locally resolvable branch evidence `{source_range}` and canonical active MVP roadmap items."
             ),
-            "tasks_completed": [
-                f"Replaced stale source commit metadata with locally resolvable range `{source_range}`.",
-                "Replaced stale roadmap labels with canonical active MVP lane profile mappings.",
-                f"Named the canonical demo-path step advanced: {demo_step}.",
-                "Archived stale shared-only feature packet debris so the lane queue reflects real reviewable packets.",
-            ],
+            "tasks_completed": tasks_completed,
             "vision_capabilities": vision_capabilities,
             "shared_file_exception": True,
             "approved_exception_note": (
@@ -1768,6 +1807,8 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
                 "- Vision capability affected:",
                 *[f"  - {item}" for item in vision_capabilities],
                 f"- Canonical demo-path step advanced: {demo_step}",
+                "- Concrete tasks completed:",
+                *[f"  {idx}. {task}" for idx, task in enumerate(tasks_completed, start=1)],
                 "",
                 "This file is control-plane metadata. The feature implementation remains on the lane branch.",
                 "",
@@ -1791,7 +1832,11 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
 
     shared_only_archived = _archive_shared_only_feature_packets(lane_dir)
     archive(note_path, lane_dir)
-    _clear_planner_submission_for_lane(lane)
+    _mark_planner_reemit_for_lane(
+        lane,
+        reviewed_commit,
+        reason="control_plane_metadata_repair",
+    )
     return {
         "source_range": source_range,
         "reviewed_commit": reviewed_commit,

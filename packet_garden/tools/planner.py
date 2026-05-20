@@ -27,6 +27,7 @@ PACKETS_ROOT = Path(".codex/packets/lanes")
 PLANNER_ROOT = Path(".codex/packet_planner")
 STATE_FILE = PLANNER_ROOT / "state.json"
 COORDINATOR_STATE_FILE = Path(".codex/packet_coordinator/state.json")
+FEATURE_RUNNER_STATE_FILE = Path(".codex/feature_runner/state.json")
 CONFIG_FILE = Path(".codex/packet_router/config.json")
 SCOPE_CHECK_SCRIPT = REPO_ROOT / "scripts/scope-check.sh"
 FORMAT_CHECK_SCRIPT = REPO_ROOT / "quality-format.sh"
@@ -279,12 +280,36 @@ def load_coordinator_state() -> Dict[str, Any]:
         return {}
     return data if isinstance(data, dict) else {}
 
+def _pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+def lane_feature_process_active(lane: str) -> bool:
+    state = load_json(FEATURE_RUNNER_STATE_FILE, {})
+    lanes = state.get("lanes") if isinstance(state, dict) else {}
+    lane_state = lanes.get(lane) if isinstance(lanes, dict) else None
+    if not isinstance(lane_state, dict):
+        return False
+    status = str(lane_state.get("status") or "")
+    if status in {"managed_thread", "launching"}:
+        return True
+    if status == "direct_exec_running":
+        return _pid_alive(int(lane_state.get("pid") or 0))
+    return False
+
 def lane_feature_active(coordinator_state: Dict[str, Any], lane: str) -> bool:
     lane_refill = coordinator_state.get("lane_refill")
     if not isinstance(lane_refill, dict):
         return False
     lane_state = lane_refill.get(lane)
-    return isinstance(lane_state, dict) and lane_state.get("feature_active") is True
+    if not isinstance(lane_state, dict) or lane_state.get("feature_active") is not True:
+        return False
+    return lane_feature_process_active(lane)
 
 def should_skip_for_active_feature(coordinator_state: Dict[str, Any], lane: str, *, fast_reemit: bool) -> bool:
     return lane_feature_active(coordinator_state, lane) and not fast_reemit
@@ -947,13 +972,18 @@ def main()->None:
             continue
         prev_lane_state = lane_state.get(lane) or {}
         last_submitted_sha = infer_last_submitted_sha(PACKETS_ROOT / lane, prev_lane_state)
+        force_reemit_sha = str(prev_lane_state.get("force_reemit_sha") or "").strip()
+        force_metadata_reemit = bool(force_reemit_sha and force_reemit_sha == sha)
         # Reviewer notes should block new packets until lane HEAD advances.
         # This allows one-at-a-time re-review submissions from the feature lane.
         if has_reviewer_notes and (not last_submitted_sha or last_submitted_sha == sha):
             continue
-        if last_submitted_sha == sha:
+        if last_submitted_sha == sha and not force_metadata_reemit:
             continue
-        fast_reemit = bool(has_reviewer_notes and last_submitted_sha and last_submitted_sha != sha)
+        fast_reemit = bool(
+            (has_reviewer_notes and last_submitted_sha and last_submitted_sha != sha)
+            or force_metadata_reemit
+        )
         if should_skip_for_active_feature(coordinator_state, lane, fast_reemit=fast_reemit):
             print(f"[planner] {lane}: feature worker active; skipping gate run until handoff")
             continue
@@ -975,18 +1005,21 @@ def main()->None:
         if bool(meta.get("shared_file_exception")):
             env["SCOPE_ALLOW_SHARED"]="1"
         if fast_reemit:
+            carry_sha = last_submitted_sha or sha
             files = infer_last_changed_files(
                 PACKETS_ROOT / lane,
                 prev_lane_state,
-                sha=last_submitted_sha,
+                sha=carry_sha,
             )
             carried = infer_last_gate_results(
                 PACKETS_ROOT / lane,
                 prev_lane_state,
-                sha=last_submitted_sha,
+                sha=carry_sha,
             )
             if carried and files:
-                if active_repo:
+                if force_metadata_reemit:
+                    print(f"[planner] {lane}: re-emitting after local metadata repair (reuse prior gate results)")
+                elif active_repo:
                     print(f"[planner] {lane}: fast re-emit from advanced HEAD after reviewer notes (reuse prior gate results)")
                 else:
                     print(
@@ -1037,9 +1070,10 @@ def main()->None:
                 continue
         ts=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         if fast_reemit:
-            moved = archive_lane_reviewer_notes(lane)
-            if moved:
-                print(f"[planner] {lane}: archived {moved} stale reviewer note(s) on re-emit")
+            if has_reviewer_notes:
+                moved = archive_lane_reviewer_notes(lane)
+                if moved:
+                    print(f"[planner] {lane}: archived {moved} stale reviewer note(s) on re-emit")
         fn=f"F__{branch.replace('/','-')}__{sha}__{ts}.md"
         outp=PACKETS_ROOT/lane/"inbox/feature"/fn
         _owned_files, shared_files = _split_files(lane, files)
