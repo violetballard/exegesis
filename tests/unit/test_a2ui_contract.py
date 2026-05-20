@@ -12,6 +12,7 @@ from src.qual.ui.a2ui import (
     A2UICapabilities,
     A2UISessionStore,
     ActionRef,
+    _terminal_action_slots,
     build_unknown_card,
     engine_prepare_card,
     execute_action_with_policy_gate,
@@ -232,6 +233,24 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(
             [line for line in text.splitlines() if line.startswith("* ")],
             ["* 1. Apply patch", "* 2. Reject patch"],
+        )
+
+    def test_terminal_action_slots_sort_materialized_selection_entries(self) -> None:
+        materialized = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+            "actions": [
+                {"id": "apply_patch", "label": "Apply patch", "payload": {"patch_id": "p9"}},
+                {"id": "reject_patch", "label": "Reject patch", "payload": {"patch_id": "p9"}},
+            ],
+        }
+        materialized["action_selection"] = materialize_action_selection_contract(materialized)
+        materialized["action_selection"]["order"].reverse()
+
+        self.assertEqual(
+            [(slot["slot"], slot["action"]["id"]) for slot in _terminal_action_slots(materialized)],
+            [(1, "apply_patch"), (2, "reject_patch")],
         )
 
     def test_engine_policy_gate_is_authoritative(self) -> None:

@@ -65,7 +65,7 @@ def _terminal_action_slots(materialized: dict[str, Any]) -> list[dict[str, Any]]
     actions_by_identity = {
         _canonical_action_identity_key(action): action for action in actions if isinstance(action, dict)
     }
-    slots: list[dict[str, Any]] = []
+    slots_by_number: dict[int, dict[str, Any]] = {}
     for entry in order:
         if not isinstance(entry, dict):
             continue
@@ -73,7 +73,8 @@ def _terminal_action_slots(materialized: dict[str, Any]) -> list[dict[str, Any]]
         action = actions_by_identity.get(str(entry.get("action_identity", "")))
         if not isinstance(slot, int) or isinstance(slot, bool) or action is None:
             continue
-        slots.append({"slot": slot, "action": action})
+        slots_by_number[slot] = {"slot": slot, "action": action}
+    slots = [slots_by_number[slot] for slot in sorted(slots_by_number)]
     return slots if slots else materialize_action_slots(materialized)
 
 
