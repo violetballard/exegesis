@@ -189,6 +189,7 @@ class A2UIContractTests(unittest.TestCase):
             [(entry["slot"], entry["action_id"]) for entry in contract["order"]],
             [(1, "apply_patch"), (2, "reject_patch"), (3, "run_agent")],
         )
+        self.assertTrue(all(entry["action_identity"] for entry in contract["order"]))
         self.assertEqual(resolve_card_selection_by_index(fallback, 1)["payload"], {"patch_id": "p1"})
 
     def test_terminal_materialization_canonicalizes_patch_action_slots(self) -> None:
