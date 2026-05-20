@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
 from copy import deepcopy
+from dataclasses import dataclass
 import json
 from typing import Any, Callable, Protocol
 
@@ -19,42 +19,24 @@ ALLOWED_ACTION_IDS: tuple[str, ...] = (
     "copy_to_clipboard",
 )
 
-_ALLOWED_ACTION_SET = set(ALLOWED_ACTION_IDS)
-
-CANONICAL_PATCH_WORKFLOW_ACTIONS: tuple[str, ...] = ("apply_patch", "reject_patch")
-CANONICAL_NAVIGATION_ACTIONS: tuple[str, ...] = (
+CANONICAL_ACTION_ORDER: tuple[str, ...] = (
+    "apply_patch",
+    "reject_patch",
     "open_section",
     "open_corpus_item",
     "pin_to_context_set",
     "create_context_set",
-)
-CANONICAL_UTILITY_ACTIONS: tuple[str, ...] = (
     "copy_to_clipboard",
     "export_document",
     "refresh_license",
-)
-CANONICAL_AGENT_ACTIONS: tuple[str, ...] = ("run_agent",)
-CANONICAL_ACTION_GROUPS: tuple[tuple[str, ...], ...] = (
-    CANONICAL_PATCH_WORKFLOW_ACTIONS,
-    CANONICAL_NAVIGATION_ACTIONS,
-    CANONICAL_UTILITY_ACTIONS,
-    CANONICAL_AGENT_ACTIONS,
-)
-CANONICAL_ACTION_ORDER: tuple[str, ...] = tuple(
-    action_id for group in CANONICAL_ACTION_GROUPS for action_id in group
+    "run_agent",
 )
 CANONICAL_ACTION_PRIORITY: dict[str, int] = {
     action_id: index for index, action_id in enumerate(CANONICAL_ACTION_ORDER)
 }
-UNKNOWN_ACTION_PRIORITY = len(CANONICAL_ACTION_ORDER)
-_UNORDERED_ALLOWED_ACTION_IDS = tuple(
-    action_id for action_id in ALLOWED_ACTION_IDS if action_id not in CANONICAL_ACTION_PRIORITY
-)
-if _UNORDERED_ALLOWED_ACTION_IDS:
-    raise RuntimeError(
-        "A2UI canonical action order is missing allowed actions: "
-        f"{', '.join(_UNORDERED_ALLOWED_ACTION_IDS)}"
-    )
+_ALLOWED_ACTION_SET = set(ALLOWED_ACTION_IDS)
+if set(CANONICAL_ACTION_ORDER) != _ALLOWED_ACTION_SET:
+    raise RuntimeError("A2UI canonical action order must match allowed action IDs")
 
 _ACTION_SCHEMAS: dict[str, dict[str, type]] = {
     "apply_patch": {"patch_id": str},
@@ -100,7 +82,7 @@ def canonical_action_identity_key(action: dict[str, Any]) -> str:
 
 def action_priority(action: dict[str, Any]) -> tuple[int, str, str, str]:
     action_id = str(action.get("id", ""))
-    priority = CANONICAL_ACTION_PRIORITY.get(action_id, UNKNOWN_ACTION_PRIORITY)
+    priority = CANONICAL_ACTION_PRIORITY.get(action_id, len(CANONICAL_ACTION_ORDER))
     return (priority, action_id, canonical_action_identity_key(action), canonical_action_key(action))
 
 
@@ -137,39 +119,17 @@ def materialize_card_actions(card: dict[str, Any]) -> list[dict[str, Any]]:
     return canonicalize_action_order(list(by_identity.values()))
 
 
-def materialize_action_slots(card: dict[str, Any]) -> list[dict[str, Any]]:
-    return [
-        {
-            "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
-            "slot": slot,
-            "action_id": str(action["id"]),
-            "action_identity": canonical_action_identity_key(action),
-            "action": action,
-        }
-        for slot, action in enumerate(materialize_card_actions(card), start=1)
-    ]
-
-
-def materialize_action_sequence(card: dict[str, Any]) -> list[tuple[int, dict[str, Any]]]:
-    return [(slot["slot"], slot["action"]) for slot in materialize_action_slots(card)]
-
-
-def materialize_action_order(card: dict[str, Any]) -> tuple[str, ...]:
-    return tuple(str(action["id"]) for action in materialize_card_actions(card))
-
-
 def materialize_action_selection_contract(card: dict[str, Any]) -> dict[str, Any]:
-    slots = materialize_action_slots(card)
     return {
         "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
         "selection_model": "one_based_action_slot",
         "order": [
             {
-                "slot": slot["slot"],
-                "action_id": slot["action_id"],
-                "action_identity": slot["action_identity"],
+                "slot": slot,
+                "action_id": str(action["id"]),
+                "action_identity": canonical_action_identity_key(action),
             }
-            for slot in slots
+            for slot, action in enumerate(materialize_card_actions(card), start=1)
         ],
     }
 
@@ -203,9 +163,9 @@ def resolve_card_selection_by_index(card: dict[str, Any], selected_action_index:
     if selected_action_index < 1:
         raise ValueError("Action selection index must be one-based")
 
-    action_sequence = materialize_action_sequence(card)
+    action_sequence = materialize_card_actions(card)
     try:
-        _, action = action_sequence[selected_action_index - 1]
+        action = action_sequence[selected_action_index - 1]
     except IndexError as exc:
         raise ValueError(
             f"Action selection index {selected_action_index} not found. "

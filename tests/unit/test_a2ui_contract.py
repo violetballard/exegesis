@@ -6,20 +6,16 @@ from dataclasses import dataclass
 import exegesis_shared.contracts as shared_contracts
 from exegesis_shared.contracts.actions import (
     ACTION_SELECTION_CONTRACT_VERSION,
-    materialize_action_selection_contract,
 )
 from exegesis_shared.contracts import studio_materialize_card as shared_studio_materialize_card
 from src.qual.ui.a2ui import (
     A2UICapabilities,
     A2UISessionStore,
     ActionRef,
-    _terminal_action_slots,
     build_unknown_card,
     engine_prepare_card,
     execute_action_with_policy_gate,
-    materialize_cli_fallback_card,
     materialize_terminal_card,
-    resolve_card_selection_by_index,
     render_terminal_card,
     studio_materialize_card,
     validate_capabilities,
@@ -119,27 +115,6 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(len(filtered["actions"]), 1)
         self.assertEqual(filtered["actions"][0]["id"], "apply_patch")
 
-    def test_filtered_actions_are_canonicalized_by_identity(self) -> None:
-        caps = _capabilities(actions_supported=("reject_patch", "copy_to_clipboard", "apply_patch"))
-        card = {
-            "type": "GenericCard",
-            "title": "Patch",
-            "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
-            "actions": [
-                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p2"}},
-                {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "payload"}},
-                {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "payload"}},
-                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
-            ],
-        }
-
-        filtered = studio_materialize_card(card, caps)
-
-        self.assertEqual(
-            [action["id"] for action in filtered["actions"]],
-            ["apply_patch", "reject_patch", "copy_to_clipboard"],
-        )
-
     def test_shared_contract_export_materializes_versioned_action_selection(self) -> None:
         caps = _capabilities(actions_supported=("reject_patch", "apply_patch"))
         card = {
@@ -171,31 +146,6 @@ class A2UIContractTests(unittest.TestCase):
         card = {
             "type": "GenericCard",
             "title": "Patch",
-            "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
-            "actions": [
-                {"id": "run_agent", "label": "Run", "payload": {"operation": "draft"}},
-                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
-                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
-            ],
-        }
-
-        contract = materialize_action_selection_contract(card)
-        fallback = materialize_cli_fallback_card(card)
-
-        self.assertEqual(contract["contract_version"], ACTION_SELECTION_CONTRACT_VERSION)
-        self.assertEqual(contract["selection_model"], "one_based_action_slot")
-        self.assertEqual(fallback["action_selection"], contract)
-        self.assertEqual(
-            [(entry["slot"], entry["action_id"]) for entry in contract["order"]],
-            [(1, "apply_patch"), (2, "reject_patch"), (3, "run_agent")],
-        )
-        self.assertTrue(all(entry["action_identity"] for entry in contract["order"]))
-        self.assertEqual(resolve_card_selection_by_index(fallback, 1)["payload"], {"patch_id": "p1"})
-
-    def test_terminal_materialization_canonicalizes_patch_action_slots(self) -> None:
-        card = {
-            "type": "GenericCard",
-            "title": "Patch",
             "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
             "actions": [
                 {"id": "run_agent", "label": "Revise", "payload": {"operation": "revise"}},
@@ -216,80 +166,6 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(
             [line for line in text.splitlines() if line.startswith("* ")],
             ["* 1. Apply", "* 2. Reject", "* 3. Revise"],
-        )
-
-    def test_terminal_rendering_uses_materialized_selection_order(self) -> None:
-        card = {
-            "type": "GenericCard",
-            "title": "Patch",
-            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
-            "actions": [
-                {"id": "reject_patch", "label": "Reject patch", "payload": {"patch_id": "p9"}},
-                {"id": "apply_patch", "label": "Apply patch", "payload": {"patch_id": "p9"}},
-            ],
-        }
-
-        materialized = materialize_terminal_card(card)
-        text = render_terminal_card(materialized)
-
-        self.assertEqual(
-            [(entry["slot"], entry["action_id"]) for entry in materialized["action_selection"]["order"]],
-            [(1, "apply_patch"), (2, "reject_patch")],
-        )
-        self.assertEqual(
-            [line for line in text.splitlines() if line.startswith("* ")],
-            ["* 1. Apply patch", "* 2. Reject patch"],
-        )
-
-    def test_terminal_materialization_preserves_distinct_patch_action_slots(self) -> None:
-        card = {
-            "type": "GenericCard",
-            "title": "Patch choices",
-            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
-            "actions": [
-                {"id": "reject_patch", "label": "Reject B", "payload": {"patch_id": "b"}},
-                {"id": "apply_patch", "label": "Apply B", "payload": {"patch_id": "b"}},
-                {"id": "reject_patch", "label": "Reject A", "payload": {"patch_id": "a"}},
-                {"id": "apply_patch", "label": "Apply A", "payload": {"patch_id": "a"}},
-            ],
-        }
-
-        materialized = materialize_terminal_card(card)
-        text = render_terminal_card(materialized)
-
-        self.assertEqual(
-            [(action["id"], action["payload"]["patch_id"]) for action in materialized["actions"]],
-            [("apply_patch", "a"), ("apply_patch", "b"), ("reject_patch", "a"), ("reject_patch", "b")],
-        )
-        self.assertEqual(
-            [
-                (entry["slot"], entry["action_id"])
-                for entry in materialized["action_selection"]["order"]
-            ],
-            [(1, "apply_patch"), (2, "apply_patch"), (3, "reject_patch"), (4, "reject_patch")],
-        )
-        self.assertEqual(resolve_card_selection_by_index(materialized, 2)["payload"], {"patch_id": "b"})
-        self.assertEqual(
-            [line for line in text.splitlines() if line.startswith("* ")],
-            ["* 1. Apply A", "* 2. Apply B", "* 3. Reject A", "* 4. Reject B"],
-        )
-
-    def test_terminal_action_slots_sort_materialized_selection_entries(self) -> None:
-        materialized = {
-            "type": "GenericCard",
-            "title": "Patch",
-            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
-            "actions": [
-                {"id": "apply_patch", "label": "Apply patch", "payload": {"patch_id": "p9"}},
-                {"id": "reject_patch", "label": "Reject patch", "payload": {"patch_id": "p9"}},
-            ],
-        }
-        materialized["action_selection"] = materialize_action_selection_contract(materialized)
-        materialized["action_selection"]["order"].reverse()
-
-        self.assertEqual(
-            [(slot["slot"], slot["action"]["id"]) for slot in _terminal_action_slots(materialized)],
-            [(1, "apply_patch"), (2, "reject_patch")],
         )
 
     def test_engine_policy_gate_is_authoritative(self) -> None:

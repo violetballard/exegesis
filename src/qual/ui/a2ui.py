@@ -5,24 +5,11 @@ from typing import Any
 from exegesis_shared.contracts.actions import (
     ACTION_SELECTION_CONTRACT_VERSION,
     ALLOWED_ACTION_IDS,
-    CANONICAL_ACTION_GROUPS,
-    CANONICAL_ACTION_ORDER,
-    CANONICAL_ACTION_PRIORITY,
-    CANONICAL_AGENT_ACTIONS,
-    CANONICAL_NAVIGATION_ACTIONS,
-    CANONICAL_PATCH_WORKFLOW_ACTIONS,
-    CANONICAL_UTILITY_ACTIONS,
-    UNKNOWN_ACTION_PRIORITY,
     ActionRef,
     PolicyGate,
-    canonical_action_identity_key as _canonical_action_identity_key,
-    canonical_action_key as _canonical_action_key,
     canonicalize_action_order,
     execute_action_with_policy_gate,
-    materialize_action_order,
     materialize_action_selection_contract,
-    materialize_action_sequence,
-    materialize_action_slots,
     materialize_card_actions,
     materialize_cli_fallback_card,
     resolve_card_selection,
@@ -52,48 +39,7 @@ def _deduped_sorted_actions(card: dict[str, Any]) -> list[dict[str, Any]]:
 
 def materialize_terminal_card(card: dict[str, Any]) -> dict[str, Any]:
     """Materialize the A2UI card shape consumed by CLI fallback renderers."""
-    materialized = materialize_cli_fallback_card(card)
-    slots = _terminal_action_slots(materialized)
-    if not slots:
-        return materialized
-
-    materialized["actions"] = [slot["action"] for slot in slots]
-    materialized["action_selection"] = {
-        "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
-        "selection_model": "one_based_action_slot",
-        "order": [
-            {
-                "slot": slot["slot"],
-                "action_id": str(slot["action"].get("id", "")),
-                "action_identity": _canonical_action_identity_key(slot["action"]),
-            }
-            for slot in slots
-        ],
-    }
-    return materialized
-
-
-def _terminal_action_slots(materialized: dict[str, Any]) -> list[dict[str, Any]]:
-    actions = materialized.get("actions", [])
-    action_selection = materialized.get("action_selection", {})
-    order = action_selection.get("order") if isinstance(action_selection, dict) else None
-    if not isinstance(actions, list) or not isinstance(order, list):
-        return materialize_action_slots(materialized)
-
-    actions_by_identity = {
-        _canonical_action_identity_key(action): action for action in actions if isinstance(action, dict)
-    }
-    slots_by_number: dict[int, dict[str, Any]] = {}
-    for entry in order:
-        if not isinstance(entry, dict):
-            continue
-        slot = entry.get("slot")
-        action = actions_by_identity.get(str(entry.get("action_identity", "")))
-        if not isinstance(slot, int) or isinstance(slot, bool) or action is None:
-            continue
-        slots_by_number[slot] = {"slot": slot, "action": action}
-    slots = [slots_by_number[slot] for slot in sorted(slots_by_number)]
-    return slots if slots else materialize_action_slots(materialized)
+    return materialize_cli_fallback_card(card)
 
 
 def studio_materialize_card(payload: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
@@ -140,9 +86,9 @@ def render_terminal_card(card: dict[str, Any]) -> str:
                 for row in rows:
                     if isinstance(row, list):
                         lines.append(" | ".join(str(value) for value in row))
-    for slot in _terminal_action_slots(materialized):
-        action = slot["action"]
-        lines.append(f"* {slot['slot']}. {action.get('label', action.get('id', 'action'))}")
+    for slot, action in enumerate(materialized.get("actions", []), start=1):
+        if isinstance(action, dict):
+            lines.append(f"* {slot}. {action.get('label', action.get('id', 'action'))}")
     return "\n".join(lines)
 
 
@@ -153,28 +99,15 @@ __all__ = [
     "A2UI_VERSION",
     "ACTION_SELECTION_CONTRACT_VERSION",
     "ALLOWED_ACTION_IDS",
-    "CANONICAL_ACTION_GROUPS",
-    "CANONICAL_ACTION_PRIORITY",
-    "CANONICAL_ACTION_ORDER",
-    "CANONICAL_AGENT_ACTIONS",
-    "CANONICAL_NAVIGATION_ACTIONS",
-    "CANONICAL_PATCH_WORKFLOW_ACTIONS",
-    "CANONICAL_UTILITY_ACTIONS",
     "GENERIC_CARD_TYPE",
     "PolicyGate",
     "REQUIRED_PRIMITIVE_BLOCKS",
     "UNKNOWN_CARD_TYPE",
-    "UNKNOWN_ACTION_PRIORITY",
     "canonicalize_action_order",
-    "_canonical_action_identity_key",
-    "_canonical_action_key",
     "build_unknown_card",
     "engine_prepare_card",
     "execute_action_with_policy_gate",
-    "materialize_action_order",
     "materialize_action_selection_contract",
-    "materialize_action_sequence",
-    "materialize_action_slots",
     "materialize_cli_fallback_card",
     "materialize_card_actions",
     "materialize_terminal_card",
