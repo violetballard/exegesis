@@ -96,6 +96,7 @@ FEATURE_LOOP_RECONNECT_THRESHOLD = 4
 FEATURE_NO_TOOL_ACTIVITY_MIN_RUNTIME_SECONDS = float(
     os.environ.get("FEATURE_NO_TOOL_ACTIVITY_MIN_RUNTIME_SECONDS", "2700")
 )
+FEATURE_MAX_RUNTIME_SECONDS = float(os.environ.get("FEATURE_MAX_RUNTIME_SECONDS", "5400"))
 ROUTER_JOB_LOOP_MIN_RUNTIME_SECONDS = 300.0
 ROUTER_FIXER_NO_TOOL_MIN_RUNTIME_SECONDS = float(os.environ.get("ROUTER_FIXER_NO_TOOL_MIN_RUNTIME_SECONDS", "90"))
 FEATURE_LOOP_PARSE_ERROR_THRESHOLD = 2
@@ -585,13 +586,19 @@ def _feature_runner_loop_reason(lane_state: Dict[str, object]) -> Optional[str]:
     if resource_reason:
         return resource_reason
     launched_at = _parse_feature_runner_ts(str(lane_state.get("last_launch_at") or ""))
+    elapsed = time.time() - launched_at if launched_at else 0
+    over_autonomy_window = bool(launched_at and FEATURE_MAX_RUNTIME_SECONDS > 0 and elapsed >= FEATURE_MAX_RUNTIME_SECONDS)
     if launched_at and (time.time() - launched_at) < FEATURE_LOOP_MIN_RUNTIME_SECONDS:
         return None
     log_path = Path(str(lane_state.get("log_path") or ""))
     if not log_path.exists():
+        if over_autonomy_window:
+            return f"feature autonomy window exceeded after {int(elapsed)}s"
         return None
     text = _read_text_tail(log_path)
     if not text:
+        if over_autonomy_window:
+            return f"feature autonomy window exceeded after {int(elapsed)}s"
         return None
     parse_failures = text.count("failed to parse function arguments")
     bad_apply_patch = text.count("Usage: apply_patch 'PATCH'")
@@ -618,6 +625,8 @@ def _feature_runner_loop_reason(lane_state: Dict[str, object]) -> Optional[str]:
     no_tool_reason = _feature_runner_no_tool_reason(lane_state, text=text)
     if no_tool_reason:
         return no_tool_reason
+    if over_autonomy_window:
+        return f"feature autonomy window exceeded after {int(elapsed)}s"
     return None
 
 
@@ -1046,7 +1055,11 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
             lane_state = {}
         lane_state["force_resume_once"] = True
         if lane in feature_runner_terminated:
-            lane_state["force_resume_reason"] = "feature_tool_loop_detected"
+            termination_reason = str(feature_runner_terminated[lane])
+            if termination_reason.startswith("feature autonomy window exceeded"):
+                lane_state["force_resume_reason"] = "feature_time_budget_exceeded"
+            else:
+                lane_state["force_resume_reason"] = "feature_tool_loop_detected"
             lane_state["force_resume_detail"] = feature_runner_terminated[lane]
             if lane in feature_runner_scope_invalid:
                 lane_state["force_resume_once"] = False
@@ -1166,14 +1179,40 @@ def _branch_changed_files(branch: str) -> List[str]:
         return []
 
 
+def _normalize_repo_path(path: object) -> str:
+    normalized = str(path).strip()
+    while normalized.startswith("./"):
+        normalized = normalized[2:]
+    return normalized
+
+
+def _lane_worktree_changed_files(lane: str) -> List[str]:
+    branch = _lane_branch_map().get(lane, f"codex/{lane}")
+    worktree_raw = _git_worktree_branch_map().get(f"refs/heads/{branch}") or _git_worktree_branch_map().get(branch)
+    if not worktree_raw:
+        return []
+    worktree = Path(worktree_raw)
+    changed: List[str] = []
+    for args in (
+        ["diff", "--name-only", "--diff-filter=ACMR"],
+        ["diff", "--name-only", "--cached", "--diff-filter=ACMR"],
+    ):
+        proc = run_git(args, cwd=worktree, timeout=30)
+        if proc.returncode != 0:
+            continue
+        changed.extend(line.strip() for line in (proc.stdout or "").splitlines() if line.strip())
+    return sorted(set(changed))
+
+
 def _lane_scope_violations(lane: str) -> List[str]:
     patterns = list(LANE_OWNED_PATHS.get(lane, []))
     if not patterns:
         return []
     branch = _lane_branch_map().get(lane, f"codex/{lane}")
     violations: List[str] = []
-    for file_name in _branch_changed_files(branch):
-        normalized = str(file_name).strip().lstrip("./")
+    changed_files = [*_branch_changed_files(branch), *_lane_worktree_changed_files(lane)]
+    for file_name in changed_files:
+        normalized = _normalize_repo_path(file_name)
         if not normalized:
             continue
         if any(fnmatch.fnmatchcase(normalized, pattern) for pattern in patterns):
@@ -1200,7 +1239,7 @@ def _auto_revert_scope_violations(lane: str, violations: List[str]) -> Tuple[boo
     if base.returncode != 0 or not (base.stdout or "").strip():
         return False, "missing_merge_base"
     merge_base = (base.stdout or "").strip()
-    paths = sorted(set(str(p).strip().lstrip("./") for p in violations if str(p).strip()))
+    paths = sorted(set(_normalize_repo_path(p) for p in violations if str(p).strip()))
     if not paths:
         return False, "empty_paths"
     restore = run_git(
