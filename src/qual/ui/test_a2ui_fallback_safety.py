@@ -1,0 +1,136 @@
+from __future__ import annotations
+
+import unittest
+
+from exegesis_shared.contracts.actions import ACTION_SELECTION_CONTRACT_VERSION
+from src.qual.ui.a2ui import (
+    A2UICapabilities,
+    materialize_terminal_card,
+    render_terminal_card,
+    resolve_card_selection_by_index,
+    studio_materialize_card,
+)
+
+
+def _capabilities(
+    *,
+    cards_supported: tuple[str, ...] = ("ProposedEditCard",),
+    actions_supported: tuple[str, ...] = (
+        "apply_patch",
+        "reject_patch",
+        "open_section",
+        "open_corpus_item",
+        "pin_to_context_set",
+        "create_context_set",
+        "run_agent",
+        "refresh_license",
+        "export_document",
+        "copy_to_clipboard",
+    ),
+) -> A2UICapabilities:
+    return A2UICapabilities(
+        a2ui_version=1,
+        client_name="Exegesis CLI",
+        cards_supported=cards_supported,
+        primitive_blocks_supported=(
+            "MarkdownBlock",
+            "KeyValueBlock",
+            "ListBlock",
+            "TableBlock",
+            "AlertBlock",
+            "ProgressBlock",
+            "CodeBlock",
+        ),
+        actions_supported=actions_supported,
+        max_payload_bytes=1_000_000,
+        supports_streaming=False,
+    )
+
+
+class A2UICliFallbackSafetyTests(unittest.TestCase):
+    def test_terminal_materialization_preserves_versioned_one_based_selection(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+            "actions": [
+                {"id": "run_agent", "label": "Revise", "payload": {"operation": "revise"}},
+                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+            ],
+        }
+
+        materialized = materialize_terminal_card(card)
+
+        self.assertEqual(
+            materialized["action_selection"]["contract_version"],
+            ACTION_SELECTION_CONTRACT_VERSION,
+        )
+        self.assertEqual(materialized["action_selection"]["selection_model"], "one_based_action_slot")
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in materialized["action_selection"]["order"]],
+            [(1, "apply_patch"), (2, "reject_patch"), (3, "run_agent")],
+        )
+        self.assertEqual(resolve_card_selection_by_index(materialized, 1)["payload"], {"patch_id": "p1"})
+
+    def test_terminal_rendering_uses_canonical_fallback_action_order(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+            "actions": [
+                {"id": "run_agent", "label": "Revise", "payload": {"operation": "revise"}},
+                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+            ],
+        }
+
+        text = render_terminal_card(card)
+
+        self.assertEqual(
+            [line for line in text.splitlines() if line.startswith("* ")],
+            ["* 1. Apply", "* 2. Reject", "* 3. Revise"],
+        )
+
+    def test_terminal_fallback_preserves_distinct_patch_action_slots(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Patch choices",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Choose a patch"}],
+            "actions": [
+                {"id": "apply_patch", "label": "Apply A", "payload": {"patch_id": "a"}},
+                {"id": "apply_patch", "label": "Apply B", "payload": {"patch_id": "b"}},
+                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "a"}},
+            ],
+        }
+
+        materialized = materialize_terminal_card(card)
+        text = render_terminal_card(card)
+
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in materialized["action_selection"]["order"]],
+            [(1, "apply_patch"), (2, "apply_patch"), (3, "reject_patch")],
+        )
+        self.assertEqual(resolve_card_selection_by_index(materialized, 2)["payload"], {"patch_id": "b"})
+        self.assertEqual(
+            [line for line in text.splitlines() if line.startswith("* ")],
+            ["* 1. Apply A", "* 2. Apply B", "* 3. Reject"],
+        )
+
+    def test_unknown_card_fallback_stays_cli_renderable_when_copy_is_unsupported(self) -> None:
+        caps = _capabilities(
+            cards_supported=("RunLogCard",),
+            actions_supported=("apply_patch", "reject_patch"),
+        )
+
+        card = studio_materialize_card({"type": "FutureCard", "title": "Future"}, caps)
+        text = render_terminal_card(card)
+
+        self.assertEqual(card["type"], "UnknownCard")
+        self.assertEqual(card["actions"], [])
+        self.assertEqual(card["action_selection"]["order"], [])
+        self.assertIn("[UnknownCard] Unsupported card type: FutureCard", text)
+
+
+if __name__ == "__main__":
+    unittest.main()
