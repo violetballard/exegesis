@@ -71,7 +71,7 @@ is_approved_shared_test() {
       ;;
     codex/feat-retrieval-fts*)
       case "$f" in
-        tests/unit/test_unified_retrieval.py) return 0 ;;
+        tests/unit/test_unified_retrieval.py|tests/unit/test_retrieval_sparse_promotion_provenance.py) return 0 ;;
       esac
       ;;
   esac
@@ -154,7 +154,7 @@ is_allowed() {
       ;;
     codex/feat-retrieval-fts*)
       case "$f" in
-        src/qual/retrieval/*|src/qual/retrieval/*/*|src/qual/engine/retrieval/*|src/qual/engine/retrieval/*/*|engine/src/exegesis_engine/retrieval/*|engine/src/exegesis_engine/retrieval/*/*) return 0 ;;
+        src/qual/retrieval/*|src/qual/retrieval/*/*|src/qual/engine/retrieval/*|src/qual/engine/retrieval/*/*|engine/src/exegesis_engine/retrieval/*|engine/src/exegesis_engine/retrieval/*/*|tests/unit/test_retrieval_sparse_promotion_provenance.py) return 0 ;;
       esac
       return 1
       ;;

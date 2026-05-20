@@ -63,6 +63,7 @@ LANE_OWNED_PATHS = {
         "src/qual/retrieval/**",
         "src/qual/engine/retrieval/**",
         "engine/src/exegesis_engine/retrieval/**",
+        "tests/unit/test_retrieval_sparse_promotion_provenance.py",
     ],
     "feat-a2ui-contract": [
         "src/qual/ui/a2ui.py",

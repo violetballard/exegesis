@@ -30,6 +30,7 @@ Detailed task breakdown lives in `/Users/doctor-violet/projects/exegesis/docs/TA
     - `src/qual/retrieval/**`
     - `src/qual/engine/retrieval/**`
     - `engine/src/exegesis_engine/retrieval/**`
+    - `tests/unit/test_retrieval_sparse_promotion_provenance.py`
   - Shared by approval only:
     - `tests/unit/test_unified_retrieval.py`
 
