@@ -71,8 +71,66 @@ is_approved_shared_test() {
       ;;
     codex/feat-retrieval-fts*)
       case "$f" in
-        tests/unit/test_unified_retrieval.py|tests/unit/test_retrieval_sparse_promotion_provenance.py) return 0 ;;
+        tests/unit/test_unified_retrieval.py) return 0 ;;
       esac
+      ;;
+  esac
+  return 1
+}
+
+is_lane_owned_unit_test() {
+  local f="$1"
+  case "$branch" in
+    codex/feat-commands*)
+      case "$f" in tests/unit/test_commands*.py) return 0 ;; esac
+      ;;
+    codex/feat-context-storage*)
+      case "$f" in tests/unit/test_context*.py|tests/unit/test_storage*.py|tests/unit/test_state*.py) return 0 ;; esac
+      ;;
+    codex/feat-retrieval-fts*)
+      case "$f" in tests/unit/test_retrieval*.py|tests/unit/test_fts*.py) return 0 ;; esac
+      ;;
+    codex/feat-a2ui-contract*)
+      case "$f" in tests/unit/test_a2ui*.py) return 0 ;; esac
+      ;;
+    codex/feat-engine-runs*)
+      case "$f" in tests/unit/test_engine*.py|tests/unit/test_draft*.py|tests/unit/test_workflow*.py|tests/unit/test_patch*.py|tests/unit/test_audit*.py) return 0 ;; esac
+      ;;
+    codex/feat-ocr-import*)
+      case "$f" in tests/unit/test_import*.py|tests/unit/test_ocr*.py) return 0 ;; esac
+      ;;
+    codex/feat-literature-import*)
+      case "$f" in tests/unit/test_literature*.py) return 0 ;; esac
+      ;;
+    codex/feat-rag-index*)
+      case "$f" in tests/unit/test_rag*.py) return 0 ;; esac
+      ;;
+    codex/feat-qual-coding*)
+      case "$f" in tests/unit/test_coding*.py|tests/unit/test_project_folder*.py) return 0 ;; esac
+      ;;
+    codex/feat-editor-basics*)
+      case "$f" in tests/unit/test_editor*.py) return 0 ;; esac
+      ;;
+    codex/feat-citations*)
+      case "$f" in tests/unit/test_citation*.py) return 0 ;; esac
+      ;;
+    codex/feat-export*)
+      case "$f" in tests/unit/test_export*.py) return 0 ;; esac
+      ;;
+    codex/feat-zotero-import*)
+      case "$f" in tests/unit/test_zotero*.py) return 0 ;; esac
+      ;;
+    codex/feat-formatting-bar*)
+      case "$f" in tests/unit/test_format*.py) return 0 ;; esac
+      ;;
+    codex/feat-developer-provider-config*)
+      case "$f" in tests/unit/test_provider*.py|tests/unit/test_credential*.py) return 0 ;; esac
+      ;;
+    codex/feat-project-transfer*)
+      case "$f" in tests/unit/test_project_transfer*.py) return 0 ;; esac
+      ;;
+    codex/feat-cop-lite-licensing*)
+      case "$f" in tests/unit/test_license*.py|tests/unit/test_lite*.py|tests/unit/test_nanonets_usage*.py) return 0 ;; esac
       ;;
   esac
   return 1
@@ -116,6 +174,9 @@ is_allowed() {
     return 1
   fi
   if shared_file_allowed && is_approved_shared_test "$f"; then
+    return 0
+  fi
+  if is_lane_owned_unit_test "$f"; then
     return 0
   fi
   if [[ "$ignore_lane_noise" == "1" ]]; then

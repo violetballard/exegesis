@@ -4,6 +4,18 @@ Use these branch lanes to avoid duplicate work and keep the staged migration coh
 
 Detailed task breakdown lives in `/Users/doctor-violet/projects/exegesis/docs/TASKS.md`.
 
+## Unit test ownership policy
+
+Feature lanes may add or update unit tests that directly exercise their own
+owned implementation surface. A lane-owned unit test must live under
+`tests/unit/` and use that lane's capability prefix, such as
+`test_retrieval*.py`, `test_commands*.py`, `test_context*.py`,
+`test_storage*.py`, `test_a2ui*.py`, or `test_engine*.py`.
+
+This is not a shared/control-plane edit. Unit tests that exercise another
+lane's capability, broad integration tests, policy/scope tests, or tests that
+require control-plane changes still require integrator approval.
+
 ## Active engine lanes
 
 - `codex/feat-commands*`
@@ -30,7 +42,6 @@ Detailed task breakdown lives in `/Users/doctor-violet/projects/exegesis/docs/TA
     - `src/qual/retrieval/**`
     - `src/qual/engine/retrieval/**`
     - `engine/src/exegesis_engine/retrieval/**`
-    - `tests/unit/test_retrieval_sparse_promotion_provenance.py`
   - Shared by approval only:
     - `tests/unit/test_unified_retrieval.py`
 

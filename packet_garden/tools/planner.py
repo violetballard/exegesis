@@ -63,7 +63,6 @@ LANE_OWNED_PATHS = {
         "src/qual/retrieval/**",
         "src/qual/engine/retrieval/**",
         "engine/src/exegesis_engine/retrieval/**",
-        "tests/unit/test_retrieval_sparse_promotion_provenance.py",
     ],
     "feat-a2ui-contract": [
         "src/qual/ui/a2ui.py",
@@ -239,6 +238,52 @@ LANE_OWNED_PATHS = {
         "client-ipad/shared/**",
         "shared/src/exegesis_shared/ipad_lite/**",
         "docs/ipad_lite/**",
+    ],
+}
+
+LANE_OWNED_UNIT_TEST_PATTERNS = {
+    "feat-commands": ["tests/unit/test_commands*.py"],
+    "feat-context-storage": [
+        "tests/unit/test_context*.py",
+        "tests/unit/test_storage*.py",
+        "tests/unit/test_state*.py",
+    ],
+    "feat-retrieval-fts": [
+        "tests/unit/test_retrieval*.py",
+        "tests/unit/test_fts*.py",
+    ],
+    "feat-a2ui-contract": ["tests/unit/test_a2ui*.py"],
+    "feat-engine-runs": [
+        "tests/unit/test_engine*.py",
+        "tests/unit/test_draft*.py",
+        "tests/unit/test_workflow*.py",
+        "tests/unit/test_patch*.py",
+        "tests/unit/test_audit*.py",
+    ],
+    "feat-ocr-import": [
+        "tests/unit/test_import*.py",
+        "tests/unit/test_ocr*.py",
+    ],
+    "feat-literature-import": ["tests/unit/test_literature*.py"],
+    "feat-rag-index": ["tests/unit/test_rag*.py"],
+    "feat-qual-coding": [
+        "tests/unit/test_coding*.py",
+        "tests/unit/test_project_folder*.py",
+    ],
+    "feat-editor-basics": ["tests/unit/test_editor*.py"],
+    "feat-citations": ["tests/unit/test_citation*.py"],
+    "feat-export": ["tests/unit/test_export*.py"],
+    "feat-zotero-import": ["tests/unit/test_zotero*.py"],
+    "feat-formatting-bar": ["tests/unit/test_format*.py"],
+    "feat-developer-provider-config": [
+        "tests/unit/test_provider*.py",
+        "tests/unit/test_credential*.py",
+    ],
+    "feat-project-transfer": ["tests/unit/test_project_transfer*.py"],
+    "feat-cop-lite-licensing": [
+        "tests/unit/test_license*.py",
+        "tests/unit/test_lite*.py",
+        "tests/unit/test_nanonets_usage*.py",
     ],
 }
 
@@ -726,8 +771,13 @@ def run_required_gate(cmd: str, cwd: str, env: Optional[Dict[str, str]] = None) 
         return 0, "\n".join(chunks)
     return run(cmd, cwd=cwd, env=env, timeout=3600)
 
+
+def _owned_patterns_for_lane(lane: str) -> List[str]:
+    return LANE_OWNED_PATHS.get(lane, []) + LANE_OWNED_UNIT_TEST_PATTERNS.get(lane, [])
+
+
 def _split_files(lane: str, files: List[str]) -> Tuple[List[str], List[str]]:
-    owned_patterns = LANE_OWNED_PATHS.get(lane, [])
+    owned_patterns = _owned_patterns_for_lane(lane)
     owned_files = [f for f in files if any(fnmatchcase(f, pattern) for pattern in owned_patterns)]
     shared_files = [f for f in files if f not in owned_files]
     return owned_files, shared_files
@@ -735,7 +785,7 @@ def _split_files(lane: str, files: List[str]) -> Tuple[List[str], List[str]]:
 
 def _full_branch_scope_violations(lane: str, files: List[str]) -> List[str]:
     """Return files outside the lane ownership map for the full branch diff."""
-    owned_patterns = LANE_OWNED_PATHS.get(lane, [])
+    owned_patterns = _owned_patterns_for_lane(lane)
     if not owned_patterns:
         return []
     violations: List[str] = []
@@ -750,7 +800,7 @@ def _full_branch_scope_violations(lane: str, files: List[str]) -> List[str]:
 
 
 def _owned_path_note(lane: str) -> str:
-    patterns = LANE_OWNED_PATHS.get(lane, [])
+    patterns = _owned_patterns_for_lane(lane)
     if not patterns:
         return "(no lane-owned paths configured)"
     return ", ".join(f"`{pattern}`" for pattern in patterns)
@@ -813,7 +863,7 @@ def build_packet(
     do_not_spend_time_on = [str(item).strip() for item in (meta.get("do_not_spend_time_on") or []) if str(item).strip()]
     if do_not_spend_time_on:
         lines += ["## Do not spend time on"] + [f"- {item}" for item in do_not_spend_time_on] + [""]
-    lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
+    lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in _owned_patterns_for_lane(lane)] + [""]
     scope_completed = str_list(meta.get("scope_completed"))
     if scope_completed:
         lines += ["## Scope completed"] + [f"- {item}" for item in scope_completed] + [""]
