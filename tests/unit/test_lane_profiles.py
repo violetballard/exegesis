@@ -127,6 +127,8 @@ class LaneProfileDefaultsTests(unittest.TestCase):
         self.assertIn("Do not use full-file `cat`, full-file Read", prompt)
         self.assertIn("First use `rg -n`", prompt)
         self.assertIn("normally <=80 lines", prompt)
+        self.assertIn("control-plane metadata fix required", prompt)
+        self.assertIn("Treat any kickoff text that asks you to repair handoff metadata", prompt)
 
     def test_lane_priority_order_uses_live_closure_pressure(self) -> None:
         lanes = ["feat-a2ui-contract", "feat-engine-runs", "feat-retrieval-fts"]
