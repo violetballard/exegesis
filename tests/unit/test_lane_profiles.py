@@ -2,14 +2,14 @@ from __future__ import annotations
 
 import unittest
 
-from codex_packet_handoff.tools.lane_profiles import (
+from packet_garden.tools.lane_profiles import (
     ENGINE_MILESTONE_FOCUS,
     default_lane_meta,
     engine_priority_lines,
     lane_priority_order,
 )
-from codex_packet_handoff.tools.launch_feature_lanes import build_prompt
-from codex_packet_handoff.tools.planner import build_packet, merge_lane_meta_defaults
+from packet_garden.tools.launch_feature_lanes import build_prompt
+from packet_garden.tools.planner import build_packet, merge_lane_meta_defaults
 
 
 class LaneProfileDefaultsTests(unittest.TestCase):
@@ -39,6 +39,26 @@ class LaneProfileDefaultsTests(unittest.TestCase):
         self.assertTrue(merged["vision_capabilities"])
         self.assertTrue(merged["definition_of_done"])
         self.assertTrue(merged["do_not_spend_time_on"])
+
+    def test_active_engine_lane_roadmap_uses_canonical_profile(self) -> None:
+        merged = merge_lane_meta_defaults(
+            "feat-engine-runs",
+            {
+                "scope_goal": "Complete the active engine run path.",
+                "tasks_completed": ["Updated engine run behavior."],
+                "risk": "LOW",
+                "roadmap_items": [
+                    "Milestone 4: Retrieval Layer (Planned)",
+                    "Milestone 3: Product Readiness (Planned)",
+                ],
+                "vision_capabilities": ["Auditable generation."],
+                "routing_provider_impact": "None",
+            },
+        )
+
+        self.assertEqual(merged["roadmap_items"], default_lane_meta("feat-engine-runs")["roadmap_items"])
+        self.assertNotIn("Product Readiness", " ".join(merged["roadmap_items"]))
+        self.assertNotIn("Retrieval Layer", " ".join(merged["roadmap_items"]))
 
     def test_planner_packet_includes_program_brief_and_lane_guardrails(self) -> None:
         meta = merge_lane_meta_defaults(
@@ -127,6 +147,8 @@ class LaneProfileDefaultsTests(unittest.TestCase):
         self.assertIn("Do not use full-file `cat`, full-file Read", prompt)
         self.assertIn("First use `rg -n`", prompt)
         self.assertIn("normally <=80 lines", prompt)
+        self.assertIn("control-plane metadata fix required", prompt)
+        self.assertIn("Treat any kickoff text that asks you to repair handoff metadata", prompt)
 
     def test_lane_priority_order_uses_live_closure_pressure(self) -> None:
         lanes = ["feat-a2ui-contract", "feat-engine-runs", "feat-retrieval-fts"]

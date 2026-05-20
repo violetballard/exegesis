@@ -12,6 +12,7 @@ The Textual writing client is the MVP target, but Textual is not an active depen
 - Product target and non-negotiables: `PRODUCT_VISION.md`
 - Roadmap and milestone status: `ROADMAP.md`
 - Architecture boundaries and migration rules: `ARCHITECTURE.md`
+- A2UI protocol, generated-surface policy, and promotion rules: `A2UI_SPEC.md`
 - Infra migration plan away from Codex/OpenAI: `MIGRATION.md`
 - Integration process and merge gates: `INTEGRATION.md`
 - Thread lane ownership and scope guardrails: `THREAD_OWNERSHIP.md`

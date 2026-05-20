@@ -52,7 +52,7 @@ Immediate handoff to review/integration if any trigger fires:
 - Editing shared-by-approval files without explicit approval
 - Test/lint/typecheck failure not resolved after `2` focused fix attempts
 - Scope check failure (`make scope-check`) that cannot be resolved cleanly
-- Any required edit to control-plane files such as `codex_packet_handoff/**`,
+- Any required edit to control-plane files such as `packet_garden/**`,
   `.codex/**`, `.agents/**`, `THREAD_PACKET.md`,
   `THREAD_OWNERSHIP.md`, `INTEGRATION.md`, `AGENTS.md`, or
   `scripts/scope-check.sh`

@@ -36,8 +36,8 @@ LOG_FILE = COORD_DIR / "daemon.log"
 LEASE_FILE = COORD_DIR / "lease.json"
 FEATURE_RUNNER_STATE_FILE = Path(".codex/feature_runner/state.json")
 ROUTER_STATE_FILE = Path(".codex/packet_router/state.json")
-CMD = [sys.executable, "codex_packet_handoff/tools/agents_coordinator.py", "--daemon"]
-PROC_MATCH = "codex_packet_handoff/tools/agents_coordinator.py --daemon"
+CMD = [sys.executable, "packet_garden/tools/agents_coordinator.py", "--daemon"]
+PROC_MATCH = "packet_garden/tools/agents_coordinator.py --daemon"
 LEASE_FRESH_SECONDS = 3600
 REPO_ROOT = Path(__file__).resolve().parents[2]
 AUTOMATION_MARKERS = (
@@ -57,6 +57,8 @@ def _ensure_dirs() -> None:
 
 
 def _pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
     try:
         os.kill(pid, 0)
     except OSError as exc:
@@ -239,7 +241,7 @@ def _clear_stale_lease() -> None:
 
 def _prune_control_plane_bytecode() -> None:
     """Avoid adopting stale or half-written pyc files during daemon bootstrap."""
-    for root in (REPO_ROOT / "codex_packet_handoff").glob("**/__pycache__"):
+    for root in (REPO_ROOT / "packet_garden").glob("**/__pycache__"):
         if root.is_dir():
             shutil.rmtree(root, ignore_errors=True)
 
@@ -257,13 +259,21 @@ def _lease_state() -> tuple[int | None, float | None]:
 
 def _is_running() -> bool:
     lease_pid, lease_ts = _lease_state()
-    pid = _read_pid() or lease_pid
-    if not pid:
+    if not lease_pid or not lease_ts:
         return False
-    if not _pid_alive(pid) or not _pid_matches_daemon(pid):
+    if not _pid_alive(lease_pid) or not _pid_matches_daemon(lease_pid):
         return False
-    if lease_pid != pid or not lease_ts:
+    if (time.time() - lease_ts) > LEASE_FRESH_SECONDS:
         return False
+
+    # The daemon lease is the source of truth. A stale pidfile can be left
+    # behind by launchd/bootstrap races or detached restarts; do not let it
+    # mask a live coordinator that is actively refreshing its lease.
+    pid = _read_pid()
+    if pid != lease_pid:
+        with contextlib.suppress(Exception):
+            PID_FILE.write_text(str(lease_pid))
+        return True
     return (time.time() - lease_ts) <= LEASE_FRESH_SECONDS
 
 
@@ -271,6 +281,8 @@ def _status() -> int:
     pid = _read_pid()
     pids = _find_matching_pids()
     running = _is_running()
+    if running:
+        pid = _read_pid()
     print(f"daemon_running={running}")
     print(f"pidfile_pid={pid or '-'}")
     print(f"matching_pids={','.join(str(x) for x in pids) if pids else '-'}")
@@ -323,6 +335,9 @@ def _stop() -> int:
     lease_pid, _ = _lease_state()
     pid = _read_pid() or lease_pid
     stopped_any = False
+    daemon_pids: set[int] = set(_find_matching_pids())
+    if pid:
+        daemon_pids.add(pid)
     if pid and _pid_alive(pid):
         try:
             os.killpg(os.getpgid(pid), signal.SIGTERM)
@@ -341,9 +356,25 @@ def _stop() -> int:
                 os.kill(pid, signal.SIGKILL)
 
     # Ensure no stray matching daemons remain.
-    for mpid in _find_matching_pids():
+    for mpid in sorted(daemon_pids | set(_find_matching_pids())):
+        if mpid == os.getpid() or not _pid_alive(mpid):
+            continue
         try:
             os.kill(mpid, signal.SIGTERM)
+            stopped_any = True
+        except OSError:
+            pass
+    deadline = time.time() + 5
+    while time.time() < deadline:
+        still_alive = [mpid for mpid in sorted(daemon_pids | set(_find_matching_pids())) if mpid != os.getpid() and _pid_alive(mpid)]
+        if not still_alive:
+            break
+        time.sleep(0.2)
+    for mpid in sorted(daemon_pids | set(_find_matching_pids())):
+        if mpid == os.getpid() or not _pid_alive(mpid):
+            continue
+        try:
+            os.kill(mpid, signal.SIGKILL)
             stopped_any = True
         except OSError:
             pass
@@ -418,7 +449,7 @@ def _launchd_run() -> int:
     env["PYTHONDONTWRITEBYTECODE"] = "1"
     os.execvpe(
         sys.executable,
-        [sys.executable, str(REPO_ROOT / "codex_packet_handoff/tools/agents_coordinator.py"), "--daemon"],
+        [sys.executable, str(REPO_ROOT / "packet_garden/tools/agents_coordinator.py"), "--daemon"],
         env,
     )
     return 0

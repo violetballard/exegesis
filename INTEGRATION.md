@@ -56,7 +56,7 @@ If a handoff claims `10 tasks` and any condition is missing, integrator must rej
 Use this as the reviewer thread prompt:
 
 ```md
-Enforce `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/AGENTS.md` and `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/INTEGRATION.md` exactly.
+Enforce `/Users/doctor-violet/projects/exegesis/AGENTS.md` and `/Users/doctor-violet/projects/exegesis/INTEGRATION.md` exactly.
 
 Reject by default unless all checks pass.
 

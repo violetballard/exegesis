@@ -8,8 +8,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from codex_packet_handoff.tools import local_codex_runtime
-from codex_packet_handoff.tools import offline_handoff_probe, router, setup as setup_mod
+from packet_garden.tools import local_codex_runtime
+from packet_garden.tools import offline_handoff_probe, router, setup as setup_mod
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 FIXTURES = REPO_ROOT / "tests" / "fixtures" / "offline_handoff"

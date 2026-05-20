@@ -19,6 +19,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any, Dict, Mapping
+from urllib.parse import parse_qs, urlencode, urlsplit
 
 try:
     from remote_monitor_snapshot import _sanitize_text, build_snapshot, compact_summary
@@ -31,8 +32,9 @@ DEFAULT_CONFIG = REMOTE_ROOT / "config.json"
 DEFAULT_TOKEN_FILE = REMOTE_ROOT / "token"
 COORD_ROOT = REPO_ROOT / ".codex/packet_coordinator"
 KICK_FILE = COORD_ROOT / "kick.json"
-DAEMON_CTL = [sys.executable, "codex_packet_handoff/tools/daemon_ctl.py"]
-COORDINATOR_ONCE = [sys.executable, "codex_packet_handoff/tools/agents_coordinator.py", "--once", "--max-cycles", "1"]
+DAEMON_CTL = [sys.executable, "packet_garden/tools/daemon_ctl.py"]
+LAUNCHD_CTL = [sys.executable, "packet_garden/tools/launchd_ctl.py"]
+COORDINATOR_ONCE = [sys.executable, "packet_garden/tools/agents_coordinator.py", "--once", "--max-cycles", "1"]
 CONTROL_TIMEOUT_SECONDS = 30.0
 SNAPSHOT_TTL_SECONDS = 10.0
 
@@ -135,7 +137,10 @@ def authorize(headers: Mapping[str, str], token: str) -> bool:
     prefix = "Bearer "
     if auth.startswith(prefix):
         supplied = auth[len(prefix) :].strip()
-        return bool(token) and hmac.compare_digest(supplied, token)
+        return bool(token) and (
+            hmac.compare_digest(supplied, token)
+            or hmac.compare_digest(supplied, monitor_session_cookie(token))
+        )
     cookie = str(headers.get("Cookie") or "")
     expected = monitor_session_cookie(token)
     if not expected:
@@ -189,11 +194,21 @@ def _fresh_snapshot(config: Mapping[str, Any], *, full: bool = False) -> Dict[st
     return snapshot if full else compact_summary(snapshot)
 
 
+def _request_base_url(handler: BaseHTTPRequestHandler) -> str:
+    host = str(handler.headers.get("Host") or "").strip()
+    if not host:
+        bind_host, bind_port = handler.server.server_address[:2]
+        host = f"{bind_host}:{bind_port}"
+    scheme = "https" if str(handler.headers.get("X-Forwarded-Proto") or "").lower() == "https" else "http"
+    return f"{scheme}://{host}"
+
+
 def summary_text(payload: Mapping[str, Any]) -> str:
     pause = payload.get("pause") if isinstance(payload.get("pause"), dict) else {}
     git = payload.get("git") if isinstance(payload.get("git"), dict) else {}
     memory = payload.get("memory_pressure") if isinstance(payload.get("memory_pressure"), dict) else {}
     lanes = payload.get("lanes") if isinstance(payload.get("lanes"), list) else []
+    milestones = payload.get("milestones") if isinstance(payload.get("milestones"), list) else []
     daemon = "RUNNING" if payload.get("daemon_running") else "STOPPED"
     paused = "PAUSED" if pause.get("paused") else "active"
     cloud = "available" if str(payload.get("cloud_available", "")).lower() == "true" else str(
@@ -242,6 +257,24 @@ def summary_text(payload: Mapping[str, Any]) -> str:
                 f"Tracked changes: {git.get('tracked_change_count', '-')}",
             ]
         )
+    if milestones:
+        lines.extend(["", "Milestones", "----------"])
+        for milestone in milestones:
+            if not isinstance(milestone, dict):
+                continue
+            mark = str(milestone.get("mark") or " ")
+            number = str(milestone.get("number") or "-")
+            title = str(milestone.get("title") or "-")
+            status = str(milestone.get("status") or "-")
+            lines.append(f"[{mark}] M{number}: {title} ({status})")
+            details = milestone.get("details") if isinstance(milestone.get("details"), list) else []
+            for detail in details:
+                if not isinstance(detail, dict):
+                    continue
+                detail_mark = str(detail.get("mark") or " ")
+                detail_text = str(detail.get("text") or "")
+                if detail_text:
+                    lines.append(f"  [{detail_mark}] {detail_text}")
     if memory:
         summary = memory.get("summary") if isinstance(memory.get("summary"), list) else []
         if summary:
@@ -260,15 +293,34 @@ def _format_lane_running(lane: Mapping[str, Any]) -> str:
             continue
         provider = str(item.get("provider") or "unknown")
         role = str(item.get("role") or "job")
-        labels.append(f"{provider} {role}")
+        tier = str(item.get("tier") or "").strip()
+        profile = str(item.get("profile") or "").strip()
+        if provider == "cloud" and tier:
+            labels.append(f"{provider} {tier} {role}")
+        elif provider == "cloud" and profile:
+            labels.append(f"{provider} {role} ({profile})")
+        else:
+            labels.append(f"{provider} {role}")
     return ", ".join(labels) if labels else "not running"
 
 
-def summary_html(payload: Mapping[str, Any]) -> str:
+def _control_href(base_url: str, action: str, session_token: str) -> str:
+    query = urlencode(
+        {
+            "session": session_token,
+            "operator": "status-page",
+            "reason": f"{action} from status page",
+        }
+    )
+    return f"{base_url}/api/control/{action}?{query}"
+
+
+def summary_html(payload: Mapping[str, Any], *, session_token: str = "", base_url: str = "") -> str:
     pause = payload.get("pause") if isinstance(payload.get("pause"), dict) else {}
     git = payload.get("git") if isinstance(payload.get("git"), dict) else {}
     memory = payload.get("memory_pressure") if isinstance(payload.get("memory_pressure"), dict) else {}
     lanes = payload.get("lanes") if isinstance(payload.get("lanes"), list) else []
+    milestones = payload.get("milestones") if isinstance(payload.get("milestones"), list) else []
     daemon_running = bool(payload.get("daemon_running"))
     daemon_label = "RUNNING" if daemon_running else "STOPPED"
     daemon_class = "ok" if daemon_running else "bad"
@@ -280,6 +332,8 @@ def summary_html(payload: Mapping[str, Any]) -> str:
     toggle_action = "stop" if daemon_running else "start"
     toggle_label = "Stop daemon" if daemon_running else "Start daemon"
     toggle_class = "danger" if daemon_running else "primary"
+    toggle_href = _control_href(base_url, toggle_action, session_token)
+    kick_href = _control_href(base_url, "kick", session_token)
     rows = [
         ("Runtime", payload.get("runtime_mode", "-"), ""),
         ("Cloud", cloud_value, cloud_class),
@@ -331,7 +385,51 @@ def summary_html(payload: Mapping[str, Any]) -> str:
         )
     if lane_rows:
         lane_html = "<section><h2>Lanes</h2><div class='lanes'>" + "\n".join(lane_rows) + "</div></section>"
+    milestone_html = ""
+    milestone_rows: list[str] = []
+    for milestone in milestones[:5]:
+        if not isinstance(milestone, dict):
+            continue
+        mark = str(milestone.get("mark") or " ")
+        css = "ok" if mark == "x" else "warn" if mark == "~" else ""
+        number = str(milestone.get("number") or "-")
+        title = str(milestone.get("title") or "-")
+        status = str(milestone.get("status") or "-")
+        details = milestone.get("details") if isinstance(milestone.get("details"), list) else []
+        detail_items: list[str] = []
+        for detail in details:
+            if not isinstance(detail, dict):
+                continue
+            detail_mark = str(detail.get("mark") or " ")
+            detail_text = str(detail.get("text") or "")
+            if detail_text:
+                detail_css = "ok" if detail_mark == "x" else "warn" if detail_mark == "~" else ""
+                detail_items.append(
+                    "<li>"
+                    f"<span class='{escape(detail_css)}'>[{escape(detail_mark)}]</span> "
+                    f"{escape(detail_text)}"
+                    "</li>"
+                )
+        detail_html = "<ul>" + "\n".join(detail_items) + "</ul>" if detail_items else ""
+        milestone_rows.append(
+            "<details class='milestone-row'>"
+            "<summary>"
+            f"<strong>[{escape(mark)}] M{escape(number)}</strong>"
+            f"<span class='{escape(css)}'>{escape(title)}</span>"
+            f"<small>{escape(status)}</small>"
+            "</summary>"
+            f"{detail_html}"
+            "</details>"
+        )
+    if milestone_rows:
+        milestone_html = (
+            "<section class='milestone-section'><h2>Milestones</h2>"
+            "<div class='milestones'>"
+            + "\n".join(milestone_rows)
+            + "</div></section>"
+        )
     generated = human_timestamp(payload.get("generated_at"))
+    safe_session_token = json.dumps(session_token)
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -383,8 +481,12 @@ def summary_html(payload: Mapping[str, Any]) -> str:
       margin: 0 0 18px;
       flex-wrap: wrap;
     }}
-    button {{
+    button,
+    a.button {{
       appearance: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       border: 1px solid color-mix(in srgb, var(--line) 70%, white);
       background: #0e8ce3;
       color: white;
@@ -393,14 +495,19 @@ def summary_html(payload: Mapping[str, Any]) -> str:
       padding: 10px 13px;
       min-width: 130px;
       cursor: pointer;
+      text-decoration: none;
+      box-sizing: border-box;
     }}
-    button:hover {{ background: #0768ab; }}
-    button.danger {{
+    button:hover,
+    a.button:hover {{ background: #0768ab; }}
+    button.danger,
+    a.button.danger {{
       background: #dba057;
       color: #06111d;
       border-color: #ffd193;
     }}
-    button.danger:hover {{ background: #bd8542; }}
+    button.danger:hover,
+    a.button.danger:hover {{ background: #bd8542; }}
     #control-status {{
       min-height: 1.3em;
       margin: -8px 0 14px;
@@ -419,17 +526,45 @@ def summary_html(payload: Mapping[str, Any]) -> str:
       display: grid;
       gap: 8px;
     }}
-    .lane-row {{
+    .milestones {{
       display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 4px 12px;
+      gap: 8px;
+    }}
+    .lane-row,
+    .milestone-row {{
       padding: 10px;
       background: #10263a;
       border: 1px solid rgb(255 255 255 / 10%);
     }}
-    .lane-row strong {{ text-align: left; color: var(--text); }}
-    .lane-row span {{ text-align: right; }}
-    .lane-row small {{ grid-column: 1 / -1; color: var(--muted); }}
+    .lane-row {{
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 4px 12px;
+    }}
+    .milestone-row summary {{
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 4px 12px;
+      cursor: pointer;
+      list-style-position: inside;
+    }}
+    .milestone-row summary::-webkit-details-marker {{
+      color: var(--muted);
+    }}
+    .lane-row strong,
+    .milestone-row strong {{ text-align: left; color: var(--text); }}
+    .lane-row span,
+    .milestone-row span {{ text-align: right; }}
+    .lane-row small,
+    .milestone-row small {{ grid-column: 1 / -1; color: var(--muted); }}
+    .milestone-row ul {{
+      margin: 10px 0 0;
+      padding-left: 18px;
+      color: var(--text);
+    }}
+    .milestone-row li {{
+      margin: 6px 0;
+    }}
     strong {{ text-align: right; }}
     .ok {{ color: var(--ok); }}
     .warn {{ color: var(--warn); }}
@@ -449,23 +584,29 @@ def summary_html(payload: Mapping[str, Any]) -> str:
     <div class="stamp">{escape(generated)}</div>
     <div class="pill {daemon_class}">Daemon: {daemon_label}</div>
     <div class="controls">
-      <button class="{toggle_class}" data-action="{toggle_action}">{toggle_label}</button>
-      <button class="primary" data-action="kick">Kick</button>
+      <a class="button {toggle_class}" data-action="{toggle_action}" href="{escape(toggle_href)}">{toggle_label}</a>
+      <a class="button primary" data-action="kick" href="{escape(kick_href)}">Kick</a>
     </div>
     <div id="control-status" aria-live="polite"></div>
     <section>{row_html}</section>
     {lane_html}
     {memory_html}
+    {milestone_html}
   </main>
   <script>
     const statusLine = document.getElementById("control-status");
+    const monitorSessionToken = {safe_session_token};
     async function runControl(action) {{
       statusLine.textContent = `Sending ${{action}}...`;
       try {{
+        const headers = {{ "Content-Type": "application/json", "Accept": "application/json" }};
+        if (monitorSessionToken) {{
+          headers.Authorization = `Bearer ${{monitorSessionToken}}`;
+        }}
         const response = await fetch(`/api/control/${{action}}`, {{
           method: "POST",
           credentials: "same-origin",
-          headers: {{ "Content-Type": "application/json", "Accept": "application/json" }},
+          headers,
           body: JSON.stringify({{ operator: "status-page", reason: `${{action}} from status page` }})
         }});
         if (!response.ok) {{
@@ -478,8 +619,11 @@ def summary_html(payload: Mapping[str, Any]) -> str:
         statusLine.textContent = `Control failed: ${{error.message}}`;
       }}
     }}
-    for (const button of document.querySelectorAll("button[data-action]")) {{
-      button.addEventListener("click", () => runControl(button.dataset.action));
+    for (const button of document.querySelectorAll("[data-action]")) {{
+      button.addEventListener("click", (event) => {{
+        event.preventDefault();
+        runControl(button.dataset.action);
+      }});
     }}
   </script>
 </body>
@@ -512,9 +656,23 @@ def run_control_action(action: str, *, operator: str, reason: str = "") -> Dict[
         return {"rc": 2, "output": ["unsupported action"], "timed_out": False}
     with _control_lock:
         if action == "start":
-            result = _run_control_command([*DAEMON_CTL, "start"])
+            result = _run_control_command([*LAUNCHD_CTL, "start", "daemon"])
         elif action == "stop":
-            result = _run_control_command([*DAEMON_CTL, "stop"], timeout=60.0)
+            # The daemon is launchd-managed with KeepAlive. Boot it out first so
+            # launchd does not immediately undo a remote stop, then run the
+            # daemon cleanup path to terminate tracked workers and stale tests.
+            launchd_result = _run_control_command([*LAUNCHD_CTL, "stop", "daemon"], timeout=30.0)
+            cleanup_result = _run_control_command([*DAEMON_CTL, "stop"], timeout=60.0)
+            result = {
+                "rc": int(launchd_result.get("rc", 1)) or int(cleanup_result.get("rc", 1)),
+                "output": [
+                    "launchd:",
+                    *list(launchd_result.get("output", [])),
+                    "cleanup:",
+                    *list(cleanup_result.get("output", [])),
+                ],
+                "timed_out": bool(launchd_result.get("timed_out") or cleanup_result.get("timed_out")),
+            }
         else:
             result = _kick(operator, reason)
         _invalidate_snapshot()
@@ -596,40 +754,92 @@ class RemoteMonitorHandler(BaseHTTPRequestHandler):
             return False
         return True
 
+    def _guard_control_get(self, parsed: Any) -> bool:
+        if client_allowed(self.client_address[0], self.monitor_config):
+            query = parse_qs(parsed.query)
+            supplied_session = str((query.get("session") or [""])[0]).strip()
+            expected_session = monitor_session_cookie(self.monitor_token)
+            if supplied_session and expected_session and hmac.compare_digest(supplied_session, expected_session):
+                return True
+        return self._guard()
+
     def do_GET(self) -> None:  # noqa: N802 - stdlib API
-        if self.path == "/healthz":
+        parsed = urlsplit(self.path)
+        path = parsed.path
+        if path == "/healthz":
             if not self._guard(auth=False):
                 return
             self._send_json(HTTPStatus.OK, {"status": "ok"})
             return
-        if self.path == "/api/status/summary":
+        if path == "/api/status/summary":
             if not self._guard():
                 return
             self._send_json(HTTPStatus.OK, _fresh_snapshot(self.monitor_config, full=False))
             return
-        if self.path == "/api/status/text":
+        if path == "/api/status/text":
             if not self._guard():
                 return
             self._send_text(HTTPStatus.OK, summary_text(_fresh_snapshot(self.monitor_config, full=False)))
             return
-        if self.path == "/api/status/html":
+        if path == "/api/status/html":
             if not self._guard():
                 return
+            session = monitor_session_cookie(self.monitor_token)
             self._send_html(
                 HTTPStatus.OK,
-                summary_html(_fresh_snapshot(self.monitor_config, full=False)),
-                session_cookie=monitor_session_cookie(self.monitor_token),
+                summary_html(
+                    _fresh_snapshot(self.monitor_config, full=False),
+                    session_token=session,
+                    base_url=_request_base_url(self),
+                ),
+                session_cookie=session,
             )
             return
-        if self.path == "/api/status":
+        if path == "/api/status":
             if not self._guard():
                 return
             self._send_json(HTTPStatus.OK, _fresh_snapshot(self.monitor_config, full=True))
             return
+        action = CONTROL_ROUTES.get(path)
+        if action:
+            if not self._guard_control_get(parsed):
+                return
+            query = parse_qs(parsed.query)
+            operator = str((query.get("operator") or [self.monitor_config.get("operator_label") or "remote-monitor"])[0])
+            reason = str((query.get("reason") or [f"{action} from authenticated GET"])[0])
+            action_id = str(uuid.uuid4())
+            result = run_control_action(action, operator=operator, reason=reason)
+            status_code = HTTPStatus.OK if int(result.get("rc", 1)) == 0 else HTTPStatus.INTERNAL_SERVER_ERROR
+            if "text/html" in str(self.headers.get("Accept") or ""):
+                session = monitor_session_cookie(self.monitor_token)
+                label = "sent" if status_code == HTTPStatus.OK else "failed"
+                body = (
+                    "<!doctype html><meta name='viewport' content='width=device-width, initial-scale=1'>"
+                    f"<title>Exegesis {escape(action.title())}</title>"
+                    "<body style='font:16px ui-monospace,monospace;background:#0d1f31;color:#e8f1ff;padding:24px'>"
+                    f"<h1>{escape(action.title())} {escape(label)}</h1>"
+                    f"<p>Action id: {escape(action_id)}</p>"
+                    f"<p><a style='color:#5dff9b' href='/api/status/html?session={escape(session)}'>Back to status</a></p>"
+                    "</body>"
+                )
+                self._send_html(status_code, body, session_cookie=session)
+                return
+            self._send_json(
+                status_code,
+                {
+                    "action_id": action_id,
+                    "action": action,
+                    "operator": operator,
+                    "updated_at": utc_now(),
+                    "result": result,
+                    "summary": _fresh_snapshot(self.monitor_config, full=False),
+                },
+            )
+            return
         self._send_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
 
     def do_POST(self) -> None:  # noqa: N802 - stdlib API
-        action = CONTROL_ROUTES.get(self.path)
+        action = CONTROL_ROUTES.get(urlsplit(self.path).path)
         if not action:
             self._send_json(HTTPStatus.NOT_FOUND, {"error": "not found"})
             return

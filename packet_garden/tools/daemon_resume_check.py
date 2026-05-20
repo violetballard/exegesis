@@ -58,10 +58,10 @@ def _wait_for_first_cycle(previous_state: dict, *, timeout_seconds: float = 15.0
 def main() -> int:
     print("=== RESUME CHECK: START ===")
     previous_state = _load_state()
-    _run([sys.executable, "codex_packet_handoff/tools/daemon_ctl.py", "start"])
+    _run([sys.executable, "packet_garden/tools/daemon_ctl.py", "start"])
 
     print("=== RESUME CHECK: STATUS ===")
-    status_rc, status_out = _run([sys.executable, "codex_packet_handoff/tools/daemon_ctl.py", "status"])
+    status_rc, status_out = _run([sys.executable, "packet_garden/tools/daemon_ctl.py", "status"])
     if "daemon_running=True" not in status_out:
         print("[resume-check] daemon is not running after start; aborting checks")
         return 1 if status_rc == 0 else status_rc
@@ -75,10 +75,10 @@ def main() -> int:
         print("[resume-check] daemon started, but no fresh resume epoch or reconcile cycle was observed before timeout")
 
     print("=== RESUME CHECK: MONITOR ===")
-    _run([sys.executable, "codex_packet_handoff/tools/daemon_monitor.py"])
+    _run([sys.executable, "packet_garden/tools/daemon_monitor.py"])
 
     print("=== RESUME CHECK: PIPELINE STATUS ===")
-    _run([sys.executable, "codex_packet_handoff/tools/status.py"])
+    _run([sys.executable, "packet_garden/tools/status.py"])
 
     print("=== RESUME CHECK: DONE ===")
     return 0

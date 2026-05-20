@@ -105,6 +105,19 @@ def _enabled_lanes() -> List[str]:
     return [lane for lane, lane_cfg in lane_map.items() if bool((lane_cfg or {}).get("enabled", True))]
 
 
+def _cloud_profile_tier(profile: str) -> str:
+    name = str(profile or "").strip()
+    if not name:
+        return ""
+    if name == "integrator_cloud" or "high" in name:
+        return "heavy"
+    if "medium" in name:
+        return "medium"
+    if name == "worker_cloud" or "low" in name:
+        return "light"
+    return name
+
+
 
 
 def _read_pid() -> int | None:
@@ -125,7 +138,26 @@ def _lease_pid_ts() -> tuple[int | None, float | None]:
         return None, None
 
 
+def _daemon_status_from_lease() -> tuple[bool, int | None]:
+    lease_pid, lease_ts = _lease_pid_ts()
+    if not lease_pid or not lease_ts:
+        return False, _read_pid()
+    if not _pid_alive(lease_pid) or not _pid_matches_daemon(lease_pid):
+        return False, _read_pid() or lease_pid
+    if (time.time() - lease_ts) > LEASE_FRESH_SECONDS:
+        return False, _read_pid() or lease_pid
+    pid = _read_pid()
+    if pid != lease_pid:
+        try:
+            DAEMON_PID.write_text(str(lease_pid))
+        except Exception:
+            pass
+    return True, lease_pid
+
+
 def _pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
     try:
         os.kill(pid, 0)
         return True
@@ -234,7 +266,7 @@ def _pid_matches_daemon(pid: int) -> bool:
     if p.returncode != 0:
         return True
     cmd = (p.stdout or "").strip()
-    return bool(cmd and "codex_packet_handoff/tools/agents_coordinator.py --daemon" in cmd)
+    return bool(cmd and "packet_garden/tools/agents_coordinator.py --daemon" in cmd)
 
 
 def _matching_pids() -> list[int]:
@@ -264,7 +296,7 @@ def _matching_pids() -> list[int]:
         cmd = parts[1]
         if pid == os.getpid():
             continue
-        if "codex_packet_handoff/tools/agents_coordinator.py --daemon" not in cmd:
+        if "packet_garden/tools/agents_coordinator.py --daemon" not in cmd:
             continue
         if "daemon_monitor.py" in cmd or "daemon_ctl.py" in cmd or "pgrep" in cmd:
             continue
@@ -412,11 +444,62 @@ def _lane_counts(lane_dir: Path) -> Dict[str, int]:
     }
 
 
+def _integrator_dependency_blockers(lane_dir: Path, approval_packet: Path) -> List[str]:
+    """Return router dependency blockers for an approved packet, if known."""
+    try:
+        try:
+            from router import (  # type: ignore
+                _integration_dependency_blockers,
+                _reviewed_files_for_integrator_packet,
+                load_cfg,
+            )
+        except ImportError:  # pragma: no cover - package execution fallback
+            from .router import (  # type: ignore
+                _integration_dependency_blockers,
+                _reviewed_files_for_integrator_packet,
+                load_cfg,
+            )
+        approved_text = approval_packet.read_text(errors="ignore")
+        reviewed_files = _reviewed_files_for_integrator_packet(lane_dir, approval_packet, approved_text)
+        return _integration_dependency_blockers(
+            load_cfg(),
+            str(Path.cwd()),
+            lane_dir.name,
+            reviewed_files=reviewed_files,
+        )
+    except Exception:
+        return []
+
+
+def _lane_scope_violations(lane: str) -> List[str]:
+    """Return full-branch ownership violations for a lane, if available."""
+    try:
+        try:
+            from router import _branch_scope_violations, load_cfg  # type: ignore
+        except ImportError:  # pragma: no cover - package execution fallback
+            from .router import _branch_scope_violations, load_cfg  # type: ignore
+        return _branch_scope_violations(load_cfg(), str(Path.cwd()), lane)
+    except Exception:
+        return []
+
+
+def _integrator_dependency_blockers_for_lane(lane_dir: Path) -> Dict[str, List[str]]:
+    blockers: Dict[str, List[str]] = {}
+    for approval_packet in sorted((lane_dir / "outbox/integrator").glob("*.md")):
+        packet_blockers = _integrator_dependency_blockers(lane_dir, approval_packet)
+        if packet_blockers:
+            blockers[approval_packet.name] = packet_blockers
+    return blockers
+
+
 def _collect_lane_totals() -> Dict[str, int]:
     totals = {
         "pending_feature": 0,
         "reviewer_notes": 0,
         "approved_for_integrator": 0,
+        "integrator_dependency_blocked": 0,
+        "integrator_runnable": 0,
+        "scope_invalid": 0,
         "waiting_feature_update": 0,
         "ready_for_reemit": 0,
     }
@@ -430,9 +513,18 @@ def _collect_lane_totals() -> Dict[str, int]:
         if not lane_dir.exists():
             continue
         c = _lane_counts(lane_dir)
+        if _lane_scope_violations(lane):
+            totals["scope_invalid"] += 1
+            totals["integrator_dependency_blocked"] += c["approved"]
         totals["pending_feature"] += c["pending"]
         totals["reviewer_notes"] += c["review"]
         totals["approved_for_integrator"] += c["approved"]
+        blocked = len(_integrator_dependency_blockers_for_lane(lane_dir))
+        totals["integrator_dependency_blocked"] += blocked
+        totals["integrator_runnable"] += max(
+            0,
+            c["approved"] - blocked - (c["approved"] if _lane_scope_violations(lane) else 0),
+        )
 
         if c["review"] <= 0:
             continue
@@ -518,8 +610,15 @@ def _tail_log(lines: int = 15) -> str:
 
 
 def _active_blocker_summary(totals: Dict[str, int]) -> str:
-    if totals["approved_for_integrator"] > 0:
-        return f"integrator backlog active ({totals['approved_for_integrator']} approved packet(s) waiting)"
+    if totals.get("scope_invalid", 0) > 0:
+        return f"ownership scope violation ({totals['scope_invalid']} lane(s) outside THREAD_OWNERSHIP.md)"
+    approved = totals["approved_for_integrator"]
+    blocked = totals.get("integrator_dependency_blocked", 0)
+    runnable = totals.get("integrator_runnable", max(0, approved - blocked))
+    if approved > 0 and runnable <= 0 and blocked > 0:
+        return f"integration dependency hold ({blocked} approved packet(s) waiting on prerequisite lane merges)"
+    if runnable > 0:
+        return f"integrator backlog active ({runnable} runnable approved packet(s), {blocked} dependency-held)"
     if totals["pending_feature"] > 0:
         return f"reviewer backlog active ({totals['pending_feature']} feature packet(s) waiting)"
     if totals["ready_for_reemit"] > 0:
@@ -625,7 +724,7 @@ def _lane_latest_feature_archive(lane: str) -> Path | None:
 
 def _lane_latest_feature_pending(lane: str) -> Path | None:
     lane_dir = PACKETS_ROOT / lane / "inbox" / "feature"
-    return _latest_by_mtime(lane_dir.glob("*.md"))
+    return _latest_by_mtime(p for p in lane_dir.glob("*.md") if not p.name.endswith(".shared.md"))
 
 
 @lru_cache(maxsize=None)
@@ -1026,7 +1125,9 @@ def _feature_runner_state(lane: str, live_sessions: Dict[str, dict[str, str]]) -
                 runtime_mode = str(thread_state.get("mode") or "unknown")
                 profile = str(thread_state.get("profile") or "-")
                 if runtime_mode == "cloud_primary":
-                    summary = f"direct exec cloud session running pid={pid} profile={profile}"
+                    tier = _cloud_profile_tier(profile)
+                    tier_text = f" tier={tier}" if tier else ""
+                    summary = f"direct exec cloud session running pid={pid}{tier_text} profile={profile}"
                 elif runtime_mode == "local_fallback":
                     summary = f"direct exec local fallback running pid={pid} profile={profile}"
                 else:
@@ -1101,18 +1202,7 @@ def main() -> None:
         sys.stdout.reconfigure(line_buffering=True, write_through=True)
     except Exception:
         pass
-    pid = _read_pid()
-    lease_pid, lease_ts = _lease_pid_ts()
-    if not pid and lease_pid:
-        pid = lease_pid
-    running = bool(
-        pid
-        and _pid_alive(pid)
-        and _pid_matches_daemon(pid)
-        and lease_pid == pid
-        and lease_ts
-        and (time.time() - lease_ts) <= LEASE_FRESH_SECONDS
-    )
+    running, pid = _daemon_status_from_lease()
     mpids = _matching_pids()
     print("DAEMON")
     print(f"running={running}")
@@ -1155,12 +1245,18 @@ def main() -> None:
     totals = _collect_lane_totals()
     reviewer_queue = totals["pending_feature"]
     integrator_queue = totals["approved_for_integrator"]
-    if reviewer_queue > 0 and integrator_queue == 0:
+    integrator_runnable = totals.get("integrator_runnable", integrator_queue)
+    integrator_blocked = totals.get("integrator_dependency_blocked", 0)
+    if totals.get("scope_invalid", 0) > 0:
+        bottleneck = "ownership scope"
+    elif reviewer_queue > 0 and integrator_runnable == 0:
         bottleneck = "reviewer"
-    elif integrator_queue > 0 and reviewer_queue == 0:
+    elif integrator_runnable > 0 and reviewer_queue == 0:
         bottleneck = "integrator"
-    elif reviewer_queue > 0 and integrator_queue > 0:
+    elif reviewer_queue > 0 and integrator_runnable > 0:
         bottleneck = "both"
+    elif integrator_queue > 0 and integrator_blocked >= integrator_queue:
+        bottleneck = "integration dependencies"
     elif totals["reviewer_notes"] > 0:
         bottleneck = "reviewer/fixer handback loop"
     else:
@@ -1174,6 +1270,9 @@ def main() -> None:
     print(f"waiting_feature_update={totals['waiting_feature_update']}")
     print(f"ready_for_reemit={totals['ready_for_reemit']}")
     print(f"integrator_queue_approved={integrator_queue}")
+    print(f"integrator_queue_runnable={integrator_runnable}")
+    print(f"integrator_queue_dependency_blocked={integrator_blocked}")
+    print(f"scope_invalid_lanes={totals.get('scope_invalid', 0)}")
     print()
 
     print("CONTROL PLANE")
@@ -1191,8 +1290,15 @@ def main() -> None:
     )
     cloud_integrator_jobs = tracked_cloud_integrator_jobs + (untracked_cloud_integrator_count or 0)
     cloud_fixer_jobs = _count_active_pid_jobs(router_state.get("fixer_fallback_jobs") or {}, local=False)
+    cloud_metadata_repair_jobs = _count_active_pid_jobs(router_state.get("metadata_repair_jobs") or {})
     cfg_for_caps = _load_json(ROUTER_CFG, {}) or {}
-    cloud_total_jobs = cloud_feature_jobs + cloud_reviewer_jobs + cloud_integrator_jobs + cloud_fixer_jobs
+    cloud_total_jobs = (
+        cloud_feature_jobs
+        + cloud_reviewer_jobs
+        + cloud_integrator_jobs
+        + cloud_fixer_jobs
+        + cloud_metadata_repair_jobs
+    )
     cloud_total_cap = int(cfg_for_caps.get("max_total_cloud_jobs", 4) or 4)
     cloud_jobs_display = (
         f"{cloud_total_jobs}+unknown"
@@ -1210,7 +1316,8 @@ def main() -> None:
         f"(features {cloud_feature_jobs}, "
         f"reviewer {cloud_reviewer_jobs}, "
         f"integrator {cloud_integrator_display}, "
-        f"fixer {cloud_fixer_jobs})"
+        f"fixer {cloud_fixer_jobs}, "
+        f"metadata {cloud_metadata_repair_jobs})"
     )
     if untracked_cloud_integrators is None:
         print("cloud_integrator_untracked_pids=unknown_process_listing_unavailable")
@@ -1229,6 +1336,8 @@ def main() -> None:
     print(f"integrator_thread_id={router_state.get('integrator_thread_id', '-')}")
     fallback_jobs = router_state.get("fixer_fallback_jobs") or {}
     print(f"fixer_fallback_jobs={_count_active_pid_jobs(fallback_jobs)}")
+    metadata_repair_jobs = router_state.get("metadata_repair_jobs") or {}
+    print(f"metadata_repair_jobs={_count_active_pid_jobs(metadata_repair_jobs)}")
     local_reviewer_jobs = router_state.get("local_reviewer_jobs") or {}
     print(f"local_reviewer_jobs={_count_active_pid_jobs(local_reviewer_jobs)}")
     cloud_reviewer_jobs = router_state.get("cloud_reviewer_jobs") or {}
@@ -1293,6 +1402,18 @@ def main() -> None:
     print(f"approved_waiting_now={integ_h['approved_now']}")
     print(f"integrated_archive_total={integ_h['integrated_archived']}")
     print(f"latest_integrator_file={integ_h['latest_integrator_file']}")
+    if PACKETS_ROOT.exists():
+        for lane_dir in sorted([p for p in PACKETS_ROOT.iterdir() if p.is_dir()], key=lambda p: p.name):
+            scope_violations = _lane_scope_violations(lane_dir.name)
+            if scope_violations:
+                preview = ",".join(scope_violations[:8])
+                extra = "" if len(scope_violations) <= 8 else f",...{len(scope_violations) - 8} more"
+                print(f"scope_invalid={lane_dir.name} files={preview}{extra}")
+            lane_blockers = _integrator_dependency_blockers_for_lane(lane_dir)
+            for packet_name, blockers in lane_blockers.items():
+                print(
+                    f"dependency_held={lane_dir.name} packet={packet_name} blockers={','.join(blockers)}"
+                )
     print()
 
     print("LANES")

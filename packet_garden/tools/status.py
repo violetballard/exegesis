@@ -8,11 +8,11 @@ Prints per-lane:
 - latest integrator output (if any)
 
 This script does not inspect live Codex sessions. Pair it with:
-  python codex_packet_handoff/tools/daemon_monitor.py
+  python packet_garden/tools/daemon_monitor.py
 for reviewer/integrator live state and manual feature-session activity.
 
 Run:
-  python codex_packet_handoff/tools/status.py
+  python packet_garden/tools/status.py
 """
 
 from __future__ import annotations
@@ -28,11 +28,16 @@ try:
     from packet_progress import infer_last_submitted_sha
 except ImportError:  # pragma: no cover - package execution fallback
     from .packet_progress import infer_last_submitted_sha
+try:
+    from router import _branch_scope_violations, load_cfg
+except ImportError:  # pragma: no cover - package execution fallback
+    from .router import _branch_scope_violations, load_cfg
 
 ROOT = Path('.codex/packets/lanes')
 CONFIG_FILE = Path('.codex/packet_router/config.json')
 PLANNER_STATE_FILE = Path('.codex/packet_planner/state.json')
 FEATURE_STATE_FILE = Path('.codex/feature_runner/state.json')
+ROUTER_STATE_FILE = Path('.codex/packet_router/state.json')
 
 @dataclass
 class LaneStatus:
@@ -46,6 +51,8 @@ class LaneStatus:
     last_submitted_sha: Optional[str]
     state: str
     note: str
+    integration_blockers: List[str]
+    scope_violations: List[str]
 
 def newest(paths: List[Path]) -> Optional[Path]:
     if not paths:
@@ -100,6 +107,42 @@ def _feature_session_active(lane: str) -> bool:
     return False
 
 
+def _metadata_repair_active(lane: str) -> bool:
+    state = _load_json(ROUTER_STATE_FILE, {})
+    jobs = state.get("metadata_repair_jobs") if isinstance(state, dict) else {}
+    job = jobs.get(lane) if isinstance(jobs, dict) else None
+    if not isinstance(job, dict):
+        return False
+    return _pid_alive(int(job.get("pid") or 0))
+
+
+def _integrator_dependency_blockers(lane_dir: Path, approval_packet: Path) -> List[str]:
+    """Return integration dependency blockers using the router's merge policy."""
+    try:
+        try:
+            from router import (  # type: ignore
+                _integration_dependency_blockers,
+                _reviewed_files_for_integrator_packet,
+                load_cfg,
+            )
+        except ImportError:  # pragma: no cover - package execution fallback
+            from .router import (  # type: ignore
+                _integration_dependency_blockers,
+                _reviewed_files_for_integrator_packet,
+                load_cfg,
+            )
+        approved_text = approval_packet.read_text(errors="ignore")
+        reviewed_files = _reviewed_files_for_integrator_packet(lane_dir, approval_packet, approved_text)
+        return _integration_dependency_blockers(
+            load_cfg(),
+            str(Path.cwd()),
+            lane_dir.name,
+            reviewed_files=reviewed_files,
+        )
+    except Exception:
+        return []
+
+
 def _derive_lane_state(
     pending: List[Path],
     reviewer: List[Path],
@@ -107,12 +150,21 @@ def _derive_lane_state(
     head_sha: Optional[str],
     last_submitted_sha: Optional[str],
     feature_active: bool = False,
+    integration_blockers: Optional[List[str]] = None,
+    lane: str = "",
 ) -> tuple[str, str]:
     if approved:
+        if integration_blockers:
+            return (
+                "integration_blocked",
+                "approved packet held for prerequisite lane(s): " + ", ".join(integration_blockers),
+            )
         return ("ready_for_integrator", "approved packet waiting for integrator")
     if pending:
         return ("pending_review", "feature packet waiting for reviewer")
     if reviewer:
+        if _metadata_repair_active(lane):
+            return ("metadata_repair", "control-plane metadata repair running in cloud")
         if head_sha and last_submitted_sha and head_sha != last_submitted_sha:
             return ("ready_for_reemit", "review notes present, lane advanced, planner should re-emit")
         return ("waiting_feature_update", "review notes present, lane has not advanced yet")
@@ -132,15 +184,50 @@ def scan_lane(lane_dir: Path, lane_cfg: Dict, planner_lane_state: Dict) -> LaneS
     if not bool((lane_cfg or {}).get("enabled", True)):
         state, note = ("disabled", "lane disabled in router config")
     else:
-        state, note = _derive_lane_state(
-            pending,
-            reviewer,
-            approved,
-            head_sha,
-            last_submitted_sha,
-            _feature_session_active(lane),
+        try:
+            scope_violations = _branch_scope_violations(load_cfg(), str(Path.cwd()), lane)
+        except Exception:
+            scope_violations = []
+        integration_blockers = sorted(
+            {
+                blocker
+                for approval_packet in approved
+                for blocker in _integrator_dependency_blockers(lane_dir, approval_packet)
+            }
         )
-    return LaneStatus(lane, pending, reviewer, approved, integ, branch, head_sha, last_submitted_sha, state, note)
+        if scope_violations:
+            state, note = (
+                "scope_invalid",
+                f"full branch violates THREAD_OWNERSHIP.md ({len(scope_violations)} file(s) outside lane scope)",
+            )
+        else:
+            state, note = _derive_lane_state(
+                pending,
+                reviewer,
+                approved,
+                head_sha,
+                last_submitted_sha,
+                _feature_session_active(lane),
+                integration_blockers,
+                lane,
+            )
+    if not bool((lane_cfg or {}).get("enabled", True)):
+        integration_blockers = []
+        scope_violations = []
+    return LaneStatus(
+        lane,
+        pending,
+        reviewer,
+        approved,
+        integ,
+        branch,
+        head_sha,
+        last_submitted_sha,
+        state,
+        note,
+        integration_blockers,
+        scope_violations,
+    )
 
 def main() -> None:
     if not ROOT.exists():
@@ -209,13 +296,19 @@ def main() -> None:
         )
         if s.note:
             print(f"{'':22}  note: {s.note}")
+        if s.scope_violations:
+            shown = ", ".join(s.scope_violations[:5])
+            suffix = "" if len(s.scope_violations) <= 5 else f", ... {len(s.scope_violations) - 5} more"
+            print(f"{'':22}  scope violations: {shown}{suffix}")
 
     print('\nHints:')
     print('- If pending>0 and review=0: router likely hasn\'t run recently or is blocked waiting on Codex.')
     print('- If state=feature_in_progress: no queue packet is waiting because the feature lane is actively working.')
     print('- If state=waiting_feature_update: lane branch has not advanced since reviewer notes.')
     print('- If state=ready_for_reemit: lane advanced and planner should emit a new feature packet.')
-    print('- If approved>0: integrator run should fire; check for INTEGRATOR__ outputs in archive.')
+    print('- If approved>0 and state=ready_for_integrator: integrator run should fire; check INTEGRATOR__ outputs in archive.')
+    print('- If approved>0 and state=integration_blocked: approved packet is waiting for prerequisite lane integration, not a stuck integrator.')
+    print('- If state=scope_invalid: full branch diff violates THREAD_OWNERSHIP.md and must be repaired before handoff/integration.')
     print('- Queue truth beats daemon-log chatter: stale scope-check text in older logs does not mean a live scope-check blocker.')
     print('- This script ignores live reviewer/integrator sessions and manual feature-lane sessions by design.')
     print('- For the full dashboard, also run daemon_monitor.py.')

@@ -6,7 +6,7 @@ import time
 import unittest
 from pathlib import Path
 
-from codex_packet_handoff.tools.log_maintenance import compact_log_file, prune_log_dir
+from packet_garden.tools.log_maintenance import compact_log_file, prune_log_dir
 
 
 class LogMaintenanceTests(unittest.TestCase):

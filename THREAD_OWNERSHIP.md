@@ -2,7 +2,7 @@
 
 Use these branch lanes to avoid duplicate work and keep the staged migration coherent.
 
-Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/TASKS.md`.
+Detailed task breakdown lives in `/Users/doctor-violet/projects/exegesis/docs/TASKS.md`.
 
 ## Active engine lanes
 
@@ -39,6 +39,8 @@ Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-
     - `shared/src/exegesis_shared/contracts/**`
     - `shared/src/exegesis_shared/models/**`
     - `shared/src/exegesis_shared/types/**`
+    - `src/qual/ui/test_a2ui_fallback_safety.py`
+    - `tests/unit/test_a2ui_contract.py`
 
 - `codex/feat-engine-runs*`
   - Owned paths:
@@ -49,20 +51,21 @@ Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-
     - `engine/src/exegesis_engine/patches/**`
     - `engine/src/exegesis_engine/audit/**`
     - `engine/src/exegesis_engine/services/**`
+    - `tests/unit/test_bulk_draft_routing.py`
+    - `tests/unit/test_engine_package_exports.py`
+    - `tests/unit/test_engine_run_pipeline.py`
+    - `tests/unit/test_policy_gate.py`
+    - `tests/unit/test_retrieval_payload_basket.py`
 
 ## Defined but disabled UI lanes
 
 - `codex/feat-console-shell*`
   - Owned paths:
-    - `client-textual/src/exegesis_textual/app/**`
-    - `client-textual/src/exegesis_textual/layout/**`
-    - `client-textual/src/exegesis_textual/panes/**`
-    - `client-textual/src/exegesis_textual/commands/**`
-    - `client-textual/src/exegesis_textual/shortcuts/**`
-    - `client-textual/src/exegesis_textual/inspectors/**`
-    - `client-textual/src/exegesis_textual/theme/**`
+    - `client-textual/**`
   - Current status:
     - disabled until the Textual dependency is intentionally added
+    - owns the current browser-facing Textual mockup branch as a single
+      preserved surface until Milestone 1 shell wiring is activated
 
 - `codex/feat-console-workflow*`
   - Owned paths:
@@ -71,6 +74,8 @@ Detailed task breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-
     - `client-textual/src/exegesis_textual/events/**`
   - Current status:
     - disabled until the Textual dependency is intentionally added
+    - reserved for a later split only if workflow behavior needs to move
+      independently from the preserved shell mockup branch
 
 ## Defined but disabled future feature lanes
 
@@ -318,7 +323,7 @@ needs a change, it should stop and report the blocker for an integrator/control
 plane patch instead of making the edit on the feature branch.
 
 Control-plane paths include:
-- `codex_packet_handoff/**`
+- `packet_garden/**`
 - `.agents/**`
 - `.codex/**`
 - `THREAD.md`

@@ -8,7 +8,7 @@ import signal
 import subprocess
 import time
 from pathlib import Path
-from typing import Dict, Iterable, List
+from typing import Dict, Iterable, List, Optional
 
 LOCAL_AGENT_RE = re.compile(r"(?:\bcodex\b.*\bexec\b|\bopencode\b.*\brun\b)", re.IGNORECASE)
 LOCAL_EXEC_MARKERS = ("--skip-git-repo-check", "workspace-write", "--local-provider", "lmstudio")
@@ -23,7 +23,11 @@ PROMPT_ROOT_SUFFIXES = (
     Path(".codex/packet_router/logs"),
     Path(".codex/packet_router/local_jobs"),
 )
-MANAGED_WORKTREE_ROOT = Path.home() / ".codex/worktrees"
+MANAGED_WORKTREE_ROOT: Optional[Path] = (
+    Path(os.environ["QUAL_MANAGED_WORKTREE_ROOT"]).expanduser()
+    if os.environ.get("QUAL_MANAGED_WORKTREE_ROOT")
+    else None
+)
 ORPHAN_TEST_RUNNER_MIN_AGE_SECONDS = int(os.environ.get("ORPHAN_TEST_RUNNER_MIN_AGE_SECONDS", "300"))
 ORPHAN_TEST_RUNNER_RSS_LIMIT_KB = int(os.environ.get("ORPHAN_TEST_RUNNER_RSS_LIMIT_KB", "1500000"))
 CONTEXT_EXHAUSTION_MARKERS = (
@@ -194,7 +198,7 @@ def _is_repo_or_managed_worktree_cwd(repo_root: Path, cwd_path: str) -> bool:
         return False
 
     try:
-        worktree_root = MANAGED_WORKTREE_ROOT.resolve(strict=False)
+        worktree_root = (MANAGED_WORKTREE_ROOT or (repo_root / ".codex/worktrees")).resolve(strict=False)
         rel = cwd.relative_to(worktree_root)
     except ValueError:
         return False

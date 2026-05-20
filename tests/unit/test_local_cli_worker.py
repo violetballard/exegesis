@@ -8,7 +8,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from codex_packet_handoff.tools import local_cli_worker
+from packet_garden.tools import local_cli_worker
 
 
 class LocalCliWorkerTests(unittest.TestCase):

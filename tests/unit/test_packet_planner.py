@@ -1,11 +1,75 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
 
-from codex_packet_handoff.tools.planner import build_packet, build_shared_packet, validate_meta
+from packet_garden.tools.planner import (
+    _full_branch_scope_violations,
+    build_packet,
+    build_shared_packet,
+    normalize_source_commit_traceability,
+    should_skip_for_active_feature,
+    source_commit_token_valid,
+    validate_meta,
+)
 
 
 class PacketPlannerTests(unittest.TestCase):
+    def test_full_branch_scope_violations_use_lane_ownership(self) -> None:
+        violations = _full_branch_scope_violations(
+            "feat-context-storage",
+            [
+                "src/qual/context/store.py",
+                "engine/src/exegesis_engine/storage/context.py",
+                "src/qual/retrieval/service.py",
+                "THREAD_PACKET.md",
+            ],
+        )
+
+        self.assertEqual(violations, ["THREAD_PACKET.md", "src/qual/retrieval/service.py"])
+
+    def test_active_feature_does_not_block_reemit_after_review_notes(self) -> None:
+        state = {"lane_refill": {"feat-engine-runs": {"feature_active": True}}}
+
+        self.assertTrue(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=False))
+        self.assertFalse(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=True))
+
+    def test_source_commit_token_valid_checks_both_ends_of_range(self) -> None:
+        with patch(
+            "packet_garden.tools.planner.ref_exists",
+            side_effect=lambda _cwd, ref: ref in {"base", "head"},
+        ):
+            self.assertTrue(source_commit_token_valid("/repo", "base..head"))
+            self.assertFalse(source_commit_token_valid("/repo", "missing..head"))
+            self.assertFalse(source_commit_token_valid("/repo", "base..missing"))
+
+    def test_stale_source_commits_are_replaced_with_merge_base_range(self) -> None:
+        def fake_run_git(args: list[str], **_kwargs: object):
+            class Result:
+                returncode = 0
+                stdout = "mergebase\n"
+
+            self.assertEqual(args, ["merge-base", "HEAD", "codex/feat-engine-runs"])
+            return Result()
+
+        with patch("packet_garden.tools.planner.source_commit_token_valid", return_value=False), patch(
+            "packet_garden.tools.planner.run_git",
+            side_effect=fake_run_git,
+        ):
+            meta, note = normalize_source_commit_traceability(
+                "/repo",
+                "feat-engine-runs",
+                "codex/feat-engine-runs",
+                "headsha",
+                {"source_commits": ["deadbeef..missing"], "tasks_completed": ["Updated engine runs."]},
+            )
+
+        self.assertEqual(meta["source_commits"], ["mergebase..headsha"])
+        self.assertEqual(meta["reviewed_commit"], "headsha")
+        self.assertEqual(meta["reviewed_commit_range"], "mergebase..headsha")
+        self.assertIn("source_commits invalid or stale", note or "")
+        self.assertIn("Planner replaced stale source commit metadata", meta["metadata_only_note"])
+
     def test_validate_meta_requires_approval_note_for_shared_files(self) -> None:
         missing = validate_meta(
             {
@@ -98,7 +162,7 @@ class PacketPlannerTests(unittest.TestCase):
                 "src/qual/engine/run_pipeline.py",
                 ".codex/kickoff_packets/feat-engine-runs.shared.md",
                 "THREAD_PACKET.md",
-                "codex_packet_handoff/tools/planner.py",
+                "packet_garden/tools/planner.py",
                 "tests/unit/test_packet_planner.py",
             ],
             gate_results=[("make scope-check", 0)],
@@ -147,7 +211,7 @@ class PacketPlannerTests(unittest.TestCase):
             files=[
                 "src/qual/engine/run_pipeline.py",
                 "THREAD_PACKET.md",
-                "codex_packet_handoff/tools/planner.py",
+                "packet_garden/tools/planner.py",
                 "tests/unit/test_packet_planner.py",
             ],
             gate_results=[("make scope-check", 0), ("./quality-test.sh", 0)],
@@ -157,7 +221,8 @@ class PacketPlannerTests(unittest.TestCase):
         self.assertIn("## Handoff Alignment", packet)
         self.assertIn("- Scope completed: shared handoff-maintenance edits are recorded separately from the lane-only", packet)
         self.assertIn("`src/qual/engine/**`", packet)
-        self.assertIn("`tests/unit/test_engine_run_pipeline.py` feature packet.", packet)
+        self.assertIn("`tests/unit/test_engine_run_pipeline.py`", packet)
+        self.assertIn("`tests/unit/test_retrieval_payload_basket.py` feature packet.", packet)
         self.assertIn("- Shared/integrator-locked edits: `YES`", packet)
         self.assertIn(
             "- Approval note: Approved shared/integrator-locked handoff maintenance is recorded in the companion shared packet.",
@@ -166,7 +231,7 @@ class PacketPlannerTests(unittest.TestCase):
         self.assertIn("- Companion lane packet: .codex/kickoff_packets/feat-engine-runs.md", packet)
         self.assertIn("### Approved shared/integrator-locked files", packet)
         self.assertIn("`THREAD_PACKET.md`", packet)
-        self.assertIn("`codex_packet_handoff/tools/planner.py`", packet)
+        self.assertIn("`packet_garden/tools/planner.py`", packet)
         self.assertIn("`tests/unit/test_packet_planner.py`", packet)
 
 

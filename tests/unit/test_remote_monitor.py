@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import threading
 import unittest
@@ -9,7 +10,13 @@ import urllib.request
 from pathlib import Path
 from unittest import mock
 
-from codex_packet_handoff.tools import agents_coordinator, remote_monitor_ctl, remote_monitor_server, remote_monitor_snapshot
+from packet_garden.tools import (
+    agents_coordinator,
+    remote_monitor_client,
+    remote_monitor_ctl,
+    remote_monitor_server,
+    remote_monitor_snapshot,
+)
 
 
 class RemoteMonitorSnapshotTests(unittest.TestCase):
@@ -26,7 +33,7 @@ class RemoteMonitorSnapshotTests(unittest.TestCase):
     def test_process_view_does_not_return_full_commands(self) -> None:
         ps_output = (
             " 111 2048 00:01 codex exec --dangerous secret-token\n"
-            " 222 4096 00:02 /usr/bin/python codex_packet_handoff/tools/agents_coordinator.py --daemon\n"
+            " 222 4096 00:02 /usr/bin/python packet_garden/tools/agents_coordinator.py --daemon\n"
         )
         completed = mock.Mock(returncode=0, stdout=ps_output)
 
@@ -50,12 +57,43 @@ class RemoteMonitorSnapshotTests(unittest.TestCase):
                         {"lane": "feat-console-shell", "state": "disabled"},
                     ]
                 },
+                "milestones": [{"number": "3", "title": "Real workflow loop", "status": "in progress", "mark": "~"}],
             }
         )
 
         lanes = payload["lanes"]
         self.assertEqual([lane["lane"] for lane in lanes], ["feat-engine-runs"])
         self.assertEqual(lanes[0]["running"][0]["provider"], "local")
+        self.assertEqual(payload["milestones"][0]["number"], "3")
+
+    def test_milestone_status_reads_m1_to_m5_from_roadmap(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            roadmap = Path(tmp) / "ROADMAP.md"
+            roadmap.write_text(
+                "\n".join(
+                    [
+                        "## Milestone 1: Standing shell",
+                        "Status: standing (mockup only)",
+                        "## Milestone 2: Core pane interactions",
+                        "Status: planned",
+                        "## Milestone 3: Real workflow loop",
+                        "Status: in progress",
+                        "## Milestone 4: Dogfooding readiness",
+                        "Status: planned",
+                        "## Milestone 5: YC demo readiness",
+                        "Status: planned",
+                        "## Milestone 5B: CoP Gateway MVP",
+                        "Status: long-term conceptual, disabled",
+                    ]
+                )
+            )
+
+            with mock.patch.object(remote_monitor_snapshot, "ROADMAP", roadmap):
+                milestones = remote_monitor_snapshot._milestone_status()
+
+        self.assertEqual([item["number"] for item in milestones], ["1", "2", "3", "4", "5"])
+        self.assertEqual([item["mark"] for item in milestones], ["x", "~", "~", "~", " "])
+        self.assertTrue(milestones[2]["details"])
 
 
 class RemoteMonitorServerTests(unittest.TestCase):
@@ -120,6 +158,15 @@ class RemoteMonitorServerTests(unittest.TestCase):
             "approved_for_integrator": 0,
             "active_blocker": "-",
             "pause": {"paused": False},
+            "milestones": [
+                {
+                    "number": "3",
+                    "title": "Real workflow loop",
+                    "status": "in progress",
+                    "mark": "~",
+                    "details": [{"mark": "~", "text": "Preview patch/revision proposal"}],
+                }
+            ],
             "lanes": [
                 {
                     "lane": "feat-engine-runs",
@@ -140,6 +187,8 @@ class RemoteMonitorServerTests(unittest.TestCase):
         self.assertIn("Runtime:   hybrid", text)
         self.assertIn("feat-engine-runs: active", text)
         self.assertIn("[local feature]", text)
+        self.assertIn("[~] M3: Real workflow loop", text)
+        self.assertIn("  [~] Preview patch/revision proposal", text)
         self.assertTrue(text.endswith("\n"))
 
     def test_human_timestamp_formats_iso_timestamp(self) -> None:
@@ -161,6 +210,22 @@ class RemoteMonitorServerTests(unittest.TestCase):
             "approved_for_integrator": 0,
             "active_blocker": "<none>",
             "pause": {"paused": False},
+            "milestones": [
+                {
+                    "number": "1",
+                    "title": "Standing shell",
+                    "status": "standing (mockup only)",
+                    "mark": "x",
+                    "details": [{"mark": "x", "text": "5-pane Textual shell stands as a mockup baseline"}],
+                },
+                {
+                    "number": "3",
+                    "title": "Real workflow loop",
+                    "status": "in progress",
+                    "mark": "~",
+                    "details": [{"mark": "~", "text": "Preview patch/revision proposal"}],
+                },
+            ],
             "lanes": [
                 {
                     "lane": "feat-engine-runs",
@@ -173,16 +238,23 @@ class RemoteMonitorServerTests(unittest.TestCase):
             ],
         }
 
-        html = remote_monitor_server.summary_html(payload)
+        html = remote_monitor_server.summary_html(payload, session_token="session", base_url="http://127.0.0.1:8765")
 
         self.assertIn("<title>Exegesis Status</title>", html)
         self.assertIn("Daemon: RUNNING", html)
         self.assertIn("&lt;none&gt;", html)
         self.assertIn('data-action="stop"', html)
+        self.assertIn('href="http://127.0.0.1:8765/api/control/stop?session=session', html)
+        self.assertIn('href="http://127.0.0.1:8765/api/control/kick?session=session', html)
         self.assertIn("Kick", html)
         self.assertIn("feat-engine-runs", html)
         self.assertIn("cloud integrator", html)
         self.assertIn("feature 1", html)
+        self.assertIn("Milestones", html)
+        self.assertIn("<details class='milestone-row'>", html)
+        self.assertIn("[x] M1", html)
+        self.assertIn("Real workflow loop", html)
+        self.assertIn("Preview patch/revision proposal", html)
 
     def test_status_endpoint_requires_auth(self) -> None:
         config = {"allowed_remote_cidrs": [], "snapshot_ttl_seconds": 0}
@@ -317,6 +389,101 @@ class RemoteMonitorServerTests(unittest.TestCase):
             server.shutdown()
             thread.join(timeout=5)
             server.server_close()
+
+    def test_get_kick_endpoint_accepts_bearer_for_shortcuts(self) -> None:
+        config = {"allowed_remote_cidrs": [], "snapshot_ttl_seconds": 0}
+        server = remote_monitor_server.ThreadingHTTPServer(("127.0.0.1", 0), remote_monitor_server.RemoteMonitorHandler)
+        server.monitor_config = config  # type: ignore[attr-defined]
+        server.monitor_token = "token"  # type: ignore[attr-defined]
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        base = f"http://127.0.0.1:{server.server_address[1]}"
+        try:
+            with mock.patch.object(
+                remote_monitor_server,
+                "run_control_action",
+                return_value={"rc": 0, "output": ["kick requested"], "timed_out": False},
+            ) as run_action, mock.patch.object(
+                remote_monitor_server,
+                "_fresh_snapshot",
+                return_value={"daemon_running": True, "generated_at": "now"},
+            ):
+                req = urllib.request.Request(
+                    f"{base}/api/control/kick?operator=iphone&reason=shortcut",
+                    headers={"Authorization": "Bearer token"},
+                    method="GET",
+                )
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    payload = json.loads(response.read().decode("utf-8"))
+                self.assertEqual(payload["action"], "kick")
+                run_action.assert_called_once_with("kick", operator="iphone", reason="shortcut")
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
+            server.server_close()
+
+    def test_get_control_endpoint_accepts_page_session_link(self) -> None:
+        config = {"allowed_remote_cidrs": [], "snapshot_ttl_seconds": 0}
+        server = remote_monitor_server.ThreadingHTTPServer(("127.0.0.1", 0), remote_monitor_server.RemoteMonitorHandler)
+        server.monitor_config = config  # type: ignore[attr-defined]
+        server.monitor_token = "token"  # type: ignore[attr-defined]
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        base = f"http://127.0.0.1:{server.server_address[1]}"
+        try:
+            with mock.patch.object(
+                remote_monitor_server,
+                "run_control_action",
+                return_value={"rc": 0, "output": ["kick requested"], "timed_out": False},
+            ) as run_action, mock.patch.object(
+                remote_monitor_server,
+                "_fresh_snapshot",
+                return_value={"daemon_running": True, "generated_at": "now"},
+            ):
+                session = remote_monitor_server.monitor_session_cookie("token")
+                req = urllib.request.Request(
+                    f"{base}/api/control/kick?session={session}&operator=status-page&reason=page-link",
+                    method="GET",
+                )
+                with urllib.request.urlopen(req, timeout=5) as response:
+                    payload = json.loads(response.read().decode("utf-8"))
+                self.assertEqual(payload["action"], "kick")
+                run_action.assert_called_once_with("kick", operator="status-page", reason="page-link")
+        finally:
+            server.shutdown()
+            thread.join(timeout=5)
+            server.server_close()
+
+
+class RemoteMonitorClientTests(unittest.TestCase):
+    def test_default_base_url_reads_monitor_config_when_env_absent(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = root / "config.json"
+            config.write_text(json.dumps({"host": "192.168.0.252", "port": 8765}))
+
+            with mock.patch.object(remote_monitor_client, "DEFAULT_CONFIG", config), mock.patch.dict(
+                os.environ,
+                {},
+                clear=True,
+            ):
+                self.assertEqual(remote_monitor_client._default_base_url(), "http://192.168.0.252:8765")
+
+    def test_default_token_reads_configured_token_file_when_env_absent(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            token = root / ".codex" / "remote_monitor" / "token"
+            token.parent.mkdir(parents=True)
+            token.write_text("secret-token\n")
+            config = root / ".codex" / "remote_monitor" / "config.json"
+            config.write_text(json.dumps({"token_file": ".codex/remote_monitor/token"}))
+
+            with mock.patch.object(remote_monitor_client, "REPO_ROOT", root), mock.patch.object(
+                remote_monitor_client,
+                "DEFAULT_CONFIG",
+                config,
+            ), mock.patch.dict(os.environ, {}, clear=True):
+                self.assertEqual(remote_monitor_client._default_token(), "secret-token")
 
 
 class RemoteMonitorCtlTests(unittest.TestCase):

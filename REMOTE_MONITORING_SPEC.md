@@ -57,7 +57,7 @@ The operator workflow has two access paths:
 
 Skills and operator runbooks should choose the path this way:
 
-1. If this Codex session has the `qual` repo mounted locally and `codex_packet_handoff/tools/daemon_ctl.py` exists, use direct local scripts.
+1. If this Codex session has the `qual` repo mounted locally and `packet_garden/tools/daemon_ctl.py` exists, use direct local scripts.
 2. If local scripts are unavailable, but `QUAL_MONITOR_URL` and `QUAL_MONITOR_TOKEN` are set, use the remote monitor client.
 3. If neither path is available, report that daemon state cannot be verified from the current session.
 
@@ -178,11 +178,11 @@ Tracked files:
 
 - `docs/remote_monitoring/iphone_shortcuts.md`
 - `REMOTE_MONITORING_SPEC.md`
-- `codex_packet_handoff/config/remote_monitor.example.json`
-- `codex_packet_handoff/tools/remote_monitor_snapshot.py`
-- `codex_packet_handoff/tools/remote_monitor_server.py`
-- `codex_packet_handoff/tools/remote_monitor_client.py`
-- `codex_packet_handoff/tools/remote_monitor_ctl.py`
+- `packet_garden/config/remote_monitor.example.json`
+- `packet_garden/tools/remote_monitor_snapshot.py`
+- `packet_garden/tools/remote_monitor_server.py`
+- `packet_garden/tools/remote_monitor_client.py`
+- `packet_garden/tools/remote_monitor_ctl.py`
 
 Untracked runtime files:
 
@@ -201,15 +201,15 @@ The simplest mobile operator surface is a folder of iOS Shortcuts that call the 
 Local monitor process:
 
 ```sh
-python codex_packet_handoff/tools/remote_monitor_ctl.py start
-python codex_packet_handoff/tools/remote_monitor_ctl.py status
-python codex_packet_handoff/tools/remote_monitor_ctl.py stop
+python packet_garden/tools/remote_monitor_ctl.py start
+python packet_garden/tools/remote_monitor_ctl.py status
+python packet_garden/tools/remote_monitor_ctl.py stop
 ```
 
 One-time local setup:
 
 ```sh
-python codex_packet_handoff/tools/remote_monitor_ctl.py init \
+python packet_garden/tools/remote_monitor_ctl.py init \
   --host 127.0.0.1 \
   --allowed-cidr 100.64.0.0/10
 ```
@@ -221,7 +221,7 @@ Remote/local client:
 ```sh
 QUAL_MONITOR_URL=http://127.0.0.1:8765 \
 QUAL_MONITOR_TOKEN=<token> \
-python codex_packet_handoff/tools/remote_monitor_client.py status
+python packet_garden/tools/remote_monitor_client.py status
 ```
 
 Phone-readable text status:
@@ -229,14 +229,14 @@ Phone-readable text status:
 ```sh
 QUAL_MONITOR_URL=http://127.0.0.1:8765 \
 QUAL_MONITOR_TOKEN=<token> \
-python codex_packet_handoff/tools/remote_monitor_client.py text
+python packet_garden/tools/remote_monitor_client.py text
 ```
 
 Access selection check:
 
 ```sh
-test -f codex_packet_handoff/tools/daemon_ctl.py && \
-  python codex_packet_handoff/tools/daemon_ctl.py status
+test -f packet_garden/tools/daemon_ctl.py && \
+  python packet_garden/tools/daemon_ctl.py status
 ```
 
 If the local check works, prefer the local scripts. If it fails in a VPN/home context, use `remote_monitor_client.py`.
@@ -244,7 +244,7 @@ If the local check works, prefer the local scripts. If it fails in a VPN/home co
 Control examples:
 
 ```sh
-python codex_packet_handoff/tools/remote_monitor_client.py kick --reason "unstick queue"
+python packet_garden/tools/remote_monitor_client.py kick --reason "unstick queue"
 ```
 
 ## Test Plan

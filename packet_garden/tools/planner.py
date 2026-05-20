@@ -18,9 +18,9 @@ except ImportError:  # pragma: no cover - package execution fallback
     from .git_ops import require_git_output, run_git
 
 try:
-    from lane_profiles import ENGINE_MILESTONE_FOCUS, default_lane_meta, engine_priority_lines
+    from lane_profiles import ENGINE_MILESTONE_FOCUS, ENGINE_PRIORITY_ORDER, default_lane_meta, engine_priority_lines
 except ImportError:  # pragma: no cover - package execution fallback
-    from .lane_profiles import ENGINE_MILESTONE_FOCUS, default_lane_meta, engine_priority_lines
+    from .lane_profiles import ENGINE_MILESTONE_FOCUS, ENGINE_PRIORITY_ORDER, default_lane_meta, engine_priority_lines
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PACKETS_ROOT = Path(".codex/packets/lanes")
@@ -48,6 +48,7 @@ REQUIRED_GATES_DEFAULT = [
 
 CHANGED_FILES_DIFF_TIMEOUT = 8
 CHANGED_FILES_FALLBACK_TIMEOUT = 8
+ACTIVE_ENGINE_LANES = set(ENGINE_PRIORITY_ORDER)
 
 LANE_OWNED_PATHS = {
     "feat-commands": ["src/qual/commands/**"],
@@ -64,9 +65,11 @@ LANE_OWNED_PATHS = {
     ],
     "feat-a2ui-contract": [
         "src/qual/ui/a2ui.py",
+        "src/qual/ui/test_a2ui_fallback_safety.py",
         "shared/src/exegesis_shared/contracts/**",
         "shared/src/exegesis_shared/models/**",
         "shared/src/exegesis_shared/types/**",
+        "tests/unit/test_a2ui_contract.py",
     ],
     "feat-engine-runs": [
         "src/qual/engine/**",
@@ -77,16 +80,13 @@ LANE_OWNED_PATHS = {
         "engine/src/exegesis_engine/audit/**",
         "engine/src/exegesis_engine/services/**",
         "tests/unit/test_bulk_draft_routing.py",
+        "tests/unit/test_engine_package_exports.py",
         "tests/unit/test_engine_run_pipeline.py",
+        "tests/unit/test_policy_gate.py",
+        "tests/unit/test_retrieval_payload_basket.py",
     ],
     "feat-console-shell": [
-        "client-textual/src/exegesis_textual/app/**",
-        "client-textual/src/exegesis_textual/layout/**",
-        "client-textual/src/exegesis_textual/panes/**",
-        "client-textual/src/exegesis_textual/commands/**",
-        "client-textual/src/exegesis_textual/shortcuts/**",
-        "client-textual/src/exegesis_textual/inspectors/**",
-        "client-textual/src/exegesis_textual/theme/**",
+        "client-textual/**",
     ],
     "feat-console-workflow": [
         "client-textual/src/exegesis_textual/workflow/**",
@@ -259,6 +259,13 @@ def merge_lane_meta_defaults(lane: str, meta: Json) -> Json:
         if _is_missing(value) and key in merged:
             continue
         merged[key] = value
+    if lane in ACTIVE_ENGINE_LANES:
+        # Active MVP lanes get their milestone mapping from lane_profiles.py.
+        # Lane metadata is allowed to describe completed work, but stale local
+        # .codex metadata must not relabel the canonical roadmap target.
+        canonical_roadmap = default_lane_meta(lane).get("roadmap_items")
+        if not _is_missing(canonical_roadmap):
+            merged["roadmap_items"] = list(canonical_roadmap)
     return merged
 
 def load_json(p: Path, default: Any) -> Any:
@@ -278,6 +285,9 @@ def lane_feature_active(coordinator_state: Dict[str, Any], lane: str) -> bool:
         return False
     lane_state = lane_refill.get(lane)
     return isinstance(lane_state, dict) and lane_state.get("feature_active") is True
+
+def should_skip_for_active_feature(coordinator_state: Dict[str, Any], lane: str, *, fast_reemit: bool) -> bool:
+    return lane_feature_active(coordinator_state, lane) and not fast_reemit
 
 def save_json(p: Path, data: Any) -> None:
     p.parent.mkdir(parents=True, exist_ok=True)
@@ -480,6 +490,67 @@ def ref_exists(cwd: str, ref: str) -> bool:
     return result.returncode == 0
 
 
+def source_commit_token_valid(cwd: str, token: str) -> bool:
+    value = str(token or "").strip()
+    if not value:
+        return False
+    if "..." in value:
+        start_ref, end_ref = value.split("...", 1)
+        return (
+            bool(start_ref.strip() and end_ref.strip())
+            and ref_exists(cwd, start_ref.strip())
+            and ref_exists(cwd, end_ref.strip())
+        )
+    if ".." in value:
+        start_ref, end_ref = value.split("..", 1)
+        return (
+            bool(start_ref.strip() and end_ref.strip())
+            and ref_exists(cwd, start_ref.strip())
+            and ref_exists(cwd, end_ref.strip())
+        )
+    return ref_exists(cwd, value)
+
+
+def fallback_source_commit_range(cwd: str, branch: str, sha: str) -> str:
+    result = run_git(["merge-base", "HEAD", branch], cwd=cwd, timeout=120)
+    base = result.stdout.strip()
+    if result.returncode == 0 and base:
+        return f"{base}..{sha}"
+    return sha
+
+
+def normalize_source_commit_traceability(
+    cwd: str,
+    lane: str,
+    branch: str,
+    sha: str,
+    meta: Json,
+) -> Tuple[Json, Optional[str]]:
+    out = dict(meta or {})
+    raw = out.get("source_commits")
+    if _is_missing(raw):
+        return out, None
+    tokens = [str(item).strip() for item in raw] if isinstance(raw, list) else [str(raw).strip()]
+    tokens = [item for item in tokens if item]
+    if tokens and all(source_commit_token_valid(cwd, token) for token in tokens):
+        first = tokens[0]
+        out["source_commits"] = tokens
+        if ".." in first and _is_missing(out.get("reviewed_commit_range")):
+            out["reviewed_commit_range"] = first
+        if _is_missing(out.get("reviewed_commit")):
+            out["reviewed_commit"] = sha
+        return out, None
+    fallback = fallback_source_commit_range(cwd, branch, sha)
+    out["source_commits"] = [fallback]
+    out["reviewed_commit"] = sha
+    if ".." in fallback:
+        out["reviewed_commit_range"] = fallback
+    note = f"{lane}: source_commits invalid or stale; using `{fallback}`"
+    if _is_missing(out.get("metadata_only_note")):
+        out["metadata_only_note"] = "Planner replaced stale source commit metadata with a locally resolvable branch range."
+    return out, note
+
+
 def resolve_branch_sha(repo_cwd: str, branch: str, *, fallback_cwd: Optional[str] = None) -> str:
     branch_ref = branch if branch.startswith("refs/") else branch
     result = run_git(["rev-parse", branch_ref], cwd=repo_cwd, timeout=120)
@@ -517,6 +588,20 @@ def _collect_commit_range_files(cwd: str, start_ref: str, head_ref: str) -> List
 
 def compute_changed_files(cwd: str, base_ref: str, *, head_ref: str = "HEAD") -> List[str]:
     try:
+        merge_base = require_git_output(
+            ["merge-base", base_ref, head_ref],
+            cwd=cwd,
+            timeout=CHANGED_FILES_DIFF_TIMEOUT,
+        ).strip()
+        if merge_base:
+            diff_result = run_git(
+                ["diff", "--name-only", f"{merge_base}..{head_ref}"],
+                cwd=cwd,
+                timeout=CHANGED_FILES_DIFF_TIMEOUT,
+            )
+            files = _parse_changed_files(diff_result.stdout)
+            if diff_result.returncode == 0 and files:
+                return files
         files = _collect_commit_range_files(cwd, base_ref, head_ref)
         if files:
             return files
@@ -620,6 +705,22 @@ def _split_files(lane: str, files: List[str]) -> Tuple[List[str], List[str]]:
     owned_files = [f for f in files if any(fnmatchcase(f, pattern) for pattern in owned_patterns)]
     shared_files = [f for f in files if f not in owned_files]
     return owned_files, shared_files
+
+
+def _full_branch_scope_violations(lane: str, files: List[str]) -> List[str]:
+    """Return files outside the lane ownership map for the full branch diff."""
+    owned_patterns = LANE_OWNED_PATHS.get(lane, [])
+    if not owned_patterns:
+        return []
+    violations: List[str] = []
+    for file_name in files:
+        normalized = str(file_name).strip().lstrip("./")
+        if not normalized:
+            continue
+        if any(fnmatchcase(normalized, pattern) for pattern in owned_patterns):
+            continue
+        violations.append(normalized)
+    return sorted(set(violations))
 
 
 def _owned_path_note(lane: str) -> str:
@@ -807,7 +908,7 @@ def main()->None:
     if not cfg or "lanes" not in cfg:
         raise SystemExit(f"Missing {CONFIG_FILE} (copy example.json).")
     planner_cfg=cfg.get("planner",{}) or {}
-    base_ref=str(planner_cfg.get("base_ref","codex/integrator"))
+    base_ref=str(planner_cfg.get("base_ref","main"))
     gates=list(planner_cfg.get("required_gates", REQUIRED_GATES_DEFAULT))
     state=load_json(STATE_FILE,{})
     lane_state=state.get("lanes",{})
@@ -828,9 +929,6 @@ def main()->None:
             continue
         ensure_lane_dirs(lane)
         if lane_has_pending_feature(lane):
-            continue
-        if lane_feature_active(coordinator_state, lane):
-            print(f"[planner] {lane}: feature worker active; skipping gate run until handoff")
             continue
         has_reviewer_notes = lane_has_reviewer_notes(lane)
         branch=str((lcfg or {}).get("branch") or f"codex/{lane}")
@@ -856,6 +954,9 @@ def main()->None:
         if last_submitted_sha == sha:
             continue
         fast_reemit = bool(has_reviewer_notes and last_submitted_sha and last_submitted_sha != sha)
+        if should_skip_for_active_feature(coordinator_state, lane, fast_reemit=fast_reemit):
+            print(f"[planner] {lane}: feature worker active; skipping gate run until handoff")
+            continue
         if not active_repo and not fast_reemit:
             # Do not switch branches in the main repo from planner automation.
             # Lane automation is worktree-scoped; missing/stale worktrees should be fixed
@@ -867,6 +968,9 @@ def main()->None:
         if miss:
             print(f"[planner] {lane}: lane_meta missing: {miss} (using auto defaults)")
             meta = apply_meta_defaults(meta, miss, lane)
+        meta, traceability_note = normalize_source_commit_traceability(repo, lane, branch, sha, meta)
+        if traceability_note:
+            print(f"[planner] {traceability_note}")
         env=os.environ.copy()
         if bool(meta.get("shared_file_exception")):
             env["SCOPE_ALLOW_SHARED"]="1"
@@ -902,6 +1006,16 @@ def main()->None:
                 )
             except Exception as e:
                 print(f"[planner] {lane}: diff failed vs {base_ref}: {e}")
+                continue
+            scope_violations = _full_branch_scope_violations(lane, files)
+            if scope_violations:
+                preview = "\n".join(f"  - {path}" for path in scope_violations[:40])
+                extra = "" if len(scope_violations) <= 40 else f"\n  ... {len(scope_violations) - 40} more"
+                print(
+                    f"[planner] {lane}: full branch scope violation; "
+                    "THREAD_OWNERSHIP.md allows only "
+                    f"{_owned_path_note(lane)}\n{preview}{extra}"
+                )
                 continue
             if not active_repo:
                 print(f"[planner] {lane}: no usable worktree for {branch}; cannot rerun local gates")

@@ -88,7 +88,7 @@ is_feature_branch() {
 is_control_plane_file() {
   local f="$1"
   case "$f" in
-    codex_packet_handoff/*|codex_packet_handoff/*/*)
+    packet_garden/*|packet_garden/*/*)
       return 0
       ;;
     .agents/*|.agents/*/*)
@@ -160,19 +160,19 @@ is_allowed() {
       ;;
     codex/feat-a2ui-contract*)
       case "$f" in
-        src/qual/ui/a2ui.py|src/qual/ui/test_a2ui_fallback_safety.py|shared/src/exegesis_shared/contracts/*|shared/src/exegesis_shared/contracts/*/*|shared/src/exegesis_shared/models/*|shared/src/exegesis_shared/models/*/*|shared/src/exegesis_shared/types/*|shared/src/exegesis_shared/types/*/*) return 0 ;;
+        src/qual/ui/a2ui.py|src/qual/ui/test_a2ui_fallback_safety.py|shared/src/exegesis_shared/contracts/*|shared/src/exegesis_shared/contracts/*/*|shared/src/exegesis_shared/models/*|shared/src/exegesis_shared/models/*/*|shared/src/exegesis_shared/types/*|shared/src/exegesis_shared/types/*/*|tests/unit/test_a2ui_contract.py) return 0 ;;
       esac
       return 1
       ;;
     codex/feat-engine-runs*)
       case "$f" in
-        src/qual/engine/*|src/qual/engine/*/*|src/qual/drafting/*|src/qual/drafting/*/*|engine/src/exegesis_engine/api/*|engine/src/exegesis_engine/api/*/*|engine/src/exegesis_engine/workflow/*|engine/src/exegesis_engine/workflow/*/*|engine/src/exegesis_engine/patches/*|engine/src/exegesis_engine/patches/*/*|engine/src/exegesis_engine/audit/*|engine/src/exegesis_engine/audit/*/*|engine/src/exegesis_engine/services/*|engine/src/exegesis_engine/services/*/*) return 0 ;;
+        src/qual/engine/*|src/qual/engine/*/*|src/qual/drafting/*|src/qual/drafting/*/*|engine/src/exegesis_engine/api/*|engine/src/exegesis_engine/api/*/*|engine/src/exegesis_engine/workflow/*|engine/src/exegesis_engine/workflow/*/*|engine/src/exegesis_engine/patches/*|engine/src/exegesis_engine/patches/*/*|engine/src/exegesis_engine/audit/*|engine/src/exegesis_engine/audit/*/*|engine/src/exegesis_engine/services/*|engine/src/exegesis_engine/services/*/*|tests/unit/test_bulk_draft_routing.py|tests/unit/test_engine_package_exports.py|tests/unit/test_engine_run_pipeline.py|tests/unit/test_policy_gate.py|tests/unit/test_retrieval_payload_basket.py) return 0 ;;
       esac
       return 1
       ;;
     codex/feat-console-shell*)
       case "$f" in
-        client-textual/src/exegesis_textual/app/*|client-textual/src/exegesis_textual/app/*/*|client-textual/src/exegesis_textual/layout/*|client-textual/src/exegesis_textual/layout/*/*|client-textual/src/exegesis_textual/panes/*|client-textual/src/exegesis_textual/panes/*/*|client-textual/src/exegesis_textual/commands/*|client-textual/src/exegesis_textual/commands/*/*|client-textual/src/exegesis_textual/shortcuts/*|client-textual/src/exegesis_textual/shortcuts/*/*|client-textual/src/exegesis_textual/inspectors/*|client-textual/src/exegesis_textual/inspectors/*/*|client-textual/src/exegesis_textual/theme/*|client-textual/src/exegesis_textual/theme/*/*) return 0 ;;
+        client-textual/*|client-textual/*/*) return 0 ;;
       esac
       return 1
       ;;

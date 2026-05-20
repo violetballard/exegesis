@@ -24,6 +24,7 @@ try:
     from lane_profiles import ENGINE_PRIORITY_ORDER, lane_priority_order
     from git_ops import run_git
     from git_hygiene import run_hygiene
+    from planner import LANE_OWNED_PATHS
     from local_exec_sweeper import (
         find_context_exhausted_repo_local_exec_pids,
         find_repo_owned_local_exec_pids,
@@ -36,6 +37,7 @@ except ImportError:  # pragma: no cover - package execution fallback
     from .lane_profiles import ENGINE_PRIORITY_ORDER, lane_priority_order
     from .git_ops import run_git
     from .git_hygiene import run_hygiene
+    from .planner import LANE_OWNED_PATHS
     from .local_exec_sweeper import (
         find_context_exhausted_repo_local_exec_pids,
         find_repo_owned_local_exec_pids,
@@ -52,10 +54,10 @@ if hasattr(sys.stderr, "reconfigure"):
 
 TOOLS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TOOLS_DIR.parent.parent
-PLANNER_PATH = REPO_ROOT / "codex_packet_handoff/tools/planner.py"
-ROUTER_PATH = REPO_ROOT / "codex_packet_handoff/tools/router.py"
-INIT_META_PATH = REPO_ROOT / "codex_packet_handoff/tools/init_lane_meta.py"
-LAUNCH_FEATURE_LANES_PATH = REPO_ROOT / "codex_packet_handoff/tools/launch_feature_lanes.py"
+PLANNER_PATH = REPO_ROOT / "packet_garden/tools/planner.py"
+ROUTER_PATH = REPO_ROOT / "packet_garden/tools/router.py"
+INIT_META_PATH = REPO_ROOT / "packet_garden/tools/init_lane_meta.py"
+LAUNCH_FEATURE_LANES_PATH = REPO_ROOT / "packet_garden/tools/launch_feature_lanes.py"
 
 PLANNER_CMD = [sys.executable, str(PLANNER_PATH)]
 ROUTER_CMD = [sys.executable, str(ROUTER_PATH)]
@@ -91,13 +93,19 @@ FEATURE_LOOP_MIN_RUNTIME_SECONDS = 300.0
 FEATURE_LOOP_LOG_TAIL_BYTES = 32768
 FEATURE_LOOP_BAD_APPLYPATCH_THRESHOLD = 6
 FEATURE_LOOP_RECONNECT_THRESHOLD = 4
+FEATURE_NO_TOOL_ACTIVITY_MIN_RUNTIME_SECONDS = float(
+    os.environ.get("FEATURE_NO_TOOL_ACTIVITY_MIN_RUNTIME_SECONDS", "2700")
+)
+FEATURE_MAX_RUNTIME_SECONDS = float(os.environ.get("FEATURE_MAX_RUNTIME_SECONDS", "5400"))
 ROUTER_JOB_LOOP_MIN_RUNTIME_SECONDS = 300.0
+ROUTER_FIXER_NO_TOOL_MIN_RUNTIME_SECONDS = float(os.environ.get("ROUTER_FIXER_NO_TOOL_MIN_RUNTIME_SECONDS", "90"))
 FEATURE_LOOP_PARSE_ERROR_THRESHOLD = 2
 FEATURE_CHILD_RSS_LIMIT_KB = int(os.environ.get("FEATURE_CHILD_RSS_LIMIT_KB", "2500000"))
 FEATURE_TOTAL_CHILD_RSS_LIMIT_KB = int(os.environ.get("FEATURE_TOTAL_CHILD_RSS_LIMIT_KB", "8000000"))
 WORKTREE_RECOVERY_ROOT = REPO_ROOT / ".codex/worktree_recovery"
 ROUTER_JOB_STATE_KEYS = (
     "fixer_fallback_jobs",
+    "metadata_repair_jobs",
     "local_reviewer_jobs",
     "cloud_reviewer_jobs",
     "local_integrator_jobs",
@@ -110,9 +118,11 @@ ROUTER_RETRY_STATE_KEYS = (
     "local_integrator_retry_ts",
     "cloud_integrator_retry_ts",
 )
-FEATURE_LANE_RE = re.compile(r"feature lane agent for\s+`?([A-Za-z0-9._-]+)`?", re.IGNORECASE)
-CODEX_EXEC_RE = re.compile(r"\bcodex\b.*\bexec\b", re.IGNORECASE)
-MANAGED_WORKTREE_ROOT = Path.home() / ".codex/worktrees"
+FEATURE_LANE_RE = re.compile(r"feature lane agent for\s+`?([A-Za-z0-9_-]+)`?", re.IGNORECASE)
+AGENT_EXEC_RE = re.compile(r"\b(?:codex\b.*\bexec|opencode\b.*\brun)\b", re.IGNORECASE)
+MANAGED_WORKTREE_ROOT = Path(
+    os.environ.get("QUAL_MANAGED_WORKTREE_ROOT", str(REPO_ROOT / ".codex/worktrees"))
+).expanduser()
 WORKTREE_HEALTH_TIMEOUT_SECONDS = 15.0
 WORKTREE_REBUILD_TIMEOUT_SECONDS = 180.0
 GIT_HYGIENE_ALERT_THRESHOLD = 3
@@ -380,7 +390,7 @@ def _current_resume_epoch(coordinator_state: Optional[Dict[str, object]] = None)
 def _manual_feature_exec_processes() -> Dict[str, List[int]]:
     try:
         proc = subprocess.run(
-            ["ps", "-axo", "pid=,command="],
+            ["ps", "-wwaxo", "pid=,command="],
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
             text=True,
@@ -393,7 +403,7 @@ def _manual_feature_exec_processes() -> Dict[str, List[int]]:
     out: Dict[str, List[int]] = {}
     for line in (proc.stdout or "").splitlines():
         row = line.strip()
-        if not row or not CODEX_EXEC_RE.search(row):
+        if not row or not AGENT_EXEC_RE.search(row):
             continue
         parts = row.split(None, 1)
         if len(parts) != 2 or not parts[0].isdigit():
@@ -577,13 +587,19 @@ def _feature_runner_loop_reason(lane_state: Dict[str, object]) -> Optional[str]:
     if resource_reason:
         return resource_reason
     launched_at = _parse_feature_runner_ts(str(lane_state.get("last_launch_at") or ""))
+    elapsed = time.time() - launched_at if launched_at else 0
+    over_autonomy_window = bool(launched_at and FEATURE_MAX_RUNTIME_SECONDS > 0 and elapsed >= FEATURE_MAX_RUNTIME_SECONDS)
     if launched_at and (time.time() - launched_at) < FEATURE_LOOP_MIN_RUNTIME_SECONDS:
         return None
     log_path = Path(str(lane_state.get("log_path") or ""))
     if not log_path.exists():
+        if over_autonomy_window:
+            return f"feature autonomy window exceeded after {int(elapsed)}s"
         return None
     text = _read_text_tail(log_path)
     if not text:
+        if over_autonomy_window:
+            return f"feature autonomy window exceeded after {int(elapsed)}s"
         return None
     parse_failures = text.count("failed to parse function arguments")
     bad_apply_patch = text.count("Usage: apply_patch 'PATCH'")
@@ -607,6 +623,52 @@ def _feature_runner_loop_reason(lane_state: Dict[str, object]) -> Optional[str]:
             "reconnect timeout loop "
             f"({reconnects} reconnect retries, {idle_timeouts} idle timeouts)"
         )
+    no_tool_reason = _feature_runner_no_tool_reason(lane_state, text=text)
+    if no_tool_reason:
+        return no_tool_reason
+    if over_autonomy_window:
+        return f"feature autonomy window exceeded after {int(elapsed)}s"
+    return None
+
+
+def _feature_runner_no_tool_reason(lane_state: Dict[str, object], *, text: str = "") -> Optional[str]:
+    pid = int(lane_state.get("pid") or 0)
+    if pid <= 0 or not _pid_alive(pid):
+        return None
+    launched_at = _parse_feature_runner_ts(str(lane_state.get("last_launch_at") or ""))
+    if not launched_at or (time.time() - launched_at) < FEATURE_NO_TOOL_ACTIVITY_MIN_RUNTIME_SECONDS:
+        return None
+    log_path = Path(str(lane_state.get("log_path") or ""))
+    if not log_path.exists():
+        return None
+    if not text:
+        text = _read_text_tail(log_path)
+    if not text.strip():
+        return None
+    activity_markers = (
+        "functions.exec_command",
+        "exec_command",
+        "apply_patch",
+        "succeeded in",
+        "Process exited",
+        "diff --git",
+        "git diff",
+        "pytest",
+        "quality-",
+        "typecheck",
+        "make ci",
+        "Committed",
+        "Ready for handoff",
+        "Handoff",
+        "files changed",
+        "tests pass",
+    )
+    if any(marker in text for marker in activity_markers):
+        return None
+    startup_markers = ("> build", "build ·", "Local fallback launched as direct exec.")
+    if any(marker in text for marker in startup_markers):
+        elapsed = int(time.time() - launched_at)
+        return f"feature startup/no tool activity after {elapsed}s"
     return None
 
 
@@ -646,6 +708,37 @@ def _router_job_loop_reason(job: Dict[str, object]) -> Optional[str]:
     return None
 
 
+def _router_fixer_no_tool_reason(job: Dict[str, object]) -> Optional[str]:
+    pid = int(job.get("pid") or 0)
+    if pid <= 0 or not _pid_alive(pid):
+        return None
+    started_at = float(job.get("started_at") or 0)
+    if not started_at:
+        ts = str(job.get("ts") or "").strip()
+        if ts:
+            try:
+                started_at = datetime.strptime(ts, "%Y%m%dT%H%M%SZ").replace(tzinfo=timezone.utc).timestamp()
+            except ValueError:
+                started_at = 0
+    if started_at and (time.time() - started_at) < ROUTER_FIXER_NO_TOOL_MIN_RUNTIME_SECONDS:
+        return None
+
+    log_path = str(job.get("log") or "").strip()
+    if not log_path:
+        return None
+    path = Path(log_path)
+    if not path.is_absolute():
+        path = REPO_ROOT / path
+    text = _read_text_tail(path)
+    if not text.strip():
+        return None
+    if any(marker in text for marker in ("exec", "succeeded in", "ERROR:", "thinking")):
+        return None
+    if "> build" in text or "build ·" in text:
+        return "fixer startup/no tool activity"
+    return None
+
+
 def _reconcile_feature_runner_state() -> Dict[str, object]:
     state = load_json(FEATURE_RUNNER_STATE_FILE, {})
     lanes = state.get("lanes") if isinstance(state, dict) else {}
@@ -654,6 +747,8 @@ def _reconcile_feature_runner_state() -> Dict[str, object]:
 
     removed: List[str] = []
     terminated: Dict[str, str] = {}
+    scope_invalid: Dict[str, int] = {}
+    scope_auto_reverted: Dict[str, str] = {}
     for lane, lane_state in list(lanes.items()):
         if not isinstance(lane_state, dict):
             lanes.pop(lane, None)
@@ -662,6 +757,21 @@ def _reconcile_feature_runner_state() -> Dict[str, object]:
         if str(lane_state.get("status") or "") != "direct_exec_running":
             continue
         pid = int(lane_state.get("pid") or 0)
+        violations = _lane_scope_violations(str(lane))
+        if violations:
+            if _pid_alive(pid):
+                _terminate_pid_tree(pid)
+            repaired, repair_reason = _auto_revert_scope_violations(str(lane), violations)
+            lanes.pop(lane, None)
+            removed.append(str(lane))
+            terminated[str(lane)] = (
+                "full_branch_scope_violation_auto_reverted" if repaired else "full_branch_scope_violation"
+            )
+            if repaired:
+                scope_auto_reverted[str(lane)] = repair_reason
+            else:
+                scope_invalid[str(lane)] = len(violations)
+            continue
         if _pid_alive(pid):
             loop_reason = _feature_runner_loop_reason(lane_state)
             if loop_reason:
@@ -677,7 +787,12 @@ def _reconcile_feature_runner_state() -> Dict[str, object]:
     if removed:
         state["lanes"] = lanes
         save_json(FEATURE_RUNNER_STATE_FILE, state)
-    return {"removed": sorted(set(removed)), "terminated": terminated}
+    return {
+        "removed": sorted(set(removed)),
+        "terminated": terminated,
+        "scope_invalid": scope_invalid,
+        "scope_auto_reverted": scope_auto_reverted,
+    }
 
 
 def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = None) -> Dict[str, List[str]]:
@@ -703,6 +818,20 @@ def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = Non
             packet_name = str(job.get("packet_name") or "")
             if not packet_name and ":" in str(job_name):
                 packet_name = str(job_name).split(":", 1)[-1]
+            scope_violations = _lane_scope_violations(lane) if lane else []
+            if scope_violations:
+                repaired, repair_reason = _auto_revert_scope_violations(lane, scope_violations)
+                pid = int(job.get("pid") or 0)
+                if _pid_alive(pid):
+                    _terminate_pid_tree(pid)
+                jobs.pop(job_name, None)
+                stale.append(
+                    f"{job_name} ({'full_branch_scope_violation_auto_reverted' if repaired else 'full_branch_scope_violation'}: "
+                    f"{', '.join(scope_violations[:3])}"
+                    f"{' ...' if len(scope_violations) > 3 else ''}; {repair_reason})"
+                )
+                changed = True
+                continue
             if _job_result_exists(job):
                 continue
             if packet_name and lane and not _packet_exists(lane, packet_name):
@@ -716,6 +845,22 @@ def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = Non
                 continue
             pid = int(job.get("pid") or 0)
             if _pid_alive(pid):
+                if key == "fixer_fallback_jobs":
+                    no_tool_reason = _router_fixer_no_tool_reason(job)
+                    if no_tool_reason:
+                        _terminate_pid_tree(pid)
+                        jobs.pop(job_name, None)
+                        stale.append(f"{job_name} ({no_tool_reason})")
+                        prefer_cloud_once = state.get("fixer_prefer_cloud_once")
+                        if not isinstance(prefer_cloud_once, dict):
+                            prefer_cloud_once = {}
+                        prefer_cloud_once[lane] = {
+                            "reason": no_tool_reason,
+                            "marked_at": utc_now(),
+                        }
+                        state["fixer_prefer_cloud_once"] = prefer_cloud_once
+                        changed = True
+                        continue
                 loop_reason = _router_job_loop_reason(job)
                 if not loop_reason:
                     continue
@@ -798,13 +943,15 @@ def _tracked_local_exec_pids() -> List[int]:
     return sorted(set(tracked))
 
 
-def _tracked_feature_exec_pids() -> List[int]:
+def _tracked_feature_exec_pids(mode: str | None = None) -> List[int]:
     tracked: List[int] = []
     feature_state = load_json(FEATURE_RUNNER_STATE_FILE, {})
     lanes = feature_state.get("lanes") if isinstance(feature_state, dict) else {}
     if isinstance(lanes, dict):
         for lane_state in lanes.values():
             if not isinstance(lane_state, dict):
+                continue
+            if mode is not None and str(lane_state.get("mode") or "") != mode:
                 continue
             pid = int(lane_state.get("pid") or 0)
             if pid > 0:
@@ -889,6 +1036,8 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
     feature_runner_reconcile = _reconcile_feature_runner_state()
     feature_runner_removed = list(feature_runner_reconcile.get("removed") or [])
     feature_runner_terminated = dict(feature_runner_reconcile.get("terminated") or {})
+    feature_runner_scope_invalid = dict(feature_runner_reconcile.get("scope_invalid") or {})
+    feature_runner_scope_auto_reverted = dict(feature_runner_reconcile.get("scope_auto_reverted") or {})
     duplicate_feature_pids_removed = _reconcile_duplicate_feature_exec_processes()
     router_removed = _reconcile_router_state(coordinator_state)
     orphan_local_exec_pids_removed = _reconcile_orphan_local_exec_processes()
@@ -907,8 +1056,21 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
             lane_state = {}
         lane_state["force_resume_once"] = True
         if lane in feature_runner_terminated:
-            lane_state["force_resume_reason"] = "feature_tool_loop_detected"
+            termination_reason = str(feature_runner_terminated[lane])
+            if termination_reason.startswith("feature autonomy window exceeded"):
+                lane_state["force_resume_reason"] = "feature_time_budget_exceeded"
+            else:
+                lane_state["force_resume_reason"] = "feature_tool_loop_detected"
             lane_state["force_resume_detail"] = feature_runner_terminated[lane]
+            if lane in feature_runner_scope_invalid:
+                lane_state["force_resume_once"] = False
+                lane_state["force_resume_reason"] = "full_branch_scope_violation"
+                lane_state["scope_violation_count"] = feature_runner_scope_invalid[lane]
+            elif lane in feature_runner_scope_auto_reverted:
+                lane_state["force_resume_once"] = True
+                lane_state["force_resume_reason"] = "full_branch_scope_violation_auto_reverted"
+                lane_state["force_resume_detail"] = feature_runner_scope_auto_reverted[lane]
+                lane_state.pop("scope_violation_count", None)
         else:
             lane_state["force_resume_reason"] = "stale_direct_exec_pruned"
             lane_state.pop("force_resume_detail", None)
@@ -918,6 +1080,13 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
         print(f"[reconcile] pruned stale feature-runner state: {', '.join(feature_runner_removed)}")
     for lane, reason in sorted(feature_runner_terminated.items()):
         print(f"[reconcile] terminated looping feature-runner for {lane}: {reason}")
+    for lane, count in sorted(feature_runner_scope_invalid.items()):
+        print(
+            f"[reconcile] held feature lane {lane}: full branch violates THREAD_OWNERSHIP.md "
+            f"({count} file(s) outside lane scope)"
+        )
+    for lane, reason in sorted(feature_runner_scope_auto_reverted.items()):
+        print(f"[reconcile] auto-reverted scope violations for {lane}: {reason}")
     for key, names in sorted(router_removed.items()):
         print(f"[reconcile] pruned stale router state from {key}: {', '.join(names)}")
     for lane, pids in sorted(duplicate_feature_pids_removed.items()):
@@ -963,6 +1132,8 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
     return {
         "feature_runner_removed": feature_runner_removed,
         "feature_runner_terminated": feature_runner_terminated,
+        "feature_runner_scope_invalid": feature_runner_scope_invalid,
+        "feature_runner_scope_auto_reverted": feature_runner_scope_auto_reverted,
         "router_removed": router_removed,
         "duplicate_feature_pids_removed": duplicate_feature_pids_removed,
         "orphan_local_exec_pids_removed": orphan_local_exec_pids_removed,
@@ -991,6 +1162,112 @@ def _lane_branch_map() -> Dict[str, str]:
         str(lane): str((lane_cfg or {}).get("branch") or f"codex/{lane}")
         for lane, lane_cfg in lanes.items()
     }
+
+
+def _branch_changed_files(branch: str) -> List[str]:
+    try:
+        base = run_git(["merge-base", "HEAD", branch], cwd=REPO_ROOT, timeout=30)
+        if base.returncode != 0:
+            return []
+        merge_base = (base.stdout or "").strip()
+        if not merge_base:
+            return []
+        diff = run_git(["diff", "--name-only", f"{merge_base}..{branch}"], cwd=REPO_ROOT, timeout=30)
+        if diff.returncode != 0:
+            return []
+        return [line.strip() for line in (diff.stdout or "").splitlines() if line.strip()]
+    except Exception:
+        return []
+
+
+def _normalize_repo_path(path: object) -> str:
+    normalized = str(path).strip()
+    while normalized.startswith("./"):
+        normalized = normalized[2:]
+    return normalized
+
+
+def _lane_worktree_changed_files(lane: str) -> List[str]:
+    branch = _lane_branch_map().get(lane, f"codex/{lane}")
+    worktree_raw = _git_worktree_branch_map().get(f"refs/heads/{branch}") or _git_worktree_branch_map().get(branch)
+    if not worktree_raw:
+        return []
+    worktree = Path(worktree_raw)
+    changed: List[str] = []
+    for args in (
+        ["diff", "--name-only", "--diff-filter=ACMR"],
+        ["diff", "--name-only", "--cached", "--diff-filter=ACMR"],
+    ):
+        proc = run_git(args, cwd=worktree, timeout=30)
+        if proc.returncode != 0:
+            continue
+        changed.extend(line.strip() for line in (proc.stdout or "").splitlines() if line.strip())
+    return sorted(set(changed))
+
+
+def _lane_scope_violations(lane: str) -> List[str]:
+    patterns = list(LANE_OWNED_PATHS.get(lane, []))
+    if not patterns:
+        return []
+    branch = _lane_branch_map().get(lane, f"codex/{lane}")
+    violations: List[str] = []
+    changed_files = [*_branch_changed_files(branch), *_lane_worktree_changed_files(lane)]
+    for file_name in changed_files:
+        normalized = _normalize_repo_path(file_name)
+        if not normalized:
+            continue
+        if any(fnmatch.fnmatchcase(normalized, pattern) for pattern in patterns):
+            continue
+        violations.append(normalized)
+    return sorted(set(violations))
+
+
+def _auto_revert_scope_violations(lane: str, violations: List[str]) -> Tuple[bool, str]:
+    """Remove out-of-scope branch changes from the lane worktree.
+
+    Feature lanes are allowed to continue after accidental control-plane edits,
+    but those edits must not survive to review/integration. Restore only the
+    violating paths from the lane's merge-base, then commit the cleanup on the
+    lane branch so the next handoff uses a clean head.
+    """
+    if not violations:
+        return False, "no_violations"
+    branch = _lane_branch_map().get(lane, f"codex/{lane}")
+    worktree = _git_worktree_branch_map().get(f"refs/heads/{branch}") or _git_worktree_branch_map().get(branch)
+    if not worktree:
+        return False, "missing_worktree"
+    base = run_git(["merge-base", "HEAD", branch], cwd=REPO_ROOT, timeout=30)
+    if base.returncode != 0 or not (base.stdout or "").strip():
+        return False, "missing_merge_base"
+    merge_base = (base.stdout or "").strip()
+    paths = sorted(set(_normalize_repo_path(p) for p in violations if str(p).strip()))
+    if not paths:
+        return False, "empty_paths"
+    restore = run_git(
+        ["restore", "--source", merge_base, "--staged", "--worktree", "--", *paths],
+        cwd=worktree,
+        timeout=120,
+        write=True,
+    )
+    if restore.returncode != 0:
+        return False, f"restore_failed: {restore.stdout.strip()[:240]}"
+    status = run_git(["status", "--porcelain", "--", *paths], cwd=worktree, timeout=30)
+    if status.returncode != 0:
+        return False, f"status_failed: {status.stdout.strip()[:240]}"
+    if not (status.stdout or "").strip():
+        return True, "already_clean"
+    add = run_git(["add", "--", *paths], cwd=worktree, timeout=60, write=True)
+    if add.returncode != 0:
+        return False, f"add_failed: {add.stdout.strip()[:240]}"
+    commit = run_git(
+        ["commit", "-m", f"Remove out-of-scope changes from {lane}"],
+        cwd=worktree,
+        timeout=120,
+        write=True,
+    )
+    if commit.returncode != 0:
+        return False, f"commit_failed: {commit.stdout.strip()[:240]}"
+    return True, "auto_reverted"
 
 
 def _git_worktree_branch_map() -> Dict[str, str]:
@@ -1615,7 +1892,10 @@ def _git_rev(branch: str) -> str:
 
 def _lane_digest(lane: str) -> Dict[str, object]:
     base = REPO_ROOT / ".codex/packets/lanes" / lane
-    feat = sorted((base / "inbox/feature").glob("*.md"))
+    feat = sorted(
+        p for p in (base / "inbox/feature").glob("*.md")
+        if not p.name.endswith(".shared.md")
+    )
     rev = sorted((base / "inbox/reviewer").glob("*.md"))
     appr = sorted((base / "outbox/integrator").glob("*.md"))
     arch = sorted((base / "archive").glob("*.md"))
@@ -1674,7 +1954,7 @@ def _local_lms_feature_launch_slots() -> int:
         return 999999
     active = len(
         set(find_repo_owned_local_exec_pids(REPO_ROOT))
-        | {pid for pid in _tracked_feature_exec_pids() if _pid_alive(pid)}
+        | {pid for pid in _tracked_feature_exec_pids("local_fallback") if _pid_alive(pid)}
     )
     return max(0, cap - active)
 
@@ -1777,6 +2057,34 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
         lane_state = lane_refill.get(lane)
         if not isinstance(lane_state, dict):
             lane_state = {}
+        scope_violations = _lane_scope_violations(lane)
+        if scope_violations:
+            repaired, repair_reason = _auto_revert_scope_violations(lane, scope_violations)
+            if repaired:
+                scope_violations = _lane_scope_violations(lane)
+                if not scope_violations:
+                    lane_state["force_resume_once"] = True
+                    lane_state["force_resume_reason"] = "full_branch_scope_violation_auto_reverted"
+                    lane_state["force_resume_detail"] = repair_reason
+                    lane_state.pop("scope_invalid", None)
+                    lane_state.pop("scope_violation_count", None)
+                    lane_refill[lane] = lane_state
+                else:
+                    repair_reason = f"{repair_reason}; still_invalid"
+            if not scope_violations:
+                continue
+            lane_state["queue_empty"] = queue_empty
+            lane_state["feature_active"] = feature_active
+            lane_state["scope_invalid"] = True
+            lane_state["scope_violation_count"] = len(scope_violations)
+            lane_state["last_launch_reason"] = "full_branch_scope_violation"
+            lane_state["last_scope_repair_reason"] = repair_reason
+            lane_state.pop("force_resume_once", None)
+            lane_state["last_seen_at"] = utc_now()
+            lane_refill[lane] = lane_state
+            continue
+        lane_state.pop("scope_invalid", None)
+        lane_state.pop("scope_violation_count", None)
         last_launch_attempt_ts = float(lane_state.get("last_launch_attempt_ts", 0) or 0)
         force_resume_once = bool(lane_state.get("force_resume_once"))
         if (
@@ -1815,23 +2123,19 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
         # router can advance the current feature loop instead of letting free
         # lane launches continually steal capacity.
         local_slots = max(0, local_slots - 1)
-    cloud_slots = 0 if _has_lane_backlog() else _cloud_feature_launch_slots()
+    # Router work runs before feature refill, so reviewer/integrator/fixer jobs
+    # have already claimed any cloud slots they can use this cycle. Use remaining
+    # cloud capacity for idle feature lanes instead of leaving the fifth active
+    # engine lane dormant while local LMS is full.
+    cloud_slots = _cloud_feature_launch_slots()
     if local_slots <= 0 and cloud_slots <= 0:
         print("[coordinator] local/cloud feature caps reached; deferring feature lane launch")
         return []
-    cloud_lanes = to_launch[:cloud_slots]
-    remaining = [lane for lane in to_launch if lane not in set(cloud_lanes)]
-    local_lanes = remaining[:local_slots]
+    local_lanes = to_launch[:local_slots]
+    remaining = [lane for lane in to_launch if lane not in set(local_lanes)]
+    cloud_lanes = remaining[:cloud_slots]
 
     launched: List[str] = []
-    if cloud_lanes:
-        rc, out = run_cmd(LAUNCH_FEATURE_LANES_CMD + ["--provider", "cloud", "--lanes", *cloud_lanes])
-        if rc != 0:
-            print(f"[coordinator] cloud feature lane launch failed for {cloud_lanes}: rc={rc}")
-            if out:
-                print(out, end="" if out.endswith("\n") else "\n")
-        else:
-            launched.extend(cloud_lanes)
     if local_lanes:
         rc, out = run_cmd(LAUNCH_FEATURE_LANES_CMD + ["--provider", "local", "--lanes", *local_lanes])
         if rc != 0:
@@ -1840,6 +2144,14 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
                 print(out, end="" if out.endswith("\n") else "\n")
         else:
             launched.extend(local_lanes)
+    if cloud_lanes:
+        rc, out = run_cmd(LAUNCH_FEATURE_LANES_CMD + ["--provider", "cloud", "--lanes", *cloud_lanes])
+        if rc != 0:
+            print(f"[coordinator] cloud feature lane launch failed for {cloud_lanes}: rc={rc}")
+            if out:
+                print(out, end="" if out.endswith("\n") else "\n")
+        else:
+            launched.extend(cloud_lanes)
     if launched:
         print(f"[coordinator] launched free lanes: {', '.join(launched)}")
     return launched
@@ -1966,11 +2278,6 @@ def _run_cycle(
     if args.execution_mode == "direct" and direct_ctx is not None:
         direct_ctx.state = direct_ctx.router_mod.load_json(direct_ctx.router_mod.STATE_FILE, {})
 
-    # Fill empty feature lanes before planner gates run. Planner gates can be
-    # expensive; once a lane is actively working, planner correctly skips gate
-    # reruns for that lane and the daemon stays useful instead of waiting on CI.
-    pre_planner_launched_lanes = _launch_free_lanes(coordinator_state)
-
     print("[planner]")
     if args.execution_mode == "direct":
         planner_rc, planner_out, planner_attempts = _run_planner_direct(args.planner_retries)
@@ -1998,13 +2305,15 @@ def _run_cycle(
         "integrated": router_stats["integrated"],
     }
 
+    # Refill feature lanes only after planner/router get first chance to turn
+    # completed lane commits into reviewer/integrator packets. Launching before
+    # planner can bury a finished commit under a fresh active worker and keep
+    # review/integration starved even though feature branches are advancing.
     post_router_launched_lanes = _launch_free_lanes(coordinator_state)
-    launched_lanes = pre_planner_launched_lanes + [
-        lane for lane in post_router_launched_lanes if lane not in set(pre_planner_launched_lanes)
-    ]
+    launched_lanes = post_router_launched_lanes
     cycle_event["launcher"] = {
         "launched": launched_lanes,
-        "pre_planner": pre_planner_launched_lanes,
+        "pre_planner": [],
         "post_router": post_router_launched_lanes,
     }
 

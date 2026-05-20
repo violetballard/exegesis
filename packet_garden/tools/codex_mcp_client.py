@@ -111,7 +111,7 @@ class CodexMcpClient:
             {
                 "protocolVersion": "2025-06-18",
                 "capabilities": {"tools": {}},
-                "clientInfo": {"name": "codex_packet_handoff", "version": "0.2"},
+                "clientInfo": {"name": "packet_garden", "version": "0.2"},
             },
             timeout=30.0,
         )

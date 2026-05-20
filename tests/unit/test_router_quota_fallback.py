@@ -6,9 +6,11 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from codex_packet_handoff.tools.router import (
+from packet_garden.tools.router import (
     RouterConfig,
     _apply_quota_text_safeguard,
+    _branch_scope_violations,
+    _effective_reviewed_files_for_dependency,
     _integration_dependency_blockers,
     _reviewed_files_for_integrator_packet,
     _has_real_quota_signal,
@@ -81,10 +83,10 @@ class RouterQuotaFallbackTests(unittest.TestCase):
 
         with (
             tempfile.TemporaryDirectory() as repo,
-            mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged),
-            mock.patch("codex_packet_handoff.tools.router._latest_reviewed_files_for_lane", return_value=[]),
+            mock.patch("packet_garden.tools.router._branch_merged_to_head", side_effect=merged),
+            mock.patch("packet_garden.tools.router._latest_reviewed_files_for_lane", return_value=[]),
             mock.patch(
-                "codex_packet_handoff.tools.router._branch_changed_files",
+                "packet_garden.tools.router._branch_changed_files",
                 return_value=["src/qual/storage/session.py"],
             ),
         ):
@@ -109,12 +111,13 @@ class RouterQuotaFallbackTests(unittest.TestCase):
 
         with (
             tempfile.TemporaryDirectory() as repo,
-            mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged),
-            mock.patch("codex_packet_handoff.tools.router._latest_reviewed_files_for_lane", return_value=[]),
+            mock.patch("packet_garden.tools.router._branch_merged_to_head", side_effect=merged),
+            mock.patch("packet_garden.tools.router._latest_reviewed_files_for_lane", return_value=[]),
             mock.patch(
-                "codex_packet_handoff.tools.router._branch_changed_files",
+                "packet_garden.tools.router._branch_changed_files",
                 return_value=["src/qual/commands/catalog.py"],
             ),
+            mock.patch("packet_garden.tools.router._branch_scope_violations", return_value=[]),
         ):
             blockers = _integration_dependency_blockers(
                 cfg,
@@ -145,10 +148,10 @@ class RouterQuotaFallbackTests(unittest.TestCase):
 
         with (
             tempfile.TemporaryDirectory() as repo,
-            mock.patch("codex_packet_handoff.tools.router._branch_merged_to_head", side_effect=merged),
-            mock.patch("codex_packet_handoff.tools.router._latest_reviewed_files_for_lane", side_effect=reviewed_files),
+            mock.patch("packet_garden.tools.router._branch_merged_to_head", side_effect=merged),
+            mock.patch("packet_garden.tools.router._latest_reviewed_files_for_lane", side_effect=reviewed_files),
             mock.patch(
-                "codex_packet_handoff.tools.router._branch_changed_files",
+                "packet_garden.tools.router._branch_changed_files",
                 return_value=["src/qual/retrieval/service.py", "tests/unit/test_unified_retrieval.py"],
             ),
         ):
@@ -157,6 +160,141 @@ class RouterQuotaFallbackTests(unittest.TestCase):
                 repo,
                 "feat-retrieval-fts",
                 reviewed_files=["src/qual/retrieval/service.py", "tests/unit/test_unified_retrieval.py"],
+            )
+
+        self.assertEqual(blockers, [])
+
+    def test_dependency_checks_fall_back_to_branch_files_when_reviewed_files_missing(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+            "feat-commands": {"branch": "codex/feat-commands", "enabled": True},
+            "feat-retrieval-fts": {"branch": "codex/feat-retrieval-fts", "enabled": True},
+        }
+
+        def changed_files(_repo_cwd: str, branch: str) -> list[str]:
+            if branch == "codex/feat-retrieval-fts":
+                return ["src/qual/retrieval/service.py"]
+            return ["src/qual/context/store.py"]
+
+        with (
+            tempfile.TemporaryDirectory() as repo,
+            mock.patch("packet_garden.tools.router._branch_merged_to_head", return_value=False),
+            mock.patch("packet_garden.tools.router._latest_reviewed_files_for_lane", return_value=[]),
+            mock.patch("packet_garden.tools.router._branch_changed_files", side_effect=changed_files),
+        ):
+            blockers = _integration_dependency_blockers(
+                cfg,
+                repo,
+                "feat-retrieval-fts",
+                reviewed_files=[],
+            )
+
+        self.assertEqual(blockers, [])
+
+    def test_dependency_checks_fall_back_to_branch_files_when_reviewed_files_are_metadata_only(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+            "feat-a2ui-contract": {"branch": "codex/feat-a2ui-contract", "enabled": True},
+        }
+
+        def changed_files(_repo_cwd: str, branch: str) -> list[str]:
+            if branch == "codex/feat-a2ui-contract":
+                return ["shared/src/exegesis_shared/contracts/actions.py"]
+            return ["engine/src/exegesis_engine/context/store.py"]
+
+        with (
+            tempfile.TemporaryDirectory() as repo,
+            mock.patch("packet_garden.tools.router._branch_changed_files", side_effect=changed_files),
+        ):
+            files = _effective_reviewed_files_for_dependency(
+                cfg,
+                repo,
+                "feat-a2ui-contract",
+                reviewed_files=[".codex/kickoff_packets/feat-a2ui-contract.md", "THREAD_PACKET.md"],
+            )
+
+        self.assertEqual(files, ["shared/src/exegesis_shared/contracts/actions.py"])
+
+    def test_integration_dependency_blockers_ignore_control_plane_only_overlap(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-engine-runs": {"branch": "codex/feat-engine-runs", "enabled": True},
+            "feat-a2ui-contract": {"branch": "codex/feat-a2ui-contract", "enabled": True},
+        }
+
+        def merged(_repo_cwd: str, branch: str) -> bool:
+            return branch == "codex/feat-a2ui-contract"
+
+        def reviewed_files(lane: str) -> list[str]:
+            if lane == "feat-engine-runs":
+                return ["THREAD_PACKET.md"]
+            return []
+
+        with (
+            tempfile.TemporaryDirectory() as repo,
+            mock.patch("packet_garden.tools.router._branch_merged_to_head", side_effect=merged),
+            mock.patch("packet_garden.tools.router._latest_reviewed_files_for_lane", side_effect=reviewed_files),
+            mock.patch(
+                "packet_garden.tools.router._branch_changed_files",
+                return_value=["THREAD_PACKET.md"],
+            ),
+        ):
+            blockers = _integration_dependency_blockers(
+                cfg,
+                repo,
+                "feat-a2ui-contract",
+                reviewed_files=[
+                    "THREAD_PACKET.md",
+                    "shared/src/exegesis_shared/contracts/actions.py",
+                ],
+            )
+
+        self.assertEqual(blockers, [])
+
+    def test_branch_scope_violations_use_thread_ownership_paths(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+        }
+
+        violations = _branch_scope_violations(
+            cfg,
+            "/repo",
+            "feat-context-storage",
+            files=[
+                "src/qual/context/store.py",
+                "engine/src/exegesis_engine/storage/context.py",
+                "src/qual/retrieval/service.py",
+                "THREAD_PACKET.md",
+            ],
+        )
+
+        self.assertEqual(violations, ["THREAD_PACKET.md", "src/qual/retrieval/service.py"])
+
+    def test_invalid_prior_lane_does_not_block_independent_integrations(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+            "feat-retrieval-fts": {"branch": "codex/feat-retrieval-fts", "enabled": True},
+        }
+
+        with (
+            tempfile.TemporaryDirectory() as repo,
+            mock.patch("packet_garden.tools.router._branch_merged_to_head", return_value=False),
+            mock.patch(
+                "packet_garden.tools.router._branch_scope_violations",
+                side_effect=lambda _cfg, _repo, lane, files=None: ["src/qual/retrieval/service.py"]
+                if lane == "feat-context-storage"
+                else [],
+            ),
+        ):
+            blockers = _integration_dependency_blockers(
+                cfg,
+                repo,
+                "feat-retrieval-fts",
+                reviewed_files=["src/qual/retrieval/service.py"],
             )
 
         self.assertEqual(blockers, [])
@@ -211,7 +349,7 @@ class RouterQuotaFallbackTests(unittest.TestCase):
     def test_code_like_quota_text_does_not_count_as_real_quota_signal(self) -> None:
         text = '\n'.join(
             [
-                'diff --git a/codex_packet_handoff/tools/router.py b/codex_packet_handoff/tools/router.py',
+                'diff --git a/packet_garden/tools/router.py b/packet_garden/tools/router.py',
                 '+ REVIEWER_QUOTA_RE = re.compile(r"usage limit|quota exceeded|rate limit|too many requests|try again at", re.IGNORECASE)',
                 '+ reason="fixer log quota text on lane feat-engine-runs"',
             ]
@@ -279,7 +417,7 @@ class RouterQuotaFallbackTests(unittest.TestCase):
             state,
             '\n'.join(
                 [
-                    'diff --git a/codex_packet_handoff/tools/router.py b/codex_packet_handoff/tools/router.py',
+                    'diff --git a/packet_garden/tools/router.py b/packet_garden/tools/router.py',
                     '+ FIXER_QUOTA_RE = REVIEWER_QUOTA_RE',
                     '+ reason="fixer log quota text on lane feat-engine-runs"',
                     '+ REVIEWER_QUOTA_RE = re.compile(r"usage limit|quota exceeded|rate limit|too many requests|try again at", re.IGNORECASE)',

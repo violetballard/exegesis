@@ -1,6 +1,6 @@
 # Exegesis MVP Milestones
 
-This file expands the canonical roadmap in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/ROADMAP.md`.
+This file expands the canonical roadmap in `/Users/doctor-violet/projects/exegesis/ROADMAP.md`.
 
 ## Milestone 1: Standing shell
 
@@ -47,7 +47,7 @@ Active engine ownership:
 - `feat-commands`: CLI compatibility while the package/layout migration is underway
 
 Notebook context compaction:
-- implement against `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/NOTEBOOK_CONTEXT_COMPACTION_SPEC.md`
+- implement against `/Users/doctor-violet/projects/exegesis/docs/NOTEBOOK_CONTEXT_COMPACTION_SPEC.md`
 - preserve raw notebook transcript history while assembling compacted model requests
 - keep pinned entries, unresolved rewrite cards, current document context, and basket source-type labels verbatim
 - store compaction blocks with source entry IDs, token counts, validation status, and restore support
@@ -97,6 +97,50 @@ Current operating rule:
   - persist updated document/session state
   - continue working
 - Code churn, contract cleanup, or infra work do not count toward this milestone unless they directly unblock or harden that specific path.
+
+## Milestone 5A: MVP trust substrate
+
+Outcome:
+- After the demo path stands, Exegesis gains the trust substrate needed for real MVP use before broad import/RAG/coding expansion.
+
+Deliverables:
+- encrypted SQLite-backed storage for durable app/project metadata, sessions, workflow artifacts, provenance, audit events, notebook compaction records, and generated A2UI promotion candidates
+- portable Markdown documents and assets remain outside opaque storage where appropriate
+- provenance/tracking for retrieval hits, query/filter/ranking metadata, basket promotion, model request context assembly, generated outputs, rewrite proposals, patch apply/reject decisions, citations, imports, notebook compactions, and A2UI-generated surface candidates
+- redacted local support/diagnostic bundle generation for CoP troubleshooting
+- first-run/onboarding and plain-language failure-state copy for launch-critical flows
+- full MVP A2UI protocol compatibility beyond the current shim: handshake, capability negotiation, primitive blocks, known cards, unknown-card fallback, typed action allowlist, payload validation, streaming event shape, and engine-side policy revalidation
+- generated A2UI drafts captured as reviewable CoP/beta promotion candidates with source prompt/context, model/provider, client capability set, allowed actions, usage outcome, user feedback, review status, and promotion status
+- optional hosted A2UI promotion intake through the License Gateway for opted-in CoP/beta builds, with privacy-preserving redaction rules
+- local/admin promotion candidate review through CLI-first list/show/status/export commands and a small bearer-token-protected HTML dashboard with rough previews of safe A2UI primitives
+
+Status:
+- MVP planned and disabled until Milestone 5 stands
+- This is a post-demo MVP gate before Milestone 6 OCR/import/RAG activation
+- Uses the existing engine lanes when activated rather than starting speculative UI polish
+
+## Milestone 5B: CoP Gateway MVP
+
+Outcome:
+- Exegesis has the minimal hosted gateway needed for trusted CoP beta use: basic access claim/refresh plus A2UI promotion ingest and review.
+
+Deliverables:
+- Cloudflare Workers hosted gateway for MVP access/promotion endpoints
+- Cloudflare D1 storage for CoP/course license invites, license refresh state, A2UI promotion bundle metadata, and admin review status
+- Cloudflare R2 storage for static admin exports, dashboard assets, release manifests, app artifacts where appropriate, and later licensed multipart downloads
+- admin-created Initial CoP/course invite or claim links
+- Lite app claim/activate/refresh endpoint contracts with signed entitlement responses and minimal claim identity, not full username/password accounts
+- activation through manual activation-code entry and optional `exegesis://claim?token=...` custom URL handoff
+- refresh token storage in the OS credential store, preserving access across normal app updates
+- privacy-preserving A2UI promotion bundle ingest for opted-in CoP/beta builds
+- redacted support/diagnostic bundle upload for CoP/beta builds
+- bearer-token-protected HTML admin dashboard for promotion candidate review/export/status updates
+- Developer/Lite boundary: Developer never calls the hosted Lite gateway
+
+Status:
+- MVP planned and disabled until Milestone 5A stands
+- Lane state: disabled (`feat-cop-lite-licensing`, early CoP Gateway MVP profile)
+- Paddle checkout, paid Lite subscriptions, Studio/Pro subscription inheritance, and OCR top-up purchase flows are explicitly out of scope for this milestone
 
 ## Milestone 6: OCR import
 
@@ -321,10 +365,10 @@ Status:
 - Planned and disabled
 - Lane state: disabled (`feat-desktop-packaging`)
 
-## Milestone 18: Lite Website Licensing and CoP Launch Gate
+## Milestone 18: Paid Lite Licensing and Course Expansion
 
 Outcome:
-- Lite can support individual paid licenses, Studio/Pro inherited Lite access, course licenses, initial CoP access, Nanonets page credits, and project-transfer-safe per-user licensing through the hosted License Gateway.
+- The Milestone 5B gateway expands from basic CoP/course access into paid Lite licensing, Studio/Pro inherited Lite access, fuller course licensing, Nanonets credits, and project-transfer-safe per-user licensing.
 
 Deliverables:
 - individual paid Lite purchase flow through the website and Paddle
@@ -332,7 +376,8 @@ Deliverables:
 - course licensing flow with one self-serve student link distributed by the instructor
 - Tally intake form accessible through MCP for Claude cowork-assisted course license classification and manual approval workflow
 - initial CoP unlimited Lite course access
-- hosted License Gateway for license claim, refresh, managed Mistral/Nanonets access, Paddle webhooks, and Nanonets page state
+- extensions to the hosted License Gateway for managed Mistral/Nanonets access, Paddle webhooks, and Nanonets page state
+- continued A2UI promotion intake from Milestone 5B, with redacted candidate bundles, bearer-token-protected admin dashboard/review/export, and no default upload of document text, basket content, transcript text, credentials, file paths, or raw prompts
 - 150 default Nanonets pages plus fixed top-ups for 150, 500, and 1000 pages
 - Studio 250-page monthly managed cloud OCR bucket and Pro 500-page monthly managed cloud OCR bucket
 - Pro BYOK/BYOM provider configuration for OpenAI, Claude, Mistral, and local OpenAI-compatible backends with provider/model/reasoning selection for non-confidential projects only
@@ -343,8 +388,8 @@ Deliverables:
 
 Status:
 - Planned and disabled
-- Lane state: disabled (`feat-cop-lite-licensing`)
-- This is the launch gate before starting the CoP
+- Lane state: disabled (`feat-cop-lite-licensing`, later paid licensing expansion profile)
+- This expands the CoP gateway; it is not required for the first CoP access/promotion-ingest launch
 
 ## Milestone 19: Browser PDF Capture Extension
 

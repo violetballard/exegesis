@@ -33,6 +33,88 @@ Exit criteria:
 - A2UI contracts are stable enough for later Textual integration.
 - No later sprint is activated before this loop is real.
 
+## Sprint 0.5: MVP Trust Substrate
+
+Activate after:
+- Milestone 5 demo readiness stands.
+
+Do not activate before:
+- the retrieve -> basket -> plan/revise -> patch -> apply demo path is real and reproducible.
+
+Lanes:
+- continue through the existing engine lanes as targeted follow-up packets:
+  - `feat-context-storage`
+  - `feat-retrieval-fts`
+  - `feat-engine-runs`
+  - `feat-a2ui-contract`
+  - `feat-commands`
+
+Goal:
+- Add the MVP trust substrate after the demo path is real, before expanding into OCR/import/RAG/coding.
+
+Shared integration target:
+- Store durable app/project metadata, session state, workflow artifacts, provenance, audit events, notebook compaction records, and generated A2UI promotion candidates in encrypted SQLite-backed storage where appropriate.
+- Keep raw Markdown documents and assets portable and exportable.
+- Track the full context chain from retrieval result to basket entry to model request to generated output to patch proposal to apply/reject decision.
+- Generate redacted support/diagnostic bundles for CoP support without including research content by default.
+- Define first-run/onboarding copy and plain-language failure states for license refresh, gateway unavailable, model request failure, cloud OCR unavailable, schema mismatch, and promotion upload failure.
+- Track generated A2UI draft surfaces as reviewable promotion candidates during trusted CoP/beta dogfooding.
+- Define optional License Gateway upload for opted-in CoP/beta generated A2UI candidates, using redacted promotion bundles rather than broad telemetry.
+- Provide review access through CLI-first candidate listing/show/status/export commands and a small bearer-token-protected HTML dashboard that renders safe A2UI primitives with inert action chips.
+- Validate full MVP A2UI protocol compatibility beyond the current shim: handshake, capability negotiation, primitive blocks, known cards, unknown-card fallback, typed action allowlist, payload validation, streaming event shape, and policy revalidation.
+
+Exit criteria:
+- SQLite-backed encrypted storage has migration, backup/recovery, and clear failure behavior.
+- Provenance/tracking can explain normal writing, retrieval, basket, generation, revision, patch, compaction, citation/import, and A2UI promotion flows.
+- Support bundle generation is redacted by default and can support CoP troubleshooting without document content, basket content, transcript text, credentials, file paths, or raw prompts.
+- First-run and failure-state copy is clear enough that CoP users can recover or ask for help without reading logs.
+- A2UI generated surfaces remain declarative data rendered through shipped clients; no arbitrary generated Swift, Python, JavaScript, shell, or downloaded code can execute.
+- Generated A2UI candidates can be stored, reviewed, rejected, or promoted into a named/versioned component catalog.
+- Opted-in CoP/beta clients can submit redacted promotion bundles to the License Gateway without sending document text, basket content, transcript text, credentials, file paths, or raw prompts by default.
+- Admin review can inspect rendered previews, raw JSON, validation state, provenance summaries, usage counters, user feedback, and promotion status in the bearer-token-protected dashboard before any candidate is promoted.
+- Sprint 1 import/RAG work does not start until this trust substrate is stable enough for real CoP data.
+
+## Sprint 0.75: CoP Gateway MVP
+
+Activate after:
+- Sprint 0.5 trust substrate is stable enough to produce local A2UI promotion candidates.
+
+Do not activate before:
+- A2UI promotion bundles have a stable redacted local schema.
+- The app has a stable Lite claim/refresh contract to consume.
+
+Lane:
+- `feat-cop-lite-licensing` using the early CoP Gateway MVP profile only
+
+Goal:
+- Stand up the minimal hosted Cloudflare gateway needed for the first CoP beta without waiting for Paddle or full paid licensing.
+
+Shared integration target:
+- Admin can create/revoke basic Initial CoP or course Lite access links.
+- Lite app can claim, activate, and refresh entitlement state through signed gateway responses using minimal claim identity, such as display name and email when available, not a full username/password account system.
+- Activation supports installer-download page handoff, manual activation-code entry, and optional `exegesis://claim?token=...` custom URL activation.
+- Refresh tokens are stored in the OS credential store and preserved across normal app updates.
+- Opted-in CoP/beta builds can submit redacted A2UI promotion bundles.
+- CoP/beta builds can submit redacted support/diagnostic bundles to the gateway.
+- Admin can review/export/status promotion candidates through a small bearer-token-protected HTML dashboard.
+- Gateway is deployable on Cloudflare Workers, uses D1 for license/promotion state, and uses R2 for static exports/dashboard assets/release manifests where appropriate.
+
+Explicit non-goals:
+- No Paddle checkout.
+- No paid individual Lite subscription flow.
+- No Studio/Pro subscription inheritance.
+- No OCR page top-up purchase flow.
+- No full user login system.
+
+Exit criteria:
+- The first CoP can receive Lite access without per-machine hand-holding.
+- The gateway can refresh Lite access status from the app.
+- Custom URL activation and manual activation-code fallback both work.
+- Promotion ingest is narrow, consented, redacted, and rejected for confidential projects.
+- Support bundle ingest is narrow, redacted, and rejected or stripped when prohibited content appears.
+- Admin review/export works with bearer-token authorization and no document-content telemetry.
+- Paid licensing expansion remains disabled until Sprint 5.
+
 ## Sprint 1: Import And Knowledge Foundation
 
 Activate together:
@@ -132,22 +214,20 @@ Exit criteria:
 - SQLite app data, local server startup, pywebview shell, and shutdown are packaged-runtime safe.
 - A user can install and launch the app without developer tooling.
 
-## Sprint 5: CoP Launch Gate
+## Sprint 5: Paid Licensing Expansion
 
 Activate alone:
 - `feat-cop-lite-licensing`
 
 Goal:
-- Let the first Community of Practice actually use Lite, with access and Nanonets usage controlled enough for beta launch.
+- Extend the already-standing CoP Gateway MVP into paid Lite licensing, course licensing expansion, Nanonets credits, and Studio/Pro inherited Lite access.
 
 Shared integration target:
 - Individual users can purchase Lite through the website and Paddle.
 - Studio and Pro subscribers automatically receive Lite access for secondary-machine use without a separate Lite purchase.
 - Instructors can receive course licensing approval and distribute one self-serve link to students.
 - Tally intake is available through MCP for Claude cowork-assisted course-license review and manual approval preparation.
-- Admin can issue initial CoP Lite access.
-- Lite app can claim and refresh license status through the hosted Lite License Gateway.
-- Initial CoP has unlimited Lite course access with no seat cap.
+- Preserve the Initial CoP Lite access, Lite claim/refresh, and A2UI promotion ingest already introduced in Sprint 0.75.
 - Initial CoP starts with 150 Nanonets pages.
 - Top-ups are fixed at 150, 500, and 1000 pages through Paddle/manual admin flow.
 - Pro includes BYOK/BYOM provider configuration for OpenAI, Claude, Mistral, and local OpenAI-compatible backends, with provider/model/reasoning selection for non-confidential projects only.
@@ -160,8 +240,9 @@ Exit criteria:
 - Studio/Pro users can refresh inherited Lite access through the License Gateway on secondary machines.
 - Nanonets usage is ledger-based and cannot silently overspend.
 - Paddle webhook/top-up handling is idempotent.
+- A2UI promotion intake is narrow, consented, and redacted; it is not general content telemetry.
 - Individual/course/CoP Lite access, project transfer, and Nanonets page credits remain separate systems.
-- The first CoP can start using Exegesis without per-machine hand-holding.
+- Paid Lite and expanded course licensing can launch without changing the earlier CoP Gateway MVP access path.
 
 ## Activation Rules
 

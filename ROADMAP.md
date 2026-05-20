@@ -2,13 +2,13 @@
 
 This file is the canonical milestone tracker for the staged Exegesis MVP migration.
 
-Detailed milestone breakdown lives in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/milestones.md`.
-Detailed lane/task mapping lives in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/TASKS.md`.
-Sprint activation plan lives in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/MVP_SPRINT_PLAN.md`.
-MVP notebook context compaction spec lives in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/NOTEBOOK_CONTEXT_COMPACTION_SPEC.md`.
-Future import, OCR, literature metadata, and RAG specs live in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/FUTURE_IMPORT_RAG_SPEC.md`.
-Future summer MVP feature specs live in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/FUTURE_MVP_FEATURES_SPEC.md`.
-Post-MVP feature specs live in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/POST_MVP_FEATURES_SPEC.md`.
+Detailed milestone breakdown lives in `/Users/doctor-violet/projects/exegesis/docs/milestones.md`.
+Detailed lane/task mapping lives in `/Users/doctor-violet/projects/exegesis/docs/TASKS.md`.
+Sprint activation plan lives in `/Users/doctor-violet/projects/exegesis/docs/MVP_SPRINT_PLAN.md`.
+MVP notebook context compaction spec lives in `/Users/doctor-violet/projects/exegesis/docs/NOTEBOOK_CONTEXT_COMPACTION_SPEC.md`.
+Future import, OCR, literature metadata, and RAG specs live in `/Users/doctor-violet/projects/exegesis/docs/FUTURE_IMPORT_RAG_SPEC.md`.
+Future summer MVP feature specs live in `/Users/doctor-violet/projects/exegesis/docs/FUTURE_MVP_FEATURES_SPEC.md`.
+Post-MVP feature specs live in `/Users/doctor-violet/projects/exegesis/docs/POST_MVP_FEATURES_SPEC.md`.
 
 ## Product target
 
@@ -101,6 +101,68 @@ Scope:
 Exit criteria:
 - one clean 60-180 second demo path exists
 - the app reads as a writing environment rather than a terminal trick
+
+## Milestone 5A: MVP trust substrate
+
+Status: MVP planned, disabled until Milestone 5 stands
+
+Scope:
+- add richer encrypted SQLite-backed storage for durable MVP app/project state, while keeping Markdown documents and project assets portable
+- make provenance/tracking first-class for retrieval, basket promotion, model request assembly, generated outputs, rewrite proposals, patch apply/reject decisions, citations, imports, notebook compactions, and A2UI promotion candidates
+- add redacted support/diagnostic bundle generation so CoP issues can be reported without sending research content by default
+- add first-run/onboarding and plain-language failure-state copy for the real CoP workflow
+- move beyond shim-level A2UI by implementing full MVP protocol compatibility: handshake, capability negotiation, primitive block schemas, known card schemas, unknown-card fallback, typed action allowlist, payload validation, streaming event shape, and engine-side policy revalidation
+- capture generated A2UI draft surfaces as reviewable promotion candidates in trusted CoP/beta dogfooding, without executing arbitrary generated code
+- add privacy-preserving A2UI promotion intake through the hosted License Gateway for opted-in CoP/beta builds
+- add admin review access for promotion candidates through CLI-first listing/export plus a small bearer-token-protected HTML dashboard that roughly renders safe A2UI primitives
+- keep generated A2UI constrained to declarative data rendered through shipped clients and mapped only to typed allowlisted engine actions
+
+Lane mapping:
+- `feat-context-storage`: owns encrypted SQLite storage and migration/recovery design when this gate is activated
+- `feat-a2ui-contract`: owns full A2UI protocol compatibility and generated-surface promotion records when this gate is activated
+- `feat-engine-runs`: owns model-request/output/patch provenance hooks when this gate is activated
+- `feat-retrieval-fts`: owns retrieval and basket-promotion provenance hooks when this gate is activated
+- `feat-cop-lite-licensing`: owns hosted promotion intake endpoints and admin export/review access when the Lite Gateway lane is activated
+
+Exit criteria:
+- encrypted SQLite-backed storage exists for durable metadata, sessions, workflow artifacts, provenance, audit events, compaction records, and A2UI promotion candidates
+- raw Markdown documents remain portable and project export/import remains possible
+- provenance records can explain the context-to-output-to-patch chain for normal writing workflows
+- redacted support bundles can be generated locally and exclude document content, basket content, transcript text, credentials, file paths, and raw prompts by default
+- first-run/onboarding copy and major failure states are specified for CoP use
+- A2UI protocol compatibility is complete enough that future Textual/native clients do not depend on a shim-only contract
+- generated A2UI drafts can be stored, reviewed, rejected, or promoted from CoP use without allowing generated code execution
+- opted-in CoP/beta builds can upload redacted A2UI promotion bundles to the License Gateway without sending document text, basket content, transcript text, credentials, file paths, or raw prompts by default
+- promotion candidates can be examined through an admin CLI and bearer-token-protected HTML dashboard before any pattern is promoted
+
+## Milestone 5B: CoP Gateway MVP
+
+Status: MVP planned, disabled until Milestone 5A stands
+
+Scope:
+- stand up the minimal hosted Cloudflare License Gateway needed before the first Community of Practice beta
+- support basic admin-issued Initial CoP/course access without Paddle checkout or full billing workflows
+- collect minimal claim identity, such as display name and email when available, so support/revocation/audit can work without a full username/password account system
+- support Lite license claim, activation, and refresh from the app through activation codes, optional `exegesis://claim?token=...` custom URL handoff, signed gateway responses, and OS credential-store persistence
+- support privacy-preserving A2UI promotion bundle ingest from opted-in CoP/beta builds
+- support redacted support/diagnostic bundle upload from CoP/beta builds
+- support small bearer-token-protected admin HTML review/export dashboard for promotion candidates
+- host the MVP gateway on Cloudflare Workers with D1 for license/promotion state and R2 for static exports, dashboard assets, release manifests, app artifacts where appropriate, and later licensed multipart downloads
+- keep Developer builds completely separate from hosted Lite workflows
+
+Lane mapping:
+- `feat-cop-lite-licensing`: early activation profile limited to CoP/course claim links, license refresh, A2UI promotion ingest, admin review/export, and Cloudflare deployment scaffolding
+
+Exit criteria:
+- admin can create or revoke a basic CoP/course Lite access link or invite
+- Lite app can claim, activate, and refresh access against the gateway using minimal claim identity rather than a full account login
+- activation supports both manual activation-code entry and `exegesis://claim?token=...` custom URL handoff
+- refresh tokens are stored in the OS credential store and survive normal app updates when bundle/keychain identity remains stable
+- CoP/beta builds can submit redacted A2UI promotion bundles without document text, basket content, transcript text, credentials, file paths, or raw prompts by default
+- CoP/beta builds can submit redacted support bundles to the gateway without document content by default
+- admin can review/export promotion candidates through a bearer-token-protected HTML dashboard
+- gateway endpoints are deployed or deployable on Cloudflare Workers/D1/R2 with secrets outside git
+- no Paddle checkout, paid Lite subscription, Studio/Pro subscription, or OCR top-up purchase flow is required for this milestone
 
 ## Milestone 6: OCR import
 
@@ -344,11 +406,12 @@ Exit criteria:
 - confidential-project version gating is specified for required updates
 - no runtime desktop packaging behavior is active until the lane is enabled
 
-## Milestone 18: Lite Website Licensing and CoP Launch Gate
+## Milestone 18: Paid Lite Licensing and Course Expansion
 
 Status: planned, disabled
 
 Scope:
+- extend the Milestone 5B CoP Gateway MVP into the paid licensing and course expansion layer
 - add individual paid Lite licensing through the website and Paddle
 - add Studio and Pro subscription license inheritance so active Studio/Pro subscribers also receive Lite access for secondary machines
 - add course licensing through a single self-serve student link that instructors can give to enrolled students
@@ -360,17 +423,20 @@ Scope:
 - include Pro BYOK/BYOM provider configuration for OpenAI, Claude, Mistral, and local OpenAI-compatible backends with provider/model/reasoning selection for non-confidential projects only
 - keep Quantitative Analysis and Advanced Qualitative Coding Visualizations gated to Pro-only `pro_feature_access`
 - keep the hosted License Gateway as the place for license claim/refresh, managed Lite Mistral access, managed Nanonets OCR fallback, Paddle webhooks, and Nanonets page-credit state
+- host the MVP License Gateway on Cloudflare Workers with D1 for license/page-ledger/review state and R2 for static exports, dashboard assets, release manifests, app artifacts where appropriate, and later licensed multipart model downloads
+- preserve and extend the A2UI promotion intake service introduced in Milestone 5B
 - make project transfer license-safe: imported project zips require the current user to have a valid license, but licenses are never machine-bound or included in project archives
 
 Lane mapping:
-- `feat-cop-lite-licensing`: disabled until explicitly activated as the CoP launch gate
+- `feat-cop-lite-licensing`: later paid licensing expansion profile, after the CoP Gateway MVP is already standing
 
 Exit criteria:
 - individual paid Lite, Studio/Pro inherited Lite access, course licensing, initial CoP access, and Nanonets page-credit rules are specified
 - Pro BYOK/BYOM provider configuration is specified as non-confidential provider routing and remains separate from local confidential mode
 - Paddle website purchase, course-license link, Tally/MCP approval workflow, and License Gateway contracts are specified
+- A2UI promotion intake, redaction, consent, admin review/export, and candidate-status workflows are specified
 - per-user licensing, subscription inheritance, and project-transfer boundaries are specified
-- no runtime licensing, gateway, Paddle, OCR metering, or shell behavior is active until the lane is enabled
+- no paid licensing, Paddle, OCR metering, or shell import-window behavior is active until this later expansion is enabled
 
 ## Milestone 19: Browser PDF Capture Extension
 

@@ -205,7 +205,7 @@ def write_example_config():
             "feat-a2ui-contract",
         ],
         "planner": {
-            "base_ref": "codex/integrator",
+            "base_ref": "main",
             "required_gates": [
                 "./quality-format.sh --check",
                 "./quality-lint.sh",

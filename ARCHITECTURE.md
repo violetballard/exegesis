@@ -2,7 +2,7 @@
 
 This file is the canonical architecture boundary for the staged MVP migration.
 
-Detailed structure notes live in `/Users/doctor-violet/Library/CloudStorage/Box-Box/projects/qual/docs/PROJECT_STRUCTURE.md`.
+Detailed structure notes live in `/Users/doctor-violet/projects/exegesis/docs/PROJECT_STRUCTURE.md`.
 
 ## Top-level boundaries
 

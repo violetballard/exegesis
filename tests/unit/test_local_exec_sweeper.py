@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-from codex_packet_handoff.tools import local_exec_sweeper
+from packet_garden.tools import local_exec_sweeper
 
 
 class LocalExecSweeperTests(unittest.TestCase):

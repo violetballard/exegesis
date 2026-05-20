@@ -23,4 +23,4 @@ sandbox-project/.vault_state.json
 sandbox-project/.vault_state.bak.json
 sandbox-project/feat-fixer
 sandbox-project/*.patch
-codex_packet_handoff/feat-webconsole-ui_packet_update.md
+packet_garden/feat-webconsole-ui_packet_update.md
