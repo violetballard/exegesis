@@ -24,7 +24,7 @@ try:
     from lane_profiles import ENGINE_PRIORITY_ORDER, lane_priority_order
     from git_ops import run_git
     from git_hygiene import run_hygiene
-    from planner import LANE_OWNED_PATHS
+    from planner import _owned_patterns_for_lane
     from local_exec_sweeper import (
         find_context_exhausted_repo_local_exec_pids,
         find_repo_owned_local_exec_pids,
@@ -37,7 +37,7 @@ except ImportError:  # pragma: no cover - package execution fallback
     from .lane_profiles import ENGINE_PRIORITY_ORDER, lane_priority_order
     from .git_ops import run_git
     from .git_hygiene import run_hygiene
-    from .planner import LANE_OWNED_PATHS
+    from .planner import _owned_patterns_for_lane
     from .local_exec_sweeper import (
         find_context_exhausted_repo_local_exec_pids,
         find_repo_owned_local_exec_pids,
@@ -1206,7 +1206,7 @@ def _lane_worktree_changed_files(lane: str) -> List[str]:
 
 
 def _lane_scope_violations(lane: str) -> List[str]:
-    patterns = list(LANE_OWNED_PATHS.get(lane, []))
+    patterns = _owned_patterns_for_lane(lane)
     if not patterns:
         return []
     branch = _lane_branch_map().get(lane, f"codex/{lane}")

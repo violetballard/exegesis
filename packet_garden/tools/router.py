@@ -22,7 +22,7 @@ try:
     from log_maintenance import prune_log_dir
     from local_codex_runtime import agent_ripgrep_config_path, agent_runtime_env, isolated_codex_env
     from packet_progress import infer_last_submitted_sha
-    from planner import LANE_OWNED_PATHS
+    from planner import _owned_patterns_for_lane
 except ImportError:  # pragma: no cover - test/import fallback for package execution
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
     from .git_ops import run_git
@@ -31,7 +31,7 @@ except ImportError:  # pragma: no cover - test/import fallback for package execu
     from .log_maintenance import prune_log_dir
     from .local_codex_runtime import agent_ripgrep_config_path, agent_runtime_env, isolated_codex_env
     from .packet_progress import infer_last_submitted_sha
-    from .planner import LANE_OWNED_PATHS
+    from .planner import _owned_patterns_for_lane
 
 PACKETS_ROOT = Path(".codex/packets/lanes")
 ROUTER_ROOT = Path(".codex/packet_router")
@@ -452,7 +452,7 @@ def _branch_scope_violations(
     files: Optional[List[str]] = None,
 ) -> List[str]:
     """Return full-branch files outside THREAD_OWNERSHIP lane ownership."""
-    patterns = list(LANE_OWNED_PATHS.get(lane, []))
+    patterns = _owned_patterns_for_lane(lane)
     if not patterns:
         return []
     if files is None:
