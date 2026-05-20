@@ -588,6 +588,20 @@ def _collect_commit_range_files(cwd: str, start_ref: str, head_ref: str) -> List
 
 def compute_changed_files(cwd: str, base_ref: str, *, head_ref: str = "HEAD") -> List[str]:
     try:
+        merge_base = require_git_output(
+            ["merge-base", base_ref, head_ref],
+            cwd=cwd,
+            timeout=CHANGED_FILES_DIFF_TIMEOUT,
+        ).strip()
+        if merge_base:
+            diff_result = run_git(
+                ["diff", "--name-only", f"{merge_base}..{head_ref}"],
+                cwd=cwd,
+                timeout=CHANGED_FILES_DIFF_TIMEOUT,
+            )
+            files = _parse_changed_files(diff_result.stdout)
+            if diff_result.returncode == 0 and files:
+                return files
         files = _collect_commit_range_files(cwd, base_ref, head_ref)
         if files:
             return files

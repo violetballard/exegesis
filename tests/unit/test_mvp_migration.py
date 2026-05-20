@@ -391,6 +391,8 @@ class ScopeCheckMigrationTests(unittest.TestCase):
 
         def fake_run_git(args: list[str], cwd: str, timeout: int, **_: object):
             calls.append((args, cwd, timeout))
+            if args == ["diff", "--name-only", "abc123..codex/feat-context-storage"]:
+                return SimpleNamespace(returncode=0, stdout="")
             if args == ["rev-list", "--reverse", "abc123..codex/feat-context-storage"]:
                 return SimpleNamespace(returncode=0, stdout="def456\n")
             if args == ["diff-tree", "--no-commit-id", "--name-only", "-r", "def456"]:
@@ -425,7 +427,7 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         self.assertEqual(
             calls[1],
             (
-                ["rev-list", "--reverse", "abc123..codex/feat-context-storage"],
+                ["diff", "--name-only", "abc123..codex/feat-context-storage"],
                 str(self.root),
                 planner_mod.CHANGED_FILES_DIFF_TIMEOUT,
             ),
@@ -433,10 +435,68 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         self.assertEqual(
             calls[2],
             (
+                ["merge-base", "codex/integrator", "codex/feat-context-storage"],
+                str(self.root),
+                planner_mod.CHANGED_FILES_DIFF_TIMEOUT,
+            ),
+        )
+        self.assertEqual(
+            calls[3],
+            (
+                ["rev-list", "--reverse", "abc123..codex/feat-context-storage"],
+                str(self.root),
+                planner_mod.CHANGED_FILES_DIFF_TIMEOUT,
+            ),
+        )
+        self.assertEqual(
+            calls[4],
+            (
                 ["diff-tree", "--no-commit-id", "--name-only", "-r", "def456"],
                 str(self.root),
                 planner_mod.CHANGED_FILES_FALLBACK_TIMEOUT,
             ),
+        )
+
+    def test_compute_changed_files_uses_final_branch_diff_before_commit_history(self) -> None:
+        from packet_garden.tools import planner as planner_mod
+
+        calls: list[list[str]] = []
+
+        def fake_require(args: list[str], cwd: str, timeout: int) -> str:
+            calls.append(args)
+            if args == ["merge-base", "main", "codex/feat-commands"]:
+                return "abc123\n"
+            raise AssertionError(f"unexpected require args: {args}")
+
+        def fake_run_git(args: list[str], cwd: str, timeout: int, **_: object):
+            calls.append(args)
+            if args == ["diff", "--name-only", "abc123..codex/feat-commands"]:
+                return SimpleNamespace(
+                    returncode=0,
+                    stdout="src/qual/commands/catalog.py\nsrc/qual/commands/canonical.py\n",
+                )
+            raise AssertionError(f"unexpected args: {args}")
+
+        with (
+            patch.object(planner_mod, "require_git_output", side_effect=fake_require),
+            patch.object(planner_mod, "run_git", side_effect=fake_run_git),
+        ):
+            files = planner_mod.compute_changed_files(
+                str(self.root),
+                "main",
+                head_ref="codex/feat-commands",
+            )
+
+        self.assertEqual(
+            files,
+            ["src/qual/commands/catalog.py", "src/qual/commands/canonical.py"],
+        )
+        self.assertEqual(
+            calls,
+            [
+                ["merge-base", "main", "codex/feat-commands"],
+                ["diff", "--name-only", "abc123..codex/feat-commands"],
+            ],
         )
 
     def test_scope_check_blocks_engine_work_on_console_shell_lane(self) -> None:
