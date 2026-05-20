@@ -1,41 +1,58 @@
 ## Thread Handoff Packet
 
-- Branch name: `codex/feat-engine-runs`
-- Source commit(s): `7b1bcaa8..2a1d2267`
-- Scope goal: Metadata-only handoff reissue for the reviewed engine-run source range `7b1bcaa8..2a1d2267`; this commit updates handoff metadata only, does not change the feature implementation, and remains a metadata-only packet update.
-- Scope completed: This metadata-only handoff reissue records the reviewed source range `7b1bcaa8..2a1d2267`; the reviewed source range hardens run-flow terminal snapshot canonicalization, terminal validation, retrieval provenance, and patch/export alignment in `src/qual/engine/run_pipeline.py`, `src/qual/engine/tools/retrieval_tools.py`, `tests/unit/test_engine_run_pipeline.py`, and `tests/unit/test_packet_planner.py`, but this commit itself does not modify `src/qual/engine/**`.
-- Roadmap item(s) affected (from `ROADMAP.md`): `Milestone 4: Retrieval Layer (Planned)` and `Milestone 3: Product Readiness (Planned)` because the source range tightens retrieval provenance and preserves the provenance/audit contract for drafted outputs.
-- Vision capability affected (from `PRODUCT_VISION.md`): `Retrieval-first context handling` and `Auditable generation` because the source range preserves traceable retrieved-source flow and explicit source attribution.
-- Shared/integrator-locked edits: `NO`
-- Approval note: The lane packet stays lane-only. The companion shared packet carries the approved shared/integrator-locked maintenance artifacts so this thread packet can describe the reviewed source range accurately without implying source changes; `Shared/integrator-locked edits` remains `NO` here.
-- Ownership note: the lane packet stays limited to `src/qual/engine/**` scope language, while the companion shared packet records the shared/integrator-locked packet-maintenance artifacts.
-## Reviewed source-range evidence
-The following files are evidence from `7b1bcaa8..2a1d2267` only; they are not changed by this metadata-only reissue:
-  - `src/qual/engine/run_pipeline.py`
-  - `src/qual/engine/tools/retrieval_tools.py`
-  - `tests/unit/test_engine_run_pipeline.py`
+- Branch name: `codex/feat-a2ui-contract`
+- Review target: metadata-only packet repair commit on `codex/feat-a2ui-contract`.
+- Source commit(s): implementation branch range `74a1fb5d22fa3451a041bde51888f3f214ec9b51..HEAD`; this packet repair commit changes only `THREAD_PACKET.md`.
+- Scope goal: Correct the A2UI handoff metadata so the review target describes the `feat-a2ui-contract` lane rather than `feat-engine-runs`.
+- Scope completed: Reissued the handoff metadata for the A2UI contract lane, naming the A2UI contract scope, branch review surface, roadmap mapping, product vision mapping, and canonical demo-path step accurately.
+- Roadmap item(s) affected (from `ROADMAP.md`): `Milestone 3: Real workflow loop`, specifically `feat-a2ui-contract`: shared card/action contracts and selection models.
+- Vision capability affected (from `PRODUCT_VISION.md`): `Capability 4: Shared UI contract (A2UI)`, where cards/actions/selection types live in a client-agnostic shared layer and rendering adapters stay outside shared.
+- Canonical demo-path step advanced (from `AGENTS.md`): `preview and apply or reject a patch`, by stabilizing the shared card/action and selection contracts the engine loop can expose to a future client without UI ambition.
+- Shared/integrator-locked edits in this metadata repair commit: `NO`.
+- Branch-diff control-plane note: the full `main..HEAD` branch review surface includes control-plane/shared files listed below. Those files are not changed by this metadata repair commit; they require explicit integrator/control-plane approval if the reviewer chooses to review the full branch diff instead of this metadata-only repair commit.
+
+## Review Surface
+
+- Metadata repair commit files changed, matching `git show --name-status HEAD` after this commit:
+  - `THREAD_PACKET.md`
+- Full branch diff files currently present in `main..HEAD`, matching `git diff --name-status main..HEAD` before this repair:
+  - `.codex/packet_router/config.json`
+  - `.codex/packet_router/example.json`
+  - `THREAD_OWNERSHIP.md`
+  - `packet_garden/tools/agents_coordinator.py`
+  - `packet_garden/tools/daemon_monitor.py`
+  - `packet_garden/tools/planner.py`
+  - `packet_garden/tools/router.py`
+  - `packet_garden/tools/setup.py`
+  - `scripts/scope-check.sh`
+  - `shared/src/exegesis_shared/contracts/__init__.py`
+  - `shared/src/exegesis_shared/contracts/actions.py`
+  - `shared/src/exegesis_shared/contracts/cards.py`
+  - `src/qual/ui/a2ui.py`
+  - `src/qual/ui/test_a2ui_fallback_safety.py`
+  - `tests/unit/test_a2ui_contract.py`
+  - `tests/unit/test_coordinator_reboot_resume.py`
   - `tests/unit/test_packet_planner.py`
-- Tasks completed:
-  1. Reissued the handoff as a metadata-only packet update for the reviewed engine-run source range `7b1bcaa8..2a1d2267`.
-  2. Named the concrete reviewed source files from that range as evidence only, not as files changed by this metadata-only reissue: `src/qual/engine/run_pipeline.py`, `src/qual/engine/tools/retrieval_tools.py`, `tests/unit/test_engine_run_pipeline.py`, and `tests/unit/test_packet_planner.py`.
-  3. Tightened the scope to the exact engine-run lifecycle outcome: terminal snapshot canonicalization, terminal validation, retrieval provenance, and patch/export alignment.
-  4. Mapped the handoff to `Milestone 4: Retrieval Layer (Planned)` plus `Milestone 3: Product Readiness (Planned)`, and to `Retrieval-first context handling` plus `Auditable generation`.
-  5. Kept the thread packet aligned with the lane packet, shared packet, and lane-meta record while preserving the approved shared/integrator-locked packet split.
-## Files changed
-- Lane-owned packet file:
-  - `.codex/kickoff_packets/feat-engine-runs.md`
-- Shared/integrator-locked maintenance artifacts are recorded in the companion shared packet and are not listed here.
-- No `src/qual/engine/**` files changed in this metadata-only reissue.
-- Commands run with results:
-  - `make scope-check` -> passed
-  - `./quality-format.sh --check` -> passed
-  - `./quality-lint.sh` -> passed
-  - `./quality-test.sh` -> passed
-  - `./typecheck-test.sh` -> passed
-  - `make ci` -> passed
-- Scope-check / ownership note:
-  - Shared/integrator-locked edits: `NO`
-  - Ownership note: the lane packet stays limited to `src/qual/engine/**` in scope language, while the packet-maintenance files are approved through the companion shared packet.
-- Routing/provider impact note: None. No model routing or provider configuration was touched.
-- Risks / blockers:
-  - No blocker. Packet-maintenance changes are additive and the handoff now traces back to the actual code-bearing engine-run range.
+
+## Tasks Completed
+
+1. Replaced the incorrect `feat-engine-runs` handoff metadata with `feat-a2ui-contract` metadata.
+2. Made the review target unambiguous as a metadata-only packet repair commit.
+3. Listed the full branch diff separately, including control-plane and shared paths, so reviewers can choose whether to review only this repair commit or require integrator/control-plane handling for the broader branch surface.
+4. Corrected the roadmap mapping to `ROADMAP.md` Milestone 3 `feat-a2ui-contract`.
+5. Corrected the product mapping to `PRODUCT_VISION.md` Capability 4 `Shared UI contract (A2UI)`.
+6. Named the canonical demo-path step advanced: `preview and apply or reject a patch`.
+
+## Commands Run
+
+- `make scope-check` -> failed: `THREAD_PACKET.md` is disallowed on `codex/feat-a2ui-contract`; this fixer commit intentionally repairs that control-plane handoff packet.
+- `./quality-format.sh --check` -> passed
+- `./quality-lint.sh` -> passed
+- `./quality-test.sh` -> passed, 614 unit/smoke tests
+- `./typecheck-test.sh` -> passed
+- `make ci` -> failed at `make scope-check` for the same intentional `THREAD_PACKET.md` packet repair.
+
+## Risks / Blockers
+
+- The full `main..HEAD` branch surface contains control-plane/shared files. This metadata repair commit does not alter those files and does not itself provide integrator/control-plane approval for them.
+- `make scope-check` and `make ci` require integrator/control-plane approval for this intentional `THREAD_PACKET.md` repair on a feature branch.
