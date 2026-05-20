@@ -166,7 +166,7 @@ is_allowed() {
       ;;
     codex/feat-engine-runs*)
       case "$f" in
-        src/qual/engine/*|src/qual/engine/*/*|src/qual/drafting/*|src/qual/drafting/*/*|engine/src/exegesis_engine/api/*|engine/src/exegesis_engine/api/*/*|engine/src/exegesis_engine/workflow/*|engine/src/exegesis_engine/workflow/*/*|engine/src/exegesis_engine/patches/*|engine/src/exegesis_engine/patches/*/*|engine/src/exegesis_engine/audit/*|engine/src/exegesis_engine/audit/*/*|engine/src/exegesis_engine/services/*|engine/src/exegesis_engine/services/*/*|tests/unit/test_bulk_draft_routing.py|tests/unit/test_engine_package_exports.py|tests/unit/test_engine_run_pipeline.py|tests/unit/test_policy_gate.py|tests/unit/test_retrieval_payload_basket.py) return 0 ;;
+        src/qual/engine/*|src/qual/engine/*/*|src/qual/drafting/*|src/qual/drafting/*/*|engine/src/exegesis_engine/api/*|engine/src/exegesis_engine/api/*/*|engine/src/exegesis_engine/workflow/*|engine/src/exegesis_engine/workflow/*/*|engine/src/exegesis_engine/patches/*|engine/src/exegesis_engine/patches/*/*|engine/src/exegesis_engine/audit/*|engine/src/exegesis_engine/audit/*/*|engine/src/exegesis_engine/services/*|engine/src/exegesis_engine/services/*/*|tests/unit/test_bulk_draft_routing.py|tests/unit/test_engine_run_pipeline.py|tests/unit/test_policy_gate.py|tests/unit/test_retrieval_payload_basket.py) return 0 ;;
       esac
       return 1
       ;;
