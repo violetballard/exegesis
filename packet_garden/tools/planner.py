@@ -18,9 +18,9 @@ except ImportError:  # pragma: no cover - package execution fallback
     from .git_ops import require_git_output, run_git
 
 try:
-    from lane_profiles import ENGINE_MILESTONE_FOCUS, default_lane_meta, engine_priority_lines
+    from lane_profiles import ENGINE_MILESTONE_FOCUS, ENGINE_PRIORITY_ORDER, default_lane_meta, engine_priority_lines
 except ImportError:  # pragma: no cover - package execution fallback
-    from .lane_profiles import ENGINE_MILESTONE_FOCUS, default_lane_meta, engine_priority_lines
+    from .lane_profiles import ENGINE_MILESTONE_FOCUS, ENGINE_PRIORITY_ORDER, default_lane_meta, engine_priority_lines
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PACKETS_ROOT = Path(".codex/packets/lanes")
@@ -48,6 +48,7 @@ REQUIRED_GATES_DEFAULT = [
 
 CHANGED_FILES_DIFF_TIMEOUT = 8
 CHANGED_FILES_FALLBACK_TIMEOUT = 8
+ACTIVE_ENGINE_LANES = set(ENGINE_PRIORITY_ORDER)
 
 LANE_OWNED_PATHS = {
     "feat-commands": ["src/qual/commands/**"],
@@ -258,6 +259,13 @@ def merge_lane_meta_defaults(lane: str, meta: Json) -> Json:
         if _is_missing(value) and key in merged:
             continue
         merged[key] = value
+    if lane in ACTIVE_ENGINE_LANES:
+        # Active MVP lanes get their milestone mapping from lane_profiles.py.
+        # Lane metadata is allowed to describe completed work, but stale local
+        # .codex metadata must not relabel the canonical roadmap target.
+        canonical_roadmap = default_lane_meta(lane).get("roadmap_items")
+        if not _is_missing(canonical_roadmap):
+            merged["roadmap_items"] = list(canonical_roadmap)
     return merged
 
 def load_json(p: Path, default: Any) -> Any:
@@ -480,6 +488,67 @@ def _parse_changed_files(out: str) -> List[str]:
 def ref_exists(cwd: str, ref: str) -> bool:
     result = run_git(["rev-parse", "--verify", "--quiet", ref], cwd=cwd, timeout=120)
     return result.returncode == 0
+
+
+def source_commit_token_valid(cwd: str, token: str) -> bool:
+    value = str(token or "").strip()
+    if not value:
+        return False
+    if "..." in value:
+        start_ref, end_ref = value.split("...", 1)
+        return (
+            bool(start_ref.strip() and end_ref.strip())
+            and ref_exists(cwd, start_ref.strip())
+            and ref_exists(cwd, end_ref.strip())
+        )
+    if ".." in value:
+        start_ref, end_ref = value.split("..", 1)
+        return (
+            bool(start_ref.strip() and end_ref.strip())
+            and ref_exists(cwd, start_ref.strip())
+            and ref_exists(cwd, end_ref.strip())
+        )
+    return ref_exists(cwd, value)
+
+
+def fallback_source_commit_range(cwd: str, branch: str, sha: str) -> str:
+    result = run_git(["merge-base", "HEAD", branch], cwd=cwd, timeout=120)
+    base = result.stdout.strip()
+    if result.returncode == 0 and base:
+        return f"{base}..{sha}"
+    return sha
+
+
+def normalize_source_commit_traceability(
+    cwd: str,
+    lane: str,
+    branch: str,
+    sha: str,
+    meta: Json,
+) -> Tuple[Json, Optional[str]]:
+    out = dict(meta or {})
+    raw = out.get("source_commits")
+    if _is_missing(raw):
+        return out, None
+    tokens = [str(item).strip() for item in raw] if isinstance(raw, list) else [str(raw).strip()]
+    tokens = [item for item in tokens if item]
+    if tokens and all(source_commit_token_valid(cwd, token) for token in tokens):
+        first = tokens[0]
+        out["source_commits"] = tokens
+        if ".." in first and _is_missing(out.get("reviewed_commit_range")):
+            out["reviewed_commit_range"] = first
+        if _is_missing(out.get("reviewed_commit")):
+            out["reviewed_commit"] = sha
+        return out, None
+    fallback = fallback_source_commit_range(cwd, branch, sha)
+    out["source_commits"] = [fallback]
+    out["reviewed_commit"] = sha
+    if ".." in fallback:
+        out["reviewed_commit_range"] = fallback
+    note = f"{lane}: source_commits invalid or stale; using `{fallback}`"
+    if _is_missing(out.get("metadata_only_note")):
+        out["metadata_only_note"] = "Planner replaced stale source commit metadata with a locally resolvable branch range."
+    return out, note
 
 
 def resolve_branch_sha(repo_cwd: str, branch: str, *, fallback_cwd: Optional[str] = None) -> str:
@@ -885,6 +954,9 @@ def main()->None:
         if miss:
             print(f"[planner] {lane}: lane_meta missing: {miss} (using auto defaults)")
             meta = apply_meta_defaults(meta, miss, lane)
+        meta, traceability_note = normalize_source_commit_traceability(repo, lane, branch, sha, meta)
+        if traceability_note:
+            print(f"[planner] {traceability_note}")
         env=os.environ.copy()
         if bool(meta.get("shared_file_exception")):
             env["SCOPE_ALLOW_SHARED"]="1"
