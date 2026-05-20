@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 from dataclasses import dataclass
 
+import exegesis_shared.contracts as shared_contracts
 from exegesis_shared.contracts.actions import (
     ACTION_SELECTION_CONTRACT_VERSION,
     materialize_action_selection_contract,
@@ -161,6 +162,10 @@ class A2UIContractTests(unittest.TestCase):
             [(1, "apply_patch"), (2, "reject_patch")],
         )
         self.assertEqual([action["id"] for action in materialized["actions"]], ["apply_patch", "reject_patch"])
+
+    def test_shared_contract_exports_no_terminal_renderer(self) -> None:
+        self.assertFalse(hasattr(shared_contracts, "render_terminal_card"))
+        self.assertFalse(hasattr(shared_contracts, "materialize_terminal_card"))
 
     def test_shared_selection_contract_is_versioned_and_cli_consumable(self) -> None:
         card = {
