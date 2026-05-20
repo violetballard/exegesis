@@ -290,6 +290,19 @@ def _lane_placements() -> Dict[str, List[Dict[str, str]]]:
                 pid=int(job.get("pid") or 0),
                 profile=_profile_name_for_job(router_cfg, "fixer", provider=provider, lane=str(lane)),
             )
+    metadata_jobs = router_state.get("metadata_repair_jobs")
+    if isinstance(metadata_jobs, dict):
+        for lane, job in metadata_jobs.items():
+            if not isinstance(job, dict):
+                continue
+            _add_lane_placement(
+                placements,
+                str(lane),
+                provider="cloud",
+                role="metadata",
+                pid=int(job.get("pid") or 0),
+                profile=_profile_name_for_job(router_cfg, "fixer", provider="cloud", lane=str(lane)),
+            )
     return placements
 
 
@@ -356,7 +369,8 @@ def _runtime_fallbacks(
     cloud_reviewers = _count_active_pid_jobs(router_state.get("cloud_reviewer_jobs"))
     cloud_integrators = _count_active_pid_jobs(router_state.get("cloud_integrator_jobs"))
     cloud_fixers = _count_active_pid_jobs(router_state.get("fixer_fallback_jobs"), local=False)
-    cloud_total = cloud_features + cloud_reviewers + cloud_integrators + cloud_fixers
+    cloud_metadata = _count_active_pid_jobs(router_state.get("metadata_repair_jobs"))
+    cloud_total = cloud_features + cloud_reviewers + cloud_integrators + cloud_fixers + cloud_metadata
 
     totals = pipeline.get("totals", {}) if isinstance(pipeline, dict) else {}
     approved = int(totals.get("approved_for_integrator", 0) or 0)

@@ -1200,6 +1200,78 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         self.assertIn("THREAD_PACKET.md", prompt)
         self.assertIn("packet_garden/**", prompt)
 
+    def test_reviewer_backlog_routes_metadata_repairs_to_cloud_job(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            packet_root = Path(tmpdir) / "packets"
+            lane = "feat-engine-runs"
+            lane_dir = packet_root / lane / "inbox" / "reviewer"
+            lane_dir.mkdir(parents=True, exist_ok=True)
+            note = lane_dir / "R__CHANGES__codex-feat-engine-runs__abc123__20260520T000000Z.md"
+            note.write_text(
+                "## Verdict: `CHANGES_REQUESTED`\n\n"
+                "## Findings\n"
+                "1. implementation range is not reviewable locally.\n"
+                "2. Roadmap mapping is off-plan.\n\n"
+                "## Required fixes before re-review\n"
+                "1. Reissue the packet with a locally resolvable implementation target.\n"
+                "2. Correct handoff metadata and THREAD_PACKET.md references.\n",
+                encoding="utf-8",
+            )
+            cfg = SimpleNamespace(
+                inline_fixer=True,
+                kick_fixers_on_reviewer_backlog=True,
+                lanes={lane: {"branch": "codex/feat-engine-runs", "enabled": True}},
+                max_local_fixer_kicks_per_run=1,
+                max_cloud_fixer_kicks_per_run=1,
+                max_local_fixer_jobs=1,
+                max_cloud_fixer_jobs=1,
+                max_total_local_lms_jobs=4,
+                max_total_cloud_jobs=4,
+                reviewer_fixer_retry_cooldown_seconds=120.0,
+                fixer_quota_retry_cooldown_seconds=3600.0,
+                auto_switch_to_local_on_quota=True,
+            )
+
+            def fake_ensure_lane_dirs(lane_name: str) -> Path:
+                lane_root = packet_root / lane_name
+                (lane_root / "inbox" / "feature").mkdir(parents=True, exist_ok=True)
+                (lane_root / "outbox" / "integrator").mkdir(parents=True, exist_ok=True)
+                (lane_root / "archive").mkdir(parents=True, exist_ok=True)
+                return lane_root
+
+            metadata_calls: list[tuple[str, str]] = []
+
+            def fake_prepare_metadata(*args, **kwargs):
+                metadata_calls.append((args[3], args[4].name))
+                return False, args[1]
+
+            with (
+                mock.patch.object(router, "ensure_lane_dirs", side_effect=fake_ensure_lane_dirs),
+                mock.patch.object(router, "_local_lms_slot_available", return_value=True),
+                mock.patch.object(router, "_materialize_reviewer_packet", return_value="review packet"),
+                mock.patch.object(router, "_prepare_metadata_repair_job", side_effect=fake_prepare_metadata),
+                mock.patch.object(router, "run_fixer") as run_fixer_mock,
+            ):
+                kicked, updated = router.process_reviewer_backlog(object(), cfg, {}, str(packet_root))
+
+        self.assertEqual(kicked, 0)
+        self.assertEqual(metadata_calls, [(lane, note.name)])
+        run_fixer_mock.assert_not_called()
+        self.assertEqual(updated.get("reviewer_fixer_cursor"), {})
+
+    def test_metadata_repair_jobs_count_against_cloud_total_cap(self) -> None:
+        state = {
+            "metadata_repair_jobs": {
+                "feat-engine-runs": {"pid": 12345, "local": False, "result_path": "/tmp/missing-result.json"},
+            }
+        }
+        with (
+            mock.patch.object(router, "_count_active_feature_cloud_jobs", return_value=0),
+            mock.patch.object(router, "_live_untracked_cloud_integrator_exec_pids", return_value=[]),
+            mock.patch.object(router, "_pid_alive", return_value=True),
+        ):
+            self.assertEqual(router._count_active_cloud_jobs(state), 1)
+
     def test_spawn_detached_cli_job_writes_prompt_to_spec_stdin_path(self) -> None:
         cfg = router.RouterConfig(
             model="gpt-5.4-mini",

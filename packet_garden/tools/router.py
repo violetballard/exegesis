@@ -128,6 +128,12 @@ CONTROL_PLANE_REVIEW_PATH_NAMES = {
     "THREAD_OWNERSHIP.md",
     "THREAD_PACKET.md",
 }
+CONTROL_PLANE_METADATA_REPAIR_RE = re.compile(
+    r"handoff metadata|packet metadata|lane metadata|THREAD_PACKET\.md|\.codex/|"
+    r"implementation range|source commit|roadmap mapping|canonical demo-path|"
+    r"locally resolvable implementation|reissue the packet|handoff artifacts",
+    re.IGNORECASE,
+)
 
 @dataclass
 class RouterConfig:
@@ -1440,6 +1446,7 @@ def _count_active_cloud_jobs(state: Dict[str, Any]) -> int:
     active += _count_active_local_jobs(_local_job_map(state, "cloud_integrator_jobs"))
     active += len(_live_untracked_cloud_integrator_exec_pids(state))
     active += _count_active_pid_jobs(_local_job_map(state, "fixer_fallback_jobs"), local=False)
+    active += _count_active_local_jobs(_local_job_map(state, "metadata_repair_jobs"))
     return active
 
 
@@ -1604,6 +1611,126 @@ def _spawn_detached_local_cli_job(
         timeout_seconds=timeout_seconds,
         local=True,
     )
+
+
+def _requires_control_plane_metadata_repair(note_text: str) -> bool:
+    text = note_text or ""
+    if parse_verdict(text) == "APPROVED":
+        return False
+    lower = text.lower()
+    if "control-plane metadata fix required" in lower:
+        return True
+    if not CONTROL_PLANE_METADATA_REPAIR_RE.search(text):
+        return False
+    required_section = "required fix" in lower or "missing handoff" in lower or "findings" in lower
+    metadata_weight = len(CONTROL_PLANE_METADATA_REPAIR_RE.findall(text))
+    return required_section and metadata_weight >= 2
+
+
+def metadata_repair_prompt(lane: str, branch: str, reviewer_packet: str) -> str:
+    return (
+        f"You are the CONTROL-PLANE METADATA REPAIR worker for lane `{lane}`.\n"
+        f"Repair metadata needed to unblock reviewer re-check for branch `{branch}`.\n\n"
+        "This is not feature implementation work.\n"
+        "Operate from the main repo root only. Do not edit feature source files.\n"
+        "Allowed edit surface:\n"
+        f"- `.codex/kickoff_packets/{lane}.md`\n"
+        f"- `.codex/kickoff_packets/{lane}.shared.md`\n"
+        f"- `.codex/lane_meta/{lane}.json`\n"
+        f"- `.codex/packets/lanes/{lane}/**` packet metadata files\n"
+        "- `THREAD_PACKET.md` only if it is clean and belongs to this lane; if it is dirty for another lane, leave it alone and state that.\n\n"
+        "Required behavior:\n"
+        "- Make the handoff metadata locally reviewable: use real commits/ranges from this repository.\n"
+        "- Use canonical roadmap names from `ROADMAP.md`.\n"
+        "- Make changed-files and shared/control-plane declarations internally consistent.\n"
+        "- State the canonical demo-path step advanced by the feature implementation.\n"
+        "- Preserve `THREAD_OWNERSHIP.md` boundaries; do not broaden lane ownership.\n"
+        "- Do not touch source files outside the control-plane metadata surface above.\n"
+        "- Run focused validation for metadata syntax: `python -m json.tool .codex/lane_meta/{lane}.json` and `git diff --check`.\n"
+        "- Commit only the metadata repair files you intentionally changed with message `Repair {lane} handoff metadata`.\n\n"
+        "If the repair cannot be completed without touching unrelated dirty files, report the blocker and stop.\n\n"
+        "Reviewer packet to satisfy:\n\n"
+        f"{reviewer_packet}\n"
+    )
+
+
+def _prepare_metadata_repair_job(
+    cfg: RouterConfig,
+    state: Dict[str, Any],
+    repo_cwd: str,
+    lane: str,
+    note_path: Path,
+    reviewer_packet: str,
+) -> Tuple[bool, Dict[str, Any]]:
+    jobs = _local_job_map(state, "metadata_repair_jobs")
+    packet_name = note_path.name
+    job = jobs.get(lane)
+    if isinstance(job, dict) and str(job.get("packet_name") or "") != packet_name:
+        if not _pid_alive(int(job.get("pid") or 0)):
+            jobs.pop(lane, None)
+            job = None
+        else:
+            state["metadata_repair_jobs"] = jobs
+            return False, state
+
+    if isinstance(job, dict):
+        polled = _poll_detached_local_cli_job(job)
+        if not polled["done"]:
+            state["metadata_repair_jobs"] = jobs
+            return False, state
+        jobs.pop(lane, None)
+        state["metadata_repair_jobs"] = jobs
+        text = str(polled.get("output") or "").strip()
+        reason = str(polled.get("error") or "metadata repair job failed")
+        if polled.get("status") == "ok" and int(polled.get("rc") or 1) == 0:
+            cursor = state.get("metadata_repair_cursor") or {}
+            if not isinstance(cursor, dict):
+                cursor = {}
+            cursor[lane] = {
+                "packet_name": packet_name,
+                "completed_at": datetime.now(timezone.utc).isoformat(),
+            }
+            state["metadata_repair_cursor"] = cursor
+            print(f"[router] metadata repair job for {lane} completed; waiting for repaired handoff re-review")
+            return True, state
+        quota_text = "\n".join(part for part in (text, reason) if part)
+        if cfg.auto_switch_to_local_on_quota and _has_real_quota_signal(quota_text):
+            state = _switch_to_local_fallback(
+                cfg,
+                state,
+                f"cloud metadata repair job failed/timed out: {reason}",
+                _quota_retry_epoch(cfg, quota_text),
+            )
+            print(f"[router] cloud metadata repair job for {lane} hit quota; cloud pool unavailable: {reason}")
+            return False, state
+        print(f"[router] metadata repair job for {lane} failed; will retry after fixer cooldown: {reason}")
+        return True, state
+
+    cursor = state.get("metadata_repair_cursor") or {}
+    if isinstance(cursor, dict):
+        previous = cursor.get(lane)
+        if isinstance(previous, dict) and str(previous.get("packet_name") or "") == packet_name:
+            return True, state
+
+    state = _maybe_restore_cloud(cfg, state, repo_cwd)
+    if not _cloud_role_slot_available(cfg, state, "fixer"):
+        state["metadata_repair_jobs"] = jobs
+        return False, state
+    branch = str((cfg.lanes.get(lane, {}) or {}).get("branch") or f"codex/{lane}")
+    jobs[lane] = _spawn_detached_cli_job(
+        role="fixer",
+        cfg=cfg,
+        repo_cwd=repo_cwd,
+        lane=lane,
+        packet_name=packet_name,
+        prompt=metadata_repair_prompt(lane, branch, reviewer_packet),
+        sandbox="workspace-write",
+        timeout_seconds=max(float(cfg.integrator_timeout), float(cfg.reviewer_timeout)),
+        local=False,
+    )
+    state["metadata_repair_jobs"] = jobs
+    print(f"[router] queued cloud metadata repair job for {lane} ({packet_name})")
+    return False, state
 
 
 def _poll_detached_local_cli_job(job: Dict[str, Any]) -> Dict[str, Any]:
@@ -2752,6 +2879,20 @@ def process_reviewer_backlog(
             else:
                 # Fresh feature packet exists; let reviewer flow handle it first.
                 continue
+        if _requires_control_plane_metadata_repair(note_text):
+            reviewer_packet = _materialize_reviewer_packet(lane_dir, newest_note)
+            handled, state = _prepare_metadata_repair_job(
+                cfg,
+                state,
+                repo_cwd,
+                lane,
+                newest_note,
+                reviewer_packet,
+            )
+            if handled:
+                cursor[lane] = newest_note.name
+                retry_ts[lane] = now
+            continue
         latest_log = None if local_mode else _latest_fixer_log(lane)
         if latest_log:
             try:

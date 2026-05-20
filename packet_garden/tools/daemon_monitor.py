@@ -1290,8 +1290,15 @@ def main() -> None:
     )
     cloud_integrator_jobs = tracked_cloud_integrator_jobs + (untracked_cloud_integrator_count or 0)
     cloud_fixer_jobs = _count_active_pid_jobs(router_state.get("fixer_fallback_jobs") or {}, local=False)
+    cloud_metadata_repair_jobs = _count_active_pid_jobs(router_state.get("metadata_repair_jobs") or {})
     cfg_for_caps = _load_json(ROUTER_CFG, {}) or {}
-    cloud_total_jobs = cloud_feature_jobs + cloud_reviewer_jobs + cloud_integrator_jobs + cloud_fixer_jobs
+    cloud_total_jobs = (
+        cloud_feature_jobs
+        + cloud_reviewer_jobs
+        + cloud_integrator_jobs
+        + cloud_fixer_jobs
+        + cloud_metadata_repair_jobs
+    )
     cloud_total_cap = int(cfg_for_caps.get("max_total_cloud_jobs", 4) or 4)
     cloud_jobs_display = (
         f"{cloud_total_jobs}+unknown"
@@ -1309,7 +1316,8 @@ def main() -> None:
         f"(features {cloud_feature_jobs}, "
         f"reviewer {cloud_reviewer_jobs}, "
         f"integrator {cloud_integrator_display}, "
-        f"fixer {cloud_fixer_jobs})"
+        f"fixer {cloud_fixer_jobs}, "
+        f"metadata {cloud_metadata_repair_jobs})"
     )
     if untracked_cloud_integrators is None:
         print("cloud_integrator_untracked_pids=unknown_process_listing_unavailable")
@@ -1328,6 +1336,8 @@ def main() -> None:
     print(f"integrator_thread_id={router_state.get('integrator_thread_id', '-')}")
     fallback_jobs = router_state.get("fixer_fallback_jobs") or {}
     print(f"fixer_fallback_jobs={_count_active_pid_jobs(fallback_jobs)}")
+    metadata_repair_jobs = router_state.get("metadata_repair_jobs") or {}
+    print(f"metadata_repair_jobs={_count_active_pid_jobs(metadata_repair_jobs)}")
     local_reviewer_jobs = router_state.get("local_reviewer_jobs") or {}
     print(f"local_reviewer_jobs={_count_active_pid_jobs(local_reviewer_jobs)}")
     cloud_reviewer_jobs = router_state.get("cloud_reviewer_jobs") or {}

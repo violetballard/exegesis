@@ -105,6 +105,7 @@ FEATURE_TOTAL_CHILD_RSS_LIMIT_KB = int(os.environ.get("FEATURE_TOTAL_CHILD_RSS_L
 WORKTREE_RECOVERY_ROOT = REPO_ROOT / ".codex/worktree_recovery"
 ROUTER_JOB_STATE_KEYS = (
     "fixer_fallback_jobs",
+    "metadata_repair_jobs",
     "local_reviewer_jobs",
     "cloud_reviewer_jobs",
     "local_integrator_jobs",
