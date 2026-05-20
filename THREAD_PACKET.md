@@ -1,48 +1,41 @@
 ## Thread Handoff Packet
 
-- Branch name: `codex/feat-a2ui-contract`
-- Source commit(s): `main...481503db5bef705ebf00f644bb4e31b8a14d0794`
-- Scope goal: Advance the canonical demo path step where engine-produced A2UI actions and cards must remain usable through the CLI fallback while Textual lanes stay disabled.
-- Scope completed: Added deterministic shared action/card/selection contract materialization, wired terminal CLI fallback materialization and rendering for A2UI surfaces, and covered the behavior with focused contract and fallback tests.
-- Roadmap item(s) affected (from `ROADMAP.md`): Milestone 3 A2UI/shared-contract support for the engine loop, especially keeping shared contracts in `shared` while renderers remain outside `shared` and preserving CLI execution while Textual is disabled.
-- Vision capability affected (from `PRODUCT_VISION.md`): Shared UI contract (`A2UI`) and CLI compatibility while Textual remains disabled.
-- Shared/integrator-locked edits: `YES`
-- Approval note: The branch edits shared A2UI contract runtime code in `shared/src/exegesis_shared/contracts/**`. This is acknowledged as shared runtime surface, but it is lane-owned for `feat-a2ui-contract` under `THREAD_OWNERSHIP.md:36-43`; no provider routing, core entrypoint, or Textual implementation files were touched.
-- Ownership note: Runtime edits stay within the A2UI lane-owned shared contract paths plus CLI fallback UI/tests needed to preserve the engine-first MVP loop.
-
-## Reviewed Merge Surface
-
-The reviewed implementation range is `main...481503db5bef705ebf00f644bb4e31b8a14d0794`.
-
-## Tasks Completed
-
-1. Added deterministic action selection/materialization support in shared A2UI contracts so generated declarative surfaces map to typed, allowlisted engine actions.
-2. Added card and unknown-card action selection materialization in shared card contracts so fallback clients can safely preserve action intent.
-3. Updated terminal CLI fallback A2UI materialization/rendering so the engine loop can display usable contract surfaces without Textual.
-4. Added unit coverage for shared A2UI contract materialization and CLI fallback safety.
-5. Kept the work focused on Milestone 3 A2UI support for the engine loop and CLI fallback; this branch does not claim or implement Textual client behavior.
-
-## Files Changed
-
-- `shared/src/exegesis_shared/contracts/__init__.py`
-- `shared/src/exegesis_shared/contracts/actions.py`
-- `shared/src/exegesis_shared/contracts/cards.py`
-- `src/qual/ui/a2ui.py`
-- `src/qual/ui/test_a2ui_fallback_safety.py`
-- `tests/unit/test_a2ui_contract.py`
-
-## Commands Run With Results
-
-- `make scope-check` -> passed
-- `./quality-format.sh --check` -> passed
-- `./quality-lint.sh` -> passed
-- `./quality-test.sh` -> passed
-- `./typecheck-test.sh` -> passed
-- `make ci` -> passed
-
-## Scope / Ownership Notes
-
-- Canonical demo-path step made more real: retrieve/gather context can now produce A2UI contract surfaces whose actions materialize deterministically and still render through the CLI fallback for plan/revise/apply-or-reject work.
+- Branch name: `codex/feat-engine-runs`
+- Source commit(s): `7b1bcaa8..2a1d2267`
+- Scope goal: Metadata-only handoff reissue for the reviewed engine-run source range `7b1bcaa8..2a1d2267`; this commit updates handoff metadata only, does not change the feature implementation, and remains a metadata-only packet update.
+- Scope completed: This metadata-only handoff reissue records the reviewed source range `7b1bcaa8..2a1d2267`; the reviewed source range hardens run-flow terminal snapshot canonicalization, terminal validation, retrieval provenance, and patch/export alignment in `src/qual/engine/run_pipeline.py`, `src/qual/engine/tools/retrieval_tools.py`, `tests/unit/test_engine_run_pipeline.py`, and `tests/unit/test_packet_planner.py`, but this commit itself does not modify `src/qual/engine/**`.
+- Roadmap item(s) affected (from `ROADMAP.md`): `Milestone 4: Retrieval Layer (Planned)` and `Milestone 3: Product Readiness (Planned)` because the source range tightens retrieval provenance and preserves the provenance/audit contract for drafted outputs.
+- Vision capability affected (from `PRODUCT_VISION.md`): `Retrieval-first context handling` and `Auditable generation` because the source range preserves traceable retrieved-source flow and explicit source attribution.
+- Shared/integrator-locked edits: `NO`
+- Approval note: The lane packet stays lane-only. The companion shared packet carries the approved shared/integrator-locked maintenance artifacts so this thread packet can describe the reviewed source range accurately without implying source changes; `Shared/integrator-locked edits` remains `NO` here.
+- Ownership note: the lane packet stays limited to `src/qual/engine/**` scope language, while the companion shared packet records the shared/integrator-locked packet-maintenance artifacts.
+## Reviewed source-range evidence
+The following files are evidence from `7b1bcaa8..2a1d2267` only; they are not changed by this metadata-only reissue:
+  - `src/qual/engine/run_pipeline.py`
+  - `src/qual/engine/tools/retrieval_tools.py`
+  - `tests/unit/test_engine_run_pipeline.py`
+  - `tests/unit/test_packet_planner.py`
+- Tasks completed:
+  1. Reissued the handoff as a metadata-only packet update for the reviewed engine-run source range `7b1bcaa8..2a1d2267`.
+  2. Named the concrete reviewed source files from that range as evidence only, not as files changed by this metadata-only reissue: `src/qual/engine/run_pipeline.py`, `src/qual/engine/tools/retrieval_tools.py`, `tests/unit/test_engine_run_pipeline.py`, and `tests/unit/test_packet_planner.py`.
+  3. Tightened the scope to the exact engine-run lifecycle outcome: terminal snapshot canonicalization, terminal validation, retrieval provenance, and patch/export alignment.
+  4. Mapped the handoff to `Milestone 4: Retrieval Layer (Planned)` plus `Milestone 3: Product Readiness (Planned)`, and to `Retrieval-first context handling` plus `Auditable generation`.
+  5. Kept the thread packet aligned with the lane packet, shared packet, and lane-meta record while preserving the approved shared/integrator-locked packet split.
+## Files changed
+- Lane-owned packet file:
+  - `.codex/kickoff_packets/feat-engine-runs.md`
+- Shared/integrator-locked maintenance artifacts are recorded in the companion shared packet and are not listed here.
+- No `src/qual/engine/**` files changed in this metadata-only reissue.
+- Commands run with results:
+  - `make scope-check` -> passed
+  - `./quality-format.sh --check` -> passed
+  - `./quality-lint.sh` -> passed
+  - `./quality-test.sh` -> passed
+  - `./typecheck-test.sh` -> passed
+  - `make ci` -> passed
+- Scope-check / ownership note:
+  - Shared/integrator-locked edits: `NO`
+  - Ownership note: the lane packet stays limited to `src/qual/engine/**` in scope language, while the packet-maintenance files are approved through the companion shared packet.
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
-- Textual impact note: None. Textual implementation remains disabled and out of scope.
-- Risks / blockers: Moderate integration risk because shared A2UI contract exports and CLI fallback behavior changed; mitigated by focused contract/fallback tests and the full local gate suite above.
+- Risks / blockers:
+  - No blocker. Packet-maintenance changes are additive and the handoff now traces back to the actual code-bearing engine-run range.
