@@ -1699,9 +1699,22 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
     profile = default_lane_meta(lane)
     roadmap_items = list(profile.get("roadmap_items") or [])
     vision_capabilities = list(profile.get("vision_capabilities") or [])
-    demo_step = (
-        "plan or revise from gathered context, produce a patch proposal, "
-        "apply or reject it, and persist the resulting document/session state"
+    demo_step_by_lane = {
+        "feat-a2ui-contract": (
+            "preview and apply or reject a patch through stable shared card/action contracts "
+            "and CLI fallback rendering"
+        ),
+        "feat-engine-runs": (
+            "plan or revise from gathered context, produce a patch proposal, apply or reject it, "
+            "and persist the resulting document/session state"
+        ),
+    }
+    demo_step = demo_step_by_lane.get(
+        lane,
+        (
+            "advance the canonical engine-side demo path without expanding speculative product "
+            "or UI scope"
+        ),
     )
 
     meta_path = Path(".codex/lane_meta") / f"{lane}.json"
