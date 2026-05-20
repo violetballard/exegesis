@@ -738,6 +738,7 @@ def _reconcile_feature_runner_state() -> Dict[str, object]:
     removed: List[str] = []
     terminated: Dict[str, str] = {}
     scope_invalid: Dict[str, int] = {}
+    scope_auto_reverted: Dict[str, str] = {}
     for lane, lane_state in list(lanes.items()):
         if not isinstance(lane_state, dict):
             lanes.pop(lane, None)
@@ -750,10 +751,16 @@ def _reconcile_feature_runner_state() -> Dict[str, object]:
         if violations:
             if _pid_alive(pid):
                 _terminate_pid_tree(pid)
+            repaired, repair_reason = _auto_revert_scope_violations(str(lane), violations)
             lanes.pop(lane, None)
             removed.append(str(lane))
-            terminated[str(lane)] = "full_branch_scope_violation"
-            scope_invalid[str(lane)] = len(violations)
+            terminated[str(lane)] = (
+                "full_branch_scope_violation_auto_reverted" if repaired else "full_branch_scope_violation"
+            )
+            if repaired:
+                scope_auto_reverted[str(lane)] = repair_reason
+            else:
+                scope_invalid[str(lane)] = len(violations)
             continue
         if _pid_alive(pid):
             loop_reason = _feature_runner_loop_reason(lane_state)
@@ -770,7 +777,12 @@ def _reconcile_feature_runner_state() -> Dict[str, object]:
     if removed:
         state["lanes"] = lanes
         save_json(FEATURE_RUNNER_STATE_FILE, state)
-    return {"removed": sorted(set(removed)), "terminated": terminated, "scope_invalid": scope_invalid}
+    return {
+        "removed": sorted(set(removed)),
+        "terminated": terminated,
+        "scope_invalid": scope_invalid,
+        "scope_auto_reverted": scope_auto_reverted,
+    }
 
 
 def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = None) -> Dict[str, List[str]]:
@@ -798,14 +810,15 @@ def _reconcile_router_state(coordinator_state: Optional[Dict[str, object]] = Non
                 packet_name = str(job_name).split(":", 1)[-1]
             scope_violations = _lane_scope_violations(lane) if lane else []
             if scope_violations:
+                repaired, repair_reason = _auto_revert_scope_violations(lane, scope_violations)
                 pid = int(job.get("pid") or 0)
                 if _pid_alive(pid):
                     _terminate_pid_tree(pid)
                 jobs.pop(job_name, None)
                 stale.append(
-                    f"{job_name} (full_branch_scope_violation: "
+                    f"{job_name} ({'full_branch_scope_violation_auto_reverted' if repaired else 'full_branch_scope_violation'}: "
                     f"{', '.join(scope_violations[:3])}"
-                    f"{' ...' if len(scope_violations) > 3 else ''})"
+                    f"{' ...' if len(scope_violations) > 3 else ''}; {repair_reason})"
                 )
                 changed = True
                 continue
@@ -1014,6 +1027,7 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
     feature_runner_removed = list(feature_runner_reconcile.get("removed") or [])
     feature_runner_terminated = dict(feature_runner_reconcile.get("terminated") or {})
     feature_runner_scope_invalid = dict(feature_runner_reconcile.get("scope_invalid") or {})
+    feature_runner_scope_auto_reverted = dict(feature_runner_reconcile.get("scope_auto_reverted") or {})
     duplicate_feature_pids_removed = _reconcile_duplicate_feature_exec_processes()
     router_removed = _reconcile_router_state(coordinator_state)
     orphan_local_exec_pids_removed = _reconcile_orphan_local_exec_processes()
@@ -1038,6 +1052,11 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
                 lane_state["force_resume_once"] = False
                 lane_state["force_resume_reason"] = "full_branch_scope_violation"
                 lane_state["scope_violation_count"] = feature_runner_scope_invalid[lane]
+            elif lane in feature_runner_scope_auto_reverted:
+                lane_state["force_resume_once"] = True
+                lane_state["force_resume_reason"] = "full_branch_scope_violation_auto_reverted"
+                lane_state["force_resume_detail"] = feature_runner_scope_auto_reverted[lane]
+                lane_state.pop("scope_violation_count", None)
         else:
             lane_state["force_resume_reason"] = "stale_direct_exec_pruned"
             lane_state.pop("force_resume_detail", None)
@@ -1052,6 +1071,8 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
             f"[reconcile] held feature lane {lane}: full branch violates THREAD_OWNERSHIP.md "
             f"({count} file(s) outside lane scope)"
         )
+    for lane, reason in sorted(feature_runner_scope_auto_reverted.items()):
+        print(f"[reconcile] auto-reverted scope violations for {lane}: {reason}")
     for key, names in sorted(router_removed.items()):
         print(f"[reconcile] pruned stale router state from {key}: {', '.join(names)}")
     for lane, pids in sorted(duplicate_feature_pids_removed.items()):
@@ -1098,6 +1119,7 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
         "feature_runner_removed": feature_runner_removed,
         "feature_runner_terminated": feature_runner_terminated,
         "feature_runner_scope_invalid": feature_runner_scope_invalid,
+        "feature_runner_scope_auto_reverted": feature_runner_scope_auto_reverted,
         "router_removed": router_removed,
         "duplicate_feature_pids_removed": duplicate_feature_pids_removed,
         "orphan_local_exec_pids_removed": orphan_local_exec_pids_removed,
@@ -1158,6 +1180,54 @@ def _lane_scope_violations(lane: str) -> List[str]:
             continue
         violations.append(normalized)
     return sorted(set(violations))
+
+
+def _auto_revert_scope_violations(lane: str, violations: List[str]) -> Tuple[bool, str]:
+    """Remove out-of-scope branch changes from the lane worktree.
+
+    Feature lanes are allowed to continue after accidental control-plane edits,
+    but those edits must not survive to review/integration. Restore only the
+    violating paths from the lane's merge-base, then commit the cleanup on the
+    lane branch so the next handoff uses a clean head.
+    """
+    if not violations:
+        return False, "no_violations"
+    branch = _lane_branch_map().get(lane, f"codex/{lane}")
+    worktree = _git_worktree_branch_map().get(f"refs/heads/{branch}") or _git_worktree_branch_map().get(branch)
+    if not worktree:
+        return False, "missing_worktree"
+    base = run_git(["merge-base", "HEAD", branch], cwd=REPO_ROOT, timeout=30)
+    if base.returncode != 0 or not (base.stdout or "").strip():
+        return False, "missing_merge_base"
+    merge_base = (base.stdout or "").strip()
+    paths = sorted(set(str(p).strip().lstrip("./") for p in violations if str(p).strip()))
+    if not paths:
+        return False, "empty_paths"
+    restore = run_git(
+        ["restore", "--source", merge_base, "--staged", "--worktree", "--", *paths],
+        cwd=worktree,
+        timeout=120,
+        write=True,
+    )
+    if restore.returncode != 0:
+        return False, f"restore_failed: {restore.stdout.strip()[:240]}"
+    status = run_git(["status", "--porcelain", "--", *paths], cwd=worktree, timeout=30)
+    if status.returncode != 0:
+        return False, f"status_failed: {status.stdout.strip()[:240]}"
+    if not (status.stdout or "").strip():
+        return True, "already_clean"
+    add = run_git(["add", "--", *paths], cwd=worktree, timeout=60, write=True)
+    if add.returncode != 0:
+        return False, f"add_failed: {add.stdout.strip()[:240]}"
+    commit = run_git(
+        ["commit", "-m", f"Remove out-of-scope changes from {lane}"],
+        cwd=worktree,
+        timeout=120,
+        write=True,
+    )
+    if commit.returncode != 0:
+        return False, f"commit_failed: {commit.stdout.strip()[:240]}"
+    return True, "auto_reverted"
 
 
 def _git_worktree_branch_map() -> Dict[str, str]:
@@ -1949,11 +2019,26 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
             lane_state = {}
         scope_violations = _lane_scope_violations(lane)
         if scope_violations:
+            repaired, repair_reason = _auto_revert_scope_violations(lane, scope_violations)
+            if repaired:
+                scope_violations = _lane_scope_violations(lane)
+                if not scope_violations:
+                    lane_state["force_resume_once"] = True
+                    lane_state["force_resume_reason"] = "full_branch_scope_violation_auto_reverted"
+                    lane_state["force_resume_detail"] = repair_reason
+                    lane_state.pop("scope_invalid", None)
+                    lane_state.pop("scope_violation_count", None)
+                    lane_refill[lane] = lane_state
+                else:
+                    repair_reason = f"{repair_reason}; still_invalid"
+            if not scope_violations:
+                continue
             lane_state["queue_empty"] = queue_empty
             lane_state["feature_active"] = feature_active
             lane_state["scope_invalid"] = True
             lane_state["scope_violation_count"] = len(scope_violations)
             lane_state["last_launch_reason"] = "full_branch_scope_violation"
+            lane_state["last_scope_repair_reason"] = repair_reason
             lane_state.pop("force_resume_once", None)
             lane_state["last_seen_at"] = utc_now()
             lane_refill[lane] = lane_state

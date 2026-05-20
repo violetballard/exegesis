@@ -116,6 +116,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                     "_lane_scope_violations",
                     return_value=["src/qual/retrieval/service.py"],
                 ),
+                patch.object(coordinator, "_auto_revert_scope_violations", return_value=(False, "restore_failed")),
                 patch.object(coordinator, "_reconcile_lane_worktrees", return_value={
                     "gitdir_repaired": [],
                     "gitdir_backups": [],
@@ -143,6 +144,55 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
         lane_state = coordinator_state["lane_refill"]["feat-context-storage"]
         self.assertFalse(lane_state["force_resume_once"])
         self.assertEqual(lane_state["force_resume_reason"], "full_branch_scope_violation")
+
+    def test_reconcile_auto_reverts_scope_invalid_feature_lane_and_resumes(self) -> None:
+        from packet_garden.tools import agents_coordinator as coordinator
+
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            feature_state = root / "feature_runner_state.json"
+            router_state = root / "router_state.json"
+            feature_state.write_text(
+                json.dumps({"lanes": {"feat-context-storage": {"status": "direct_exec_running", "pid": 4242}}}),
+                encoding="utf-8",
+            )
+            router_state.write_text(json.dumps({}), encoding="utf-8")
+            coordinator_state = {"lane_refill": {}}
+
+            with (
+                patch.object(coordinator, "FEATURE_RUNNER_STATE_FILE", feature_state),
+                patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
+                patch.object(coordinator, "_pid_alive", return_value=True),
+                patch.object(coordinator, "_terminate_pid_tree") as terminate_mock,
+                patch.object(coordinator, "_lane_scope_violations", return_value=["THREAD_PACKET.md"]),
+                patch.object(coordinator, "_auto_revert_scope_violations", return_value=(True, "auto_reverted")),
+                patch.object(coordinator, "_reconcile_lane_worktrees", return_value={
+                    "gitdir_repaired": [],
+                    "gitdir_backups": [],
+                    "artifacts_removed": {},
+                    "health_failures": {},
+                    "rebuilt": {},
+                    "rebuild_backups": {},
+                    "rebuild_failures": {},
+                }),
+                patch.object(coordinator, "run_hygiene", return_value={
+                    "stale_git_pids": [],
+                    "temp_worktrees_removed": [],
+                    "stale_commit_locks_removed": [],
+                    "stale_worktree_index_locks_removed": [],
+                }),
+                patch.object(coordinator, "find_stale_repo_local_exec_pids", return_value=[]),
+                patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
+                patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
+            ):
+                summary = coordinator._reconcile_control_plane_state(coordinator_state)
+
+        terminate_mock.assert_called_once_with(4242)
+        self.assertEqual(summary["feature_runner_scope_invalid"], {})
+        self.assertEqual(summary["feature_runner_scope_auto_reverted"], {"feat-context-storage": "auto_reverted"})
+        lane_state = coordinator_state["lane_refill"]["feat-context-storage"]
+        self.assertTrue(lane_state["force_resume_once"])
+        self.assertEqual(lane_state["force_resume_reason"], "full_branch_scope_violation_auto_reverted")
 
     def test_launch_free_lanes_bypasses_cooldown_for_forced_resume(self) -> None:
         from packet_garden.tools import agents_coordinator as coordinator
@@ -231,6 +281,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 "_lane_scope_violations",
                 return_value=["src/qual/retrieval/service.py"],
             ),
+            patch.object(coordinator, "_auto_revert_scope_violations", return_value=(False, "restore_failed")),
             patch.object(coordinator, "run_cmd") as run_cmd,
         ):
             launched = coordinator._launch_free_lanes(state_doc)
@@ -791,6 +842,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "PACKETS_ROOT", packets_root),
                 patch.object(coordinator, "_pid_alive", side_effect=lambda pid: pid == 57027),
                 patch.object(coordinator, "_lane_scope_violations", return_value=["THREAD_PACKET.md"]),
+                patch.object(coordinator, "_auto_revert_scope_violations", return_value=(False, "restore_failed")),
                 patch.object(coordinator, "_terminate_pid_tree") as terminate_mock,
             ):
                 removed = coordinator._reconcile_router_state({"current_resume_epoch": "epoch-2"})
