@@ -1,41 +1,43 @@
 ## Thread Handoff Packet
 
-- Branch name: `codex/feat-engine-runs`
-- Source commit(s): `7b1bcaa8..2a1d2267`
-- Scope goal: Metadata-only handoff reissue for the reviewed engine-run source range `7b1bcaa8..2a1d2267`; this commit updates handoff metadata only, does not change the feature implementation, and remains a metadata-only packet update.
-- Scope completed: This metadata-only handoff reissue records the reviewed source range `7b1bcaa8..2a1d2267`; the reviewed source range hardens run-flow terminal snapshot canonicalization, terminal validation, retrieval provenance, and patch/export alignment in `src/qual/engine/run_pipeline.py`, `src/qual/engine/tools/retrieval_tools.py`, `tests/unit/test_engine_run_pipeline.py`, and `tests/unit/test_packet_planner.py`, but this commit itself does not modify `src/qual/engine/**`.
-- Roadmap item(s) affected (from `ROADMAP.md`): `Milestone 4: Retrieval Layer (Planned)` and `Milestone 3: Product Readiness (Planned)` because the source range tightens retrieval provenance and preserves the provenance/audit contract for drafted outputs.
-- Vision capability affected (from `PRODUCT_VISION.md`): `Retrieval-first context handling` and `Auditable generation` because the source range preserves traceable retrieved-source flow and explicit source attribution.
+- Branch name: `codex/feat-a2ui-contract`
+- Source commit(s): `552fb38b5fed2e0c6fde4eb33ae4b5a3e0d5999f`
+- Scope goal: Canonicalize terminal A2UI action slots for the CLI fallback contract so preview/apply/reject flows resolve deterministic one-based selections.
+- Scope completed: Terminal A2UI action slots are sorted by materialized one-based slot order, and unit coverage verifies sorted materialized selection entries plus distinct apply/reject patch action slots.
+- Roadmap item(s) affected (from `ROADMAP.md`): `Milestone 3: Real workflow loop` because deterministic terminal action selection supports the engine loop step to preview and apply or reject a patch.
+- Vision capability affected (from `PRODUCT_VISION.md`): `Capability 4: Shared UI contract (A2UI)` because the source change stabilizes shared cards/actions/selection types while preserving CLI fallback renderers outside shared.
 - Shared/integrator-locked edits: `NO`
-- Approval note: The lane packet stays lane-only. The companion shared packet carries the approved shared/integrator-locked maintenance artifacts so this thread packet can describe the reviewed source range accurately without implying source changes; `Shared/integrator-locked edits` remains `NO` here.
-- Ownership note: the lane packet stays limited to `src/qual/engine/**` scope language, while the companion shared packet records the shared/integrator-locked packet-maintenance artifacts.
+- Review type: packet/control-plane maintenance reissue for the A2UI implementation review surface below.
+- Approval note: This control-plane packet edit is made only to satisfy the reviewer-required fixes in `fixer__feat-a2ui-contract__20260520T003850Z`; the reviewed implementation changes remain limited to A2UI lane source/test files, with no shared or integrator-locked files in the reviewed implementation surface.
+- Ownership note: the reviewed implementation is limited to `src/qual/ui/a2ui.py` and `tests/unit/test_a2ui_contract.py`.
 ## Reviewed source-range evidence
-The following files are evidence from `7b1bcaa8..2a1d2267` only; they are not changed by this metadata-only reissue:
-  - `src/qual/engine/run_pipeline.py`
-  - `src/qual/engine/tools/retrieval_tools.py`
-  - `tests/unit/test_engine_run_pipeline.py`
-  - `tests/unit/test_packet_planner.py`
+The reviewed implementation files for `552fb38b5fed2e0c6fde4eb33ae4b5a3e0d5999f` are:
+  - `src/qual/ui/a2ui.py`
+  - `tests/unit/test_a2ui_contract.py`
 - Tasks completed:
-  1. Reissued the handoff as a metadata-only packet update for the reviewed engine-run source range `7b1bcaa8..2a1d2267`.
-  2. Named the concrete reviewed source files from that range as evidence only, not as files changed by this metadata-only reissue: `src/qual/engine/run_pipeline.py`, `src/qual/engine/tools/retrieval_tools.py`, `tests/unit/test_engine_run_pipeline.py`, and `tests/unit/test_packet_planner.py`.
-  3. Tightened the scope to the exact engine-run lifecycle outcome: terminal snapshot canonicalization, terminal validation, retrieval provenance, and patch/export alignment.
-  4. Mapped the handoff to `Milestone 4: Retrieval Layer (Planned)` plus `Milestone 3: Product Readiness (Planned)`, and to `Retrieval-first context handling` plus `Auditable generation`.
-  5. Kept the thread packet aligned with the lane packet, shared packet, and lane-meta record while preserving the approved shared/integrator-locked packet split.
+  1. Canonicalized terminal A2UI action materialization so actions and `action_selection.order` follow materialized one-based slot order.
+  2. Added unit coverage for sorted materialized selection entries and distinct patch apply/reject action slots.
+  3. Advanced the canonical demo-path step: `preview and apply or reject a patch`.
+  4. Preserved typed/allowlisted, engine-authoritative action handling; existing A2UI tests cover supported-action filtering, CLI fallback selection, and `test_engine_policy_gate_is_authoritative`.
+  5. Mapped the work to `Milestone 3: Real workflow loop` and A2UI Capability 4 without claiming packet-planner or metadata-only implementation work.
 ## Files changed
-- Lane-owned packet file:
-  - `.codex/kickoff_packets/feat-engine-runs.md`
-- Shared/integrator-locked maintenance artifacts are recorded in the companion shared packet and are not listed here.
-- No `src/qual/engine/**` files changed in this metadata-only reissue.
+- Packet/control-plane maintenance commit:
+  - `THREAD_PACKET.md`
+- Reviewed implementation files:
+  - `src/qual/ui/a2ui.py`
+  - `tests/unit/test_a2ui_contract.py`
 - Commands run with results:
-  - `make scope-check` -> passed
+  - `make scope-check` -> failed: `THREAD_PACKET.md` is a disallowed control-plane file on `codex/feat-a2ui-contract`.
+  - `SCOPE_ALLOW_SHARED=1 make scope-check` -> failed with the same `THREAD_PACKET.md` control-plane policy rejection.
   - `./quality-format.sh --check` -> passed
   - `./quality-lint.sh` -> passed
   - `./quality-test.sh` -> passed
   - `./typecheck-test.sh` -> passed
-  - `make ci` -> passed
+  - `make ci` -> failed at scope-check for the same `THREAD_PACKET.md` control-plane policy rejection.
 - Scope-check / ownership note:
   - Shared/integrator-locked edits: `NO`
-  - Ownership note: the lane packet stays limited to `src/qual/engine/**` in scope language, while the packet-maintenance files are approved through the companion shared packet.
+  - Ownership note: reviewed implementation edits are limited to A2UI lane source/test files.
 - Routing/provider impact note: None. No model routing or provider configuration was touched.
 - Risks / blockers:
-  - No blocker. Packet-maintenance changes are additive and the handoff now traces back to the actual code-bearing engine-run range.
+  - Control-plane metadata fix required: `THREAD_PACKET.md` is the reviewer-required metadata correction, but feature-branch scope policy rejects control-plane files before quality gates can complete `make ci`.
+  - The source-affecting commit is limited to terminal A2UI contract behavior and unit coverage.
