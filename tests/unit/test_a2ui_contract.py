@@ -235,6 +235,39 @@ class A2UIContractTests(unittest.TestCase):
             ["* 1. Apply patch", "* 2. Reject patch"],
         )
 
+    def test_terminal_materialization_preserves_distinct_patch_action_slots(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Patch choices",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+            "actions": [
+                {"id": "reject_patch", "label": "Reject B", "payload": {"patch_id": "b"}},
+                {"id": "apply_patch", "label": "Apply B", "payload": {"patch_id": "b"}},
+                {"id": "reject_patch", "label": "Reject A", "payload": {"patch_id": "a"}},
+                {"id": "apply_patch", "label": "Apply A", "payload": {"patch_id": "a"}},
+            ],
+        }
+
+        materialized = materialize_terminal_card(card)
+        text = render_terminal_card(materialized)
+
+        self.assertEqual(
+            [(action["id"], action["payload"]["patch_id"]) for action in materialized["actions"]],
+            [("apply_patch", "a"), ("apply_patch", "b"), ("reject_patch", "a"), ("reject_patch", "b")],
+        )
+        self.assertEqual(
+            [
+                (entry["slot"], entry["action_id"])
+                for entry in materialized["action_selection"]["order"]
+            ],
+            [(1, "apply_patch"), (2, "apply_patch"), (3, "reject_patch"), (4, "reject_patch")],
+        )
+        self.assertEqual(resolve_card_selection_by_index(materialized, 2)["payload"], {"patch_id": "b"})
+        self.assertEqual(
+            [line for line in text.splitlines() if line.startswith("* ")],
+            ["* 1. Apply A", "* 2. Apply B", "* 3. Reject A", "* 4. Reject B"],
+        )
+
     def test_terminal_action_slots_sort_materialized_selection_entries(self) -> None:
         materialized = {
             "type": "GenericCard",

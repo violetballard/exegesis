@@ -52,7 +52,25 @@ def _deduped_sorted_actions(card: dict[str, Any]) -> list[dict[str, Any]]:
 
 def materialize_terminal_card(card: dict[str, Any]) -> dict[str, Any]:
     """Materialize the A2UI card shape consumed by CLI fallback renderers."""
-    return materialize_cli_fallback_card(card)
+    materialized = materialize_cli_fallback_card(card)
+    slots = _terminal_action_slots(materialized)
+    if not slots:
+        return materialized
+
+    materialized["actions"] = [slot["action"] for slot in slots]
+    materialized["action_selection"] = {
+        "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+        "selection_model": "one_based_action_slot",
+        "order": [
+            {
+                "slot": slot["slot"],
+                "action_id": str(slot["action"].get("id", "")),
+                "action_identity": _canonical_action_identity_key(slot["action"]),
+            }
+            for slot in slots
+        ],
+    }
+    return materialized
 
 
 def _terminal_action_slots(materialized: dict[str, Any]) -> list[dict[str, Any]]:
