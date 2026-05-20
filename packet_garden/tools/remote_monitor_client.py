@@ -7,14 +7,55 @@ import os
 import sys
 import urllib.error
 import urllib.request
+from pathlib import Path
 from typing import Any, Dict
 
 DEFAULT_URL = "http://127.0.0.1:8765"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+DEFAULT_CONFIG = REPO_ROOT / ".codex" / "remote_monitor" / "config.json"
+
+
+def _load_default_config() -> Dict[str, Any]:
+    try:
+        payload = json.loads(DEFAULT_CONFIG.read_text())
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return {}
+    return payload if isinstance(payload, dict) else {}
+
+
+def _default_base_url() -> str:
+    env_url = os.environ.get("QUAL_MONITOR_URL")
+    if env_url:
+        return env_url.rstrip("/")
+
+    config = _load_default_config()
+    host = str(config.get("host") or "127.0.0.1")
+    port = int(config.get("port") or 8765)
+    return f"http://{host}:{port}"
+
+
+def _default_token() -> str:
+    env_token = os.environ.get("QUAL_MONITOR_TOKEN")
+    if env_token:
+        return env_token
+
+    config = _load_default_config()
+    token_path = config.get("token_file")
+    if not isinstance(token_path, str) or not token_path:
+        return ""
+
+    path = Path(token_path)
+    if not path.is_absolute():
+        path = REPO_ROOT / path
+    try:
+        return path.read_text().strip()
+    except OSError:
+        return ""
 
 
 def _request(method: str, path: str, *, body: Dict[str, Any] | None = None) -> Dict[str, Any]:
-    base = os.environ.get("QUAL_MONITOR_URL", DEFAULT_URL).rstrip("/")
-    token = os.environ.get("QUAL_MONITOR_TOKEN", "")
+    base = _default_base_url()
+    token = _default_token()
     data = None
     headers = {"Accept": "application/json"}
     if token:
@@ -28,8 +69,8 @@ def _request(method: str, path: str, *, body: Dict[str, Any] | None = None) -> D
 
 
 def _request_text(method: str, path: str, *, accept: str = "text/plain") -> str:
-    base = os.environ.get("QUAL_MONITOR_URL", DEFAULT_URL).rstrip("/")
-    token = os.environ.get("QUAL_MONITOR_TOKEN", "")
+    base = _default_base_url()
+    token = _default_token()
     headers = {"Accept": accept}
     if token:
         headers["Authorization"] = f"Bearer {token}"

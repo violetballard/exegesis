@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import threading
 import unittest
@@ -9,7 +10,13 @@ import urllib.request
 from pathlib import Path
 from unittest import mock
 
-from packet_garden.tools import agents_coordinator, remote_monitor_ctl, remote_monitor_server, remote_monitor_snapshot
+from packet_garden.tools import (
+    agents_coordinator,
+    remote_monitor_client,
+    remote_monitor_ctl,
+    remote_monitor_server,
+    remote_monitor_snapshot,
+)
 
 
 class RemoteMonitorSnapshotTests(unittest.TestCase):
@@ -446,6 +453,37 @@ class RemoteMonitorServerTests(unittest.TestCase):
             server.shutdown()
             thread.join(timeout=5)
             server.server_close()
+
+
+class RemoteMonitorClientTests(unittest.TestCase):
+    def test_default_base_url_reads_monitor_config_when_env_absent(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            config = root / "config.json"
+            config.write_text(json.dumps({"host": "192.168.0.252", "port": 8765}))
+
+            with mock.patch.object(remote_monitor_client, "DEFAULT_CONFIG", config), mock.patch.dict(
+                os.environ,
+                {},
+                clear=True,
+            ):
+                self.assertEqual(remote_monitor_client._default_base_url(), "http://192.168.0.252:8765")
+
+    def test_default_token_reads_configured_token_file_when_env_absent(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            token = root / ".codex" / "remote_monitor" / "token"
+            token.parent.mkdir(parents=True)
+            token.write_text("secret-token\n")
+            config = root / ".codex" / "remote_monitor" / "config.json"
+            config.write_text(json.dumps({"token_file": ".codex/remote_monitor/token"}))
+
+            with mock.patch.object(remote_monitor_client, "REPO_ROOT", root), mock.patch.object(
+                remote_monitor_client,
+                "DEFAULT_CONFIG",
+                config,
+            ), mock.patch.dict(os.environ, {}, clear=True):
+                self.assertEqual(remote_monitor_client._default_token(), "secret-token")
 
 
 class RemoteMonitorCtlTests(unittest.TestCase):
