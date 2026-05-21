@@ -152,6 +152,12 @@ def render_terminal_card(card: dict[str, Any]) -> str:
             review,
             patch_id=patch_id,
         )
+        lines.append(f"Patch review flow: {summary['flow']}")
+        lines.append(f"Patch review decision policy: {summary['decision_policy']}")
+        lines.append(
+            "Patch review status: "
+            f"{'complete' if summary['is_complete'] else 'incomplete'}"
+        )
         ordered_controls = [
             f"{entry['control']}={entry['slot']}"
             for entry in summary["order"]

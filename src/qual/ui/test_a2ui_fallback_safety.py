@@ -106,6 +106,9 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
 
         text = render_terminal_card(card)
 
+        self.assertIn("Patch review flow: preview_then_decide", text)
+        self.assertIn("Patch review decision policy: apply_or_reject", text)
+        self.assertIn("Patch review status: complete", text)
         self.assertEqual(
             [line for line in text.splitlines() if line.startswith("* ")],
             [
@@ -130,6 +133,7 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
 
         text = render_terminal_card(card)
 
+        self.assertIn("Patch review status: incomplete", text)
         self.assertIn("Patch review controls: preview=1, apply=2", text)
         self.assertIn("Patch review missing controls: reject", text)
 
