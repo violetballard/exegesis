@@ -2292,6 +2292,9 @@ def _validate_action_payload(action_id: str, payload: dict[str, Any]) -> None:
     schema = _ACTION_SCHEMAS.get(action_id)
     if schema is None:
         raise ValueError(f"Unsupported action id: {action_id}")
+    for key in payload:
+        if not isinstance(key, str) or not key.strip():
+            raise ValueError(f"Payload field names must be non-empty strings for action '{action_id}'")
     unexpected_fields = set(payload) - set(schema)
     if unexpected_fields:
         field_list = ", ".join(sorted(unexpected_fields))

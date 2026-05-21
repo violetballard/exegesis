@@ -4239,6 +4239,21 @@ class A2UIContractTests(unittest.TestCase):
                 payload={"patch_id": "p1", "target_file": "chapter.md"},
             )
 
+    def test_action_payload_rejects_untyped_field_names_before_policy_gate(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Payload field names must be non-empty strings"):
+            ActionRef(
+                id="apply_patch",
+                label="Apply",
+                payload={"patch_id": "p1", 1: "chapter.md"},  # type: ignore[dict-item]
+            )
+
+        with self.assertRaisesRegex(ValueError, "Payload field names must be non-empty strings"):
+            ActionRef(
+                id="apply_patch",
+                label="Apply",
+                payload={"patch_id": "p1", "": "chapter.md"},
+            )
+
     def test_action_id_must_be_typed_and_normalized_before_policy_gate(self) -> None:
         with self.assertRaisesRegex(ValueError, "Action id must be normalized"):
             validate_action_ref(
