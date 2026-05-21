@@ -106,6 +106,7 @@ from src.qual.ui.a2ui import (
     validate_context_set_card,
     validate_demo_context_card_capabilities,
     validate_known_card,
+    validate_patch_review_contract,
     validate_retrieval_results_card,
     validate_stream_event,
 )
@@ -3029,6 +3030,57 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(availability["missing"], ["reject"])
         self.assertEqual(availability["next_required"], "reject")
         self.assertFalse(availability["is_complete"])
+
+    def test_patch_review_contract_validator_enforces_capabilities_and_completion(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+
+        availability = validate_patch_review_contract(
+            card,
+            review,
+            patch_id=" p1 ",
+            capabilities=_capabilities(),
+            require_complete=True,
+        )
+
+        self.assertTrue(availability["is_complete"])
+        self.assertEqual(shared_contracts.validate_patch_review_contract(card, review, patch_id="p1"), availability)
+        with self.assertRaisesRegex(ValueError, "reject action is not supported"):
+            validate_patch_review_contract(
+                card,
+                review,
+                patch_id="p1",
+                capabilities=_capabilities(actions_supported=("preview_patch", "apply_patch")),
+            )
+
+        partial_card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        partial_review = build_patch_review_contract(partial_card, patch_id="p1")
+
+        with self.assertRaisesRegex(ValueError, "missing: reject"):
+            validate_patch_review_contract(partial_card, partial_review, patch_id="p1", require_complete=True)
 
     def test_patch_review_availability_ignores_stale_selection_entries(self) -> None:
         card = materialize_terminal_card(

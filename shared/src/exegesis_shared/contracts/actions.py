@@ -805,6 +805,40 @@ def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], 
     return resolved
 
 
+def validate_patch_review_contract(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+    capabilities: Any | None = None,
+    require_complete: bool = False,
+) -> dict[str, Any]:
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch review patch_id is required")
+    if capabilities is not None:
+        if require_complete:
+            validate_complete_patch_review_capabilities(capabilities)
+        else:
+            validate_action_capabilities(capabilities)
+    resolve_patch_review_contract(card, review, patch_id=expected_patch_id)
+    availability = patch_review_availability_from_contract(review)
+    if require_complete and availability["missing"]:
+        raise ValueError(f"Complete patch review is missing: {', '.join(availability['missing'])}")
+    if capabilities is not None:
+        supported_actions = set(capabilities.actions_supported)
+        controls = patch_review_control_actions_from_contract(
+            card,
+            review,
+            patch_id=expected_patch_id,
+        )
+        for control, action_payload in controls.items():
+            action_id = action_payload.get("action_id")
+            if action_id not in supported_actions:
+                raise ValueError(f"Patch review {control} action is not supported by client")
+    return availability
+
+
 def patch_review_action_refs_from_contract(
     card: dict[str, Any],
     review: dict[str, Any],
