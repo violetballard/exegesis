@@ -261,6 +261,7 @@ def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
             except ValueError:
                 continue
             blocks.append(block)
+    blocks.append(_unknown_card_support_summary(raw_card))
     blocks.append(
         {
             "type": "CodeBlock",
@@ -281,6 +282,22 @@ def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
     if isinstance(patch_id, str) and patch_id.strip():
         fallback["patch_id"] = patch_id.strip()
     return fallback
+
+
+def _unknown_card_support_summary(raw_card: dict[str, Any]) -> dict[str, Any]:
+    raw_actions = raw_card.get("actions", [])
+    raw_action_count = len(raw_actions) if isinstance(raw_actions, list) else 0
+    materialized_actions = materialize_card_actions(raw_card)
+    return {
+        "type": "KeyValueBlock",
+        "items": [
+            {"key": "original_type", "value": str(raw_card.get("type", "<missing>"))},
+            {"key": "fallback", "value": "UnknownCard"},
+            {"key": "typed_action_candidates", "value": str(len(materialized_actions))},
+            {"key": "invalid_actions_filtered", "value": str(raw_action_count - len(materialized_actions))},
+            {"key": "raw_payload_available", "value": "true"},
+        ],
+    }
 
 
 def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:

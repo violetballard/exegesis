@@ -258,6 +258,8 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(card["type"], "UnknownCard")
         self.assertEqual(card["patch_id"], "p1")
+        self.assertIn({"key": "typed_action_candidates", "value": "3"}, card["blocks"][1]["items"])
+        self.assertIn({"key": "invalid_actions_filtered", "value": "0"}, card["blocks"][1]["items"])
         self.assertEqual(
             [(entry["slot"], entry["action_id"]) for entry in card["action_selection"]["order"]],
             [(1, "apply_patch"), (2, "reject_patch")],

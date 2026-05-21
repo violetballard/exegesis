@@ -1174,7 +1174,9 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         self.assertEqual(card["blocks"][0], {"type": "MarkdownBlock", "markdown": "safe preview"})
-        self.assertEqual(card["blocks"][1]["type"], "CodeBlock")
+        self.assertEqual(card["blocks"][1]["type"], "KeyValueBlock")
+        self.assertEqual(card["blocks"][1]["items"][0], {"key": "original_type", "value": "FuturePatchCard"})
+        self.assertEqual(card["blocks"][2]["type"], "CodeBlock")
 
     def test_studio_renders_unknown_card_for_unsupported_type(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
