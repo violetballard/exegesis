@@ -1217,6 +1217,13 @@ def execute_action_with_policy_gate(
 
 def engine_authoritative_action_ref(action: ActionRef) -> ActionRef:
     validate_action_ref(action.as_contract())
+    if action.id in {"preview_patch", *PATCH_DECISION_ACTION_IDS}:
+        patch_id = action.payload.get("patch_id")
+        if isinstance(patch_id, str):
+            normalized_payload = dict(action.payload)
+            normalized_payload["patch_id"] = patch_id.strip()
+            action = replace(action, payload=normalized_payload)
+            validate_action_ref(action.as_contract())
     if action.id in PATCH_DECISION_ACTION_IDS:
         confirm = action.confirm
         confirmation_added = False

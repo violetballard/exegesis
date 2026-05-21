@@ -2325,6 +2325,27 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(executed[0].confirm, {"title": "Apply patch?"})
         self.assertTrue(executed[0].policy_sensitive)
 
+    def test_engine_authoritative_patch_actions_normalize_patch_id(self) -> None:
+        apply_action = engine_authoritative_action_ref(
+            ActionRef(
+                id="apply_patch",
+                label="Apply",
+                payload={"patch_id": " p1 "},
+            )
+        )
+        preview_action = engine_authoritative_action_ref(
+            ActionRef(
+                id="preview_patch",
+                label="Preview",
+                payload={"patch_id": " p1 "},
+            )
+        )
+
+        self.assertEqual(apply_action.payload, {"patch_id": "p1"})
+        self.assertEqual(preview_action.payload, {"patch_id": "p1"})
+        self.assertTrue(apply_action.policy_sensitive)
+        self.assertFalse(preview_action.policy_sensitive)
+
     def test_patch_decision_execution_preserves_explicit_confirmation_metadata(self) -> None:
         executed: list[ActionRef] = []
         action = ActionRef(
