@@ -117,6 +117,28 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
             ["* 1. Apply A", "* 2. Apply B", "* 3. Reject"],
         )
 
+    def test_terminal_fallback_drops_blank_patch_action_slots(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Patch choices",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Choose a patch"}],
+            "actions": [
+                {"id": "apply_patch", "label": "Apply blank", "payload": {"patch_id": " "}},
+                {"id": "reject_patch", "label": "Reject blank", "payload": {"patch_id": ""}},
+                {"id": "apply_patch", "label": "Apply A", "payload": {"patch_id": "a"}},
+            ],
+        }
+
+        materialized = materialize_terminal_card(card)
+        text = render_terminal_card(card)
+
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in materialized["action_selection"]["order"]],
+            [(1, "apply_patch")],
+        )
+        self.assertEqual(resolve_card_selection_by_index(materialized, 1)["payload"], {"patch_id": "a"})
+        self.assertEqual([line for line in text.splitlines() if line.startswith("* ")], ["* 1. Apply A"])
+
     def test_unknown_card_fallback_stays_cli_renderable_when_copy_is_unsupported(self) -> None:
         caps = _capabilities(
             cards_supported=("RunLogCard",),

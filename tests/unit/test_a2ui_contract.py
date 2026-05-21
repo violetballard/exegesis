@@ -115,6 +115,23 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(len(filtered["actions"]), 1)
         self.assertEqual(filtered["actions"][0]["id"], "apply_patch")
 
+    def test_blank_patch_action_identifiers_are_filtered_client_side(self) -> None:
+        caps = _capabilities(actions_supported=("apply_patch", "reject_patch"))
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
+            "actions": [
+                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "   "}},
+                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": ""}},
+                {"id": "apply_patch", "label": "Apply p1", "payload": {"patch_id": "p1"}},
+            ],
+        }
+
+        filtered = studio_materialize_card(card, caps)
+
+        self.assertEqual([action["payload"]["patch_id"] for action in filtered["actions"]], ["p1"])
+
     def test_shared_contract_export_materializes_versioned_action_selection(self) -> None:
         caps = _capabilities(actions_supported=("reject_patch", "apply_patch"))
         card = {

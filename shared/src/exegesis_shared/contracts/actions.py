@@ -216,3 +216,5 @@ def _validate_action_payload(action_id: str, payload: dict[str, Any]) -> None:
             raise ValueError(f"Missing payload field '{key}' for action '{action_id}'")
         if not isinstance(payload[key], value_type):
             raise ValueError(f"Payload field '{key}' must be of type {value_type.__name__}")
+        if value_type is str and not payload[key].strip():
+            raise ValueError(f"Payload field '{key}' is required for action '{action_id}'")
