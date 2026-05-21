@@ -648,6 +648,24 @@ class A2UIContractTests(unittest.TestCase):
         )
         self.assertEqual(executed, ["export_document"])
 
+    def test_action_payload_rejects_untyped_extra_fields_before_policy_gate(self) -> None:
+        executed: list[str] = []
+        action = ActionRef(
+            id="apply_patch",
+            label="Apply",
+            payload={"patch_id": "p1", "target_file": "chapter.md"},
+        )
+
+        with self.assertRaisesRegex(ValueError, "Unsupported payload field"):
+            execute_action_with_policy_gate(
+                action=action,
+                capabilities=_capabilities(),
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda a: executed.append(a.id),
+            )
+
+        self.assertEqual(executed, [])
+
     def test_streaming_card_event_materializes_engine_card_contract(self) -> None:
         event = build_card_published_event(
             event_id="evt-1",
