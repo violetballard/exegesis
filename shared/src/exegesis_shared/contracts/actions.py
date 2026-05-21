@@ -2294,6 +2294,29 @@ def execute_complete_patch_review_action_with_policy_gate(
     )
 
 
+def execute_complete_patch_review_control_with_policy_gate(
+    *,
+    card: dict[str, Any],
+    patch_id: str,
+    control: str,
+    capabilities: Any,
+    policy_gate: PolicyGate,
+    executor: Callable[[ActionRef], Any],
+) -> Any:
+    execution = resolve_complete_patch_review_control_execution(
+        card,
+        patch_id=patch_id,
+        control=control,
+        capabilities=capabilities,
+    )
+    return execute_action_with_policy_gate(
+        action=_action_ref_from_contract(execution["action_contract"]),
+        capabilities=capabilities,
+        policy_gate=policy_gate,
+        executor=executor,
+    )
+
+
 def execute_complete_patch_review_selection_with_policy_gate(
     *,
     card: dict[str, Any],
