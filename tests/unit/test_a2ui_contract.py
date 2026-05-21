@@ -87,6 +87,44 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["type"], "GenericCard")
         self.assertEqual(card["blocks"][0]["type"], "AlertBlock")
 
+    def test_engine_generic_fallback_preserves_supported_patch_decisions(self) -> None:
+        caps = _capabilities(cards_supported=("RunLogCard",))
+        payload = {
+            "type": "ProposedEditCard",
+            "patch_id": "patch-1",
+            "title": "Preview patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "```diff\n+new\n```"}],
+            "actions": [],
+        }
+
+        card = engine_prepare_card(payload, caps)
+        selection = build_patch_decision_selection(card, patch_id="patch-1", decision="apply")
+        action = resolve_patch_decision_selection(card, selection, patch_id="patch-1")
+
+        self.assertEqual(card["type"], "GenericCard")
+        self.assertEqual([action["id"] for action in card["actions"]], ["apply_patch", "reject_patch"])
+        self.assertEqual(card["patch_decision"]["patch_id"], "patch-1")
+        self.assertEqual(action["payload"], {"patch_id": "patch-1"})
+
+    def test_engine_generic_fallback_filters_unsupported_patch_decisions(self) -> None:
+        caps = _capabilities(
+            cards_supported=("RunLogCard",),
+            actions_supported=("reject_patch",),
+        )
+        payload = {
+            "type": "ProposedEditCard",
+            "patch_id": "patch-1",
+            "title": "Preview patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "```diff\n+new\n```"}],
+            "actions": [],
+        }
+
+        card = engine_prepare_card(payload, caps)
+
+        self.assertEqual([action["id"] for action in card["actions"]], ["reject_patch"])
+        with self.assertRaisesRegex(ValueError, "not available"):
+            build_patch_decision_selection(card, patch_id="patch-1", decision="apply")
+
     def test_engine_rejects_cards_over_negotiated_payload_limit(self) -> None:
         caps = _capabilities(max_payload_bytes=100)
         payload = {

@@ -6,6 +6,7 @@ from typing import Any
 
 from exegesis_shared.contracts.actions import (
     ALLOWED_ACTION_IDS,
+    materialize_card_actions,
     materialize_cli_fallback_card,
     validate_action_ref,
 )
@@ -84,6 +85,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
     if card_type in set(capabilities.cards_supported):
         validate_card_payload_size(card, capabilities)
         return card
+    fallback_actions = _engine_fallback_actions(card, capabilities)
     fallback = {
         "type": GENERIC_CARD_TYPE,
         "title": f"Fallback view for {card_type or 'Unknown'}",
@@ -100,8 +102,12 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
                 "code": json.dumps(card, separators=(",", ":"), ensure_ascii=True),
             },
         ],
-        "actions": [],
+        "actions": fallback_actions,
     }
+    patch_id = card.get("patch_id")
+    if isinstance(patch_id, str) and patch_id.strip():
+        fallback["patch_id"] = patch_id.strip()
+    fallback = materialize_cli_fallback_card(fallback)
     validate_card_payload_size(fallback, capabilities)
     return fallback
 
@@ -268,3 +274,15 @@ def _studio_filter_actions(card: dict[str, Any], capabilities: A2UICapabilities)
         key=lambda action: json.dumps(action, sort_keys=True, separators=(",", ":"), ensure_ascii=True),
     )
     return filtered
+
+
+def _engine_fallback_actions(
+    card: dict[str, Any],
+    capabilities: A2UICapabilities,
+) -> list[dict[str, Any]]:
+    supported_actions = set(capabilities.actions_supported)
+    return [
+        action
+        for action in materialize_card_actions(card)
+        if action.get("id") in supported_actions
+    ]
