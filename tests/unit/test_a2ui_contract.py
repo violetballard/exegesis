@@ -36,6 +36,7 @@ def _capabilities(
     *,
     cards_supported: tuple[str, ...] = ("ProposedEditCard",),
     actions_supported: tuple[str, ...] = (
+        "preview_patch",
         "apply_patch",
         "reject_patch",
         "open_section",
@@ -106,14 +107,14 @@ class A2UIContractTests(unittest.TestCase):
         action = resolve_patch_decision_selection(card, selection, patch_id="patch-1")
 
         self.assertEqual(card["type"], "GenericCard")
-        self.assertEqual([action["id"] for action in card["actions"]], ["apply_patch", "reject_patch"])
+        self.assertEqual([action["id"] for action in card["actions"]], ["preview_patch", "apply_patch", "reject_patch"])
         self.assertEqual(card["patch_decision"]["patch_id"], "patch-1")
         self.assertEqual(action["payload"], {"patch_id": "patch-1"})
 
     def test_engine_generic_fallback_filters_unsupported_patch_decisions(self) -> None:
         caps = _capabilities(
             cards_supported=("RunLogCard",),
-            actions_supported=("reject_patch",),
+            actions_supported=("preview_patch", "reject_patch"),
         )
         payload = {
             "type": "ProposedEditCard",
@@ -125,7 +126,7 @@ class A2UIContractTests(unittest.TestCase):
 
         card = engine_prepare_card(payload, caps)
 
-        self.assertEqual([action["id"] for action in card["actions"]], ["reject_patch"])
+        self.assertEqual([action["id"] for action in card["actions"]], ["preview_patch", "reject_patch"])
         with self.assertRaisesRegex(ValueError, "not available"):
             build_patch_decision_selection(card, patch_id="patch-1", decision="apply")
 
@@ -153,10 +154,13 @@ class A2UIContractTests(unittest.TestCase):
         materialized = studio_materialize_card(card, _capabilities())
 
         self.assertEqual(materialized["patch_id"], "patch-1")
-        self.assertEqual([action["id"] for action in materialized["actions"]], ["apply_patch", "reject_patch"])
+        self.assertEqual(
+            [action["id"] for action in materialized["actions"]],
+            ["preview_patch", "apply_patch", "reject_patch"],
+        )
         self.assertEqual(
             [action["payload"] for action in materialized["actions"]],
-            [{"patch_id": "patch-1"}, {"patch_id": "patch-1"}],
+            [{"patch_id": "patch-1"}, {"patch_id": "patch-1"}, {"patch_id": "patch-1"}],
         )
         self.assertEqual(materialized["patch_decision"]["contract_version"], PATCH_DECISION_CONTRACT_VERSION)
         self.assertEqual(materialized["patch_decision"]["patch_id"], "patch-1")
@@ -172,7 +176,7 @@ class A2UIContractTests(unittest.TestCase):
                 (entry["decision"], entry["slot"], entry["action_id"])
                 for entry in materialized["patch_decision"]["decisions"]
             ],
-            [("apply", 1, "apply_patch"), ("reject", 2, "reject_patch")],
+            [("apply", 2, "apply_patch"), ("reject", 3, "reject_patch")],
         )
 
     def test_cli_fallback_materialization_enforces_negotiated_payload_limit(self) -> None:
@@ -194,7 +198,7 @@ class A2UIContractTests(unittest.TestCase):
             "title": "Preview patch",
             "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
             "actions": [
-                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "other"}},
+                {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "other"}},
             ],
         }
 
@@ -683,7 +687,10 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(event["event_type"], "card_published")
         self.assertEqual(event["card"]["type"], "ProposedEditCard")
-        self.assertEqual([action["id"] for action in event["card"]["actions"]], ["apply_patch", "reject_patch"])
+        self.assertEqual(
+            [action["id"] for action in event["card"]["actions"]],
+            ["preview_patch", "apply_patch", "reject_patch"],
+        )
         self.assertEqual(event["card"]["patch_decision"]["patch_id"], "p1")
 
     def test_streaming_action_events_carry_versioned_selection_and_resolution(self) -> None:

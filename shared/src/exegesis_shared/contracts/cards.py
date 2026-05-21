@@ -193,6 +193,8 @@ def materialize_proposed_edit_card(card: dict[str, Any]) -> dict[str, Any]:
     patch_id = str(materialized["patch_id"]).strip()
     materialized["patch_id"] = patch_id
     actions = list(materialized.get("actions", []))
+    if not _has_patch_action(actions, "preview_patch", patch_id):
+        actions.append({"id": "preview_patch", "label": "Preview patch", "payload": {"patch_id": patch_id}})
     if not _has_patch_action(actions, "apply_patch", patch_id):
         actions.append({"id": "apply_patch", "label": "Apply patch", "payload": {"patch_id": patch_id}})
     if not _has_patch_action(actions, "reject_patch", patch_id):
@@ -226,7 +228,7 @@ def validate_proposed_edit_card(card: dict[str, Any], *, strict_actions: bool = 
                 validate_action_ref(action)
             continue
         action_id = action.get("id")
-        if action_id in {"apply_patch", "reject_patch"}:
+        if action_id in {"preview_patch", "apply_patch", "reject_patch"}:
             payload = action.get("payload")
             action_patch_id = payload.get("patch_id") if isinstance(payload, dict) else None
             if action_patch_id != expected_patch_id:

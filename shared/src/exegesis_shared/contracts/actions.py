@@ -8,6 +8,7 @@ from typing import Any, Callable, Protocol
 ACTION_SELECTION_CONTRACT_VERSION = 1
 PATCH_DECISION_CONTRACT_VERSION = 1
 ALLOWED_ACTION_IDS: tuple[str, ...] = (
+    "preview_patch",
     "apply_patch",
     "reject_patch",
     "open_section",
@@ -26,6 +27,7 @@ PATCH_DECISION_BY_ACTION_ID: dict[str, str] = {
 }
 
 CANONICAL_ACTION_ORDER: tuple[str, ...] = (
+    "preview_patch",
     "apply_patch",
     "reject_patch",
     "open_section",
@@ -45,6 +47,7 @@ if set(CANONICAL_ACTION_ORDER) != _ALLOWED_ACTION_SET:
     raise RuntimeError("A2UI canonical action order must match allowed action IDs")
 
 _ACTION_SCHEMAS: dict[str, dict[str, type]] = {
+    "preview_patch": {"patch_id": str},
     "apply_patch": {"patch_id": str},
     "reject_patch": {"patch_id": str},
     "open_section": {"section_id": str},
