@@ -1002,11 +1002,33 @@ class A2UIContractTests(unittest.TestCase):
             [("preview", 1), ("apply", 2)],
         )
         self.assertEqual(summary["controls"]["apply"]["selection"]["patch_decision"], "apply")
-        self.assertFalse(summary["controls"]["apply"]["policy_sensitive"])
+        self.assertTrue(summary["controls"]["apply"]["policy_sensitive"])
         self.assertEqual(
             shared_contracts.patch_review_control_summary_from_contract(card, review, patch_id="p1"),
             summary,
         )
+
+    def test_patch_review_control_summary_marks_decisions_engine_authoritative(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+
+        summary = patch_review_control_summary_from_contract(card, review, patch_id="p1")
+
+        self.assertFalse(summary["controls"]["preview"]["policy_sensitive"])
+        self.assertTrue(summary["controls"]["apply"]["policy_sensitive"])
+        self.assertTrue(summary["controls"]["reject"]["policy_sensitive"])
 
     def test_patch_review_selection_resolves_cli_slot_through_review_contract(self) -> None:
         card = materialize_terminal_card(

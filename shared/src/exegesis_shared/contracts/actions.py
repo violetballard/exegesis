@@ -595,6 +595,7 @@ def patch_review_control_actions_from_contract(
         action_ref = ref_by_control.get(control)
         if slot is None or not isinstance(action_ref, ActionRef):
             continue
+        action_ref = engine_authoritative_action_ref(action_ref)
         controls[control] = {
             **slot,
             "label": action_ref.label,
