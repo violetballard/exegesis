@@ -2277,8 +2277,8 @@ def engine_authoritative_action_ref(action: ActionRef) -> ActionRef:
         if action.confirm != confirm or not action.policy_sensitive:
             return replace(action, confirm=confirm, policy_sensitive=True)
         return action
-    if action.confirm is not None:
-        return replace(action, confirm=None)
+    if action.confirm is not None or action.policy_sensitive:
+        return replace(action, confirm=None, policy_sensitive=False)
     return action
 
 

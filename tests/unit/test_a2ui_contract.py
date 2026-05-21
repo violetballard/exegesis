@@ -4671,6 +4671,7 @@ class A2UIContractTests(unittest.TestCase):
             label="Gather context",
             payload={"basket_id": "basket-1", "context_set_id": "set-1"},
             confirm={"title": "Client supplied confirmation"},
+            policy_sensitive=True,
         )
 
         execute_action_with_policy_gate(
@@ -4683,6 +4684,26 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(len(executed), 1)
         self.assertIsNone(executed[0].confirm)
         self.assertFalse(executed[0].policy_sensitive)
+
+    def test_engine_authoritative_context_actions_drop_client_policy_sensitivity(self) -> None:
+        gate = _RecordingPolicyGate(True, [])
+        action = ActionRef(
+            id="promote_to_basket",
+            label="Add to basket",
+            payload={"item_id": " doc-1 "},
+            policy_sensitive=True,
+        )
+
+        result = execute_action_with_policy_gate(
+            action=action,
+            capabilities=_capabilities(),
+            policy_gate=gate,
+            executor=lambda a: a.as_contract(),
+        )
+
+        self.assertEqual(result["payload"], {"item_id": "doc-1"})
+        self.assertNotIn("policy_sensitive", result)
+        self.assertEqual(gate.calls, [("promote_to_basket", {"item_id": "doc-1"}, False)])
 
     def test_card_selection_execution_resolves_context_action_through_policy_gate(self) -> None:
         card = materialize_terminal_card(
