@@ -89,7 +89,9 @@ from src.qual.ui.a2ui import (
     resolve_patch_preview_action,
     resolve_patch_preview_selection,
     resolve_complete_patch_review_control_execution,
+    resolve_complete_patch_review_cli_command_execution,
     resolve_patch_review_contract,
+    resolve_patch_review_cli_command_execution,
     resolve_patch_review_control_execution,
     resolve_patch_review_selection,
     studio_materialize_card,
@@ -4676,6 +4678,65 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(execution["control"], "apply")
         self.assertEqual(execution["action_id"], "apply_patch")
 
+    def test_patch_review_cli_command_execution_envelope_is_engine_authoritative(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        execution = resolve_patch_review_cli_command_execution(
+            card,
+            review,
+            patch_id="p1",
+            command=" APPLY_PATCH ",
+            capabilities=_capabilities(),
+        )
+
+        self.assertEqual(execution["command"], "APPLY_PATCH")
+        self.assertEqual(execution["normalized_command"], "apply_patch")
+        self.assertEqual(execution["control"], "apply")
+        self.assertEqual(execution["action_id"], "apply_patch")
+        self.assertEqual(execution["action_contract"]["confirm"], {"title": "Apply patch?"})
+        self.assertTrue(execution["action_contract"]["policy_sensitive"])
+        self.assertEqual(execution["execution_policy"], PATCH_REVIEW_EXECUTION_POLICY["apply"])
+        self.assertEqual(execution["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
+        self.assertEqual(execution["demo_path_step"], PATCH_REVIEW_DEMO_PATH_STEP)
+
+    def test_patch_review_cli_command_execution_revalidates_client_capability(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        with self.assertRaisesRegex(ValueError, "apply action is not supported by client"):
+            resolve_patch_review_cli_command_execution(
+                card,
+                review,
+                patch_id="p1",
+                command="2",
+                capabilities=_capabilities(actions_supported=("preview_patch", "reject_patch")),
+            )
+
     def test_complete_patch_review_control_execution_rebuilds_full_contract(self) -> None:
         card = materialize_terminal_card(
             {
@@ -4719,6 +4780,39 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIs(
             shared_contracts.resolve_complete_patch_review_control_execution,
             resolve_complete_patch_review_control_execution,
+        )
+
+    def test_complete_patch_review_cli_command_execution_rebuilds_full_contract(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        execution = resolve_complete_patch_review_cli_command_execution(
+            card,
+            patch_id=" p1 ",
+            command="reject",
+            capabilities=_capabilities(),
+        )
+
+        self.assertEqual(execution["control"], "reject")
+        self.assertEqual(execution["action_id"], "reject_patch")
+        self.assertEqual(execution["normalized_command"], "reject")
+        self.assertEqual(execution["action_contract"]["confirm"], {"title": "Reject patch?"})
+        self.assertTrue(execution["action_contract"]["policy_sensitive"])
+        self.assertEqual(execution["complete_patch_review"]["missing"], [])
+        self.assertIs(
+            shared_contracts.resolve_complete_patch_review_cli_command_execution,
+            resolve_complete_patch_review_cli_command_execution,
         )
 
     def test_complete_patch_review_control_execution_requires_full_demo_controls(self) -> None:

@@ -966,6 +966,39 @@ def resolve_patch_review_control_execution(
     }
 
 
+def resolve_patch_review_cli_command_execution(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+    command: str,
+    capabilities: Any | None = None,
+) -> dict[str, Any]:
+    command_text = command.strip()
+    if not command_text:
+        raise ValueError("Patch review CLI command is required")
+    normalized_command = command_text.lower()
+    command_lookup = patch_review_cli_command_lookup_from_contract(card, review, patch_id=patch_id)
+    entry = command_lookup["commands"].get(normalized_command)
+    if not isinstance(entry, dict):
+        raise ValueError(f"Unsupported patch review CLI command: {command_text}")
+    control = str(entry.get("control", "")).strip().lower()
+    execution = resolve_patch_review_control_execution(
+        card,
+        review,
+        patch_id=patch_id,
+        control=control,
+        capabilities=capabilities,
+    )
+    if execution["selection"] != entry.get("selection"):
+        raise ValueError("Patch review CLI command selection does not match the current control")
+    return {
+        **execution,
+        "command": command_text,
+        "normalized_command": normalized_command,
+    }
+
+
 def resolve_complete_patch_review_control_execution(
     card: dict[str, Any],
     *,
@@ -985,6 +1018,39 @@ def resolve_complete_patch_review_control_execution(
         review,
         patch_id=expected_patch_id,
         control=control,
+        capabilities=capabilities,
+    )
+    execution["complete_patch_review"] = {
+        "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+        "flow": PATCH_REVIEW_FLOW,
+        "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+        "required": list(PATCH_REVIEW_REQUIRED_PARTS),
+        "available": deepcopy(review["availability"]["available"]),
+        "missing": deepcopy(review["availability"]["missing"]),
+        "is_complete": review["availability"]["is_complete"],
+    }
+    return execution
+
+
+def resolve_complete_patch_review_cli_command_execution(
+    card: dict[str, Any],
+    *,
+    patch_id: str,
+    command: str,
+    capabilities: Any | None = None,
+) -> dict[str, Any]:
+    if capabilities is not None:
+        validate_complete_patch_review_capabilities(capabilities)
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch review patch_id is required")
+    review = build_complete_patch_review_contract(card, patch_id=expected_patch_id)
+    complete_patch_review_actions_from_contract(card, review, patch_id=expected_patch_id)
+    execution = resolve_patch_review_cli_command_execution(
+        card,
+        review,
+        patch_id=expected_patch_id,
+        command=command,
         capabilities=capabilities,
     )
     execution["complete_patch_review"] = {
@@ -1982,6 +2048,20 @@ def validate_action_ref(action: Any) -> None:
         raise ValueError("Action policy_sensitive must be a boolean")
 
 
+def _action_ref_from_contract(action: dict[str, Any]) -> ActionRef:
+    validate_action_ref(action)
+    confirm = action.get("confirm")
+    if isinstance(confirm, dict):
+        confirm = deepcopy(confirm)
+    return ActionRef(
+        id=str(action["id"]),
+        label=str(action["label"]).strip(),
+        payload=deepcopy(action["payload"]),
+        confirm=confirm,
+        policy_sensitive=action.get("policy_sensitive", False),
+    )
+
+
 def execute_action_with_policy_gate(
     *,
     action: ActionRef,
@@ -2065,14 +2145,15 @@ def execute_patch_review_cli_command_with_policy_gate(
     policy_gate: PolicyGate,
     executor: Callable[[ActionRef], Any],
 ) -> Any:
-    action = patch_review_action_ref_from_cli_command(
+    execution = resolve_patch_review_cli_command_execution(
         card,
         review,
         patch_id=patch_id,
         command=command,
+        capabilities=capabilities,
     )
     return execute_action_with_policy_gate(
-        action=engine_authoritative_action_ref(action),
+        action=_action_ref_from_contract(execution["action_contract"]),
         capabilities=capabilities,
         policy_gate=policy_gate,
         executor=executor,
@@ -2162,13 +2243,14 @@ def execute_complete_patch_review_cli_command_with_policy_gate(
     executor: Callable[[ActionRef], Any],
 ) -> Any:
     validate_complete_patch_review_capabilities(capabilities)
-    action = complete_patch_review_action_ref_from_cli_command(
+    execution = resolve_complete_patch_review_cli_command_execution(
         card,
         patch_id=patch_id,
         command=command,
+        capabilities=capabilities,
     )
     return execute_action_with_policy_gate(
-        action=engine_authoritative_action_ref(action),
+        action=_action_ref_from_contract(execution["action_contract"]),
         capabilities=capabilities,
         policy_gate=policy_gate,
         executor=executor,
