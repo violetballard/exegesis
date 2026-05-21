@@ -525,6 +525,22 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["type"], "GenericCard")
         self.assertEqual(card["blocks"][0]["type"], "AlertBlock")
 
+    def test_engine_falls_back_for_unknown_card_even_when_client_advertises_it(self) -> None:
+        caps = _capabilities(cards_supported=("RunDecisionCard",))
+        payload = {
+            "type": "RunDecisionCard",
+            "title": "Patch",
+            "actions": [
+                {"id": "run_agent", "label": "Run unsafe", "payload": {"operation": "revise"}}
+            ],
+        }
+
+        card = engine_prepare_card(payload, caps)
+
+        self.assertEqual(card["type"], "GenericCard")
+        self.assertEqual(card["title"], "Fallback view for RunDecisionCard")
+        self.assertEqual(card["actions"][0]["id"], "run_agent")
+
     def test_engine_generic_fallback_preserves_supported_patch_decisions(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
         payload = {
@@ -785,6 +801,13 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["type"], "UnknownCard")
         self.assertIn("Unsupported card type", card["title"])
         self.assertEqual(card["actions"][0]["id"], "copy_to_clipboard")
+
+    def test_studio_renders_unknown_card_even_when_client_advertises_unknown_type(self) -> None:
+        caps = _capabilities(cards_supported=("QuestionsCard",))
+        payload = {"type": "QuestionsCard", "title": "Questions", "foo": "bar"}
+        card = studio_materialize_card(payload, caps)
+        self.assertEqual(card["type"], "UnknownCard")
+        self.assertIn("Unsupported card type: QuestionsCard", card["title"])
 
     def test_unknown_card_fallback_honors_supported_actions(self) -> None:
         caps = _capabilities(

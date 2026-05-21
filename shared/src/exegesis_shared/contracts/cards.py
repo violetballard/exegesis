@@ -134,11 +134,6 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
         card = prepared
     elif card_type in _VALIDATORS_BY_CARD_TYPE:
         validate_known_card(card)
-    if card_type in set(capabilities.cards_supported):
-        prepared = _engine_filter_actions(card, capabilities)
-        prepared = materialize_cli_fallback_card(prepared)
-        validate_card_payload_size(prepared, capabilities)
-        return prepared
     fallback_actions = _engine_fallback_actions(card, capabilities)
     fallback = {
         "type": GENERIC_CARD_TYPE,
@@ -181,10 +176,6 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
         return materialized
     if card_type in _VALIDATORS_BY_CARD_TYPE:
         validate_known_card(card, strict_actions=False)
-        materialized = materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
-        validate_card_payload_size(materialized, capabilities)
-        return materialized
-    if card_type in set(capabilities.cards_supported):
         materialized = materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
         validate_card_payload_size(materialized, capabilities)
         return materialized
