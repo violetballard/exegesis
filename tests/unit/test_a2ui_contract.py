@@ -4456,6 +4456,26 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(executed[0].confirm, {"title": "Reject patch?"})
         self.assertTrue(executed[0].policy_sensitive)
 
+    def test_engine_authoritative_non_decision_actions_drop_client_confirmation(self) -> None:
+        executed: list[ActionRef] = []
+        action = ActionRef(
+            id="gather_context",
+            label="Gather context",
+            payload={"basket_id": "basket-1", "context_set_id": "set-1"},
+            confirm={"title": "Client supplied confirmation"},
+        )
+
+        execute_action_with_policy_gate(
+            action=action,
+            capabilities=_capabilities(),
+            policy_gate=_PolicyGateStub(True),
+            executor=lambda a: executed.append(a),
+        )
+
+        self.assertEqual(len(executed), 1)
+        self.assertIsNone(executed[0].confirm)
+        self.assertFalse(executed[0].policy_sensitive)
+
     def test_action_payload_rejects_untyped_extra_fields_before_policy_gate(self) -> None:
         with self.assertRaisesRegex(ValueError, "Unsupported payload field"):
             ActionRef(
