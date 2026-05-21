@@ -235,6 +235,11 @@ def materialize_cli_fallback_card(card: dict[str, Any]) -> dict[str, Any]:
         patch_decision = materialize_patch_decision_contract(materialized, patch_id)
         if patch_decision["decisions"]:
             materialized["patch_decision"] = patch_decision
+        try:
+            materialized["patch_review"] = build_patch_review_contract(materialized, patch_id=patch_id)
+        except ValueError as exc:
+            if "not available" not in str(exc):
+                raise
     return materialized
 
 

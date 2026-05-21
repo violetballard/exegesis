@@ -672,6 +672,38 @@ class A2UIContractTests(unittest.TestCase):
             [("apply", "apply_patch"), ("reject", "reject_patch")],
         )
 
+    def test_cli_fallback_materializes_patch_review_contract_for_current_patch(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply stale", "payload": {"patch_id": "p2"}},
+                ],
+            }
+        )
+
+        review = card["patch_review"]
+        resolved = resolve_patch_review_contract(card, review, patch_id="p1")
+
+        self.assertEqual(review["contract_version"], PATCH_REVIEW_CONTRACT_VERSION)
+        self.assertEqual(review["patch_id"], "p1")
+        self.assertEqual(review["preview"], card["patch_preview"]["previews"][0]["selection"])
+        self.assertEqual(
+            [(entry["decision"], entry["selection"]["patch_id"]) for entry in review["decisions"]],
+            [("apply", "p1"), ("reject", "p1")],
+        )
+        self.assertEqual(resolved["preview"]["id"], "preview_patch")
+        self.assertEqual(
+            [(entry["decision"], entry["action"]["id"]) for entry in resolved["decisions"]],
+            [("apply", "apply_patch"), ("reject", "reject_patch")],
+        )
+
     def test_patch_review_contract_revalidates_stale_or_mismatched_selections(self) -> None:
         card = materialize_terminal_card(
             {
