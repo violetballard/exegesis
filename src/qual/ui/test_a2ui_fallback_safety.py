@@ -20,6 +20,7 @@ def _capabilities(
         "reject_patch",
         "open_section",
         "open_corpus_item",
+        "promote_to_basket",
         "pin_to_context_set",
         "create_context_set",
         "run_agent",

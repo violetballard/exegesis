@@ -103,6 +103,7 @@ def _capabilities(
         "reject_patch",
         "open_section",
         "open_corpus_item",
+        "promote_to_basket",
         "pin_to_context_set",
         "create_context_set",
         "run_agent",
@@ -177,7 +178,10 @@ class A2UIContractTests(unittest.TestCase):
             "title": "Retrieval",
             "query": "chapter five",
             "results": [{"item_id": "doc-1", "title": "Chapter 5", "snippet": "Relevant paragraph"}],
-            "actions": [{"id": "pin_to_context_set", "label": "Pin", "payload": {"item_id": "doc-1"}}],
+            "actions": [
+                {"id": "promote_to_basket", "label": "Add to basket", "payload": {"item_id": "doc-1"}},
+                {"id": "pin_to_context_set", "label": "Pin", "payload": {"item_id": "doc-1"}},
+            ],
         }
         basket_card = {
             "type": BASKET_CARD_TYPE,
@@ -199,6 +203,26 @@ class A2UIContractTests(unittest.TestCase):
         validate_known_card(retrieval_card)
         validate_known_card(basket_card)
         validate_known_card(context_card)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Unsupported payload field\\(s\\) for action 'promote_to_basket': context_set_id",
+        ):
+            validate_retrieval_results_card(
+                {
+                    "type": RETRIEVAL_RESULTS_CARD_TYPE,
+                    "title": "Retrieval",
+                    "query": "chapter five",
+                    "results": [{"item_id": "doc-1", "title": "Chapter 5", "snippet": "Relevant paragraph"}],
+                    "actions": [
+                        {
+                            "id": "promote_to_basket",
+                            "label": "Add to basket",
+                            "payload": {"item_id": "doc-1", "context_set_id": "ctx-1"},
+                        }
+                    ],
+                }
+            )
 
         with self.assertRaisesRegex(ValueError, "RetrievalResultsCard result field 'snippet' is required"):
             validate_retrieval_results_card(
@@ -237,6 +261,7 @@ class A2UIContractTests(unittest.TestCase):
             "results": [{"item_id": "doc-1", "title": "Chapter 5", "snippet": "Relevant paragraph"}],
             "actions": [
                 {"id": "pin_to_context_set", "label": "Pin", "payload": {"item_id": "doc-1"}},
+                {"id": "promote_to_basket", "label": "Add to basket", "payload": {"item_id": "doc-1"}},
                 {"id": "open_corpus_item", "label": "Open", "payload": {"item_id": "doc-1"}},
             ],
         }
@@ -244,13 +269,16 @@ class A2UIContractTests(unittest.TestCase):
             card,
             _capabilities(
                 cards_supported=("GenericCard",),
-                actions_supported=("pin_to_context_set",),
+                actions_supported=("pin_to_context_set", "promote_to_basket"),
             ),
         )
 
         self.assertEqual(prepared["type"], "GenericCard")
-        self.assertEqual([action["id"] for action in prepared["actions"]], ["pin_to_context_set"])
-        self.assertEqual(prepared["action_selection"]["order"][0]["action_id"], "pin_to_context_set")
+        self.assertEqual([action["id"] for action in prepared["actions"]], ["promote_to_basket", "pin_to_context_set"])
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in prepared["action_selection"]["order"]],
+            [(1, "promote_to_basket"), (2, "pin_to_context_set")],
+        )
 
     def test_capabilities_handshake_is_stored_per_session(self) -> None:
         store = A2UISessionStore()
