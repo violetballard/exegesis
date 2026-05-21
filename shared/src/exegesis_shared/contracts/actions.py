@@ -794,6 +794,36 @@ def patch_review_cli_control_map_from_contract(
     }
 
 
+def patch_review_decision_controls_from_contract(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+) -> dict[str, Any]:
+    command_map = patch_review_cli_control_map_from_contract(card, review, patch_id=patch_id)
+    controls = [
+        deepcopy(entry)
+        for entry in command_map["controls"]
+        if isinstance(entry, dict) and entry.get("control") in {"apply", "reject"}
+    ]
+    available = [entry["control"] for entry in controls]
+    missing = [control for control in ("apply", "reject") if control not in set(available)]
+    return {
+        "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+        "patch_id": command_map["patch_id"],
+        "flow": command_map["flow"],
+        "decision_policy": command_map["decision_policy"],
+        "action_authority": command_map["action_authority"],
+        "selection_model": command_map["selection_model"],
+        "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+        "required": ["apply", "reject"],
+        "available": available,
+        "missing": missing,
+        "is_complete": not missing,
+        "controls": controls,
+    }
+
+
 def patch_review_selection_from_cli_command(
     card: dict[str, Any],
     review: dict[str, Any],
