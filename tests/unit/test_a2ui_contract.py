@@ -118,6 +118,22 @@ class A2UIContractTests(unittest.TestCase):
         store.register("sess-1", caps)
         self.assertEqual(store.get("sess-1").client_name, "Exegesis Studio")
 
+    def test_session_store_rejects_invalid_capabilities_before_registration(self) -> None:
+        store = A2UISessionStore()
+        caps = _capabilities(actions_supported=("apply_patch", "delete_project"))
+
+        with self.assertRaisesRegex(ValueError, "Unknown action in capabilities"):
+            store.register("sess-1", caps)
+
+        with self.assertRaisesRegex(KeyError, "Unknown session"):
+            store.get("sess-1")
+
+    def test_session_store_requires_stable_session_id(self) -> None:
+        store = A2UISessionStore()
+
+        with self.assertRaisesRegex(ValueError, "session_id is required"):
+            store.register(" ", _capabilities())
+
     def test_engine_falls_back_to_generic_for_unsupported_specialized_card(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
         payload = {"type": "RunDecisionCard", "title": "Patch"}

@@ -46,8 +46,9 @@ class A2UISessionStore:
         self._by_session: dict[str, A2UICapabilities] = {}
 
     def register(self, session_id: str, capabilities: A2UICapabilities) -> None:
-        if capabilities.a2ui_version < 1:
-            raise ValueError("Unsupported a2ui version")
+        if not isinstance(session_id, str) or not session_id.strip():
+            raise ValueError("session_id is required")
+        validate_capabilities(capabilities)
         self._by_session[session_id] = capabilities
 
     def get(self, session_id: str) -> A2UICapabilities:
