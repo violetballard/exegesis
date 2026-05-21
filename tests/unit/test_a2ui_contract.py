@@ -11,6 +11,7 @@ from exegesis_shared.contracts.actions import (
     PATCH_REVIEW_ACTION_AUTHORITY,
     PATCH_REVIEW_CONTRACT_VERSION,
     PATCH_REVIEW_DECISION_POLICY,
+    PATCH_REVIEW_DEMO_PATH_STEP,
     PATCH_REVIEW_EXECUTION_POLICY,
     PATCH_REVIEW_FLOW,
     PATCH_REVIEW_REQUIRED_PARTS,
@@ -880,6 +881,7 @@ class A2UIContractTests(unittest.TestCase):
                 "flow": PATCH_REVIEW_FLOW,
                 "decision_policy": PATCH_REVIEW_DECISION_POLICY,
                 "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+                "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
                 "required": ["preview", "apply", "reject"],
                 "available": ["preview", "apply", "reject"],
                 "missing": [],
@@ -1112,6 +1114,8 @@ class A2UIContractTests(unittest.TestCase):
 
         summary = patch_review_control_summary_from_contract(card, review, patch_id="p1")
 
+        self.assertEqual(summary["demo_path_step"], PATCH_REVIEW_DEMO_PATH_STEP)
+        self.assertEqual(shared_contracts.PATCH_REVIEW_DEMO_PATH_STEP, PATCH_REVIEW_DEMO_PATH_STEP)
         self.assertEqual(
             shared_contracts.PATCH_REVIEW_EXECUTION_POLICY,
             PATCH_REVIEW_EXECUTION_POLICY,
@@ -1451,6 +1455,7 @@ class A2UIContractTests(unittest.TestCase):
                 "flow": PATCH_REVIEW_FLOW,
                 "decision_policy": PATCH_REVIEW_DECISION_POLICY,
                 "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+                "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
                 "preview": {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
                 "decisions": {
                     "apply": {

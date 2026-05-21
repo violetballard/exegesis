@@ -30,6 +30,7 @@ PATCH_PREVIEW_CONTRACT_VERSION = 1
 PATCH_REVIEW_FLOW = "preview_then_decide"
 PATCH_REVIEW_DECISION_POLICY = "apply_or_reject"
 PATCH_REVIEW_ACTION_AUTHORITY = "engine_revalidated"
+PATCH_REVIEW_DEMO_PATH_STEP = "preview_apply_or_reject_patch"
 PATCH_REVIEW_EXECUTION_POLICY: dict[str, dict[str, Any]] = {
     "preview": {
         "policy_gate": "optional",
@@ -149,6 +150,7 @@ class CompletePatchReviewActions:
             "flow": PATCH_REVIEW_FLOW,
             "decision_policy": PATCH_REVIEW_DECISION_POLICY,
             "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+            "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
             "preview": self.preview.as_contract(),
             "decisions": {
                 "apply": self.apply.as_contract(),
@@ -339,6 +341,7 @@ def build_patch_review_contract(card: dict[str, Any], *, patch_id: str) -> dict[
         "flow": PATCH_REVIEW_FLOW,
         "decision_policy": PATCH_REVIEW_DECISION_POLICY,
         "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+        "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
         "preview": None,
         "decisions": [],
     }
@@ -399,6 +402,8 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
     authority = review.get("action_authority", PATCH_REVIEW_ACTION_AUTHORITY)
     if authority != PATCH_REVIEW_ACTION_AUTHORITY:
         raise ValueError("Unsupported patch review action authority")
+    if review.get("demo_path_step") != PATCH_REVIEW_DEMO_PATH_STEP:
+        raise ValueError("Unsupported patch review demo path step")
 
     available: list[str] = []
     preview = review.get("preview")
@@ -441,6 +446,7 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
         "flow": PATCH_REVIEW_FLOW,
         "decision_policy": PATCH_REVIEW_DECISION_POLICY,
         "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+        "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
         "required": list(PATCH_REVIEW_REQUIRED_PARTS),
         "available": available,
         "missing": missing,
@@ -470,12 +476,15 @@ def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], 
     authority = review.get("action_authority", PATCH_REVIEW_ACTION_AUTHORITY)
     if authority != PATCH_REVIEW_ACTION_AUTHORITY:
         raise ValueError("Unsupported patch review action authority")
+    if review.get("demo_path_step") != PATCH_REVIEW_DEMO_PATH_STEP:
+        raise ValueError("Unsupported patch review demo path step")
     resolved: dict[str, Any] = {
         "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
         "patch_id": expected_patch_id,
         "flow": PATCH_REVIEW_FLOW,
         "decision_policy": PATCH_REVIEW_DECISION_POLICY,
         "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+        "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
         "preview": None,
         "decisions": [],
     }
@@ -667,6 +676,7 @@ def patch_review_control_summary_from_contract(
         "flow": availability["flow"],
         "decision_policy": availability["decision_policy"],
         "action_authority": availability["action_authority"],
+        "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
         "required": deepcopy(availability["required"]),
         "available": deepcopy(availability["available"]),
         "missing": deepcopy(availability["missing"]),
