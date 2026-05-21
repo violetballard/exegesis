@@ -848,6 +848,46 @@ def patch_review_control_actions_from_contract(
     return controls
 
 
+def resolve_patch_review_control_execution(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+    control: str,
+) -> dict[str, Any]:
+    normalized_control = control.strip().lower()
+    if normalized_control not in set(PATCH_REVIEW_REQUIRED_PARTS):
+        raise ValueError("Patch review control must be 'preview', 'apply', or 'reject'")
+    controls = patch_review_control_actions_from_contract(card, review, patch_id=patch_id)
+    action_payload = controls.get(normalized_control)
+    if not isinstance(action_payload, dict):
+        raise ValueError(f"Patch review {normalized_control} is not available for the current patch")
+    execution_policy = action_payload.get("execution_policy")
+    if execution_policy != PATCH_REVIEW_EXECUTION_POLICY[normalized_control]:
+        raise ValueError("Patch review control execution policy does not match engine policy")
+    action_contract = action_payload.get("action_contract")
+    if not isinstance(action_contract, dict):
+        raise ValueError("Patch review control action contract must be an object")
+    validate_action_ref(action_contract)
+    return {
+        "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+        "patch_id": patch_id.strip(),
+        "control": normalized_control,
+        "slot": action_payload["slot"],
+        "action_id": action_payload["action_id"],
+        "action_identity": action_payload["action_identity"],
+        "payload": deepcopy(action_payload["payload"]),
+        "action_contract": deepcopy(action_contract),
+        "selection": deepcopy(action_payload["selection"]),
+        "execution_policy": deepcopy(execution_policy),
+        "requires_confirmation": bool(execution_policy.get("requires_confirmation")),
+        "policy_gate": execution_policy.get("policy_gate"),
+        "policy_sensitive": action_payload["policy_sensitive"],
+        "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+        "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+    }
+
+
 def patch_review_control_summary_from_contract(
     card: dict[str, Any],
     review: dict[str, Any],
@@ -1931,7 +1971,7 @@ def execute_patch_review_control_with_policy_gate(
     policy_gate: PolicyGate,
     executor: Callable[[ActionRef], Any],
 ) -> Any:
-    selection = build_patch_review_selection(
+    execution = resolve_patch_review_control_execution(
         card,
         review,
         patch_id=patch_id,
@@ -1940,7 +1980,7 @@ def execute_patch_review_control_with_policy_gate(
     return execute_patch_review_selection_with_policy_gate(
         card=card,
         review=review,
-        selection=selection,
+        selection=execution["selection"],
         patch_id=patch_id,
         capabilities=capabilities,
         policy_gate=policy_gate,

@@ -87,6 +87,7 @@ from src.qual.ui.a2ui import (
     resolve_patch_preview_action,
     resolve_patch_preview_selection,
     resolve_patch_review_contract,
+    resolve_patch_review_control_execution,
     resolve_patch_review_selection,
     studio_materialize_card,
     validate_action_capabilities,
@@ -4467,6 +4468,64 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(rejected["action_id"], "reject_patch")
         self.assertEqual(rejected["status"], "rejected")
         self.assertEqual(rejected["message"], "User rejected patch")
+
+    def test_patch_review_control_execution_envelope_is_engine_authoritative(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        execution = resolve_patch_review_control_execution(
+            card,
+            review,
+            patch_id="p1",
+            control=" APPLY ",
+        )
+
+        self.assertEqual(execution["control"], "apply")
+        self.assertEqual(execution["action_id"], "apply_patch")
+        self.assertEqual(execution["payload"], {"patch_id": "p1"})
+        self.assertEqual(execution["action_contract"]["confirm"], {"title": "Apply patch?"})
+        self.assertTrue(execution["action_contract"]["policy_sensitive"])
+        self.assertEqual(execution["execution_policy"], PATCH_REVIEW_EXECUTION_POLICY["apply"])
+        self.assertTrue(execution["requires_confirmation"])
+        self.assertEqual(execution["policy_gate"], "required")
+        self.assertEqual(execution["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
+        self.assertEqual(execution["demo_path_step"], PATCH_REVIEW_DEMO_PATH_STEP)
+        self.assertEqual(execution["selection"]["patch_decision"], "apply")
+
+    def test_patch_review_control_execution_rejects_missing_control(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+
+        with self.assertRaisesRegex(ValueError, "reject is not available"):
+            resolve_patch_review_control_execution(
+                card,
+                review,
+                patch_id="p1",
+                control="reject",
+            )
 
     def test_complete_patch_review_contract_carries_engine_execution_policy(self) -> None:
         card = materialize_terminal_card(
