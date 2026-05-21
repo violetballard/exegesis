@@ -75,6 +75,18 @@ class ActionRef:
     confirm: dict[str, str] | None = None
     policy_sensitive: bool = False
 
+    def as_contract(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "id": self.id,
+            "label": self.label,
+            "payload": deepcopy(self.payload),
+        }
+        if self.confirm is not None:
+            payload["confirm"] = deepcopy(self.confirm)
+        if self.policy_sensitive:
+            payload["policy_sensitive"] = True
+        return payload
+
 
 @dataclass(frozen=True)
 class PatchReviewActionSelection:
@@ -87,7 +99,7 @@ class PatchReviewActionSelection:
         payload: dict[str, Any] = {
             "kind": self.kind,
             "patch_id": self.patch_id,
-            "action": self.action,
+            "action": self.action.as_contract(),
         }
         if self.kind == "decision":
             payload["decision"] = self.decision

@@ -848,11 +848,16 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(selected["kind"], "decision")
         self.assertEqual(selected["patch_id"], "p1")
         self.assertEqual(selected["decision"], "apply")
-        self.assertIsInstance(selected["action"], ActionRef)
-        self.assertEqual(selected["action"].id, "apply_patch")
-        self.assertEqual(selected["action"].payload, {"patch_id": "p1"})
-        self.assertEqual(selected["action"].confirm, {"title": "Apply patch?"})
-        self.assertTrue(selected["action"].policy_sensitive)
+        self.assertEqual(
+            selected["action"],
+            {
+                "id": "apply_patch",
+                "label": "Apply",
+                "payload": {"patch_id": "p1"},
+                "confirm": {"title": "Apply patch?"},
+                "policy_sensitive": True,
+            },
+        )
 
     def test_patch_review_selection_has_typed_shared_result_with_contract_shape(self) -> None:
         card = materialize_terminal_card(
@@ -883,6 +888,10 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(selected.decision, "reject")
         self.assertEqual(selected.action.id, "reject_patch")
         self.assertEqual(
+            selected.action.as_contract(),
+            {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+        )
+        self.assertEqual(
             selected.as_contract(),
             patch_review_action_ref_from_selection(
                 card,
@@ -891,6 +900,7 @@ class A2UIContractTests(unittest.TestCase):
                 patch_id="p1",
             ),
         )
+        self.assertEqual(selected.as_contract()["action"]["id"], "reject_patch")
 
     def test_patch_review_selection_rejects_actions_outside_review_contract(self) -> None:
         card = materialize_terminal_card(
