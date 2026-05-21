@@ -62,6 +62,7 @@ from src.qual.ui.a2ui import (
     execute_complete_patch_review_control_with_policy_gate,
     execute_complete_patch_review_selection_with_policy_gate,
     execute_action_with_policy_gate,
+    execute_card_selection_with_policy_gate,
     execute_patch_review_decision_cli_command_with_policy_gate,
     execute_patch_review_selection_with_policy_gate,
     engine_authoritative_action_ref,
@@ -88,6 +89,7 @@ from src.qual.ui.a2ui import (
     patch_review_selection_from_cli_command,
     render_terminal_card,
     resolve_card_selection_contract,
+    resolve_card_selection_execution,
     resolve_patch_decision_action,
     resolve_patch_decision_selection,
     resolve_patch_preview_action,
@@ -4681,6 +4683,70 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(len(executed), 1)
         self.assertIsNone(executed[0].confirm)
         self.assertFalse(executed[0].policy_sensitive)
+
+    def test_card_selection_execution_resolves_context_action_through_policy_gate(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "BasketCard",
+                "title": "Basket",
+                "basket_id": "basket-1",
+                "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
+                "actions": [
+                    {
+                        "id": "gather_context",
+                        "label": "Gather context",
+                        "payload": {"basket_id": " basket-1 ", "context_set_id": " ctx-1 "},
+                    }
+                ],
+            }
+        )
+        selection = {
+            "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+            "selection_model": "one_based_action_slot",
+            "slot": 1,
+            "action_identity": card["action_selection"]["order"][0]["action_identity"],
+        }
+        gate = _RecordingPolicyGate(True, [])
+
+        result = execute_card_selection_with_policy_gate(
+            card=card,
+            selection=selection,
+            capabilities=_capabilities(),
+            policy_gate=gate,
+            executor=lambda action: action.as_contract(),
+        )
+
+        self.assertEqual(result["id"], "gather_context")
+        self.assertEqual(result["payload"], {"basket_id": "basket-1", "context_set_id": "ctx-1"})
+        self.assertNotIn("confirm", result)
+        self.assertNotIn("policy_sensitive", result)
+        self.assertEqual(gate.calls, [("gather_context", {"basket_id": "basket-1", "context_set_id": "ctx-1"}, False)])
+
+    def test_card_selection_execution_rejects_unsupported_client_action(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "RetrievalResultsCard",
+                "title": "Retrieval",
+                "query": "chapter five",
+                "results": [{"item_id": "doc-1", "title": "Chapter 5", "snippet": "Relevant paragraph"}],
+                "actions": [
+                    {"id": "promote_to_basket", "label": "Add", "payload": {"item_id": "doc-1"}},
+                ],
+            }
+        )
+        selection = {
+            "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+            "selection_model": "one_based_action_slot",
+            "slot": 1,
+            "action_identity": card["action_selection"]["order"][0]["action_identity"],
+        }
+
+        with self.assertRaisesRegex(ValueError, "Action not supported by client"):
+            resolve_card_selection_execution(
+                card,
+                selection,
+                capabilities=_capabilities(actions_supported=("open_corpus_item",)),
+            )
 
     def test_action_payload_rejects_untyped_extra_fields_before_policy_gate(self) -> None:
         with self.assertRaisesRegex(ValueError, "Unsupported payload field"):

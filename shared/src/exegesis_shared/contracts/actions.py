@@ -1831,6 +1831,23 @@ def resolve_card_selection_contract(card: dict[str, Any], selection: dict[str, A
     )
 
 
+def resolve_card_selection_execution(
+    card: dict[str, Any],
+    selection: dict[str, Any],
+    *,
+    capabilities: Any,
+) -> dict[str, Any]:
+    validate_action_capabilities(capabilities)
+    action = resolve_card_selection_contract(card, selection)
+    action_ref = engine_authoritative_action_ref(_action_ref_from_contract(action))
+    if action_ref.id not in set(capabilities.actions_supported):
+        raise ValueError("Action not supported by client")
+    return {
+        "selection": deepcopy(selection),
+        "action_contract": action_ref.as_contract(),
+    }
+
+
 def _validate_patch_review_selection_metadata(selection: dict[str, Any]) -> None:
     if selection.get("action_authority") != PATCH_REVIEW_ACTION_AUTHORITY:
         raise ValueError("Patch review selection must be engine-authoritative")
@@ -2213,6 +2230,23 @@ def execute_action_with_policy_gate(
     if not policy_gate.allow_action(action.id, action.payload, policy_sensitive=action.policy_sensitive):
         raise PermissionError("PolicyGate blocked action")
     return executor(action)
+
+
+def execute_card_selection_with_policy_gate(
+    *,
+    card: dict[str, Any],
+    selection: dict[str, Any],
+    capabilities: Any,
+    policy_gate: PolicyGate,
+    executor: Callable[[ActionRef], Any],
+) -> Any:
+    execution = resolve_card_selection_execution(card, selection, capabilities=capabilities)
+    return execute_action_with_policy_gate(
+        action=_action_ref_from_contract(execution["action_contract"]),
+        capabilities=capabilities,
+        policy_gate=policy_gate,
+        executor=executor,
+    )
 
 
 def engine_authoritative_action_ref(action: ActionRef) -> ActionRef:
