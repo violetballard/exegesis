@@ -472,6 +472,28 @@ def complete_patch_review_action_refs_from_contract(
     }
 
 
+def patch_review_action_ref_from_selection(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    selection: dict[str, Any],
+    *,
+    patch_id: str,
+) -> dict[str, Any]:
+    resolved = resolve_patch_review_selection(card, review, selection, patch_id=patch_id)
+    action_ref = action_ref_from_selection(card, selection)
+    if action_ref.id != resolved["action"].get("id"):
+        raise ValueError("Patch review selection does not match the resolved action")
+
+    selected: dict[str, Any] = {
+        "kind": resolved["kind"],
+        "patch_id": resolved["patch_id"],
+        "action": action_ref,
+    }
+    if resolved["kind"] == "decision":
+        selected["decision"] = resolved["decision"]
+    return selected
+
+
 def resolve_patch_review_selection(
     card: dict[str, Any],
     review: dict[str, Any],
