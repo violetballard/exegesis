@@ -247,6 +247,37 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(materialized["patch_review"]["availability"]["missing"], [])
         self.assertTrue(materialized["patch_review"]["availability"]["is_complete"])
 
+    def test_proposed_edit_card_replaces_unsafe_same_patch_decision_actions(self) -> None:
+        card = {
+            "type": "ProposedEditCard",
+            "patch_id": "patch-1",
+            "title": "Preview patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "```diff\n+new\n```"}],
+            "actions": [
+                {
+                    "id": "apply_patch",
+                    "label": "Apply without gate",
+                    "payload": {"patch_id": "patch-1"},
+                },
+                {
+                    "id": "reject_patch",
+                    "label": "Reject without gate",
+                    "payload": {"patch_id": "patch-1"},
+                },
+            ],
+        }
+
+        materialized = studio_materialize_card(card, _capabilities())
+
+        apply_action = materialized["actions"][1]
+        reject_action = materialized["actions"][2]
+        self.assertEqual(apply_action["label"], "Apply patch")
+        self.assertEqual(apply_action["confirm"], {"title": "Apply patch?"})
+        self.assertTrue(apply_action["policy_sensitive"])
+        self.assertEqual(reject_action["label"], "Reject patch")
+        self.assertEqual(reject_action["confirm"], {"title": "Reject patch?"})
+        self.assertTrue(reject_action["policy_sensitive"])
+
     def test_generated_patch_decision_action_refs_preserve_policy_gate_metadata(self) -> None:
         card = studio_materialize_card(
             {

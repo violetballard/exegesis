@@ -192,29 +192,12 @@ def materialize_proposed_edit_card(card: dict[str, Any]) -> dict[str, Any]:
     materialized = dict(card)
     patch_id = str(materialized["patch_id"]).strip()
     materialized["patch_id"] = patch_id
-    actions = materialize_card_actions(materialized)
-    if not _has_patch_action(actions, "preview_patch", patch_id):
-        actions.append({"id": "preview_patch", "label": "Preview patch", "payload": {"patch_id": patch_id}})
-    if not _has_patch_action(actions, "apply_patch", patch_id):
-        actions.append(
-            {
-                "id": "apply_patch",
-                "label": "Apply patch",
-                "payload": {"patch_id": patch_id},
-                "confirm": {"title": "Apply patch?"},
-                "policy_sensitive": True,
-            }
-        )
-    if not _has_patch_action(actions, "reject_patch", patch_id):
-        actions.append(
-            {
-                "id": "reject_patch",
-                "label": "Reject patch",
-                "payload": {"patch_id": patch_id},
-                "confirm": {"title": "Reject patch?"},
-                "policy_sensitive": True,
-            }
-        )
+    actions = [
+        action
+        for action in materialize_card_actions(materialized)
+        if not _is_same_patch_review_action(action, patch_id)
+    ]
+    actions.extend(_canonical_patch_review_actions(patch_id))
     materialized["actions"] = actions
     validate_proposed_edit_card(materialized)
     return materialized
@@ -261,14 +244,31 @@ def validate_primitive_block(block: Any) -> None:
         raise ValueError(f"Unsupported primitive block: {block_type}")
 
 
-def _has_patch_action(actions: list[Any], action_id: str, patch_id: str) -> bool:
-    for action in actions:
-        if not isinstance(action, dict) or action.get("id") != action_id:
-            continue
-        payload = action.get("payload")
-        if isinstance(payload, dict) and payload.get("patch_id") == patch_id:
-            return True
-    return False
+def _is_same_patch_review_action(action: dict[str, Any], patch_id: str) -> bool:
+    if action.get("id") not in {"preview_patch", "apply_patch", "reject_patch"}:
+        return False
+    payload = action.get("payload")
+    return isinstance(payload, dict) and payload.get("patch_id") == patch_id
+
+
+def _canonical_patch_review_actions(patch_id: str) -> list[dict[str, Any]]:
+    return [
+        {"id": "preview_patch", "label": "Preview patch", "payload": {"patch_id": patch_id}},
+        {
+            "id": "apply_patch",
+            "label": "Apply patch",
+            "payload": {"patch_id": patch_id},
+            "confirm": {"title": "Apply patch?"},
+            "policy_sensitive": True,
+        },
+        {
+            "id": "reject_patch",
+            "label": "Reject patch",
+            "payload": {"patch_id": patch_id},
+            "confirm": {"title": "Reject patch?"},
+            "policy_sensitive": True,
+        },
+    ]
 
 
 def _studio_filter_actions(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
