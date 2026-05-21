@@ -151,11 +151,10 @@ def render_terminal_card(card: dict[str, Any]) -> str:
             review,
             patch_id=patch_id,
         )
-        controls = summary["controls"]
         ordered_controls = [
-            f"{control}={controls[control]['slot']}"
-            for control in ("preview", "apply", "reject")
-            if control in controls
+            f"{entry['control']}={entry['slot']}"
+            for entry in summary["order"]
+            if isinstance(entry, dict) and "control" in entry and "slot" in entry
         ]
         if ordered_controls:
             lines.append(f"Patch review controls: {', '.join(ordered_controls)}")

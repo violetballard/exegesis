@@ -615,6 +615,11 @@ def patch_review_control_summary_from_contract(
 ) -> dict[str, Any]:
     controls = patch_review_control_actions_from_contract(card, review, patch_id=patch_id)
     availability = patch_review_availability_from_contract(review)
+    ordered_controls = [
+        {"control": control, **deepcopy(controls[control])}
+        for control in PATCH_REVIEW_REQUIRED_PARTS
+        if control in controls
+    ]
     return {
         "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
         "patch_id": availability["patch_id"],
@@ -625,6 +630,7 @@ def patch_review_control_summary_from_contract(
         "missing": deepcopy(availability["missing"]),
         "is_complete": availability["is_complete"],
         "controls": deepcopy(controls),
+        "order": ordered_controls,
     }
 
 

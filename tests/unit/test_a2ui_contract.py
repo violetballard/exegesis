@@ -1053,6 +1053,10 @@ class A2UIContractTests(unittest.TestCase):
             [(name, control["slot"]) for name, control in summary["controls"].items()],
             [("preview", 1), ("apply", 2)],
         )
+        self.assertEqual(
+            [(entry["control"], entry["slot"], entry["action_id"]) for entry in summary["order"]],
+            [("preview", 1, "preview_patch"), ("apply", 2, "apply_patch")],
+        )
         self.assertEqual(summary["controls"]["apply"]["selection"]["patch_decision"], "apply")
         self.assertTrue(summary["controls"]["apply"]["policy_sensitive"])
         self.assertEqual(
@@ -1081,6 +1085,10 @@ class A2UIContractTests(unittest.TestCase):
         self.assertFalse(summary["controls"]["preview"]["policy_sensitive"])
         self.assertTrue(summary["controls"]["apply"]["policy_sensitive"])
         self.assertTrue(summary["controls"]["reject"]["policy_sensitive"])
+        self.assertEqual(
+            [(entry["control"], entry["policy_sensitive"]) for entry in summary["order"]],
+            [("preview", False), ("apply", True), ("reject", True)],
+        )
 
     def test_patch_review_selection_resolves_cli_slot_through_review_contract(self) -> None:
         card = materialize_terminal_card(
