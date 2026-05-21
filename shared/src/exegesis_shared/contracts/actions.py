@@ -248,6 +248,47 @@ def resolve_patch_decision_selection(
     return action
 
 
+def resolve_patch_decision_action(
+    card: dict[str, Any],
+    *,
+    patch_id: str,
+    decision: str,
+) -> dict[str, Any]:
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch decision patch_id is required")
+
+    normalized_decision = decision.strip().lower()
+    if normalized_decision not in {"apply", "reject"}:
+        raise ValueError("Patch decision must be 'apply' or 'reject'")
+
+    patch_decision = card.get("patch_decision")
+    if not isinstance(patch_decision, dict) or patch_decision.get("patch_id") != expected_patch_id:
+        patch_decision = materialize_patch_decision_contract(card, expected_patch_id)
+    if patch_decision.get("contract_version") != PATCH_DECISION_CONTRACT_VERSION:
+        raise ValueError("Unsupported patch decision contract version")
+
+    matching_entries = [
+        entry
+        for entry in patch_decision.get("decisions", [])
+        if isinstance(entry, dict) and entry.get("decision") == normalized_decision
+    ]
+    if len(matching_entries) != 1:
+        raise ValueError(f"Patch decision '{normalized_decision}' is not available for the current patch")
+
+    entry = matching_entries[0]
+    return resolve_patch_decision_selection(
+        card,
+        {
+            "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+            "selection_model": "one_based_action_slot",
+            "slot": entry.get("slot"),
+            "action_identity": entry.get("action_identity"),
+        },
+        patch_id=expected_patch_id,
+    )
+
+
 def validate_action_ref(action: Any) -> None:
     if not isinstance(action, dict):
         raise ValueError("ActionRef must be an object")

@@ -20,6 +20,7 @@ from src.qual.ui.a2ui import (
     materialize_terminal_card,
     render_terminal_card,
     resolve_card_selection_contract,
+    resolve_patch_decision_action,
     resolve_patch_decision_selection,
     studio_materialize_card,
     validate_capabilities,
@@ -365,6 +366,64 @@ class A2UIContractTests(unittest.TestCase):
             ],
             [("apply", 1, "apply_patch"), ("reject", 3, "reject_patch")],
         )
+
+    def test_patch_decision_action_resolves_current_contract_decision(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        apply_action = resolve_patch_decision_action(card, patch_id=" p1 ", decision=" APPLY ")
+        reject_action = resolve_patch_decision_action(card, patch_id="p1", decision="reject")
+
+        self.assertEqual(apply_action["id"], "apply_patch")
+        self.assertEqual(apply_action["payload"], {"patch_id": "p1"})
+        self.assertEqual(reject_action["id"], "reject_patch")
+        self.assertEqual(reject_action["payload"], {"patch_id": "p1"})
+
+    def test_patch_decision_action_revalidates_stale_contract_identity(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        card["patch_decision"]["decisions"][0]["action_identity"] = "stale"
+
+        with self.assertRaisesRegex(ValueError, "current card"):
+            resolve_patch_decision_action(card, patch_id="p1", decision="apply")
+
+    def test_patch_decision_action_requires_current_patch_and_known_decision(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        with self.assertRaisesRegex(ValueError, "current patch"):
+            resolve_patch_decision_action(card, patch_id="p2", decision="apply")
+        with self.assertRaisesRegex(ValueError, "must be 'apply' or 'reject'"):
+            resolve_patch_decision_action(card, patch_id="p1", decision="open")
 
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []
