@@ -297,6 +297,7 @@ class CompletePatchReviewActions:
             "patch_id": self.patch_id,
             "flow": PATCH_REVIEW_FLOW,
             "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+            "decision_group": PATCH_REVIEW_DECISION_GROUP,
             "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
             "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
             "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY),

@@ -2904,6 +2904,7 @@ class A2UIContractTests(unittest.TestCase):
                 "patch_id": "p1",
                 "flow": PATCH_REVIEW_FLOW,
                 "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+                "decision_group": PATCH_REVIEW_DECISION_GROUP,
                 "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
                 "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
                 "execution_policy": PATCH_REVIEW_EXECUTION_POLICY,
@@ -2982,6 +2983,7 @@ class A2UIContractTests(unittest.TestCase):
         embedded = card["complete_patch_review_actions"]
 
         self.assertEqual(embedded["patch_id"], "p1")
+        self.assertEqual(embedded["decision_group"], PATCH_REVIEW_DECISION_GROUP)
         self.assertEqual(embedded["preview"]["id"], "preview_patch")
         self.assertEqual(embedded["decisions"]["apply"]["id"], "apply_patch")
         self.assertEqual(embedded["decisions"]["reject"]["id"], "reject_patch")
