@@ -26,6 +26,7 @@ from src.qual.ui.a2ui import (
     BASKET_CARD_TYPE,
     CONTEXT_SET_CARD_TYPE,
     CompletePatchReviewActions,
+    GENERIC_CARD_TYPE,
     KNOWN_CARD_TYPES,
     PATCH_REVIEW_REQUIRED_PARTS as UI_PATCH_REVIEW_REQUIRED_PARTS,
     PatchReviewActionSelection,
@@ -299,6 +300,41 @@ class A2UIContractTests(unittest.TestCase):
                     "actions": [{"id": "open_corpus_item", "label": "Open", "payload": {"item_id": "doc-2"}}],
                 }
             )
+
+    def test_known_card_validator_covers_full_known_card_registry(self) -> None:
+        generic_card = {
+            "type": GENERIC_CARD_TYPE,
+            "title": "Run log",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Ready"}],
+        }
+        patch_card = {
+            "type": "ProposedEditCard",
+            "patch_id": "patch-1",
+            "title": "Preview patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "```diff\n+new\n```"}],
+            "actions": [
+                {"id": "preview_patch", "label": "Preview patch", "payload": {"patch_id": "patch-1"}},
+                {
+                    "id": "apply_patch",
+                    "label": "Apply patch",
+                    "payload": {"patch_id": "patch-1"},
+                    "confirm": {"title": "Apply patch?"},
+                    "policy_sensitive": True,
+                },
+                {
+                    "id": "reject_patch",
+                    "label": "Reject patch",
+                    "payload": {"patch_id": "patch-1"},
+                    "confirm": {"title": "Reject patch?"},
+                    "policy_sensitive": True,
+                },
+            ],
+        }
+
+        validate_known_card(generic_card)
+        validate_known_card(patch_card)
+
+        self.assertTrue({GENERIC_CARD_TYPE, "ProposedEditCard"}.issubset(set(KNOWN_CARD_TYPES)))
 
     def test_engine_known_card_fallback_preserves_supported_typed_actions(self) -> None:
         card = {

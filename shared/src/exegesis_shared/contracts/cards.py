@@ -454,6 +454,8 @@ def _canonical_patch_review_actions(patch_id: str) -> list[dict[str, Any]]:
 
 
 _VALIDATORS_BY_CARD_TYPE = {
+    GENERIC_CARD_TYPE: validate_generic_card,
+    PROPOSED_EDIT_CARD_TYPE: validate_proposed_edit_card,
     RETRIEVAL_RESULTS_CARD_TYPE: validate_retrieval_results_card,
     BASKET_CARD_TYPE: validate_basket_card,
     CONTEXT_SET_CARD_TYPE: validate_context_set_card,
