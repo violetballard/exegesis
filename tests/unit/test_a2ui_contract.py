@@ -668,8 +668,32 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(review["patch_id"], "p1")
         self.assertEqual(review["preview"], build_patch_preview_selection(card, patch_id="p1"))
         self.assertEqual(
-            [(entry["decision"], entry["selection"]["patch_id"]) for entry in review["decisions"]],
-            [("apply", "p1"), ("reject", "p1")],
+            [
+                (
+                    entry["decision"],
+                    entry["slot"],
+                    entry["action_id"],
+                    entry["action_identity"],
+                    entry["selection"]["patch_id"],
+                )
+                for entry in review["decisions"]
+            ],
+            [
+                (
+                    "apply",
+                    2,
+                    "apply_patch",
+                    review["decisions"][0]["selection"]["action_identity"],
+                    "p1",
+                ),
+                (
+                    "reject",
+                    3,
+                    "reject_patch",
+                    review["decisions"][1]["selection"]["action_identity"],
+                    "p1",
+                ),
+            ],
         )
         self.assertEqual(resolved["preview"]["id"], "preview_patch")
         self.assertEqual(
@@ -845,6 +869,21 @@ class A2UIContractTests(unittest.TestCase):
         review = build_patch_review_contract(card, patch_id="p1")
         review["decisions"][0]["decision"] = "reject"
         with self.assertRaisesRegex(ValueError, "selected action"):
+            resolve_patch_review_contract(card, review, patch_id="p1")
+
+        review = build_patch_review_contract(card, patch_id="p1")
+        review["decisions"][0]["slot"] = 99
+        with self.assertRaisesRegex(ValueError, "slot"):
+            resolve_patch_review_contract(card, review, patch_id="p1")
+
+        review = build_patch_review_contract(card, patch_id="p1")
+        review["decisions"][0]["action_id"] = "reject_patch"
+        with self.assertRaisesRegex(ValueError, "action_id"):
+            resolve_patch_review_contract(card, review, patch_id="p1")
+
+        review = build_patch_review_contract(card, patch_id="p1")
+        review["decisions"][0]["action_identity"] = "{}"
+        with self.assertRaisesRegex(ValueError, "action_identity"):
             resolve_patch_review_contract(card, review, patch_id="p1")
 
     def test_patch_decision_selection_builder_returns_typed_slot_contract(self) -> None:

@@ -272,7 +272,15 @@ def build_patch_review_contract(card: dict[str, Any], *, patch_id: str) -> dict[
             if "not available" not in str(exc):
                 raise
             continue
-        review["decisions"].append({"decision": decision, "selection": selection})
+        review["decisions"].append(
+            {
+                "decision": decision,
+                "slot": selection["slot"],
+                "action_id": "apply_patch" if decision == "apply" else "reject_patch",
+                "action_identity": selection["action_identity"],
+                "selection": selection,
+            }
+        )
 
     if review["preview"] is None and not review["decisions"]:
         raise ValueError("Patch review is not available for the current patch")
@@ -367,7 +375,13 @@ def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], 
         selection = entry.get("selection")
         if not isinstance(selection, dict):
             raise ValueError("Patch review decision selection must be an object")
+        if entry.get("slot") != selection.get("slot"):
+            raise ValueError("Patch review decision slot does not match the selection")
+        if entry.get("action_identity") != selection.get("action_identity"):
+            raise ValueError("Patch review decision action_identity does not match the selection")
         action = resolve_patch_decision_selection(card, selection, patch_id=expected_patch_id)
+        if entry.get("action_id") != action.get("id"):
+            raise ValueError("Patch review decision action_id does not match the selected action")
         if PATCH_DECISION_BY_ACTION_ID[str(action["id"])] != decision:
             raise ValueError("Patch review decision does not match the selected action")
         seen_decisions.add(decision)
