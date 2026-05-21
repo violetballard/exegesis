@@ -2816,6 +2816,44 @@ class A2UIContractTests(unittest.TestCase):
         self.assertTrue(embedded["decisions"]["apply"]["policy_sensitive"])
         self.assertTrue(embedded["decisions"]["reject"]["policy_sensitive"])
 
+    def test_complete_patch_review_actions_from_card_rejects_stale_embedded_actions(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        card["complete_patch_review_actions"]["decisions"]["apply"]["payload"]["patch_id"] = "stale"
+
+        with self.assertRaisesRegex(ValueError, "do not match engine-resolved actions"):
+            complete_patch_review_actions_from_card(card, patch_id="p1")
+
+    def test_complete_patch_review_actions_from_card_rejects_untyped_embedded_actions(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        card["complete_patch_review_actions"] = "stale"
+
+        with self.assertRaisesRegex(ValueError, "actions contract must be an object"):
+            complete_patch_review_actions_from_card(card, patch_id="p1")
+
     def test_partial_patch_review_fallback_omits_complete_action_contract(self) -> None:
         card = materialize_terminal_card(
             {

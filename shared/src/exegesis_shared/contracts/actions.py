@@ -1528,11 +1528,18 @@ def complete_patch_review_actions_from_card(
     else:
         review = build_complete_patch_review_contract(card, patch_id=expected_patch_id)
     resolve_patch_review_contract(card, review, patch_id=expected_patch_id)
-    return complete_patch_review_actions_from_contract(
+    actions = complete_patch_review_actions_from_contract(
         card,
         review,
         patch_id=expected_patch_id,
     )
+    embedded_actions = card.get("complete_patch_review_actions")
+    if embedded_actions is not None:
+        if not isinstance(embedded_actions, dict):
+            raise ValueError("Complete patch review actions contract must be an object")
+        if embedded_actions != actions.as_contract():
+            raise ValueError("Complete patch review actions do not match engine-resolved actions")
+    return actions
 
 
 def complete_patch_review_action_from_card(
