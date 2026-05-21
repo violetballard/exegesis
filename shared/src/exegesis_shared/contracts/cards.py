@@ -60,15 +60,28 @@ class A2UISessionStore:
 def validate_capabilities(capabilities: A2UICapabilities) -> None:
     if capabilities.a2ui_version < 1:
         raise ValueError("Unsupported a2ui version")
-    if not capabilities.client_name.strip():
+    if not isinstance(capabilities.client_name, str) or not capabilities.client_name.strip():
         raise ValueError("client_name is required")
     if capabilities.max_payload_bytes <= 0:
         raise ValueError("max_payload_bytes must be positive")
+    _validate_capability_names(capabilities.cards_supported, "cards_supported")
+    _validate_capability_names(capabilities.primitive_blocks_supported, "primitive_blocks_supported")
+    _validate_capability_names(capabilities.actions_supported, "actions_supported")
+    if not isinstance(capabilities.supports_streaming, bool):
+        raise ValueError("supports_streaming must be a boolean")
     if not _PRIMITIVE_BLOCK_SET.issubset(set(capabilities.primitive_blocks_supported)):
         raise ValueError("Missing required primitive block support")
     for action_id in capabilities.actions_supported:
         if action_id not in _ALLOWED_ACTION_SET:
             raise ValueError(f"Unknown action in capabilities: {action_id}")
+
+
+def _validate_capability_names(values: Any, field_name: str) -> None:
+    if not isinstance(values, tuple):
+        raise ValueError(f"{field_name} must be a tuple")
+    for value in values:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"{field_name} entries must be non-empty strings")
 
 
 def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:

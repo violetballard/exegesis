@@ -150,6 +150,58 @@ class A2UIContractTests(unittest.TestCase):
         with self.assertRaisesRegex(KeyError, "Unknown session"):
             store.get("sess-1")
 
+    def test_session_store_rejects_malformed_capability_lists_before_registration(self) -> None:
+        store = A2UISessionStore()
+        caps = A2UICapabilities(
+            a2ui_version=1,
+            client_name="Exegesis Studio",
+            cards_supported=["ProposedEditCard"],  # type: ignore[arg-type]
+            primitive_blocks_supported=(
+                "MarkdownBlock",
+                "KeyValueBlock",
+                "ListBlock",
+                "TableBlock",
+                "AlertBlock",
+                "ProgressBlock",
+                "CodeBlock",
+            ),
+            actions_supported=("preview_patch", "apply_patch", "reject_patch"),
+            max_payload_bytes=1_000_000,
+            supports_streaming=True,
+        )
+
+        with self.assertRaisesRegex(ValueError, "cards_supported must be a tuple"):
+            store.register("sess-1", caps)
+
+        with self.assertRaisesRegex(KeyError, "Unknown session"):
+            store.get("sess-1")
+
+    def test_session_store_rejects_untyped_streaming_flag_before_registration(self) -> None:
+        store = A2UISessionStore()
+        caps = A2UICapabilities(
+            a2ui_version=1,
+            client_name="Exegesis Studio",
+            cards_supported=("ProposedEditCard",),
+            primitive_blocks_supported=(
+                "MarkdownBlock",
+                "KeyValueBlock",
+                "ListBlock",
+                "TableBlock",
+                "AlertBlock",
+                "ProgressBlock",
+                "CodeBlock",
+            ),
+            actions_supported=("preview_patch", "apply_patch", "reject_patch"),
+            max_payload_bytes=1_000_000,
+            supports_streaming="yes",  # type: ignore[arg-type]
+        )
+
+        with self.assertRaisesRegex(ValueError, "supports_streaming must be a boolean"):
+            store.register("sess-1", caps)
+
+        with self.assertRaisesRegex(KeyError, "Unknown session"):
+            store.get("sess-1")
+
     def test_session_store_requires_stable_session_id(self) -> None:
         store = A2UISessionStore()
 
