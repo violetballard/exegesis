@@ -201,6 +201,43 @@ class CompletePatchReviewActions:
     apply: ActionRef
     reject: ActionRef
 
+    def __post_init__(self) -> None:
+        expected_patch_id = self.patch_id.strip()
+        if not expected_patch_id:
+            raise ValueError("Patch review patch_id is required")
+        if expected_patch_id != self.patch_id:
+            raise ValueError("Patch review patch_id must be normalized")
+        object.__setattr__(
+            self,
+            "preview",
+            _validate_patch_review_control_action(
+                "preview",
+                self.preview,
+                expected_patch_id,
+                expected_action_id="preview_patch",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "apply",
+            _validate_patch_review_control_action(
+                "apply",
+                self.apply,
+                expected_patch_id,
+                expected_action_id="apply_patch",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "reject",
+            _validate_patch_review_control_action(
+                "reject",
+                self.reject,
+                expected_patch_id,
+                expected_action_id="reject_patch",
+            ),
+        )
+
     def as_contract(self) -> dict[str, Any]:
         return {
             "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
@@ -310,6 +347,27 @@ def _materialize_engine_authoritative_action(action: dict[str, Any]) -> dict[str
         policy_sensitive=action.get("policy_sensitive", False),
     )
     return engine_authoritative_action_ref(action_ref).as_contract()
+
+
+def _validate_patch_review_control_action(
+    control: str,
+    action: ActionRef,
+    expected_patch_id: str,
+    *,
+    expected_action_id: str,
+) -> ActionRef:
+    action = engine_authoritative_action_ref(action)
+    if action.id != expected_action_id:
+        raise ValueError(f"Patch review {control} control must use {expected_action_id}")
+    if action.payload.get("patch_id") != expected_patch_id:
+        raise ValueError(f"Patch review {control} control must match the current patch")
+    if control in {"apply", "reject"}:
+        expected_confirm = {"title": PATCH_REVIEW_CONFIRMATION_TITLES[expected_action_id]}
+        if action.confirm != expected_confirm or action.policy_sensitive is not True:
+            raise ValueError(
+                f"Patch review {control} control must be engine-authoritative and policy-gated"
+            )
+    return action
 
 
 def materialize_action_selection_contract(card: dict[str, Any]) -> dict[str, Any]:

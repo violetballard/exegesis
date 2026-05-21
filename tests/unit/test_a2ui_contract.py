@@ -4082,6 +4082,75 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(rejected["status"], "rejected")
         self.assertEqual(rejected["message"], "User rejected patch")
 
+    def test_complete_patch_review_actions_normalizes_policy_gated_decisions(self) -> None:
+        actions = CompletePatchReviewActions(
+            patch_id="p1",
+            preview=ActionRef(
+                id="preview_patch",
+                label="Preview",
+                payload={"patch_id": " p1 "},
+            ),
+            apply=ActionRef(
+                id="apply_patch",
+                label="Apply",
+                payload={"patch_id": " p1 "},
+            ),
+            reject=ActionRef(
+                id="reject_patch",
+                label="Reject",
+                payload={"patch_id": " p1 "},
+            ),
+        )
+
+        contract = actions.as_contract()
+
+        self.assertEqual(contract["preview"]["payload"], {"patch_id": "p1"})
+        self.assertEqual(contract["decisions"]["apply"]["confirm"], {"title": "Apply patch?"})
+        self.assertTrue(contract["decisions"]["apply"]["policy_sensitive"])
+        self.assertEqual(contract["decisions"]["reject"]["confirm"], {"title": "Reject patch?"})
+        self.assertTrue(contract["decisions"]["reject"]["policy_sensitive"])
+
+    def test_complete_patch_review_actions_rejects_mismatched_control(self) -> None:
+        with self.assertRaisesRegex(ValueError, "apply control must use apply_patch"):
+            CompletePatchReviewActions(
+                patch_id="p1",
+                preview=ActionRef(
+                    id="preview_patch",
+                    label="Preview",
+                    payload={"patch_id": "p1"},
+                ),
+                apply=ActionRef(
+                    id="reject_patch",
+                    label="Reject",
+                    payload={"patch_id": "p1"},
+                ),
+                reject=ActionRef(
+                    id="reject_patch",
+                    label="Reject",
+                    payload={"patch_id": "p1"},
+                ),
+            )
+
+        with self.assertRaisesRegex(ValueError, "reject control must match the current patch"):
+            CompletePatchReviewActions(
+                patch_id="p1",
+                preview=ActionRef(
+                    id="preview_patch",
+                    label="Preview",
+                    payload={"patch_id": "p1"},
+                ),
+                apply=ActionRef(
+                    id="apply_patch",
+                    label="Apply",
+                    payload={"patch_id": "p1"},
+                ),
+                reject=ActionRef(
+                    id="reject_patch",
+                    label="Reject",
+                    payload={"patch_id": "p2"},
+                ),
+            )
+
     def test_complete_patch_review_events_revalidate_client_action_capabilities(self) -> None:
         card = materialize_terminal_card(
             {
