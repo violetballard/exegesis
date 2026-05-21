@@ -438,6 +438,40 @@ def patch_review_action_refs_from_contract(
     return refs
 
 
+def complete_patch_review_action_refs_from_contract(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+) -> dict[str, ActionRef | dict[str, ActionRef]]:
+    availability = patch_review_availability_from_contract(review)
+    missing = availability["missing"]
+    if missing:
+        raise ValueError(f"Complete patch review is missing: {', '.join(missing)}")
+
+    refs = patch_review_action_refs_from_contract(card, review, patch_id=patch_id)
+    preview_ref = refs["preview"]
+    decision_refs = refs["decisions"]
+    if not isinstance(preview_ref, ActionRef):
+        raise ValueError("Complete patch review is missing: preview")
+    if not isinstance(decision_refs, dict):
+        raise ValueError("Complete patch review decisions must be available")
+    missing_refs = [
+        part
+        for part in ("apply", "reject")
+        if not isinstance(decision_refs.get(part), ActionRef)
+    ]
+    if missing_refs:
+        raise ValueError(f"Complete patch review is missing: {', '.join(missing_refs)}")
+    return {
+        "preview": preview_ref,
+        "decisions": {
+            "apply": decision_refs["apply"],
+            "reject": decision_refs["reject"],
+        },
+    }
+
+
 def resolve_patch_review_selection(
     card: dict[str, Any],
     review: dict[str, Any],
