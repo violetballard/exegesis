@@ -2534,7 +2534,7 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         execute_action_with_policy_gate(
-            action=engine_authoritative_action_ref(action),
+            action=action,
             capabilities=_capabilities(),
             policy_gate=_PolicyGateStub(True),
             executor=lambda a: executed.append(a),
@@ -2543,6 +2543,24 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(len(executed), 1)
         self.assertEqual(executed[0].confirm, {"title": "Apply patch?"})
         self.assertTrue(executed[0].policy_sensitive)
+
+    def test_patch_decision_execution_normalizes_before_policy_gate(self) -> None:
+        gate = _RecordingPolicyGate(True, [])
+        action = ActionRef(
+            id="reject_patch",
+            label="Reject",
+            payload={"patch_id": " p1 "},
+        )
+
+        result = execute_action_with_policy_gate(
+            action=action,
+            capabilities=_capabilities(),
+            policy_gate=gate,
+            executor=lambda a: (a.payload, a.policy_sensitive, a.confirm),
+        )
+
+        self.assertEqual(result, ({"patch_id": "p1"}, True, {"title": "Reject patch?"}))
+        self.assertEqual(gate.calls, [("reject_patch", {"patch_id": "p1"}, True)])
 
     def test_engine_authoritative_patch_actions_normalize_patch_id(self) -> None:
         apply_action = engine_authoritative_action_ref(

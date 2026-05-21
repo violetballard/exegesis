@@ -1324,6 +1324,7 @@ def execute_action_with_policy_gate(
     policy_gate: PolicyGate,
     executor: Callable[[ActionRef], Any],
 ) -> Any:
+    action = engine_authoritative_action_ref(action)
     validate_action_ref(action.as_contract())
     if action.id not in _ALLOWED_ACTION_SET:
         raise ValueError("Unknown action id")
