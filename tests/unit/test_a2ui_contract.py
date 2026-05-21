@@ -155,6 +155,7 @@ def _patch_review_selection_metadata() -> dict[str, object]:
         "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
         "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
         "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY["apply"]),
+        "decision_group": PATCH_REVIEW_DECISION_GROUP,
     }
 
 
@@ -1493,6 +1494,31 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(apply_action["payload"], {"patch_id": "p1"})
         self.assertEqual(reject_action["id"], "reject_patch")
         self.assertEqual(reject_action["payload"], {"patch_id": "p1"})
+
+    def test_patch_decision_selection_requires_engine_decision_group(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+
+        missing_group = deepcopy(selection)
+        missing_group.pop("decision_group")
+        with self.assertRaisesRegex(ValueError, "decision group"):
+            resolve_patch_decision_selection(card, missing_group, patch_id="p1")
+
+        tampered_group = deepcopy(selection)
+        tampered_group["decision_group"] = "client_decision"
+        with self.assertRaisesRegex(ValueError, "decision group"):
+            resolve_patch_decision_selection(card, tampered_group, patch_id="p1")
 
     def test_patch_preview_selection_builder_returns_typed_slot_contract(self) -> None:
         card = materialize_terminal_card(

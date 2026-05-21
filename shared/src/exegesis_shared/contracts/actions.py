@@ -1754,6 +1754,8 @@ def _validate_patch_review_selection_metadata(selection: dict[str, Any]) -> None
     patch_decision = selection.get("patch_decision")
     if patch_decision in {"apply", "reject"}:
         expected_policy = PATCH_REVIEW_EXECUTION_POLICY[patch_decision]
+        if selection.get("decision_group") != PATCH_REVIEW_DECISION_GROUP:
+            raise ValueError("Patch review selection decision group does not match engine policy")
     elif selection.get("patch_preview_contract_version") == PATCH_PREVIEW_CONTRACT_VERSION:
         expected_policy = PATCH_REVIEW_EXECUTION_POLICY["preview"]
     else:
