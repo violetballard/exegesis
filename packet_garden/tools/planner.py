@@ -719,7 +719,40 @@ def run_repo_gate(
     return run(cmd, cwd=str(REPO_ROOT), env=run_env, timeout=timeout)
 
 
+def _lane_unit_test_files(lane: str, cwd: str) -> List[str]:
+    root = Path(cwd)
+    files: List[str] = []
+    for pattern in _owned_patterns_for_lane(lane):
+        normalized = pattern.strip()
+        if not normalized.startswith("tests/"):
+            continue
+        if any(ch in normalized for ch in "*?[]"):
+            matches = sorted(root.glob(normalized))
+        else:
+            matches = [root / normalized]
+        for path in matches:
+            if path.is_file() and path.name.startswith("test_") and path.suffix == ".py":
+                rel = path.relative_to(root).as_posix()
+                files.append(rel)
+    return sorted(set(files))
+
+
+def run_lane_quality_tests(lane: str, cwd: str, env: Optional[Dict[str, str]] = None) -> Tuple[int, str]:
+    files = _lane_unit_test_files(lane, cwd)
+    if not files:
+        return 0, f"[planner] no lane-owned unit tests found for {lane}; skipping lane-focused test gate"
+    modules = [Path(path).with_suffix("").as_posix().replace("/", ".") for path in files]
+    quoted = " ".join(shlex.quote(module) for module in modules)
+    return run(
+        f"python3 -m unittest -v {quoted}",
+        cwd=cwd,
+        env=env,
+        timeout=PLANNER_TEST_GATE_TIMEOUT_SECONDS,
+    )
+
+
 def run_required_gate(cmd: str, cwd: str, env: Optional[Dict[str, str]] = None) -> Tuple[int, str]:
+    lane = str((env or {}).get("QUAL_GATE_LANE") or "").strip()
     if cmd == "./quality-format.sh --check":
         return run_repo_gate(
             str(FORMAT_CHECK_SCRIPT),
@@ -736,6 +769,8 @@ def run_required_gate(cmd: str, cwd: str, env: Optional[Dict[str, str]] = None) 
             timeout=PLANNER_DEFAULT_GATE_TIMEOUT_SECONDS,
         )
     if cmd == "./quality-test.sh":
+        if lane:
+            return run_lane_quality_tests(lane, cwd, env=env)
         return run_repo_gate(
             str(TEST_CHECK_SCRIPT),
             cwd,
@@ -761,7 +796,10 @@ def run_required_gate(cmd: str, cwd: str, env: Optional[Dict[str, str]] = None) 
         ]
         chunks: List[str] = []
         for label, script_path, gate_args in steps:
-            rc, out = run_repo_gate(script_path, cwd, args=gate_args, env=env)
+            if label == "test" and lane:
+                rc, out = run_lane_quality_tests(lane, cwd, env=env)
+            else:
+                rc, out = run_repo_gate(script_path, cwd, args=gate_args, env=env)
             if out:
                 chunks.append(out.rstrip())
             if rc != 0:
@@ -1070,6 +1108,7 @@ def main()->None:
         if traceability_note:
             print(f"[planner] {traceability_note}")
         env=os.environ.copy()
+        env["QUAL_GATE_LANE"] = lane
         if bool(meta.get("shared_file_exception")):
             env["SCOPE_ALLOW_SHARED"]="1"
         if fast_reemit:

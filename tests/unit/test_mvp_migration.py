@@ -365,8 +365,17 @@ class ScopeCheckMigrationTests(unittest.TestCase):
         }
 
         with (
-            patch.object(planner_mod, "load_json", side_effect=[cfg, planner_state]),
+            patch.object(
+                planner_mod,
+                "load_json",
+                side_effect=[
+                    cfg,
+                    planner_state,
+                    {"lanes": {"feat-context-storage": {"status": "direct_exec_running", "pid": 123}}},
+                ],
+            ),
             patch.object(planner_mod, "load_coordinator_state", return_value=coordinator_state),
+            patch.object(planner_mod, "_pid_alive", return_value=True),
             patch.object(planner_mod, "list_git_remotes", return_value=[]),
             patch.object(planner_mod, "lane_has_pending_feature", return_value=False),
             patch.object(planner_mod, "ensure_lane_dirs"),

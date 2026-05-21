@@ -573,6 +573,7 @@ def _set_lane_state(
             current_state = {}
         lanes_state = current_state.setdefault("lanes", {})
         lanes_state[lane] = {
+            "lane": lane,
             "status": status,
             "thread_id": thread_id,
             "mode": mode,
