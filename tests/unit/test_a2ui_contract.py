@@ -5059,6 +5059,34 @@ class A2UIContractTests(unittest.TestCase):
                 selection=selection,
             )
 
+    def test_streaming_action_selected_event_rejects_generic_identity_action_mismatch(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        selection = {
+            "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+            "selection_model": "one_based_action_slot",
+            "slot": 2,
+            "action_identity": card["action_selection"]["order"][1]["action_identity"],
+        }
+
+        with self.assertRaisesRegex(ValueError, "Action id does not match action selection identity"):
+            build_action_selected_event(
+                event_id="evt-2",
+                run_id="run-1",
+                sequence=2,
+                action_id="apply_patch",
+                selection=selection,
+            )
+
     def test_streaming_action_selected_event_rejects_mismatched_patch_selection(self) -> None:
         card = materialize_terminal_card(
             {

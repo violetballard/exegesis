@@ -388,7 +388,20 @@ def _validate_action_selection(selection: dict[str, Any], action_id: str) -> Non
 
     if set(selection) & _PATCH_REVIEW_METADATA_FIELDS:
         raise ValueError("Patch review selection must identify preview or decision policy")
+    _validate_selection_identity_action_id(action_identity, action_id)
     _validate_selection_fields(selection, _ACTION_SELECTION_FIELDS, "action selection")
+
+
+def _validate_selection_identity_action_id(action_identity: str, action_id: str) -> None:
+    try:
+        identity = json.loads(action_identity)
+    except json.JSONDecodeError:
+        return
+    if not isinstance(identity, dict):
+        return
+    identity_action_id = identity.get("id")
+    if identity_action_id is not None and identity_action_id != action_id:
+        raise ValueError("Action id does not match action selection identity")
 
 
 def _validate_selection_fields(
