@@ -11,6 +11,7 @@ from exegesis_shared.contracts.actions import (
     PATCH_REVIEW_CONTRACT_VERSION,
     PATCH_REVIEW_DECISION_POLICY,
     PATCH_REVIEW_FLOW,
+    PATCH_REVIEW_REQUIRED_PARTS,
 )
 from exegesis_shared.contracts import studio_materialize_card as shared_studio_materialize_card
 from src.qual.ui.a2ui import (
@@ -18,6 +19,7 @@ from src.qual.ui.a2ui import (
     A2UISessionStore,
     ActionRef,
     CompletePatchReviewActions,
+    PATCH_REVIEW_REQUIRED_PARTS as UI_PATCH_REVIEW_REQUIRED_PARTS,
     PatchReviewActionSelection,
     action_ref_from_selection,
     build_complete_patch_review_contract,
@@ -784,6 +786,7 @@ class A2UIContractTests(unittest.TestCase):
                 "patch_id": "p1",
                 "flow": PATCH_REVIEW_FLOW,
                 "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+                "required": ["preview", "apply", "reject"],
                 "available": ["preview", "apply", "reject"],
                 "missing": [],
                 "is_complete": True,
@@ -1273,6 +1276,7 @@ class A2UIContractTests(unittest.TestCase):
         availability = build_patch_review_availability(card, patch_id=" p1 ")
 
         self.assertEqual(availability["patch_id"], "p1")
+        self.assertEqual(availability["required"], list(PATCH_REVIEW_REQUIRED_PARTS))
         self.assertEqual(availability["available"], ["preview", "apply"])
         self.assertEqual(availability["missing"], ["reject"])
         self.assertFalse(availability["is_complete"])
@@ -1300,6 +1304,7 @@ class A2UIContractTests(unittest.TestCase):
 
         availability = patch_review_availability_from_contract(review)
 
+        self.assertEqual(availability["required"], list(PATCH_REVIEW_REQUIRED_PARTS))
         self.assertEqual(availability["available"], ["reject"])
         self.assertEqual(availability["missing"], ["preview", "apply"])
         self.assertFalse(availability["is_complete"])
@@ -1322,11 +1327,16 @@ class A2UIContractTests(unittest.TestCase):
 
         availability = patch_review_availability_from_contract(review)
 
+        self.assertEqual(availability["required"], list(PATCH_REVIEW_REQUIRED_PARTS))
         self.assertEqual(availability["available"], ["preview", "apply", "reject"])
         self.assertEqual(availability["missing"], [])
         self.assertEqual(availability["flow"], PATCH_REVIEW_FLOW)
         self.assertEqual(availability["decision_policy"], PATCH_REVIEW_DECISION_POLICY)
         self.assertTrue(availability["is_complete"])
+
+    def test_patch_review_required_parts_are_shared_and_cli_exported(self) -> None:
+        self.assertEqual(shared_contracts.PATCH_REVIEW_REQUIRED_PARTS, ("preview", "apply", "reject"))
+        self.assertEqual(UI_PATCH_REVIEW_REQUIRED_PARTS, shared_contracts.PATCH_REVIEW_REQUIRED_PARTS)
 
     def test_patch_review_contract_rejects_stale_availability_snapshot(self) -> None:
         card = materialize_terminal_card(
