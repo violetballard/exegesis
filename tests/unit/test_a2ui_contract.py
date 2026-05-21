@@ -295,6 +295,17 @@ class A2UIContractTests(unittest.TestCase):
                 }
             )
 
+        with self.assertRaisesRegex(ValueError, "Unsupported RetrievalResultsCard field\\(s\\): client_hint"):
+            validate_retrieval_results_card(
+                {
+                    "type": RETRIEVAL_RESULTS_CARD_TYPE,
+                    "title": "Retrieval",
+                    "query": "chapter five",
+                    "results": [{"item_id": "doc-1", "title": "Chapter 5", "snippet": "Relevant paragraph"}],
+                    "client_hint": "render-wide",
+                }
+            )
+
         with self.assertRaisesRegex(ValueError, "BasketCard item field 'item_id' is required"):
             validate_basket_card(
                 {
@@ -345,6 +356,16 @@ class A2UIContractTests(unittest.TestCase):
                         {"item_id": "doc-1", "title": "Chapter 5"},
                         {"item_id": " doc-1 ", "title": "Chapter 5 duplicate"},
                     ],
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "Unsupported BasketCard field\\(s\\): client_hint"):
+            validate_basket_card(
+                {
+                    "type": BASKET_CARD_TYPE,
+                    "title": "Basket",
+                    "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
+                    "client_hint": "render-wide",
                 }
             )
 
@@ -402,6 +423,17 @@ class A2UIContractTests(unittest.TestCase):
                         {"item_id": "doc-1", "title": "Chapter 5"},
                         {"item_id": " doc-1 ", "title": "Chapter 5 duplicate"},
                     ],
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "Unsupported ContextSetCard field\\(s\\): client_hint"):
+            validate_context_set_card(
+                {
+                    "type": CONTEXT_SET_CARD_TYPE,
+                    "title": "Context",
+                    "context_set_id": "ctx-1",
+                    "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
+                    "client_hint": "render-wide",
                 }
             )
 

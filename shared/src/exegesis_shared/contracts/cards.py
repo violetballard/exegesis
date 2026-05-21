@@ -48,6 +48,11 @@ _PRIMITIVE_BLOCK_REQUIRED_FIELDS: dict[str, dict[str, type | tuple[type, ...]]] 
     "ProgressBlock": {"title": str, "status_text": str},
     "CodeBlock": {"language": str, "code": str},
 }
+_RETRIEVAL_RESULTS_CARD_FIELDS = frozenset({"type", "title", "query", "results", "actions", "action_selection"})
+_BASKET_CARD_FIELDS = frozenset({"type", "title", "items", "actions", "action_selection"})
+_CONTEXT_SET_CARD_FIELDS = frozenset(
+    {"type", "title", "context_set_id", "items", "actions", "action_selection"}
+)
 
 
 @dataclass(frozen=True)
@@ -313,6 +318,7 @@ def validate_known_card(card: dict[str, Any], *, strict_actions: bool = True) ->
 
 
 def validate_retrieval_results_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
+    _validate_card_fields(card, RETRIEVAL_RESULTS_CARD_TYPE, _RETRIEVAL_RESULTS_CARD_FIELDS)
     _validate_card_title(card, RETRIEVAL_RESULTS_CARD_TYPE)
     query = card.get("query")
     if not isinstance(query, str) or not query.strip():
@@ -332,6 +338,7 @@ def validate_retrieval_results_card(card: dict[str, Any], *, strict_actions: boo
 
 
 def validate_basket_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
+    _validate_card_fields(card, BASKET_CARD_TYPE, _BASKET_CARD_FIELDS)
     _validate_card_title(card, BASKET_CARD_TYPE)
     items = card.get("items")
     if not isinstance(items, list):
@@ -348,6 +355,7 @@ def validate_basket_card(card: dict[str, Any], *, strict_actions: bool = True) -
 
 
 def validate_context_set_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
+    _validate_card_fields(card, CONTEXT_SET_CARD_TYPE, _CONTEXT_SET_CARD_FIELDS)
     _validate_card_title(card, CONTEXT_SET_CARD_TYPE)
     context_set_id = card.get("context_set_id")
     if not isinstance(context_set_id, str) or not context_set_id.strip():
@@ -394,6 +402,13 @@ def _validate_card_title(card: dict[str, Any], card_type: str) -> None:
     title = card.get("title")
     if not isinstance(title, str) or not title.strip():
         raise ValueError(f"{card_type} title is required")
+
+
+def _validate_card_fields(card: dict[str, Any], card_type: str, allowed_fields: frozenset[str]) -> None:
+    unexpected_fields = set(card) - allowed_fields
+    if unexpected_fields:
+        field_list = ", ".join(sorted(unexpected_fields))
+        raise ValueError(f"Unsupported {card_type} field(s): {field_list}")
 
 
 def _validate_typed_mapping(
