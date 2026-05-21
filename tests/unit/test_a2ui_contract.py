@@ -607,6 +607,30 @@ class A2UIContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unsupported patch decision contract version"):
             build_patch_decision_selection(card, patch_id="p1", decision="apply")
 
+    def test_patch_decision_builder_rejects_stale_cached_slot(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        apply_entry = card["patch_decision"]["decisions"][0]
+        reject_entry = card["patch_decision"]["decisions"][1]
+        apply_entry["slot"] = reject_entry["slot"]
+        apply_entry["action_identity"] = reject_entry["action_identity"]
+        apply_entry["selection"]["slot"] = reject_entry["slot"]
+        apply_entry["selection"]["action_identity"] = reject_entry["action_identity"]
+
+        with self.assertRaisesRegex(ValueError, "selected action"):
+            build_patch_decision_selection(card, patch_id="p1", decision="apply")
+
     def test_patch_decision_action_requires_current_patch_and_known_decision(self) -> None:
         card = materialize_terminal_card(
             {

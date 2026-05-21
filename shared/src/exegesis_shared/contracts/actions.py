@@ -332,8 +332,9 @@ def build_patch_decision_selection(
             raise ValueError("Patch decision selection does not match the selected action")
         if selection.get("patch_id") != expected_patch_id:
             raise ValueError("Patch decision selection does not match the current patch")
+        resolve_patch_decision_selection(card, selection, patch_id=expected_patch_id)
         return deepcopy(selection)
-    return {
+    selection = {
         "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
         "selection_model": "one_based_action_slot",
         "slot": entry.get("slot"),
@@ -342,6 +343,8 @@ def build_patch_decision_selection(
         "patch_decision": normalized_decision,
         "patch_id": expected_patch_id,
     }
+    resolve_patch_decision_selection(card, selection, patch_id=expected_patch_id)
+    return selection
 
 
 def validate_action_ref(action: Any) -> None:
