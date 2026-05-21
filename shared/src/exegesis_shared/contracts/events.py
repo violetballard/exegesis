@@ -9,6 +9,8 @@ from exegesis_shared.contracts.actions import (
     ALLOWED_ACTION_IDS,
     PATCH_DECISION_CONTRACT_VERSION,
     PATCH_PREVIEW_CONTRACT_VERSION,
+    PATCH_REVIEW_ACTION_AUTHORITY,
+    PATCH_REVIEW_DEMO_PATH_STEP,
     action_ref_from_selection,
     build_complete_patch_review_contract,
     build_patch_review_selection,
@@ -291,6 +293,10 @@ def _validate_action_selection(selection: dict[str, Any], action_id: str) -> Non
 
     patch_decision = selection.get("patch_decision")
     if patch_decision is not None:
+        if selection.get("action_authority") != PATCH_REVIEW_ACTION_AUTHORITY:
+            raise ValueError("Patch review selection must be engine-authoritative")
+        if selection.get("demo_path_step") != PATCH_REVIEW_DEMO_PATH_STEP:
+            raise ValueError("Patch review selection does not match the demo path step")
         if selection.get("patch_decision_contract_version") != PATCH_DECISION_CONTRACT_VERSION:
             raise ValueError("Unsupported patch decision selection contract version")
         expected_action_id = {"apply": "apply_patch", "reject": "reject_patch"}.get(str(patch_decision))
@@ -300,6 +306,10 @@ def _validate_action_selection(selection: dict[str, Any], action_id: str) -> Non
             raise ValueError("Action id does not match patch decision selection")
 
     if "patch_preview_contract_version" in selection:
+        if selection.get("action_authority") != PATCH_REVIEW_ACTION_AUTHORITY:
+            raise ValueError("Patch review selection must be engine-authoritative")
+        if selection.get("demo_path_step") != PATCH_REVIEW_DEMO_PATH_STEP:
+            raise ValueError("Patch review selection does not match the demo path step")
         if selection.get("patch_preview_contract_version") != PATCH_PREVIEW_CONTRACT_VERSION:
             raise ValueError("Unsupported patch preview selection contract version")
         if action_id != "preview_patch":

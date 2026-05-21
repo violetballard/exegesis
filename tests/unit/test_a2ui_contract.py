@@ -115,6 +115,13 @@ def _capabilities(
     )
 
 
+def _patch_review_selection_metadata() -> dict[str, str]:
+    return {
+        "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+        "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+    }
+
+
 @dataclass
 class _PolicyGateStub:
     allow: bool
@@ -621,6 +628,7 @@ class A2UIContractTests(unittest.TestCase):
                 "selection_model": "one_based_action_slot",
                 "slot": apply_slot["slot"],
                 "action_identity": apply_slot["action_identity"],
+                **_patch_review_selection_metadata(),
                 "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
                 "patch_decision": "apply",
                 "patch_id": "p1",
@@ -637,6 +645,7 @@ class A2UIContractTests(unittest.TestCase):
                     "selection_model": "one_based_action_slot",
                     "slot": apply_slot["slot"],
                     "action_identity": apply_slot["action_identity"],
+                    **_patch_review_selection_metadata(),
                     "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
                     "patch_decision": "apply",
                     "patch_id": "p1",
@@ -651,6 +660,7 @@ class A2UIContractTests(unittest.TestCase):
                     "selection_model": "one_based_action_slot",
                     "slot": open_slot["slot"],
                     "action_identity": open_slot["action_identity"],
+                    **_patch_review_selection_metadata(),
                     "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
                     "patch_decision": "apply",
                     "patch_id": "p1",
@@ -681,6 +691,7 @@ class A2UIContractTests(unittest.TestCase):
                     "selection_model": "one_based_action_slot",
                     "slot": apply_slot["slot"],
                     "action_identity": apply_slot["action_identity"],
+                    **_patch_review_selection_metadata(),
                     "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
                     "patch_id": "p1",
                 },
@@ -694,6 +705,7 @@ class A2UIContractTests(unittest.TestCase):
                     "selection_model": "one_based_action_slot",
                     "slot": apply_slot["slot"],
                     "action_identity": apply_slot["action_identity"],
+                    **_patch_review_selection_metadata(),
                     "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
                     "patch_decision": "reject",
                     "patch_id": "p1",
@@ -708,6 +720,7 @@ class A2UIContractTests(unittest.TestCase):
                     "selection_model": "one_based_action_slot",
                     "slot": apply_slot["slot"],
                     "action_identity": apply_slot["action_identity"],
+                    **_patch_review_selection_metadata(),
                     "patch_decision_contract_version": 0,
                     "patch_decision": "apply",
                     "patch_id": "p1",
@@ -781,6 +794,8 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(selection["contract_version"], ACTION_SELECTION_CONTRACT_VERSION)
         self.assertEqual(selection["selection_model"], "one_based_action_slot")
+        self.assertEqual(selection["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
+        self.assertEqual(selection["demo_path_step"], PATCH_REVIEW_DEMO_PATH_STEP)
         self.assertEqual(selection["patch_preview_contract_version"], PATCH_PREVIEW_CONTRACT_VERSION)
         self.assertEqual(selection["patch_id"], "p1")
         self.assertEqual(selection["slot"], 1)
@@ -2177,6 +2192,8 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(selection["contract_version"], ACTION_SELECTION_CONTRACT_VERSION)
         self.assertEqual(selection["selection_model"], "one_based_action_slot")
+        self.assertEqual(selection["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
+        self.assertEqual(selection["demo_path_step"], PATCH_REVIEW_DEMO_PATH_STEP)
         self.assertEqual(selection["patch_decision_contract_version"], PATCH_DECISION_CONTRACT_VERSION)
         self.assertEqual(selection["patch_decision"], "apply")
         self.assertEqual(selection["patch_id"], "p1")
@@ -2958,6 +2975,30 @@ class A2UIContractTests(unittest.TestCase):
                 run_id="run-1",
                 sequence=2,
                 card=card,
+                selection=selection,
+            )
+
+    def test_streaming_patch_review_events_reject_client_authoritative_selection(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+        selection["action_authority"] = "client_authoritative"
+
+        with self.assertRaisesRegex(ValueError, "engine-authoritative"):
+            build_action_selected_event(
+                event_id="evt-2",
+                run_id="run-1",
+                sequence=2,
+                action_id="apply_patch",
                 selection=selection,
             )
 

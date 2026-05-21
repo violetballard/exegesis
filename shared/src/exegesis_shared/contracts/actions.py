@@ -274,6 +274,8 @@ def materialize_patch_decision_contract(card: dict[str, Any], patch_id: str) -> 
             "selection_model": "one_based_action_slot",
             "slot": slot,
             "action_identity": canonical_action_identity_key(action),
+            "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+            "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
             "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
             "patch_decision": decision,
             "patch_id": expected_patch_id,
@@ -313,6 +315,8 @@ def materialize_patch_preview_contract(card: dict[str, Any], patch_id: str) -> d
             "selection_model": "one_based_action_slot",
             "slot": slot,
             "action_identity": canonical_action_identity_key(action),
+            "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+            "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
             "patch_preview_contract_version": PATCH_PREVIEW_CONTRACT_VERSION,
             "patch_id": expected_patch_id,
         }
@@ -434,6 +438,8 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
         and preview.get("contract_version") == ACTION_SELECTION_CONTRACT_VERSION
         and preview.get("selection_model") == "one_based_action_slot"
         and preview.get("patch_id") == patch_id.strip()
+        and preview.get("action_authority") == PATCH_REVIEW_ACTION_AUTHORITY
+        and preview.get("demo_path_step") == PATCH_REVIEW_DEMO_PATH_STEP
         and preview.get("patch_preview_contract_version") == PATCH_PREVIEW_CONTRACT_VERSION
     ):
         available.append("preview")
@@ -455,6 +461,8 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
             and selection.get("contract_version") == ACTION_SELECTION_CONTRACT_VERSION
             and selection.get("selection_model") == "one_based_action_slot"
             and selection.get("patch_id") == patch_id.strip()
+            and selection.get("action_authority") == PATCH_REVIEW_ACTION_AUTHORITY
+            and selection.get("demo_path_step") == PATCH_REVIEW_DEMO_PATH_STEP
             and selection.get("patch_decision") == decision
             and selection.get("patch_decision_contract_version") == PATCH_DECISION_CONTRACT_VERSION
             and selection.get("slot") == entry.get("slot")
@@ -1104,6 +1112,13 @@ def resolve_card_selection_contract(card: dict[str, Any], selection: dict[str, A
     return action
 
 
+def _validate_patch_review_selection_metadata(selection: dict[str, Any]) -> None:
+    if selection.get("action_authority") != PATCH_REVIEW_ACTION_AUTHORITY:
+        raise ValueError("Patch review selection must be engine-authoritative")
+    if selection.get("demo_path_step") != PATCH_REVIEW_DEMO_PATH_STEP:
+        raise ValueError("Patch review selection does not match the demo path step")
+
+
 def action_ref_from_selection(card: dict[str, Any], selection: dict[str, Any]) -> ActionRef:
     action = resolve_card_selection_contract(card, selection)
     validate_action_ref(action)
@@ -1135,6 +1150,7 @@ def resolve_patch_decision_selection(
         raise ValueError("Patch decision patch_id is required")
     if selection.get("patch_id") != expected_patch_id:
         raise ValueError("Patch decision selection does not match the current patch")
+    _validate_patch_review_selection_metadata(selection)
     expected_decision = PATCH_DECISION_BY_ACTION_ID[str(action["id"])]
     if selection.get("patch_decision_contract_version") != PATCH_DECISION_CONTRACT_VERSION:
         raise ValueError("Unsupported patch decision contract version")
@@ -1185,6 +1201,7 @@ def resolve_patch_preview_selection(
         raise ValueError("Patch preview patch_id is required")
     if selection.get("patch_id") != expected_patch_id:
         raise ValueError("Patch preview selection does not match the current patch")
+    _validate_patch_review_selection_metadata(selection)
     if selection.get("patch_preview_contract_version") != PATCH_PREVIEW_CONTRACT_VERSION:
         raise ValueError("Unsupported patch preview contract version")
     if action_patch_id != expected_patch_id:
@@ -1230,6 +1247,7 @@ def build_patch_preview_selection(card: dict[str, Any], *, patch_id: str) -> dic
             raise ValueError("Patch preview selection does not match the current card")
         if selection.get("action_identity") != entry.get("action_identity"):
             raise ValueError("Patch preview selection does not match the current card")
+        _validate_patch_review_selection_metadata(selection)
         if selection.get("patch_preview_contract_version") != PATCH_PREVIEW_CONTRACT_VERSION:
             raise ValueError("Unsupported patch preview contract version")
         if selection.get("patch_id") != expected_patch_id:
@@ -1241,6 +1259,8 @@ def build_patch_preview_selection(card: dict[str, Any], *, patch_id: str) -> dic
         "selection_model": "one_based_action_slot",
         "slot": entry.get("slot"),
         "action_identity": entry.get("action_identity"),
+        "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+        "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
         "patch_preview_contract_version": PATCH_PREVIEW_CONTRACT_VERSION,
         "patch_id": expected_patch_id,
     }
@@ -1293,6 +1313,7 @@ def build_patch_decision_selection(
             raise ValueError("Patch decision selection does not match the current card")
         if selection.get("slot") != entry.get("slot"):
             raise ValueError("Patch decision selection does not match the current card")
+        _validate_patch_review_selection_metadata(selection)
         if selection.get("patch_decision_contract_version") != PATCH_DECISION_CONTRACT_VERSION:
             raise ValueError("Unsupported patch decision contract version")
         if selection.get("patch_decision") != normalized_decision:
@@ -1306,6 +1327,8 @@ def build_patch_decision_selection(
         "selection_model": "one_based_action_slot",
         "slot": entry.get("slot"),
         "action_identity": entry.get("action_identity"),
+        "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+        "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
         "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
         "patch_decision": normalized_decision,
         "patch_id": expected_patch_id,
