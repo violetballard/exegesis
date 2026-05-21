@@ -195,7 +195,11 @@ class A2UIContractTests(unittest.TestCase):
             "results": [{"item_id": "doc-1", "title": "Chapter 5", "snippet": "Relevant paragraph"}],
             "actions": [
                 {"id": "promote_to_basket", "label": "Add to basket", "payload": {"item_id": "doc-1"}},
-                {"id": "pin_to_context_set", "label": "Pin", "payload": {"item_id": "doc-1"}},
+                {
+                    "id": "pin_to_context_set",
+                    "label": "Pin",
+                    "payload": {"item_id": "doc-1", "context_set_id": "ctx-1"},
+                },
             ],
         }
         basket_card = {
@@ -302,7 +306,26 @@ class A2UIContractTests(unittest.TestCase):
                     "type": BASKET_CARD_TYPE,
                     "title": "Basket",
                     "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
-                    "actions": [{"id": "pin_to_context_set", "label": "Pin", "payload": {"item_id": "doc-2"}}],
+                    "actions": [
+                        {
+                            "id": "pin_to_context_set",
+                            "label": "Pin",
+                            "payload": {"item_id": "doc-2", "context_set_id": "ctx-1"},
+                        }
+                    ],
+                }
+            )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Missing payload field 'context_set_id' for action 'pin_to_context_set'",
+        ):
+            validate_basket_card(
+                {
+                    "type": BASKET_CARD_TYPE,
+                    "title": "Basket",
+                    "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
+                    "actions": [{"id": "pin_to_context_set", "label": "Pin", "payload": {"item_id": "doc-1"}}],
                 }
             )
 
@@ -397,7 +420,11 @@ class A2UIContractTests(unittest.TestCase):
             "query": "chapter five",
             "results": [{"item_id": "doc-1", "title": "Chapter 5", "snippet": "Relevant paragraph"}],
             "actions": [
-                {"id": "pin_to_context_set", "label": "Pin", "payload": {"item_id": "doc-1"}},
+                {
+                    "id": "pin_to_context_set",
+                    "label": "Pin",
+                    "payload": {"item_id": "doc-1", "context_set_id": "ctx-1"},
+                },
                 {"id": "promote_to_basket", "label": "Add to basket", "payload": {"item_id": "doc-1"}},
                 {"id": "open_corpus_item", "label": "Open", "payload": {"item_id": "doc-1"}},
             ],
@@ -3962,7 +3989,7 @@ class A2UIContractTests(unittest.TestCase):
                 ActionRef(
                     id="pin_to_context_set",
                     label="Pin",
-                    payload={"item_id": " doc-1 "},
+                    payload={"item_id": " doc-1 ", "context_set_id": " ctx-1 "},
                 )
             ),
             engine_authoritative_action_ref(
@@ -4010,7 +4037,7 @@ class A2UIContractTests(unittest.TestCase):
         ]
 
         self.assertEqual(actions[0].payload, {"item_id": "doc-1"})
-        self.assertEqual(actions[1].payload, {"item_id": "doc-1"})
+        self.assertEqual(actions[1].payload, {"item_id": "doc-1", "context_set_id": "ctx-1"})
         self.assertEqual(actions[2].payload, {"item_id": "doc-1"})
         self.assertEqual(actions[3].payload, {"section_id": "sec-1"})
         self.assertEqual(actions[4].payload, {"name": "Chapter 5"})
