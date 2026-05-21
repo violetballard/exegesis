@@ -20,6 +20,10 @@ ALLOWED_ACTION_IDS: tuple[str, ...] = (
     "copy_to_clipboard",
 )
 PATCH_DECISION_ACTION_IDS: tuple[str, ...] = ("apply_patch", "reject_patch")
+PATCH_DECISION_BY_ACTION_ID: dict[str, str] = {
+    "apply_patch": "apply",
+    "reject_patch": "reject",
+}
 
 CANONICAL_ACTION_ORDER: tuple[str, ...] = (
     "apply_patch",
@@ -243,6 +247,14 @@ def resolve_patch_decision_selection(
     expected_patch_id = patch_id.strip()
     if not expected_patch_id:
         raise ValueError("Patch decision patch_id is required")
+    if selection.get("patch_id") != expected_patch_id:
+        raise ValueError("Patch decision selection does not match the current patch")
+    expected_decision = PATCH_DECISION_BY_ACTION_ID[str(action["id"])]
+    submitted_decision = selection.get("patch_decision")
+    if submitted_decision not in {"apply", "reject"}:
+        raise ValueError("Patch decision selection must include patch_decision")
+    if submitted_decision != expected_decision:
+        raise ValueError("Patch decision selection does not match the selected action")
     if action_patch_id != expected_patch_id:
         raise ValueError("Patch decision selection does not match the current patch")
     return action

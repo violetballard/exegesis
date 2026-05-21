@@ -316,6 +316,8 @@ class A2UIContractTests(unittest.TestCase):
                 "selection_model": "one_based_action_slot",
                 "slot": apply_slot["slot"],
                 "action_identity": apply_slot["action_identity"],
+                "patch_decision": "apply",
+                "patch_id": "p1",
             },
             patch_id=" p1 ",
         )
@@ -329,6 +331,8 @@ class A2UIContractTests(unittest.TestCase):
                     "selection_model": "one_based_action_slot",
                     "slot": apply_slot["slot"],
                     "action_identity": apply_slot["action_identity"],
+                    "patch_decision": "apply",
+                    "patch_id": "p1",
                 },
                 patch_id="p2",
             )
@@ -340,6 +344,49 @@ class A2UIContractTests(unittest.TestCase):
                     "selection_model": "one_based_action_slot",
                     "slot": open_slot["slot"],
                     "action_identity": open_slot["action_identity"],
+                    "patch_decision": "apply",
+                    "patch_id": "p1",
+                },
+                patch_id="p1",
+            )
+
+    def test_patch_decision_selection_revalidates_typed_decision_metadata(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        apply_slot = card["action_selection"]["order"][0]
+
+        with self.assertRaisesRegex(ValueError, "must include patch_decision"):
+            resolve_patch_decision_selection(
+                card,
+                {
+                    "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+                    "selection_model": "one_based_action_slot",
+                    "slot": apply_slot["slot"],
+                    "action_identity": apply_slot["action_identity"],
+                    "patch_id": "p1",
+                },
+                patch_id="p1",
+            )
+        with self.assertRaisesRegex(ValueError, "selected action"):
+            resolve_patch_decision_selection(
+                card,
+                {
+                    "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+                    "selection_model": "one_based_action_slot",
+                    "slot": apply_slot["slot"],
+                    "action_identity": apply_slot["action_identity"],
+                    "patch_decision": "reject",
+                    "patch_id": "p1",
                 },
                 patch_id="p1",
             )
