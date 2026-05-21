@@ -159,14 +159,18 @@ def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
             "collapsed": True,
         }
     )
-    return {
+    actions = materialize_card_actions(raw_card)
+    actions.append({"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": json.dumps(raw_card)}})
+    fallback = {
         "type": UNKNOWN_CARD_TYPE,
         "title": f"Unsupported card type: {type_name}",
         "blocks": blocks,
-        "actions": [
-            {"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": json.dumps(raw_card)}}
-        ],
+        "actions": actions,
     }
+    patch_id = raw_card.get("patch_id")
+    if isinstance(patch_id, str) and patch_id.strip():
+        fallback["patch_id"] = patch_id.strip()
+    return fallback
 
 
 def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:

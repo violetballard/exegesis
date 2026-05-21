@@ -177,6 +177,41 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(card["action_selection"]["order"], [])
         self.assertIn("[UnknownCard] Unsupported card type: FutureCard", text)
 
+    def test_unknown_patch_card_fallback_preserves_typed_patch_actions(self) -> None:
+        caps = _capabilities(
+            cards_supported=("RunLogCard",),
+            actions_supported=("apply_patch", "reject_patch"),
+        )
+
+        card = studio_materialize_card(
+            {
+                "type": "FuturePatchCard",
+                "patch_id": "p1",
+                "title": "Future patch",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "run_agent", "label": "Revise", "payload": {"operation": "revise"}},
+                ],
+            },
+            caps,
+        )
+        text = render_terminal_card(card)
+
+        self.assertEqual(card["type"], "UnknownCard")
+        self.assertEqual(card["patch_id"], "p1")
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in card["action_selection"]["order"]],
+            [(1, "apply_patch"), (2, "reject_patch")],
+        )
+        self.assertEqual(resolve_card_selection_by_index(card, 1)["payload"], {"patch_id": "p1"})
+        self.assertIn("Patch review controls: apply=1, reject=2", text)
+        self.assertEqual(
+            [line for line in text.splitlines() if line.startswith("* ")],
+            ["* 1. Apply", "* 2. Reject"],
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
