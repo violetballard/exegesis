@@ -625,6 +625,40 @@ def complete_patch_review_action_from_card(
     raise ValueError("Patch review control must be 'preview', 'apply', or 'reject'")
 
 
+def build_patch_review_selection(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+    control: str,
+) -> dict[str, Any]:
+    resolved = resolve_patch_review_contract(card, review, patch_id=patch_id)
+    normalized_control = control.strip().lower()
+    if normalized_control == "preview":
+        if resolved["preview"] is None or not isinstance(review.get("preview"), dict):
+            raise ValueError("Patch review preview is not available for the current patch")
+        return deepcopy(review["preview"])
+    if normalized_control not in {"apply", "reject"}:
+        raise ValueError("Patch review control must be 'preview', 'apply', or 'reject'")
+
+    decisions = review.get("decisions", [])
+    if not isinstance(decisions, list):
+        raise ValueError("Patch review decisions must be a list")
+    resolved_decisions = {
+        entry["decision"]
+        for entry in resolved["decisions"]
+        if isinstance(entry, dict)
+    }
+    if normalized_control not in resolved_decisions:
+        raise ValueError(f"Patch review {normalized_control} is not available for the current patch")
+    for entry in decisions:
+        if not isinstance(entry, dict):
+            raise ValueError("Patch review decision entry must be an object")
+        if entry.get("decision") == normalized_control and isinstance(entry.get("selection"), dict):
+            return deepcopy(entry["selection"])
+    raise ValueError(f"Patch review {normalized_control} is not available for the current patch")
+
+
 def patch_review_action_ref_from_selection(
     card: dict[str, Any],
     review: dict[str, Any],

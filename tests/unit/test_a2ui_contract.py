@@ -32,6 +32,7 @@ from src.qual.ui.a2ui import (
     build_patch_preview_selection,
     build_patch_review_availability,
     build_patch_review_contract,
+    build_patch_review_selection,
     build_unknown_card,
     complete_patch_review_action_from_card,
     complete_patch_review_actions_from_card,
@@ -901,6 +902,56 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(decision["kind"], "decision")
         self.assertEqual(decision["decision"], "reject")
         self.assertEqual(decision["action"]["id"], "reject_patch")
+
+    def test_patch_review_selection_builds_demo_path_controls_from_contract(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+
+        preview = build_patch_review_selection(card, review, patch_id=" p1 ", control=" preview ")
+        apply = build_patch_review_selection(card, review, patch_id="p1", control="APPLY")
+        reject = build_patch_review_selection(card, review, patch_id="p1", control="reject")
+
+        self.assertEqual(resolve_patch_review_selection(card, review, preview, patch_id="p1")["kind"], "preview")
+        self.assertEqual(
+            resolve_patch_review_selection(card, review, apply, patch_id="p1")["decision"],
+            "apply",
+        )
+        self.assertEqual(
+            resolve_patch_review_selection(card, review, reject, patch_id="p1")["decision"],
+            "reject",
+        )
+
+    def test_patch_review_selection_builder_rejects_unavailable_controls(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+
+        with self.assertRaisesRegex(ValueError, "reject is not available"):
+            build_patch_review_selection(card, review, patch_id="p1", control="reject")
+        with self.assertRaisesRegex(ValueError, "control must be"):
+            build_patch_review_selection(card, review, patch_id="p1", control="open")
 
     def test_patch_review_selection_returns_typed_action_ref_for_policy_gate(self) -> None:
         card = materialize_terminal_card(
