@@ -796,6 +796,7 @@ def patch_review_selection_from_cli_command(
     command_text = command.strip()
     if not command_text:
         raise ValueError("Patch review CLI command is required")
+    normalized_command = command_text.lower()
 
     command_map = patch_review_cli_control_map_from_contract(card, review, patch_id=patch_id)
     for entry in command_map["controls"]:
@@ -804,7 +805,8 @@ def patch_review_selection_from_cli_command(
         command_aliases = entry.get("command_aliases", [])
         if not isinstance(command_aliases, list):
             command_aliases = []
-        if entry.get("command") != command_text and command_text not in command_aliases:
+        normalized_aliases = {str(alias).lower() for alias in command_aliases}
+        if entry.get("command") != command_text and normalized_command not in normalized_aliases:
             continue
         selection = entry.get("selection")
         if not isinstance(selection, dict):
@@ -833,6 +835,7 @@ def patch_review_control_plan_from_contract(
         entry: dict[str, Any] = {
             "control": control,
             "status": "missing" if control in missing else "available",
+            "command_aliases": list(PATCH_REVIEW_CLI_COMMAND_ALIASES.get(control, ())),
             "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY[control]),
         }
         control_payload = controls.get(control)

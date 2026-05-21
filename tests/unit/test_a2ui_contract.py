@@ -1105,6 +1105,10 @@ class A2UIContractTests(unittest.TestCase):
             [(entry.get("slot"), entry.get("action_id")) for entry in plan],
             [(1, "preview_patch"), (2, "apply_patch"), (None, None)],
         )
+        self.assertEqual(
+            [entry["command_aliases"] for entry in plan],
+            [["preview", "preview_patch"], ["apply", "apply_patch"], ["reject", "reject_patch"]],
+        )
         self.assertFalse(plan[0]["execution_policy"]["requires_confirmation"])
         self.assertTrue(plan[1]["execution_policy"]["requires_confirmation"])
         self.assertEqual(
@@ -1234,7 +1238,7 @@ class A2UIContractTests(unittest.TestCase):
             card,
             review,
             patch_id="p1",
-            command="apply",
+            command="APPLY",
         )
         self.assertEqual(apply_selection, review["decisions"][0]["selection"])
 
@@ -1402,9 +1406,9 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn("Policy-gated patch controls: apply, reject", text)
         self.assertIn(
             "Patch review control plan: "
-            "preview=available(slot 1), "
-            "apply=available(slot 2, confirm, policy-gated), "
-            "reject=available(slot 3, confirm, policy-gated)",
+            "preview=available(slot 1, aliases preview/preview_patch), "
+            "apply=available(slot 2, aliases apply/apply_patch, confirm, policy-gated), "
+            "reject=available(slot 3, aliases reject/reject_patch, confirm, policy-gated)",
             text,
         )
 

@@ -225,6 +225,9 @@ def _format_patch_review_control_plan_entry(entry: dict[str, Any]) -> str:
     slot = entry.get("slot")
     if isinstance(slot, int):
         parts.append(f"slot {slot}")
+    aliases = entry.get("command_aliases")
+    if isinstance(aliases, list) and aliases:
+        parts.append(f"aliases {'/'.join(str(alias) for alias in aliases)}")
     policy = entry.get("execution_policy")
     if isinstance(policy, dict):
         if policy.get("requires_confirmation"):
