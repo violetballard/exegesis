@@ -2862,6 +2862,37 @@ class A2UIContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "do not match engine-resolved actions"):
             complete_patch_review_actions_from_card(card, patch_id="p1")
 
+    def test_complete_patch_review_execution_rejects_stale_embedded_actions(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        card["complete_patch_review_actions"]["decisions"]["apply"]["payload"]["patch_id"] = "stale"
+
+        with self.assertRaisesRegex(ValueError, "do not match engine-resolved actions"):
+            resolve_complete_patch_review_control_execution(
+                card,
+                patch_id="p1",
+                control="apply",
+                capabilities=_capabilities(),
+            )
+        with self.assertRaisesRegex(ValueError, "do not match engine-resolved actions"):
+            resolve_complete_patch_review_cli_command_execution(
+                card,
+                patch_id="p1",
+                command="apply",
+                capabilities=_capabilities(),
+            )
+
     def test_complete_patch_review_actions_from_card_rejects_untyped_embedded_actions(self) -> None:
         card = materialize_terminal_card(
             {
