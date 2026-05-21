@@ -409,6 +409,8 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
     preview = review.get("preview")
     if (
         isinstance(preview, dict)
+        and preview.get("contract_version") == ACTION_SELECTION_CONTRACT_VERSION
+        and preview.get("selection_model") == "one_based_action_slot"
         and preview.get("patch_id") == patch_id.strip()
         and preview.get("patch_preview_contract_version") == PATCH_PREVIEW_CONTRACT_VERSION
     ):
@@ -428,6 +430,8 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
             expected_action_id is not None
             and entry.get("action_id") == expected_action_id
             and isinstance(selection, dict)
+            and selection.get("contract_version") == ACTION_SELECTION_CONTRACT_VERSION
+            and selection.get("selection_model") == "one_based_action_slot"
             and selection.get("patch_id") == patch_id.strip()
             and selection.get("patch_decision") == decision
             and selection.get("patch_decision_contract_version") == PATCH_DECISION_CONTRACT_VERSION

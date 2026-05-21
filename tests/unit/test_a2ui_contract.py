@@ -1936,6 +1936,31 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(availability["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
         self.assertTrue(availability["is_complete"])
 
+    def test_patch_review_availability_requires_action_selection_contract_shape(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+        review["preview"]["selection_model"] = "zero_based_action_index"
+        review["decisions"][0]["selection"]["contract_version"] = ACTION_SELECTION_CONTRACT_VERSION + 1
+
+        availability = patch_review_availability_from_contract(review)
+
+        self.assertEqual(availability["available"], ["reject"])
+        self.assertEqual(availability["missing"], ["preview", "apply"])
+        self.assertEqual(availability["next_required"], "preview")
+        self.assertFalse(availability["is_complete"])
+
     def test_patch_review_required_parts_are_shared_and_cli_exported(self) -> None:
         self.assertEqual(shared_contracts.PATCH_REVIEW_ACTION_AUTHORITY, PATCH_REVIEW_ACTION_AUTHORITY)
         self.assertEqual(shared_contracts.PATCH_REVIEW_REQUIRED_PARTS, ("preview", "apply", "reject"))
