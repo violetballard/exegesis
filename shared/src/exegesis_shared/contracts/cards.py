@@ -326,6 +326,7 @@ def validate_retrieval_results_card(card: dict[str, Any], *, strict_actions: boo
             "RetrievalResultsCard result",
             required_fields={"item_id": str, "title": str, "snippet": str},
         )
+    _validate_unique_item_ids(results, "RetrievalResultsCard result")
     _validate_optional_card_actions(card, strict_actions=strict_actions)
     _validate_item_scoped_actions(card, results, "RetrievalResultsCard result")
 
@@ -341,6 +342,7 @@ def validate_basket_card(card: dict[str, Any], *, strict_actions: bool = True) -
             "BasketCard item",
             required_fields={"item_id": str, "title": str},
         )
+    _validate_unique_item_ids(items, "BasketCard item")
     _validate_optional_card_actions(card, strict_actions=strict_actions)
     _validate_item_scoped_actions(card, items, "BasketCard item")
 
@@ -359,6 +361,7 @@ def validate_context_set_card(card: dict[str, Any], *, strict_actions: bool = Tr
             "ContextSetCard item",
             required_fields={"item_id": str, "title": str},
         )
+    _validate_unique_item_ids(items, "ContextSetCard item")
     _validate_optional_card_actions(card, strict_actions=strict_actions)
     _validate_item_scoped_actions(card, items, "ContextSetCard item")
 
@@ -406,6 +409,20 @@ def _validate_typed_mapping(
             raise ValueError(f"{label} field '{field_name}' must be {field_type.__name__}")
         if field_type is str and not field_value.strip():
             raise ValueError(f"{label} field '{field_name}' is required")
+
+
+def _validate_unique_item_ids(items: list[Any], item_label: str) -> None:
+    seen_item_ids: set[str] = set()
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        item_id = item.get("item_id")
+        if not isinstance(item_id, str):
+            continue
+        normalized_item_id = item_id.strip()
+        if normalized_item_id in seen_item_ids:
+            raise ValueError(f"{item_label} item_id entries must be unique: {normalized_item_id}")
+        seen_item_ids.add(normalized_item_id)
 
 
 def _validate_optional_card_actions(card: dict[str, Any], *, strict_actions: bool) -> None:

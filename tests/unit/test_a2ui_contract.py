@@ -259,6 +259,25 @@ class A2UIContractTests(unittest.TestCase):
                 }
             )
 
+        with self.assertRaisesRegex(
+            ValueError,
+            "RetrievalResultsCard result item_id entries must be unique: doc-1",
+        ):
+            validate_retrieval_results_card(
+                {
+                    "type": RETRIEVAL_RESULTS_CARD_TYPE,
+                    "title": "Retrieval",
+                    "query": "chapter five",
+                    "results": [
+                        {"item_id": "doc-1", "title": "Chapter 5", "snippet": "Relevant paragraph"},
+                        {"item_id": " doc-1 ", "title": "Chapter 5 duplicate", "snippet": "Same source"},
+                    ],
+                    "actions": [
+                        {"id": "promote_to_basket", "label": "Add to basket", "payload": {"item_id": "doc-1"}}
+                    ],
+                }
+            )
+
         with self.assertRaisesRegex(ValueError, "BasketCard item field 'item_id' is required"):
             validate_basket_card(
                 {
@@ -278,6 +297,18 @@ class A2UIContractTests(unittest.TestCase):
                     "title": "Basket",
                     "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
                     "actions": [{"id": "pin_to_context_set", "label": "Pin", "payload": {"item_id": "doc-2"}}],
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "BasketCard item item_id entries must be unique: doc-1"):
+            validate_basket_card(
+                {
+                    "type": BASKET_CARD_TYPE,
+                    "title": "Basket",
+                    "items": [
+                        {"item_id": "doc-1", "title": "Chapter 5"},
+                        {"item_id": " doc-1 ", "title": "Chapter 5 duplicate"},
+                    ],
                 }
             )
 
@@ -302,6 +333,19 @@ class A2UIContractTests(unittest.TestCase):
                     "context_set_id": "ctx-1",
                     "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
                     "actions": [{"id": "open_corpus_item", "label": "Open", "payload": {"item_id": "doc-2"}}],
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "ContextSetCard item item_id entries must be unique: doc-1"):
+            validate_context_set_card(
+                {
+                    "type": CONTEXT_SET_CARD_TYPE,
+                    "title": "Context",
+                    "context_set_id": "ctx-1",
+                    "items": [
+                        {"item_id": "doc-1", "title": "Chapter 5"},
+                        {"item_id": " doc-1 ", "title": "Chapter 5 duplicate"},
+                    ],
                 }
             )
 
