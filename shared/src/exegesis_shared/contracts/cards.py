@@ -153,6 +153,11 @@ def validate_demo_context_card_capabilities(capabilities: A2UICapabilities) -> N
         )
 
 
+def validate_engine_demo_path_capabilities(capabilities: A2UICapabilities) -> None:
+    validate_demo_context_card_capabilities(capabilities)
+    validate_complete_patch_review_card_capabilities(capabilities)
+
+
 def _validate_capability_names(values: Any, field_name: str) -> None:
     if not isinstance(values, tuple):
         raise ValueError(f"{field_name} must be a tuple")

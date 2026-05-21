@@ -111,6 +111,7 @@ from src.qual.ui.a2ui import (
     validate_complete_patch_review_card_capabilities,
     validate_context_set_card,
     validate_demo_context_card_capabilities,
+    validate_engine_demo_path_capabilities,
     validate_known_card,
     validate_patch_review_contract,
     validate_retrieval_results_card,
@@ -231,6 +232,41 @@ class A2UIContractTests(unittest.TestCase):
                         action_id
                         for action_id in _capabilities().actions_supported
                         if action_id != "gather_context"
+                    ),
+                )
+            )
+
+    def test_engine_demo_path_capabilities_require_context_and_patch_review(self) -> None:
+        cards_supported = DEMO_CONTEXT_CARD_TYPES + ("ProposedEditCard",)
+        caps = _capabilities(cards_supported=cards_supported)
+
+        validate_engine_demo_path_capabilities(caps)
+        shared_contracts.validate_engine_demo_path_capabilities(caps)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Demo context flow requires card support: BasketCard",
+        ):
+            validate_engine_demo_path_capabilities(
+                _capabilities(
+                    cards_supported=(
+                        RETRIEVAL_RESULTS_CARD_TYPE,
+                        CONTEXT_SET_CARD_TYPE,
+                        "ProposedEditCard",
+                    )
+                )
+            )
+        with self.assertRaisesRegex(
+            ValueError,
+            "Complete patch review client support is missing: reject",
+        ):
+            validate_engine_demo_path_capabilities(
+                _capabilities(
+                    cards_supported=cards_supported,
+                    actions_supported=tuple(
+                        action_id
+                        for action_id in _capabilities().actions_supported
+                        if action_id != "reject_patch"
                     ),
                 )
             )
