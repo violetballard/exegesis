@@ -1859,6 +1859,9 @@ def engine_authoritative_action_ref(action: ActionRef) -> ActionRef:
             normalized_payload["patch_id"] = patch_id.strip()
             action = replace(action, payload=normalized_payload)
             validate_action_ref(action.as_contract())
+    if action.id == "preview_patch":
+        if action.confirm is not None or action.policy_sensitive:
+            return replace(action, confirm=None, policy_sensitive=False)
     if action.id in PATCH_DECISION_ACTION_IDS:
         confirm = action.confirm
         confirmation_added = False

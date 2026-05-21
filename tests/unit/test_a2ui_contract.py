@@ -3875,6 +3875,26 @@ class A2UIContractTests(unittest.TestCase):
         self.assertTrue(apply_action.policy_sensitive)
         self.assertFalse(preview_action.policy_sensitive)
 
+    def test_engine_authoritative_preview_action_stays_optional_non_mutating(self) -> None:
+        gate = _RecordingPolicyGate(False, [])
+        action = ActionRef(
+            id="preview_patch",
+            label="Preview",
+            payload={"patch_id": " p1 "},
+            confirm={"title": "Preview patch?"},
+            policy_sensitive=True,
+        )
+
+        with self.assertRaises(PermissionError):
+            execute_action_with_policy_gate(
+                action=action,
+                capabilities=_capabilities(),
+                policy_gate=gate,
+                executor=lambda a: a,
+            )
+
+        self.assertEqual(gate.calls, [("preview_patch", {"patch_id": "p1"}, False)])
+
     def test_patch_decision_execution_preserves_explicit_confirmation_metadata(self) -> None:
         executed: list[ActionRef] = []
         action = ActionRef(
