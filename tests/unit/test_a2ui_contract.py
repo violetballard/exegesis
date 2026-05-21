@@ -5426,6 +5426,34 @@ class A2UIContractTests(unittest.TestCase):
                 }
             )
 
+    def test_streaming_events_reject_untyped_patch_review_metadata(self) -> None:
+        selection = {
+            "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+            "selection_model": "one_based_action_slot",
+            "slot": 1,
+            "action_identity": "apply_patch:1:p1",
+            "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+            "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+            "execution_policy": PATCH_REVIEW_EXECUTION_POLICY["apply"],
+            "patch_id": "p1",
+        }
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Patch review selection must identify preview or decision policy",
+        ):
+            validate_stream_event(
+                {
+                    "contract_version": 1,
+                    "event_id": "evt-1",
+                    "run_id": "run-1",
+                    "sequence": 1,
+                    "event_type": "action_selected",
+                    "action_id": "apply_patch",
+                    "selection": selection,
+                }
+            )
+
     def test_streaming_events_reject_untyped_metadata_fields(self) -> None:
         selection = {
             "contract_version": ACTION_SELECTION_CONTRACT_VERSION,

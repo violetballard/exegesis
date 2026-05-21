@@ -68,6 +68,12 @@ _PATCH_DECISION_SELECTION_FIELDS: frozenset[str] = frozenset(
         "patch_id",
     }
 )
+_ACTION_SELECTION_FIELDS: frozenset[str] = frozenset(
+    {"contract_version", "selection_model", "slot", "action_identity"}
+)
+_PATCH_REVIEW_METADATA_FIELDS: frozenset[str] = (
+    _PATCH_PREVIEW_SELECTION_FIELDS | _PATCH_DECISION_SELECTION_FIELDS
+) - _ACTION_SELECTION_FIELDS
 
 
 def build_card_published_event(
@@ -357,6 +363,7 @@ def _validate_action_selection(selection: dict[str, Any], action_id: str) -> Non
         expected_policy = PATCH_REVIEW_EXECUTION_POLICY[str(patch_decision)]
         if selection.get("execution_policy") != expected_policy:
             raise ValueError("Patch review selection execution policy does not match engine policy")
+        return
 
     if "patch_preview_contract_version" in selection:
         _validate_selection_fields(
@@ -377,6 +384,11 @@ def _validate_action_selection(selection: dict[str, Any], action_id: str) -> Non
             raise ValueError("Action id does not match patch preview selection")
         if selection.get("execution_policy") != PATCH_REVIEW_EXECUTION_POLICY["preview"]:
             raise ValueError("Patch review selection execution policy does not match engine policy")
+        return
+
+    if set(selection) & _PATCH_REVIEW_METADATA_FIELDS:
+        raise ValueError("Patch review selection must identify preview or decision policy")
+    _validate_selection_fields(selection, _ACTION_SELECTION_FIELDS, "action selection")
 
 
 def _validate_selection_fields(
