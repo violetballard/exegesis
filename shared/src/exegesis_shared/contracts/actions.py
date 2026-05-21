@@ -1307,6 +1307,28 @@ def complete_patch_review_action_from_card(
     raise ValueError("Patch review control must be 'preview', 'apply', or 'reject'")
 
 
+def complete_patch_review_action_ref_from_cli_command(
+    card: dict[str, Any],
+    *,
+    patch_id: str,
+    command: str,
+) -> ActionRef:
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch review patch_id is required")
+    complete_patch_review_actions_from_card(
+        card,
+        patch_id=expected_patch_id,
+    )
+    review = build_complete_patch_review_contract(card, patch_id=expected_patch_id)
+    return patch_review_action_ref_from_cli_command(
+        card,
+        review,
+        patch_id=expected_patch_id,
+        command=command,
+    )
+
+
 def build_patch_review_selection(
     card: dict[str, Any],
     review: dict[str, Any],
@@ -1919,6 +1941,29 @@ def execute_complete_patch_review_action_with_policy_gate(
 ) -> Any:
     validate_complete_patch_review_capabilities(capabilities)
     action = complete_patch_review_action_from_card(card, patch_id=patch_id, control=control)
+    return execute_action_with_policy_gate(
+        action=engine_authoritative_action_ref(action),
+        capabilities=capabilities,
+        policy_gate=policy_gate,
+        executor=executor,
+    )
+
+
+def execute_complete_patch_review_cli_command_with_policy_gate(
+    *,
+    card: dict[str, Any],
+    patch_id: str,
+    command: str,
+    capabilities: Any,
+    policy_gate: PolicyGate,
+    executor: Callable[[ActionRef], Any],
+) -> Any:
+    validate_complete_patch_review_capabilities(capabilities)
+    action = complete_patch_review_action_ref_from_cli_command(
+        card,
+        patch_id=patch_id,
+        command=command,
+    )
     return execute_action_with_policy_gate(
         action=engine_authoritative_action_ref(action),
         capabilities=capabilities,
