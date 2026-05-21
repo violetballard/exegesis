@@ -4963,6 +4963,10 @@ class A2UIContractTests(unittest.TestCase):
                 "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
                 "flow": PATCH_REVIEW_FLOW,
                 "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+                "decision_group": PATCH_REVIEW_DECISION_GROUP,
+                "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+                "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+                "execution_policy": PATCH_REVIEW_EXECUTION_POLICY,
                 "required": ["preview", "apply", "reject"],
                 "available": ["preview", "apply", "reject"],
                 "missing": [],
@@ -5002,6 +5006,22 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(execution["action_contract"]["confirm"], {"title": "Reject patch?"})
         self.assertTrue(execution["action_contract"]["policy_sensitive"])
         self.assertEqual(execution["complete_patch_review"]["missing"], [])
+        self.assertEqual(
+            execution["complete_patch_review"]["decision_group"],
+            PATCH_REVIEW_DECISION_GROUP,
+        )
+        self.assertEqual(
+            execution["complete_patch_review"]["action_authority"],
+            PATCH_REVIEW_ACTION_AUTHORITY,
+        )
+        self.assertEqual(
+            execution["complete_patch_review"]["demo_path_step"],
+            PATCH_REVIEW_DEMO_PATH_STEP,
+        )
+        self.assertEqual(
+            execution["complete_patch_review"]["execution_policy"],
+            PATCH_REVIEW_EXECUTION_POLICY,
+        )
         self.assertIs(
             shared_contracts.resolve_complete_patch_review_cli_command_execution,
             resolve_complete_patch_review_cli_command_execution,

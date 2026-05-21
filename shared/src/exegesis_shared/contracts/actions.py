@@ -978,6 +978,23 @@ def resolve_patch_review_control_execution(
     }
 
 
+def _complete_patch_review_execution_contract(review: dict[str, Any]) -> dict[str, Any]:
+    availability = patch_review_availability_from_contract(review)
+    return {
+        "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+        "flow": PATCH_REVIEW_FLOW,
+        "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+        "decision_group": PATCH_REVIEW_DECISION_GROUP,
+        "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+        "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+        "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY),
+        "required": list(PATCH_REVIEW_REQUIRED_PARTS),
+        "available": deepcopy(availability["available"]),
+        "missing": deepcopy(availability["missing"]),
+        "is_complete": availability["is_complete"],
+    }
+
+
 def resolve_patch_review_cli_command_execution(
     card: dict[str, Any],
     review: dict[str, Any],
@@ -1032,15 +1049,7 @@ def resolve_complete_patch_review_control_execution(
         control=control,
         capabilities=capabilities,
     )
-    execution["complete_patch_review"] = {
-        "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
-        "flow": PATCH_REVIEW_FLOW,
-        "decision_policy": PATCH_REVIEW_DECISION_POLICY,
-        "required": list(PATCH_REVIEW_REQUIRED_PARTS),
-        "available": deepcopy(review["availability"]["available"]),
-        "missing": deepcopy(review["availability"]["missing"]),
-        "is_complete": review["availability"]["is_complete"],
-    }
+    execution["complete_patch_review"] = _complete_patch_review_execution_contract(review)
     return execution
 
 
@@ -1065,15 +1074,7 @@ def resolve_complete_patch_review_cli_command_execution(
         command=command,
         capabilities=capabilities,
     )
-    execution["complete_patch_review"] = {
-        "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
-        "flow": PATCH_REVIEW_FLOW,
-        "decision_policy": PATCH_REVIEW_DECISION_POLICY,
-        "required": list(PATCH_REVIEW_REQUIRED_PARTS),
-        "available": deepcopy(review["availability"]["available"]),
-        "missing": deepcopy(review["availability"]["missing"]),
-        "is_complete": review["availability"]["is_complete"],
-    }
+    execution["complete_patch_review"] = _complete_patch_review_execution_contract(review)
     return execution
 
 
