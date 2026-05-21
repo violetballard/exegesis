@@ -4157,6 +4157,41 @@ class A2UIContractTests(unittest.TestCase):
                 payload={"patch_id": "p1", "target_file": "chapter.md"},
             )
 
+    def test_action_id_must_be_typed_and_normalized_before_policy_gate(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Action id must be normalized"):
+            validate_action_ref(
+                {
+                    "id": " apply_patch ",
+                    "label": "Apply",
+                    "payload": {"patch_id": "p1"},
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "Action id is required"):
+            validate_action_ref(
+                {
+                    "id": 1,
+                    "label": "Apply",
+                    "payload": {"patch_id": "p1"},
+                }
+            )
+
+    def test_card_action_materialization_drops_malformed_action_ids(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Patch choices",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+            "actions": [
+                {"id": " apply_patch ", "label": "Apply padded", "payload": {"patch_id": "p1"}},
+                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+            ],
+        }
+
+        actions = materialize_card_actions(card)
+
+        self.assertEqual(len(actions), 1)
+        self.assertEqual(actions[0]["id"], "apply_patch")
+
     def test_action_ref_metadata_rejects_bad_runtime_values_before_policy_gate(self) -> None:
         with self.assertRaisesRegex(ValueError, "confirm values must be non-empty strings"):
             ActionRef(

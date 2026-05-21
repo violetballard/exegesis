@@ -2046,7 +2046,11 @@ def validate_action_ref(action: Any) -> None:
     if unexpected_fields:
         field_list = ", ".join(sorted(unexpected_fields))
         raise ValueError(f"Unsupported action field(s): {field_list}")
-    action_id = str(action.get("id", ""))
+    action_id = action.get("id")
+    if not isinstance(action_id, str) or not action_id.strip():
+        raise ValueError("Action id is required")
+    if action_id != action_id.strip():
+        raise ValueError("Action id must be normalized")
     if action_id not in _ALLOWED_ACTION_SET:
         raise ValueError(f"Unsupported action id: {action_id}")
     label = action.get("label")
