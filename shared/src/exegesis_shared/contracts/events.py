@@ -83,15 +83,40 @@ def build_action_resolved_event(
     sequence: int,
     action_id: str,
     status: str,
+    selection: dict[str, Any] | None = None,
     message: str | None = None,
 ) -> dict[str, Any]:
     event = _base_event(event_id=event_id, run_id=run_id, sequence=sequence, event_type="action_resolved")
     event["action_id"] = action_id
     event["status"] = status
+    if selection is not None:
+        event["selection"] = deepcopy(selection)
     if message is not None:
         event["message"] = message
     validate_stream_event(event)
     return event
+
+
+def build_action_resolved_event_from_selection(
+    *,
+    event_id: str,
+    run_id: str,
+    sequence: int,
+    card: dict[str, Any],
+    selection: dict[str, Any],
+    status: str,
+    message: str | None = None,
+) -> dict[str, Any]:
+    action = action_ref_from_selection(card, selection)
+    return build_action_resolved_event(
+        event_id=event_id,
+        run_id=run_id,
+        sequence=sequence,
+        action_id=action.id,
+        status=status,
+        selection=selection,
+        message=message,
+    )
 
 
 def validate_stream_event(
@@ -134,6 +159,11 @@ def validate_stream_event(
         status = event.get("status")
         if status not in {"applied", "rejected", "blocked", "failed"}:
             raise ValueError("Unsupported action_resolved status")
+        selection = event.get("selection")
+        if selection is not None:
+            if not isinstance(selection, dict):
+                raise ValueError("action_resolved event selection must be an object")
+            _validate_action_selection(selection, str(event.get("action_id", "")))
 
 
 def _base_event(*, event_id: str, run_id: str, sequence: int, event_type: str) -> dict[str, Any]:

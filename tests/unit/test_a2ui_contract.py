@@ -20,6 +20,7 @@ from src.qual.ui.a2ui import (
     action_ref_from_selection,
     build_complete_patch_review_contract,
     build_action_resolved_event,
+    build_action_resolved_event_from_selection,
     build_action_selected_event,
     build_action_selected_event_from_selection,
     build_card_published_event,
@@ -1871,10 +1872,67 @@ class A2UIContractTests(unittest.TestCase):
             sequence=3,
             action_id="apply_patch",
             status="applied",
+            selection=selection,
         )
 
         self.assertEqual(selected["selection"]["patch_decision"], "apply")
         self.assertEqual(resolved["status"], "applied")
+        self.assertEqual(resolved["selection"]["action_identity"], selection["action_identity"])
+
+    def test_streaming_action_resolved_event_can_derive_action_id_from_selection(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p1", decision="reject")
+
+        resolved = build_action_resolved_event_from_selection(
+            event_id="evt-3",
+            run_id="run-1",
+            sequence=3,
+            card=card,
+            selection=selection,
+            status="rejected",
+            message="Rejected by operator",
+        )
+
+        self.assertEqual(resolved["action_id"], "reject_patch")
+        self.assertEqual(resolved["status"], "rejected")
+        self.assertEqual(resolved["message"], "Rejected by operator")
+        self.assertEqual(resolved["selection"]["patch_decision"], "reject")
+
+    def test_streaming_action_resolved_event_rejects_mismatched_patch_selection(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+
+        with self.assertRaisesRegex(ValueError, "does not match patch decision selection"):
+            build_action_resolved_event(
+                event_id="evt-3",
+                run_id="run-1",
+                sequence=3,
+                action_id="reject_patch",
+                status="rejected",
+                selection=selection,
+            )
 
     def test_streaming_action_selected_event_can_derive_action_id_from_selection(self) -> None:
         card = materialize_terminal_card(
