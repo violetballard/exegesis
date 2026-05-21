@@ -10,6 +10,7 @@ from exegesis_shared.contracts.actions import (
     PATCH_PREVIEW_CONTRACT_VERSION,
     PATCH_REVIEW_CONTRACT_VERSION,
     PATCH_REVIEW_DECISION_POLICY,
+    PATCH_REVIEW_EXECUTION_POLICY,
     PATCH_REVIEW_FLOW,
     PATCH_REVIEW_REQUIRED_PARTS,
 )
@@ -1089,6 +1090,71 @@ class A2UIContractTests(unittest.TestCase):
             [(entry["control"], entry["policy_sensitive"]) for entry in summary["order"]],
             [("preview", False), ("apply", True), ("reject", True)],
         )
+
+    def test_patch_review_control_summary_exports_execution_policy(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        summary = patch_review_control_summary_from_contract(card, review, patch_id="p1")
+
+        self.assertEqual(
+            shared_contracts.PATCH_REVIEW_EXECUTION_POLICY,
+            PATCH_REVIEW_EXECUTION_POLICY,
+        )
+        self.assertEqual(
+            summary["controls"]["preview"]["execution_policy"],
+            {
+                "policy_gate": "optional",
+                "requires_confirmation": False,
+                "mutates_patch": False,
+            },
+        )
+        self.assertEqual(
+            summary["controls"]["apply"]["execution_policy"],
+            {
+                "policy_gate": "required",
+                "requires_confirmation": True,
+                "mutates_patch": True,
+            },
+        )
+        self.assertEqual(
+            summary["controls"]["reject"]["execution_policy"],
+            {
+                "policy_gate": "required",
+                "requires_confirmation": True,
+                "mutates_patch": True,
+            },
+        )
+
+    def test_terminal_patch_review_fallback_renders_policy_gated_controls(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        self.assertIn("Patch review controls: preview=1, apply=2, reject=3", text)
+        self.assertIn("Policy-gated patch controls: apply, reject", text)
 
     def test_patch_review_selection_resolves_cli_slot_through_review_contract(self) -> None:
         card = materialize_terminal_card(

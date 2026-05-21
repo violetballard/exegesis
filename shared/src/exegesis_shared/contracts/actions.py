@@ -29,6 +29,23 @@ PATCH_DECISION_BY_ACTION_ID: dict[str, str] = {
 PATCH_PREVIEW_CONTRACT_VERSION = 1
 PATCH_REVIEW_FLOW = "preview_then_decide"
 PATCH_REVIEW_DECISION_POLICY = "apply_or_reject"
+PATCH_REVIEW_EXECUTION_POLICY: dict[str, dict[str, Any]] = {
+    "preview": {
+        "policy_gate": "optional",
+        "requires_confirmation": False,
+        "mutates_patch": False,
+    },
+    "apply": {
+        "policy_gate": "required",
+        "requires_confirmation": True,
+        "mutates_patch": True,
+    },
+    "reject": {
+        "policy_gate": "required",
+        "requires_confirmation": True,
+        "mutates_patch": True,
+    },
+}
 PATCH_REVIEW_REQUIRED_PARTS: tuple[str, ...] = ("preview", "apply", "reject")
 
 CANONICAL_ACTION_ORDER: tuple[str, ...] = (
@@ -601,6 +618,7 @@ def patch_review_control_actions_from_contract(
             "label": action_ref.label,
             "payload": deepcopy(action_ref.payload),
             "selection": deepcopy(selection_by_control[control]),
+            "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY[control]),
             "confirm": deepcopy(action_ref.confirm),
             "policy_sensitive": action_ref.policy_sensitive,
         }

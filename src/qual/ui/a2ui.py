@@ -11,6 +11,7 @@ from exegesis_shared.contracts.actions import (
     PATCH_PREVIEW_CONTRACT_VERSION,
     PATCH_REVIEW_CONTRACT_VERSION,
     PATCH_REVIEW_DECISION_POLICY,
+    PATCH_REVIEW_EXECUTION_POLICY,
     PATCH_REVIEW_FLOW,
     PATCH_REVIEW_REQUIRED_PARTS,
     PatchReviewActionSelection,
@@ -158,6 +159,14 @@ def render_terminal_card(card: dict[str, Any]) -> str:
         ]
         if ordered_controls:
             lines.append(f"Patch review controls: {', '.join(ordered_controls)}")
+            gated_controls = [
+                entry["control"]
+                for entry in summary["order"]
+                if isinstance(entry, dict)
+                and entry.get("execution_policy", {}).get("policy_gate") == "required"
+            ]
+            if gated_controls:
+                lines.append(f"Policy-gated patch controls: {', '.join(gated_controls)}")
         if summary["missing"]:
             lines.append(f"Patch review missing controls: {', '.join(summary['missing'])}")
     for slot, action in enumerate(materialized.get("actions", []), start=1):
@@ -186,6 +195,7 @@ __all__ = [
     "PATCH_PREVIEW_CONTRACT_VERSION",
     "PATCH_REVIEW_CONTRACT_VERSION",
     "PATCH_REVIEW_DECISION_POLICY",
+    "PATCH_REVIEW_EXECUTION_POLICY",
     "PATCH_REVIEW_FLOW",
     "PATCH_REVIEW_REQUIRED_PARTS",
     "GENERIC_CARD_TYPE",
