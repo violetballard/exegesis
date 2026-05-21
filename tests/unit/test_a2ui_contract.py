@@ -39,6 +39,7 @@ def _capabilities(
         "export_document",
         "copy_to_clipboard",
     ),
+    max_payload_bytes: int = 1_000_000,
 ) -> A2UICapabilities:
     return A2UICapabilities(
         a2ui_version=1,
@@ -54,7 +55,7 @@ def _capabilities(
             "CodeBlock",
         ),
         actions_supported=actions_supported,
-        max_payload_bytes=1_000_000,
+        max_payload_bytes=max_payload_bytes,
         supports_streaming=True,
     )
 
@@ -82,6 +83,18 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["type"], "GenericCard")
         self.assertEqual(card["blocks"][0]["type"], "AlertBlock")
 
+    def test_engine_rejects_cards_over_negotiated_payload_limit(self) -> None:
+        caps = _capabilities(max_payload_bytes=100)
+        payload = {
+            "type": "GenericCard",
+            "title": "Oversized",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "x" * 200}],
+            "actions": [],
+        }
+
+        with self.assertRaisesRegex(ValueError, "max_payload_bytes"):
+            engine_prepare_card(payload, caps)
+
     def test_proposed_edit_card_materializes_patch_actions_for_cli_fallback(self) -> None:
         card = {
             "type": "ProposedEditCard",
@@ -99,6 +112,18 @@ class A2UIContractTests(unittest.TestCase):
             [action["payload"] for action in materialized["actions"]],
             [{"patch_id": "patch-1"}, {"patch_id": "patch-1"}],
         )
+
+    def test_cli_fallback_materialization_enforces_negotiated_payload_limit(self) -> None:
+        card = {
+            "type": "ProposedEditCard",
+            "patch_id": "patch-1",
+            "title": "Oversized patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "x" * 200}],
+            "actions": [],
+        }
+
+        with self.assertRaisesRegex(ValueError, "max_payload_bytes"):
+            studio_materialize_card(card, _capabilities(max_payload_bytes=160))
 
     def test_proposed_edit_card_rejects_mismatched_patch_actions(self) -> None:
         card = {

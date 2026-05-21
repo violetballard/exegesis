@@ -73,15 +73,18 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
     card_type = str(card.get("type", "")).strip()
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card)
+        validate_card_payload_size(card, capabilities)
         return card
     if card_type == PROPOSED_EDIT_CARD_TYPE:
         prepared = materialize_proposed_edit_card(card)
         if card_type in set(capabilities.cards_supported):
+            validate_card_payload_size(prepared, capabilities)
             return prepared
         card = prepared
     if card_type in set(capabilities.cards_supported):
+        validate_card_payload_size(card, capabilities)
         return card
-    return {
+    fallback = {
         "type": GENERIC_CARD_TYPE,
         "title": f"Fallback view for {card_type or 'Unknown'}",
         "blocks": [
@@ -99,19 +102,38 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
         ],
         "actions": [],
     }
+    validate_card_payload_size(fallback, capabilities)
+    return fallback
 
 
 def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
     card_type = str(card.get("type", "")).strip()
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card, strict_actions=False)
-        return materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
+        materialized = materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
+        validate_card_payload_size(materialized, capabilities)
+        return materialized
     if card_type == PROPOSED_EDIT_CARD_TYPE:
         card = materialize_proposed_edit_card(card)
-        return materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
+        materialized = materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
+        validate_card_payload_size(materialized, capabilities)
+        return materialized
     if card_type in set(capabilities.cards_supported):
-        return materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
-    return materialize_cli_fallback_card(_studio_filter_actions(build_unknown_card(card), capabilities))
+        materialized = materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
+        validate_card_payload_size(materialized, capabilities)
+        return materialized
+    materialized = materialize_cli_fallback_card(_studio_filter_actions(build_unknown_card(card), capabilities))
+    validate_card_payload_size(materialized, capabilities)
+    return materialized
+
+
+def validate_card_payload_size(card: dict[str, Any], capabilities: A2UICapabilities) -> None:
+    encoded = json.dumps(card, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+    if len(encoded) > capabilities.max_payload_bytes:
+        raise ValueError(
+            "A2UI card payload exceeds negotiated max_payload_bytes "
+            f"({len(encoded)} > {capabilities.max_payload_bytes})"
+        )
 
 
 def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
