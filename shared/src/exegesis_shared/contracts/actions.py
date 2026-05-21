@@ -284,6 +284,7 @@ def build_patch_review_contract(card: dict[str, Any], *, patch_id: str) -> dict[
 
     if review["preview"] is None and not review["decisions"]:
         raise ValueError("Patch review is not available for the current patch")
+    review["availability"] = patch_review_availability_from_contract(review)
     return review
 
 
@@ -346,7 +347,6 @@ def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], 
         raise ValueError("Unsupported patch review contract version")
     if review.get("patch_id") != expected_patch_id:
         raise ValueError("Patch review contract does not match the current patch")
-
     resolved: dict[str, Any] = {
         "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
         "patch_id": expected_patch_id,
@@ -389,6 +389,10 @@ def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], 
 
     if resolved["preview"] is None and not resolved["decisions"]:
         raise ValueError("Patch review is not available for the current patch")
+    expected_availability = patch_review_availability_from_contract(review)
+    availability = review.get("availability")
+    if availability is not None and availability != expected_availability:
+        raise ValueError("Patch review availability does not match the current contract")
     return resolved
 
 

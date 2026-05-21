@@ -702,6 +702,16 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(review["patch_id"], "p1")
         self.assertEqual(review["preview"], build_patch_preview_selection(card, patch_id="p1"))
         self.assertEqual(
+            review["availability"],
+            {
+                "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+                "patch_id": "p1",
+                "available": ["preview", "apply", "reject"],
+                "missing": [],
+                "is_complete": True,
+            },
+        )
+        self.assertEqual(
             [
                 (
                     entry["decision"],
@@ -848,6 +858,27 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(availability["missing"], [])
         self.assertTrue(availability["is_complete"])
 
+    def test_patch_review_contract_rejects_stale_availability_snapshot(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+        review["availability"]["missing"] = ["reject"]
+        review["availability"]["is_complete"] = False
+
+        with self.assertRaisesRegex(ValueError, "availability"):
+            resolve_patch_review_contract(card, review, patch_id="p1")
+
     def test_cli_fallback_materializes_patch_review_contract_for_current_patch(self) -> None:
         card = materialize_terminal_card(
             {
@@ -870,6 +901,9 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(review["contract_version"], PATCH_REVIEW_CONTRACT_VERSION)
         self.assertEqual(review["patch_id"], "p1")
         self.assertEqual(review["preview"], card["patch_preview"]["previews"][0]["selection"])
+        self.assertEqual(review["availability"]["available"], ["preview", "apply", "reject"])
+        self.assertEqual(review["availability"]["missing"], [])
+        self.assertTrue(review["availability"]["is_complete"])
         self.assertEqual(
             [(entry["decision"], entry["selection"]["patch_id"]) for entry in review["decisions"]],
             [("apply", "p1"), ("reject", "p1")],
