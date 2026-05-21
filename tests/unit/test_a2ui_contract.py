@@ -28,6 +28,7 @@ from src.qual.ui.a2ui import (
     build_action_selected_event,
     build_action_selected_event_from_selection,
     build_card_published_event,
+    build_complete_patch_review_action_resolved_event,
     build_complete_patch_review_action_selected_event,
     build_patch_decision_selection,
     build_patch_preview_selection,
@@ -2418,6 +2419,72 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(event["action_id"], "apply_patch")
         self.assertEqual(event["selection"]["patch_decision"], "apply")
         self.assertEqual(event["selection"]["patch_id"], "p1")
+
+    def test_complete_patch_review_action_resolved_event_uses_control_status(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        preview = build_complete_patch_review_action_resolved_event(
+            event_id="evt-1",
+            run_id="run-1",
+            sequence=1,
+            card=card,
+            patch_id=" p1 ",
+            control="preview",
+        )
+        rejected = build_complete_patch_review_action_resolved_event(
+            event_id="evt-2",
+            run_id="run-1",
+            sequence=2,
+            card=card,
+            patch_id="p1",
+            control="reject",
+            message="User rejected patch",
+        )
+
+        self.assertEqual(preview["action_id"], "preview_patch")
+        self.assertEqual(preview["status"], "previewed")
+        self.assertEqual(preview["selection"]["patch_id"], "p1")
+        self.assertEqual(rejected["action_id"], "reject_patch")
+        self.assertEqual(rejected["status"], "rejected")
+        self.assertEqual(rejected["message"], "User rejected patch")
+
+    def test_complete_patch_review_action_resolved_event_rejects_wrong_status(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        with self.assertRaisesRegex(ValueError, "resolved status does not match"):
+            build_complete_patch_review_action_resolved_event(
+                event_id="evt-1",
+                run_id="run-1",
+                sequence=1,
+                card=card,
+                patch_id="p1",
+                control="preview",
+                status="applied",
+            )
 
     def test_complete_patch_review_action_selected_event_requires_full_demo_controls(self) -> None:
         card = materialize_terminal_card(

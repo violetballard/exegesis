@@ -111,6 +111,44 @@ def build_complete_patch_review_action_selected_event(
     )
 
 
+def build_complete_patch_review_action_resolved_event(
+    *,
+    event_id: str,
+    run_id: str,
+    sequence: int,
+    card: dict[str, Any],
+    patch_id: str,
+    control: str,
+    status: str | None = None,
+    message: str | None = None,
+) -> dict[str, Any]:
+    review = build_complete_patch_review_contract(card, patch_id=patch_id)
+    normalized_control = control.strip().lower()
+    selection = build_patch_review_selection(
+        card,
+        review,
+        patch_id=patch_id,
+        control=normalized_control,
+    )
+    expected_status = {
+        "preview": "previewed",
+        "apply": "applied",
+        "reject": "rejected",
+    }[normalized_control]
+    resolved_status = status or expected_status
+    if resolved_status != expected_status:
+        raise ValueError("Patch review resolved status does not match the selected control")
+    return build_action_resolved_event_from_selection(
+        event_id=event_id,
+        run_id=run_id,
+        sequence=sequence,
+        card=card,
+        selection=selection,
+        status=resolved_status,
+        message=message,
+    )
+
+
 def build_action_resolved_event(
     *,
     event_id: str,
@@ -193,7 +231,7 @@ def validate_stream_event(
         _validate_required_text(event, "action_id")
         _validate_action_id(event, capabilities)
         status = event.get("status")
-        if status not in {"applied", "rejected", "blocked", "failed"}:
+        if status not in {"previewed", "applied", "rejected", "blocked", "failed"}:
             raise ValueError("Unsupported action_resolved status")
         message = event.get("message")
         if message is not None and (not isinstance(message, str) or not message.strip()):
