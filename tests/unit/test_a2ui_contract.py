@@ -64,6 +64,7 @@ from src.qual.ui.a2ui import (
     patch_review_control_plan_from_contract,
     patch_review_control_summary_from_contract,
     patch_review_control_slots_from_contract,
+    patch_review_next_control_from_contract,
     patch_review_selection_from_cli_command,
     render_terminal_card,
     resolve_card_selection_contract,
@@ -1117,6 +1118,58 @@ class A2UIContractTests(unittest.TestCase):
             plan,
         )
 
+    def test_patch_review_next_control_reports_missing_required_step(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+
+        next_control = patch_review_next_control_from_contract(card, review, patch_id="p1")
+
+        self.assertEqual(
+            next_control,
+            {
+                "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+                "patch_id": "p1",
+                "control": "reject",
+                "status": "missing",
+                "command_aliases": ["reject", "reject_patch"],
+                "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+                "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+            },
+        )
+        self.assertEqual(
+            shared_contracts.patch_review_next_control_from_contract(card, review, patch_id=" p1 "),
+            next_control,
+        )
+
+    def test_patch_review_next_control_is_none_when_review_is_complete(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        self.assertIsNone(patch_review_next_control_from_contract(card, review, patch_id="p1"))
+
     def test_patch_review_cli_control_map_exports_one_based_commands(self) -> None:
         card = materialize_terminal_card(
             {
@@ -1488,6 +1541,7 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         self.assertIn("Patch review missing controls: reject", text)
+        self.assertIn("Patch review next control: reject=missing", text)
         self.assertIn("Patch review next required control: reject", text)
 
     def test_patch_review_selection_resolves_cli_slot_through_review_contract(self) -> None:

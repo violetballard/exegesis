@@ -737,6 +737,57 @@ def patch_review_control_summary_from_contract(
     }
 
 
+def patch_review_next_control_from_contract(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+) -> dict[str, Any] | None:
+    summary = patch_review_control_summary_from_contract(card, review, patch_id=patch_id)
+    next_required = summary["next_required"]
+    if not isinstance(next_required, str):
+        return None
+    control = summary["controls"].get(next_required)
+    if not isinstance(control, dict):
+        return {
+            "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+            "patch_id": summary["patch_id"],
+            "control": next_required,
+            "status": "missing",
+            "command_aliases": deepcopy(summary["next_required_command_aliases"]),
+            "action_authority": summary["action_authority"],
+            "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+        }
+    slot = control["slot"]
+    execution_policy = control["execution_policy"]
+    return {
+        "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+        "patch_id": summary["patch_id"],
+        "control": next_required,
+        "status": "available",
+        "command": str(slot),
+        "command_aliases": deepcopy(summary["next_required_command_aliases"]),
+        "slot": slot,
+        "action_id": control["action_id"],
+        "action_identity": control["action_identity"],
+        "label": control["label"],
+        "payload": deepcopy(control["payload"]),
+        "selection": deepcopy(control["selection"]),
+        "requires_confirmation": bool(
+            isinstance(execution_policy, dict)
+            and execution_policy.get("requires_confirmation") is True
+        ),
+        "policy_gate": (
+            execution_policy.get("policy_gate")
+            if isinstance(execution_policy, dict)
+            else None
+        ),
+        "policy_sensitive": control["policy_sensitive"],
+        "action_authority": summary["action_authority"],
+        "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+    }
+
+
 def patch_review_cli_control_map_from_contract(
     card: dict[str, Any],
     review: dict[str, Any],
