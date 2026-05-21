@@ -148,6 +148,9 @@ class ActionRef:
     confirm: dict[str, str] | None = None
     policy_sensitive: bool = False
 
+    def __post_init__(self) -> None:
+        validate_action_ref(self.as_contract())
+
     def as_contract(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "id": self.id,
