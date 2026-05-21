@@ -6,6 +6,7 @@ from typing import Any
 
 from exegesis_shared.contracts.actions import (
     ALLOWED_ACTION_IDS,
+    validate_complete_patch_review_capabilities,
     materialize_card_actions,
     materialize_cli_fallback_card,
     validate_action_ref,
@@ -97,6 +98,13 @@ def validate_capabilities(capabilities: A2UICapabilities) -> None:
     for action_id in capabilities.actions_supported:
         if action_id not in _ALLOWED_ACTION_SET:
             raise ValueError(f"Unknown action in capabilities: {action_id}")
+
+
+def validate_complete_patch_review_card_capabilities(capabilities: A2UICapabilities) -> None:
+    validate_capabilities(capabilities)
+    if PROPOSED_EDIT_CARD_TYPE not in set(capabilities.cards_supported):
+        raise ValueError("Complete patch review requires ProposedEditCard support")
+    validate_complete_patch_review_capabilities(capabilities)
 
 
 def _validate_capability_names(values: Any, field_name: str) -> None:

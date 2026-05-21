@@ -92,6 +92,7 @@ from src.qual.ui.a2ui import (
     validate_basket_card,
     validate_capabilities,
     validate_complete_patch_review_capabilities,
+    validate_complete_patch_review_card_capabilities,
     validate_context_set_card,
     validate_known_card,
     validate_retrieval_results_card,
@@ -369,6 +370,25 @@ class A2UIContractTests(unittest.TestCase):
         validate_capabilities(caps)
         store.register("sess-1", caps)
         self.assertEqual(store.get("sess-1").client_name, "Exegesis Studio")
+
+    def test_complete_patch_review_card_capabilities_require_card_and_actions(self) -> None:
+        caps = _capabilities(cards_supported=("ProposedEditCard", "GenericCard"))
+
+        validate_complete_patch_review_card_capabilities(caps)
+        shared_contracts.validate_complete_patch_review_card_capabilities(caps)
+
+        with self.assertRaisesRegex(ValueError, "requires ProposedEditCard support"):
+            validate_complete_patch_review_card_capabilities(
+                _capabilities(cards_supported=("GenericCard",))
+            )
+
+        with self.assertRaisesRegex(ValueError, "Complete patch review client support is missing: reject"):
+            validate_complete_patch_review_card_capabilities(
+                _capabilities(
+                    cards_supported=("ProposedEditCard",),
+                    actions_supported=("preview_patch", "apply_patch"),
+                )
+            )
 
     def test_session_store_rejects_invalid_capabilities_before_registration(self) -> None:
         store = A2UISessionStore()
