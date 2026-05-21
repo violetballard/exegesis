@@ -1411,6 +1411,46 @@ def patch_review_decision_cli_command_lookup_from_contract(
     }
 
 
+def resolve_patch_review_decision_cli_command_execution(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+    command: str,
+    capabilities: Any | None = None,
+) -> dict[str, Any]:
+    command_text = command.strip()
+    if not command_text:
+        raise ValueError("Patch review decision CLI command is required")
+    normalized_command = command_text.lower()
+    command_lookup = patch_review_decision_cli_command_lookup_from_contract(
+        card,
+        review,
+        patch_id=patch_id,
+    )
+    entry = command_lookup["commands"].get(normalized_command)
+    if not isinstance(entry, dict):
+        raise ValueError(f"Unsupported patch review decision CLI command: {command_text}")
+    control = str(entry.get("control", "")).strip().lower()
+    if control not in {"apply", "reject"}:
+        raise ValueError("Patch review decision CLI command must resolve to apply or reject")
+    execution = resolve_patch_review_control_execution(
+        card,
+        review,
+        patch_id=patch_id,
+        control=control,
+        capabilities=capabilities,
+    )
+    if execution["selection"] != entry.get("selection"):
+        raise ValueError("Patch review decision CLI command selection does not match the current control")
+    return {
+        **execution,
+        "command": command_text,
+        "normalized_command": normalized_command,
+        "decision_group": PATCH_REVIEW_DECISION_GROUP,
+    }
+
+
 def patch_review_selection_from_cli_command(
     card: dict[str, Any],
     review: dict[str, Any],
@@ -2275,6 +2315,31 @@ def execute_patch_review_control_with_policy_gate(
         review=review,
         selection=execution["selection"],
         patch_id=patch_id,
+        capabilities=capabilities,
+        policy_gate=policy_gate,
+        executor=executor,
+    )
+
+
+def execute_patch_review_decision_cli_command_with_policy_gate(
+    *,
+    card: dict[str, Any],
+    review: dict[str, Any],
+    patch_id: str,
+    command: str,
+    capabilities: Any,
+    policy_gate: PolicyGate,
+    executor: Callable[[ActionRef], Any],
+) -> Any:
+    execution = resolve_patch_review_decision_cli_command_execution(
+        card,
+        review,
+        patch_id=patch_id,
+        command=command,
+        capabilities=capabilities,
+    )
+    return execute_action_with_policy_gate(
+        action=_action_ref_from_contract(execution["action_contract"]),
         capabilities=capabilities,
         policy_gate=policy_gate,
         executor=executor,

@@ -62,6 +62,7 @@ from src.qual.ui.a2ui import (
     execute_complete_patch_review_control_with_policy_gate,
     execute_complete_patch_review_selection_with_policy_gate,
     execute_action_with_policy_gate,
+    execute_patch_review_decision_cli_command_with_policy_gate,
     execute_patch_review_selection_with_policy_gate,
     engine_authoritative_action_ref,
     materialize_card_actions,
@@ -96,6 +97,7 @@ from src.qual.ui.a2ui import (
     resolve_patch_review_contract,
     resolve_patch_review_cli_command_execution,
     resolve_patch_review_control_execution,
+    resolve_patch_review_decision_cli_command_execution,
     resolve_patch_review_selection,
     studio_materialize_card,
     validate_action_capabilities,
@@ -3867,6 +3869,77 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(gate.calls, [("reject_patch", {"patch_id": "p1"}, True)])
         self.assertEqual(executed[0].confirm, {"title": "Reject patch?"})
         self.assertTrue(executed[0].policy_sensitive)
+
+    def test_patch_review_decision_cli_execution_rejects_preview_commands(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Unsupported patch review decision CLI command: preview",
+        ):
+            resolve_patch_review_decision_cli_command_execution(
+                card,
+                review,
+                patch_id="p1",
+                command="preview",
+                capabilities=_capabilities(),
+            )
+
+    def test_patch_review_decision_cli_execution_is_policy_gated(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+        execution = resolve_patch_review_decision_cli_command_execution(
+            card,
+            review,
+            patch_id="p1",
+            command=" apply_patch ",
+            capabilities=_capabilities(),
+        )
+
+        self.assertEqual(execution["control"], "apply")
+        self.assertEqual(execution["decision_group"], PATCH_REVIEW_DECISION_GROUP)
+        self.assertEqual(execution["action_contract"]["id"], "apply_patch")
+        self.assertTrue(execution["requires_confirmation"])
+        self.assertEqual(execution["policy_gate"], "required")
+
+        gate = _RecordingPolicyGate(True, [])
+        result = execute_patch_review_decision_cli_command_with_policy_gate(
+            card=card,
+            review=review,
+            patch_id="p1",
+            command="2",
+            capabilities=_capabilities(),
+            policy_gate=gate,
+            executor=lambda action: (action.id, action.policy_sensitive, action.confirm),
+        )
+
+        self.assertEqual(result, ("apply_patch", True, {"title": "Apply patch?"}))
+        self.assertEqual(gate.calls, [("apply_patch", {"patch_id": "p1"}, True)])
 
     def test_patch_review_named_control_execution_rejects_unsupported_control(self) -> None:
         card = materialize_terminal_card(
