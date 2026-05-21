@@ -316,6 +316,7 @@ def validate_retrieval_results_card(card: dict[str, Any], *, strict_actions: boo
             required_fields={"item_id": str, "title": str, "snippet": str},
         )
     _validate_optional_card_actions(card, strict_actions=strict_actions)
+    _validate_item_scoped_actions(card, results, "RetrievalResultsCard result")
 
 
 def validate_basket_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
@@ -330,6 +331,7 @@ def validate_basket_card(card: dict[str, Any], *, strict_actions: bool = True) -
             required_fields={"item_id": str, "title": str},
         )
     _validate_optional_card_actions(card, strict_actions=strict_actions)
+    _validate_item_scoped_actions(card, items, "BasketCard item")
 
 
 def validate_context_set_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
@@ -347,6 +349,7 @@ def validate_context_set_card(card: dict[str, Any], *, strict_actions: bool = Tr
             required_fields={"item_id": str, "title": str},
         )
     _validate_optional_card_actions(card, strict_actions=strict_actions)
+    _validate_item_scoped_actions(card, items, "ContextSetCard item")
 
 
 def validate_primitive_block(block: Any) -> None:
@@ -401,6 +404,26 @@ def _validate_optional_card_actions(card: dict[str, Any], *, strict_actions: boo
     if strict_actions:
         for action in actions:
             validate_action_ref(action)
+
+
+def _validate_item_scoped_actions(card: dict[str, Any], items: list[Any], item_label: str) -> None:
+    known_item_ids = {
+        item["item_id"].strip()
+        for item in items
+        if isinstance(item, dict) and isinstance(item.get("item_id"), str) and item["item_id"].strip()
+    }
+    for action in card.get("actions", []):
+        if not isinstance(action, dict):
+            continue
+        action_id = action.get("id")
+        if action_id not in {"open_corpus_item", "promote_to_basket", "pin_to_context_set"}:
+            continue
+        payload = action.get("payload")
+        item_id = payload.get("item_id") if isinstance(payload, dict) else None
+        if not isinstance(item_id, str) or not item_id.strip():
+            continue
+        if item_id.strip() not in known_item_ids:
+            raise ValueError(f"{action_id} item_id must reference a {item_label}")
 
 
 def _is_same_patch_review_action(action: dict[str, Any], patch_id: str) -> bool:
