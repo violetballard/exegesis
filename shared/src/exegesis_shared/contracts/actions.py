@@ -121,6 +121,7 @@ _PATCH_PREVIEW_SELECTION_FIELDS: frozenset[str] = _ACTION_SELECTION_FIELDS | fro
     {
         "action_authority",
         "demo_path_step",
+        "execution_policy",
         "patch_preview_contract_version",
         "patch_id",
     }
@@ -129,6 +130,7 @@ _PATCH_DECISION_SELECTION_FIELDS: frozenset[str] = _ACTION_SELECTION_FIELDS | fr
     {
         "action_authority",
         "demo_path_step",
+        "execution_policy",
         "patch_decision_contract_version",
         "decision_group",
         "patch_decision",
@@ -459,6 +461,7 @@ def materialize_patch_decision_contract(card: dict[str, Any], patch_id: str) -> 
             "action_identity": canonical_action_identity_key(action),
             "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
             "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+            "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY[decision]),
             "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
             "decision_group": PATCH_REVIEW_DECISION_GROUP,
             "patch_decision": decision,
@@ -501,6 +504,7 @@ def materialize_patch_preview_contract(card: dict[str, Any], patch_id: str) -> d
             "action_identity": canonical_action_identity_key(action),
             "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
             "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+            "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY["preview"]),
             "patch_preview_contract_version": PATCH_PREVIEW_CONTRACT_VERSION,
             "patch_id": expected_patch_id,
         }
@@ -638,6 +642,7 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
         and preview.get("patch_id") == patch_id.strip()
         and preview.get("action_authority") == PATCH_REVIEW_ACTION_AUTHORITY
         and preview.get("demo_path_step") == PATCH_REVIEW_DEMO_PATH_STEP
+        and preview.get("execution_policy") == PATCH_REVIEW_EXECUTION_POLICY["preview"]
         and preview.get("patch_preview_contract_version") == PATCH_PREVIEW_CONTRACT_VERSION
     ):
         available.append("preview")
@@ -666,6 +671,7 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
             and selection.get("patch_id") == patch_id.strip()
             and selection.get("action_authority") == PATCH_REVIEW_ACTION_AUTHORITY
             and selection.get("demo_path_step") == PATCH_REVIEW_DEMO_PATH_STEP
+            and selection.get("execution_policy") == PATCH_REVIEW_EXECUTION_POLICY[decision]
             and selection.get("decision_group", PATCH_REVIEW_DECISION_GROUP) == PATCH_REVIEW_DECISION_GROUP
             and selection.get("patch_decision") == decision
             and selection.get("patch_decision_contract_version") == PATCH_DECISION_CONTRACT_VERSION
@@ -1728,6 +1734,18 @@ def _validate_patch_review_selection_metadata(selection: dict[str, Any]) -> None
         raise ValueError("Patch review selection must be engine-authoritative")
     if selection.get("demo_path_step") != PATCH_REVIEW_DEMO_PATH_STEP:
         raise ValueError("Patch review selection does not match the demo path step")
+    execution_policy = selection.get("execution_policy")
+    if not isinstance(execution_policy, dict):
+        raise ValueError("Patch review selection must include execution_policy")
+    patch_decision = selection.get("patch_decision")
+    if patch_decision in {"apply", "reject"}:
+        expected_policy = PATCH_REVIEW_EXECUTION_POLICY[patch_decision]
+    elif selection.get("patch_preview_contract_version") == PATCH_PREVIEW_CONTRACT_VERSION:
+        expected_policy = PATCH_REVIEW_EXECUTION_POLICY["preview"]
+    else:
+        raise ValueError("Patch review selection must identify preview or decision policy")
+    if execution_policy != expected_policy:
+        raise ValueError("Patch review selection execution policy does not match engine policy")
 
 
 def _validate_selection_fields(
@@ -1796,7 +1814,6 @@ def resolve_patch_decision_selection(
         raise ValueError("Patch decision patch_id is required")
     if selection.get("patch_id") != expected_patch_id:
         raise ValueError("Patch decision selection does not match the current patch")
-    _validate_patch_review_selection_metadata(selection)
     expected_decision = PATCH_DECISION_BY_ACTION_ID[str(action["id"])]
     if selection.get("patch_decision_contract_version") != PATCH_DECISION_CONTRACT_VERSION:
         raise ValueError("Unsupported patch decision contract version")
@@ -1805,6 +1822,7 @@ def resolve_patch_decision_selection(
         raise ValueError("Patch decision selection must include patch_decision")
     if submitted_decision != expected_decision:
         raise ValueError("Patch decision selection does not match the selected action")
+    _validate_patch_review_selection_metadata(selection)
     if action_patch_id != expected_patch_id:
         raise ValueError("Patch decision selection does not match the current patch")
     return action
@@ -1857,9 +1875,9 @@ def resolve_patch_preview_selection(
         raise ValueError("Patch preview patch_id is required")
     if selection.get("patch_id") != expected_patch_id:
         raise ValueError("Patch preview selection does not match the current patch")
-    _validate_patch_review_selection_metadata(selection)
     if selection.get("patch_preview_contract_version") != PATCH_PREVIEW_CONTRACT_VERSION:
         raise ValueError("Unsupported patch preview contract version")
+    _validate_patch_review_selection_metadata(selection)
     if action_patch_id != expected_patch_id:
         raise ValueError("Patch preview selection does not match the current patch")
     return action
@@ -1941,6 +1959,7 @@ def build_patch_preview_selection(card: dict[str, Any], *, patch_id: str) -> dic
         "action_identity": entry.get("action_identity"),
         "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
         "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+        "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY["preview"]),
         "patch_preview_contract_version": PATCH_PREVIEW_CONTRACT_VERSION,
         "patch_id": expected_patch_id,
     }
@@ -2009,6 +2028,7 @@ def build_patch_decision_selection(
         "action_identity": entry.get("action_identity"),
         "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
         "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+        "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY[normalized_decision]),
         "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
         "patch_decision": normalized_decision,
         "patch_id": expected_patch_id,

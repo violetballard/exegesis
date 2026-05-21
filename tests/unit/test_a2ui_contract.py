@@ -146,10 +146,11 @@ def _capabilities(
     )
 
 
-def _patch_review_selection_metadata() -> dict[str, str]:
+def _patch_review_selection_metadata() -> dict[str, object]:
     return {
         "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
         "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+        "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY["apply"]),
     }
 
 
@@ -4868,6 +4869,65 @@ class A2UIContractTests(unittest.TestCase):
         review["execution_policy"]["apply"]["policy_gate"] = "optional"
         with self.assertRaisesRegex(ValueError, "Unsupported patch review execution policy"):
             resolve_patch_review_contract(card, review, patch_id="p1")
+
+    def test_patch_review_selections_carry_engine_execution_policy(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        self.assertEqual(
+            review["preview"]["execution_policy"],
+            PATCH_REVIEW_EXECUTION_POLICY["preview"],
+        )
+        decision_policies = {
+            entry["decision"]: entry["selection"]["execution_policy"]
+            for entry in review["decisions"]
+        }
+        self.assertEqual(decision_policies["apply"], PATCH_REVIEW_EXECUTION_POLICY["apply"])
+        self.assertEqual(decision_policies["reject"], PATCH_REVIEW_EXECUTION_POLICY["reject"])
+
+    def test_patch_review_rejects_selection_policy_tampering(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+        preview = deepcopy(review["preview"])
+        preview["execution_policy"]["policy_gate"] = "required"
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Patch review selection execution policy does not match engine policy",
+        ):
+            resolve_patch_preview_selection(card, preview, patch_id="p1")
+
+        apply_selection = deepcopy(review["decisions"][0]["selection"])
+        apply_selection["execution_policy"]["policy_gate"] = "optional"
+        with self.assertRaisesRegex(
+            ValueError,
+            "Patch review selection execution policy does not match engine policy",
+        ):
+            resolve_patch_decision_selection(card, apply_selection, patch_id="p1")
 
     def test_patch_review_contract_rejects_untyped_fields(self) -> None:
         card = materialize_terminal_card(
