@@ -1953,6 +1953,32 @@ def execute_complete_patch_review_action_with_policy_gate(
     )
 
 
+def execute_complete_patch_review_selection_with_policy_gate(
+    *,
+    card: dict[str, Any],
+    selection: dict[str, Any],
+    patch_id: str,
+    capabilities: Any,
+    policy_gate: PolicyGate,
+    executor: Callable[[ActionRef], Any],
+) -> Any:
+    validate_complete_patch_review_capabilities(capabilities)
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch review patch_id is required")
+    review = build_complete_patch_review_contract(card, patch_id=expected_patch_id)
+    complete_patch_review_actions_from_contract(card, review, patch_id=expected_patch_id)
+    return execute_patch_review_selection_with_policy_gate(
+        card=card,
+        review=review,
+        selection=selection,
+        patch_id=expected_patch_id,
+        capabilities=capabilities,
+        policy_gate=policy_gate,
+        executor=executor,
+    )
+
+
 def execute_complete_patch_review_cli_command_with_policy_gate(
     *,
     card: dict[str, Any],

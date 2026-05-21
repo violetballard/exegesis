@@ -56,6 +56,7 @@ from src.qual.ui.a2ui import (
     execute_patch_review_cli_command_with_policy_gate,
     execute_patch_review_control_with_policy_gate,
     execute_complete_patch_review_action_with_policy_gate,
+    execute_complete_patch_review_selection_with_policy_gate,
     execute_action_with_policy_gate,
     execute_patch_review_selection_with_policy_gate,
     engine_authoritative_action_ref,
@@ -3477,6 +3478,64 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         self.assertEqual(executed, ["apply_patch"])
+
+    def test_complete_patch_review_selection_execution_uses_complete_engine_contract(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+        gate = _RecordingPolicyGate(True, [])
+
+        result = execute_complete_patch_review_selection_with_policy_gate(
+            card=card,
+            selection=selection,
+            patch_id=" p1 ",
+            capabilities=_capabilities(),
+            policy_gate=gate,
+            executor=lambda action: (action.id, action.confirm, action.policy_sensitive),
+        )
+
+        self.assertEqual(result, ("apply_patch", {"title": "Apply patch?"}, True))
+        self.assertEqual(gate.calls, [("apply_patch", {"patch_id": "p1"}, True)])
+        self.assertIs(
+            shared_contracts.execute_complete_patch_review_selection_with_policy_gate,
+            execute_complete_patch_review_selection_with_policy_gate,
+        )
+
+    def test_complete_patch_review_selection_execution_rejects_incomplete_demo_controls(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+
+        with self.assertRaisesRegex(ValueError, "Complete patch review is missing: reject"):
+            execute_complete_patch_review_selection_with_policy_gate(
+                card=card,
+                selection=selection,
+                patch_id="p1",
+                capabilities=_capabilities(),
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: action,
+            )
 
     def test_complete_patch_review_cli_command_execution_uses_complete_engine_contract(self) -> None:
         card = materialize_terminal_card(
