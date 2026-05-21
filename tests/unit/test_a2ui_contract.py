@@ -9,6 +9,8 @@ from exegesis_shared.contracts.actions import (
     PATCH_DECISION_CONTRACT_VERSION,
     PATCH_PREVIEW_CONTRACT_VERSION,
     PATCH_REVIEW_CONTRACT_VERSION,
+    PATCH_REVIEW_DECISION_POLICY,
+    PATCH_REVIEW_FLOW,
 )
 from exegesis_shared.contracts import studio_materialize_card as shared_studio_materialize_card
 from src.qual.ui.a2ui import (
@@ -749,6 +751,8 @@ class A2UIContractTests(unittest.TestCase):
             {
                 "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
                 "patch_id": "p1",
+                "flow": PATCH_REVIEW_FLOW,
+                "decision_policy": PATCH_REVIEW_DECISION_POLICY,
                 "available": ["preview", "apply", "reject"],
                 "missing": [],
                 "is_complete": True,
@@ -1286,6 +1290,8 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(availability["available"], ["preview", "apply", "reject"])
         self.assertEqual(availability["missing"], [])
+        self.assertEqual(availability["flow"], PATCH_REVIEW_FLOW)
+        self.assertEqual(availability["decision_policy"], PATCH_REVIEW_DECISION_POLICY)
         self.assertTrue(availability["is_complete"])
 
     def test_patch_review_contract_rejects_stale_availability_snapshot(self) -> None:
@@ -1306,6 +1312,11 @@ class A2UIContractTests(unittest.TestCase):
         review["availability"]["missing"] = ["reject"]
         review["availability"]["is_complete"] = False
 
+        with self.assertRaisesRegex(ValueError, "availability"):
+            resolve_patch_review_contract(card, review, patch_id="p1")
+
+        review = build_patch_review_contract(card, patch_id="p1")
+        review["availability"]["flow"] = "decide_without_preview"
         with self.assertRaisesRegex(ValueError, "availability"):
             resolve_patch_review_contract(card, review, patch_id="p1")
 

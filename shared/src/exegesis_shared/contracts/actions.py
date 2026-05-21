@@ -27,6 +27,8 @@ PATCH_DECISION_BY_ACTION_ID: dict[str, str] = {
     "reject_patch": "reject",
 }
 PATCH_PREVIEW_CONTRACT_VERSION = 1
+PATCH_REVIEW_FLOW = "preview_then_decide"
+PATCH_REVIEW_DECISION_POLICY = "apply_or_reject"
 PATCH_REVIEW_REQUIRED_PARTS: tuple[str, ...] = ("preview", "apply", "reject")
 
 CANONICAL_ACTION_ORDER: tuple[str, ...] = (
@@ -394,6 +396,8 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
     return {
         "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
         "patch_id": patch_id.strip(),
+        "flow": PATCH_REVIEW_FLOW,
+        "decision_policy": PATCH_REVIEW_DECISION_POLICY,
         "available": available,
         "missing": missing,
         "is_complete": not missing,
