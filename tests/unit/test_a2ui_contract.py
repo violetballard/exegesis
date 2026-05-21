@@ -162,6 +162,13 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(materialized["patch_decision"]["patch_id"], "patch-1")
         self.assertEqual(
             [
+                entry["selection"]["patch_decision_contract_version"]
+                for entry in materialized["patch_decision"]["decisions"]
+            ],
+            [PATCH_DECISION_CONTRACT_VERSION, PATCH_DECISION_CONTRACT_VERSION],
+        )
+        self.assertEqual(
+            [
                 (entry["decision"], entry["slot"], entry["action_id"])
                 for entry in materialized["patch_decision"]["decisions"]
             ],
@@ -358,6 +365,7 @@ class A2UIContractTests(unittest.TestCase):
                 "selection_model": "one_based_action_slot",
                 "slot": apply_slot["slot"],
                 "action_identity": apply_slot["action_identity"],
+                "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
                 "patch_decision": "apply",
                 "patch_id": "p1",
             },
@@ -373,6 +381,7 @@ class A2UIContractTests(unittest.TestCase):
                     "selection_model": "one_based_action_slot",
                     "slot": apply_slot["slot"],
                     "action_identity": apply_slot["action_identity"],
+                    "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
                     "patch_decision": "apply",
                     "patch_id": "p1",
                 },
@@ -386,6 +395,7 @@ class A2UIContractTests(unittest.TestCase):
                     "selection_model": "one_based_action_slot",
                     "slot": open_slot["slot"],
                     "action_identity": open_slot["action_identity"],
+                    "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
                     "patch_decision": "apply",
                     "patch_id": "p1",
                 },
@@ -415,6 +425,7 @@ class A2UIContractTests(unittest.TestCase):
                     "selection_model": "one_based_action_slot",
                     "slot": apply_slot["slot"],
                     "action_identity": apply_slot["action_identity"],
+                    "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
                     "patch_id": "p1",
                 },
                 patch_id="p1",
@@ -427,7 +438,22 @@ class A2UIContractTests(unittest.TestCase):
                     "selection_model": "one_based_action_slot",
                     "slot": apply_slot["slot"],
                     "action_identity": apply_slot["action_identity"],
+                    "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
                     "patch_decision": "reject",
+                    "patch_id": "p1",
+                },
+                patch_id="p1",
+            )
+        with self.assertRaisesRegex(ValueError, "Unsupported patch decision contract version"):
+            resolve_patch_decision_selection(
+                card,
+                {
+                    "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+                    "selection_model": "one_based_action_slot",
+                    "slot": apply_slot["slot"],
+                    "action_identity": apply_slot["action_identity"],
+                    "patch_decision_contract_version": 0,
+                    "patch_decision": "apply",
                     "patch_id": "p1",
                 },
                 patch_id="p1",
@@ -500,6 +526,7 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(selection["contract_version"], ACTION_SELECTION_CONTRACT_VERSION)
         self.assertEqual(selection["selection_model"], "one_based_action_slot")
+        self.assertEqual(selection["patch_decision_contract_version"], PATCH_DECISION_CONTRACT_VERSION)
         self.assertEqual(selection["patch_decision"], "apply")
         self.assertEqual(selection["patch_id"], "p1")
         self.assertEqual(selection["slot"], 1)
@@ -559,6 +586,21 @@ class A2UIContractTests(unittest.TestCase):
         )
         card["patch_decision"]["decisions"][0]["selection"]["patch_id"] = "p2"
         with self.assertRaisesRegex(ValueError, "current patch"):
+            build_patch_decision_selection(card, patch_id="p1", decision="apply")
+
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        card["patch_decision"]["decisions"][0]["selection"]["patch_decision_contract_version"] = 0
+        with self.assertRaisesRegex(ValueError, "Unsupported patch decision contract version"):
             build_patch_decision_selection(card, patch_id="p1", decision="apply")
 
     def test_patch_decision_action_requires_current_patch_and_known_decision(self) -> None:

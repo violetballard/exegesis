@@ -160,6 +160,7 @@ def materialize_patch_decision_contract(card: dict[str, Any], patch_id: str) -> 
             "selection_model": "one_based_action_slot",
             "slot": slot,
             "action_identity": canonical_action_identity_key(action),
+            "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
             "patch_decision": decision,
             "patch_id": expected_patch_id,
         }
@@ -260,6 +261,8 @@ def resolve_patch_decision_selection(
     if selection.get("patch_id") != expected_patch_id:
         raise ValueError("Patch decision selection does not match the current patch")
     expected_decision = PATCH_DECISION_BY_ACTION_ID[str(action["id"])]
+    if selection.get("patch_decision_contract_version") != PATCH_DECISION_CONTRACT_VERSION:
+        raise ValueError("Unsupported patch decision contract version")
     submitted_decision = selection.get("patch_decision")
     if submitted_decision not in {"apply", "reject"}:
         raise ValueError("Patch decision selection must include patch_decision")
@@ -320,6 +323,8 @@ def build_patch_decision_selection(
             raise ValueError("Patch decision selection does not match the current card")
         if selection.get("slot") != entry.get("slot"):
             raise ValueError("Patch decision selection does not match the current card")
+        if selection.get("patch_decision_contract_version") != PATCH_DECISION_CONTRACT_VERSION:
+            raise ValueError("Unsupported patch decision contract version")
         if selection.get("patch_decision") != normalized_decision:
             raise ValueError("Patch decision selection does not match the selected action")
         if selection.get("patch_id") != expected_patch_id:
@@ -330,6 +335,7 @@ def build_patch_decision_selection(
         "selection_model": "one_based_action_slot",
         "slot": entry.get("slot"),
         "action_identity": entry.get("action_identity"),
+        "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
         "patch_decision": normalized_decision,
         "patch_id": expected_patch_id,
     }
