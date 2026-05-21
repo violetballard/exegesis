@@ -383,8 +383,10 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
             continue
         decision = str(entry.get("decision", "")).strip().lower()
         selection = entry.get("selection")
+        expected_action_id = {"apply": "apply_patch", "reject": "reject_patch"}.get(decision)
         if (
-            decision in {"apply", "reject"}
+            expected_action_id is not None
+            and entry.get("action_id") == expected_action_id
             and isinstance(selection, dict)
             and selection.get("patch_id") == patch_id.strip()
             and selection.get("patch_decision") == decision

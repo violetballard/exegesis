@@ -1309,6 +1309,49 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(availability["missing"], ["preview", "apply"])
         self.assertFalse(availability["is_complete"])
 
+    def test_patch_review_availability_revalidates_decision_action_ids(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+        review["decisions"][0]["action_id"] = "reject_patch"
+
+        availability = patch_review_availability_from_contract(review)
+
+        self.assertEqual(availability["available"], ["preview", "reject"])
+        self.assertEqual(availability["missing"], ["apply"])
+        self.assertFalse(availability["is_complete"])
+
+    def test_complete_patch_review_refs_reject_mismatched_decision_action_ids(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+        review["decisions"][1]["action_id"] = "apply_patch"
+
+        with self.assertRaisesRegex(ValueError, "missing: reject"):
+            complete_patch_review_action_refs_from_contract(card, review, patch_id="p1")
+
     def test_patch_review_availability_accepts_complete_contract(self) -> None:
         card = materialize_terminal_card(
             {
