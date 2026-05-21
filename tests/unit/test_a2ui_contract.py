@@ -5201,6 +5201,7 @@ class A2UIContractTests(unittest.TestCase):
             execution["complete_patch_review"],
             {
                 "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+                "patch_id": "p1",
                 "flow": PATCH_REVIEW_FLOW,
                 "decision_policy": PATCH_REVIEW_DECISION_POLICY,
                 "decision_group": PATCH_REVIEW_DECISION_GROUP,
@@ -5210,6 +5211,7 @@ class A2UIContractTests(unittest.TestCase):
                 "required": ["preview", "apply", "reject"],
                 "available": ["preview", "apply", "reject"],
                 "missing": [],
+                "next_required": None,
                 "is_complete": True,
             },
         )
@@ -5245,7 +5247,9 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(execution["normalized_command"], "reject")
         self.assertEqual(execution["action_contract"]["confirm"], {"title": "Reject patch?"})
         self.assertTrue(execution["action_contract"]["policy_sensitive"])
+        self.assertEqual(execution["complete_patch_review"]["patch_id"], "p1")
         self.assertEqual(execution["complete_patch_review"]["missing"], [])
+        self.assertIsNone(execution["complete_patch_review"]["next_required"])
         self.assertEqual(
             execution["complete_patch_review"]["decision_group"],
             PATCH_REVIEW_DECISION_GROUP,

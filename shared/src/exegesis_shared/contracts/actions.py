@@ -1016,6 +1016,7 @@ def _complete_patch_review_execution_contract(review: dict[str, Any]) -> dict[st
     availability = patch_review_availability_from_contract(review)
     return {
         "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+        "patch_id": availability["patch_id"],
         "flow": PATCH_REVIEW_FLOW,
         "decision_policy": PATCH_REVIEW_DECISION_POLICY,
         "decision_group": PATCH_REVIEW_DECISION_GROUP,
@@ -1025,6 +1026,7 @@ def _complete_patch_review_execution_contract(review: dict[str, Any]) -> dict[st
         "required": list(PATCH_REVIEW_REQUIRED_PARTS),
         "available": deepcopy(availability["available"]),
         "missing": deepcopy(availability["missing"]),
+        "next_required": availability["next_required"],
         "is_complete": availability["is_complete"],
     }
 
