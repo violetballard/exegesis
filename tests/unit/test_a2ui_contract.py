@@ -8,6 +8,7 @@ from exegesis_shared.contracts.actions import (
     ACTION_SELECTION_CONTRACT_VERSION,
     PATCH_DECISION_CONTRACT_VERSION,
     PATCH_PREVIEW_CONTRACT_VERSION,
+    PATCH_REVIEW_CONTRACT_VERSION,
 )
 from exegesis_shared.contracts import studio_materialize_card as shared_studio_materialize_card
 from src.qual.ui.a2ui import (
@@ -20,6 +21,7 @@ from src.qual.ui.a2ui import (
     build_card_published_event,
     build_patch_decision_selection,
     build_patch_preview_selection,
+    build_patch_review_contract,
     build_unknown_card,
     engine_prepare_card,
     execute_action_with_policy_gate,
@@ -34,6 +36,7 @@ from src.qual.ui.a2ui import (
     resolve_patch_decision_selection,
     resolve_patch_preview_action,
     resolve_patch_preview_selection,
+    resolve_patch_review_contract,
     studio_materialize_card,
     validate_capabilities,
     validate_stream_event,
@@ -636,6 +639,62 @@ class A2UIContractTests(unittest.TestCase):
         preview_selection["patch_preview_contract_version"] = 0
         with self.assertRaisesRegex(ValueError, "Unsupported patch preview contract version"):
             resolve_patch_preview_selection(card, preview_selection, patch_id="p1")
+
+    def test_patch_review_contract_bundles_preview_and_decisions_for_current_patch(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        review = build_patch_review_contract(card, patch_id=" p1 ")
+        resolved = resolve_patch_review_contract(card, review, patch_id="p1")
+
+        self.assertEqual(review["contract_version"], PATCH_REVIEW_CONTRACT_VERSION)
+        self.assertEqual(review["patch_id"], "p1")
+        self.assertEqual(review["preview"], build_patch_preview_selection(card, patch_id="p1"))
+        self.assertEqual(
+            [(entry["decision"], entry["selection"]["patch_id"]) for entry in review["decisions"]],
+            [("apply", "p1"), ("reject", "p1")],
+        )
+        self.assertEqual(resolved["preview"]["id"], "preview_patch")
+        self.assertEqual(
+            [(entry["decision"], entry["action"]["id"]) for entry in resolved["decisions"]],
+            [("apply", "apply_patch"), ("reject", "reject_patch")],
+        )
+
+    def test_patch_review_contract_revalidates_stale_or_mismatched_selections(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+
+        review["preview"]["patch_id"] = "p2"
+        with self.assertRaisesRegex(ValueError, "current patch"):
+            resolve_patch_review_contract(card, review, patch_id="p1")
+
+        review = build_patch_review_contract(card, patch_id="p1")
+        review["decisions"][0]["decision"] = "reject"
+        with self.assertRaisesRegex(ValueError, "selected action"):
+            resolve_patch_review_contract(card, review, patch_id="p1")
 
     def test_patch_decision_selection_builder_returns_typed_slot_contract(self) -> None:
         card = materialize_terminal_card(

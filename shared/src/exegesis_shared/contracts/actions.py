@@ -7,6 +7,7 @@ from typing import Any, Callable, Protocol
 
 ACTION_SELECTION_CONTRACT_VERSION = 1
 PATCH_DECISION_CONTRACT_VERSION = 1
+PATCH_REVIEW_CONTRACT_VERSION = 1
 ALLOWED_ACTION_IDS: tuple[str, ...] = (
     "preview_patch",
     "apply_patch",
@@ -235,6 +236,91 @@ def materialize_cli_fallback_card(card: dict[str, Any]) -> dict[str, Any]:
         if patch_decision["decisions"]:
             materialized["patch_decision"] = patch_decision
     return materialized
+
+
+def build_patch_review_contract(card: dict[str, Any], *, patch_id: str) -> dict[str, Any]:
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch review patch_id is required")
+
+    review: dict[str, Any] = {
+        "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+        "patch_id": expected_patch_id,
+        "preview": None,
+        "decisions": [],
+    }
+    try:
+        review["preview"] = build_patch_preview_selection(card, patch_id=expected_patch_id)
+    except ValueError as exc:
+        if "not available" not in str(exc):
+            raise
+
+    for decision in ("apply", "reject"):
+        try:
+            selection = build_patch_decision_selection(
+                card,
+                patch_id=expected_patch_id,
+                decision=decision,
+            )
+        except ValueError as exc:
+            if "not available" not in str(exc):
+                raise
+            continue
+        review["decisions"].append({"decision": decision, "selection": selection})
+
+    if review["preview"] is None and not review["decisions"]:
+        raise ValueError("Patch review is not available for the current patch")
+    return review
+
+
+def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], *, patch_id: str) -> dict[str, Any]:
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch review patch_id is required")
+    if not isinstance(review, dict):
+        raise ValueError("Patch review contract must be an object")
+    if review.get("contract_version") != PATCH_REVIEW_CONTRACT_VERSION:
+        raise ValueError("Unsupported patch review contract version")
+    if review.get("patch_id") != expected_patch_id:
+        raise ValueError("Patch review contract does not match the current patch")
+
+    resolved: dict[str, Any] = {
+        "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+        "patch_id": expected_patch_id,
+        "preview": None,
+        "decisions": [],
+    }
+    preview_selection = review.get("preview")
+    if preview_selection is not None:
+        if not isinstance(preview_selection, dict):
+            raise ValueError("Patch review preview selection must be an object")
+        resolved["preview"] = resolve_patch_preview_selection(
+            card,
+            preview_selection,
+            patch_id=expected_patch_id,
+        )
+
+    seen_decisions: set[str] = set()
+    for entry in review.get("decisions", []):
+        if not isinstance(entry, dict):
+            raise ValueError("Patch review decision entry must be an object")
+        decision = str(entry.get("decision", "")).strip().lower()
+        if decision not in {"apply", "reject"}:
+            raise ValueError("Patch review decision must be 'apply' or 'reject'")
+        if decision in seen_decisions:
+            raise ValueError("Patch review decision is duplicated")
+        selection = entry.get("selection")
+        if not isinstance(selection, dict):
+            raise ValueError("Patch review decision selection must be an object")
+        action = resolve_patch_decision_selection(card, selection, patch_id=expected_patch_id)
+        if PATCH_DECISION_BY_ACTION_ID[str(action["id"])] != decision:
+            raise ValueError("Patch review decision does not match the selected action")
+        seen_decisions.add(decision)
+        resolved["decisions"].append({"decision": decision, "action": action})
+
+    if resolved["preview"] is None and not resolved["decisions"]:
+        raise ValueError("Patch review is not available for the current patch")
+    return resolved
 
 
 def resolve_card_selection(card: dict[str, Any], selected_action_id: str) -> dict[str, Any]:
