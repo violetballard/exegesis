@@ -29,21 +29,25 @@ PATCH_DECISION_BY_ACTION_ID: dict[str, str] = {
 PATCH_PREVIEW_CONTRACT_VERSION = 1
 PATCH_REVIEW_FLOW = "preview_then_decide"
 PATCH_REVIEW_DECISION_POLICY = "apply_or_reject"
+PATCH_REVIEW_ACTION_AUTHORITY = "engine_revalidated"
 PATCH_REVIEW_EXECUTION_POLICY: dict[str, dict[str, Any]] = {
     "preview": {
         "policy_gate": "optional",
         "requires_confirmation": False,
         "mutates_patch": False,
+        "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
     },
     "apply": {
         "policy_gate": "required",
         "requires_confirmation": True,
         "mutates_patch": True,
+        "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
     },
     "reject": {
         "policy_gate": "required",
         "requires_confirmation": True,
         "mutates_patch": True,
+        "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
     },
 }
 PATCH_REVIEW_REQUIRED_PARTS: tuple[str, ...] = ("preview", "apply", "reject")
@@ -119,6 +123,7 @@ class PatchReviewActionSelection:
             "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
             "kind": self.kind,
             "patch_id": self.patch_id,
+            "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
             "action": self.action.as_contract(),
         }
         if self.kind == "decision":
@@ -139,6 +144,7 @@ class CompletePatchReviewActions:
             "patch_id": self.patch_id,
             "flow": PATCH_REVIEW_FLOW,
             "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+            "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
             "preview": self.preview.as_contract(),
             "decisions": {
                 "apply": self.apply.as_contract(),
@@ -328,6 +334,7 @@ def build_patch_review_contract(card: dict[str, Any], *, patch_id: str) -> dict[
         "patch_id": expected_patch_id,
         "flow": PATCH_REVIEW_FLOW,
         "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+        "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
         "preview": None,
         "decisions": [],
     }
@@ -422,6 +429,7 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
         "patch_id": patch_id.strip(),
         "flow": PATCH_REVIEW_FLOW,
         "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+        "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
         "required": list(PATCH_REVIEW_REQUIRED_PARTS),
         "available": available,
         "missing": missing,
@@ -448,11 +456,15 @@ def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], 
         raise ValueError("Unsupported patch review flow")
     if review.get("decision_policy") != PATCH_REVIEW_DECISION_POLICY:
         raise ValueError("Unsupported patch review decision policy")
+    authority = review.get("action_authority", PATCH_REVIEW_ACTION_AUTHORITY)
+    if authority != PATCH_REVIEW_ACTION_AUTHORITY:
+        raise ValueError("Unsupported patch review action authority")
     resolved: dict[str, Any] = {
         "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
         "patch_id": expected_patch_id,
         "flow": PATCH_REVIEW_FLOW,
         "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+        "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
         "preview": None,
         "decisions": [],
     }
@@ -643,6 +655,7 @@ def patch_review_control_summary_from_contract(
         "patch_id": availability["patch_id"],
         "flow": availability["flow"],
         "decision_policy": availability["decision_policy"],
+        "action_authority": availability["action_authority"],
         "required": deepcopy(availability["required"]),
         "available": deepcopy(availability["available"]),
         "missing": deepcopy(availability["missing"]),

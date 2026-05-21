@@ -108,6 +108,7 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
 
         self.assertIn("Patch review flow: preview_then_decide", text)
         self.assertIn("Patch review decision policy: apply_or_reject", text)
+        self.assertIn("Patch review action authority: engine_revalidated", text)
         self.assertIn("Patch review status: complete", text)
         self.assertEqual(
             [line for line in text.splitlines() if line.startswith("* ")],

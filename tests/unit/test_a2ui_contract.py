@@ -8,6 +8,7 @@ from exegesis_shared.contracts.actions import (
     ACTION_SELECTION_CONTRACT_VERSION,
     PATCH_DECISION_CONTRACT_VERSION,
     PATCH_PREVIEW_CONTRACT_VERSION,
+    PATCH_REVIEW_ACTION_AUTHORITY,
     PATCH_REVIEW_CONTRACT_VERSION,
     PATCH_REVIEW_DECISION_POLICY,
     PATCH_REVIEW_EXECUTION_POLICY,
@@ -877,6 +878,7 @@ class A2UIContractTests(unittest.TestCase):
                 "patch_id": "p1",
                 "flow": PATCH_REVIEW_FLOW,
                 "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+                "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
                 "required": ["preview", "apply", "reject"],
                 "available": ["preview", "apply", "reject"],
                 "missing": [],
@@ -1119,6 +1121,7 @@ class A2UIContractTests(unittest.TestCase):
                 "policy_gate": "optional",
                 "requires_confirmation": False,
                 "mutates_patch": False,
+                "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
             },
         )
         self.assertEqual(
@@ -1127,6 +1130,7 @@ class A2UIContractTests(unittest.TestCase):
                 "policy_gate": "required",
                 "requires_confirmation": True,
                 "mutates_patch": True,
+                "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
             },
         )
         self.assertEqual(
@@ -1135,6 +1139,7 @@ class A2UIContractTests(unittest.TestCase):
                 "policy_gate": "required",
                 "requires_confirmation": True,
                 "mutates_patch": True,
+                "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
             },
         )
 
@@ -1274,6 +1279,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(selected["kind"], "decision")
         self.assertEqual(selected["patch_id"], "p1")
         self.assertEqual(selected["decision"], "apply")
+        self.assertEqual(selected["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
         self.assertEqual(
             selected["action"],
             {
@@ -1330,6 +1336,7 @@ class A2UIContractTests(unittest.TestCase):
             },
         )
         self.assertEqual(selected.as_contract()["contract_version"], PATCH_REVIEW_CONTRACT_VERSION)
+        self.assertEqual(selected.as_contract()["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
         self.assertEqual(selected.as_contract()["action"]["id"], "reject_patch")
 
     def test_patch_review_selection_rejects_actions_outside_review_contract(self) -> None:
@@ -1442,6 +1449,7 @@ class A2UIContractTests(unittest.TestCase):
                 "patch_id": "p1",
                 "flow": PATCH_REVIEW_FLOW,
                 "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+                "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
                 "preview": {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
                 "decisions": {
                     "apply": {
@@ -1725,9 +1733,11 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(availability["missing"], [])
         self.assertEqual(availability["flow"], PATCH_REVIEW_FLOW)
         self.assertEqual(availability["decision_policy"], PATCH_REVIEW_DECISION_POLICY)
+        self.assertEqual(availability["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
         self.assertTrue(availability["is_complete"])
 
     def test_patch_review_required_parts_are_shared_and_cli_exported(self) -> None:
+        self.assertEqual(shared_contracts.PATCH_REVIEW_ACTION_AUTHORITY, PATCH_REVIEW_ACTION_AUTHORITY)
         self.assertEqual(shared_contracts.PATCH_REVIEW_REQUIRED_PARTS, ("preview", "apply", "reject"))
         self.assertEqual(UI_PATCH_REVIEW_REQUIRED_PARTS, shared_contracts.PATCH_REVIEW_REQUIRED_PARTS)
 
@@ -1780,6 +1790,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(review["patch_id"], "p1")
         self.assertEqual(review["flow"], PATCH_REVIEW_FLOW)
         self.assertEqual(review["decision_policy"], PATCH_REVIEW_DECISION_POLICY)
+        self.assertEqual(review["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
         self.assertEqual(review["preview"], card["patch_preview"]["previews"][0]["selection"])
         self.assertEqual(review["availability"]["available"], ["preview", "apply", "reject"])
         self.assertEqual(review["availability"]["missing"], [])
@@ -1791,6 +1802,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(resolved["preview"]["id"], "preview_patch")
         self.assertEqual(resolved["flow"], PATCH_REVIEW_FLOW)
         self.assertEqual(resolved["decision_policy"], PATCH_REVIEW_DECISION_POLICY)
+        self.assertEqual(resolved["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
         self.assertEqual(
             [(entry["decision"], entry["action"]["id"]) for entry in resolved["decisions"]],
             [("apply", "apply_patch"), ("reject", "reject_patch")],
@@ -1845,6 +1857,18 @@ class A2UIContractTests(unittest.TestCase):
         review["decision_policy"] = "apply_only"
         with self.assertRaisesRegex(ValueError, "decision policy"):
             resolve_patch_review_contract(card, review, patch_id="p1")
+
+        review = build_patch_review_contract(card, patch_id="p1")
+        review["action_authority"] = "client_authoritative"
+        with self.assertRaisesRegex(ValueError, "action authority"):
+            resolve_patch_review_contract(card, review, patch_id="p1")
+
+        review = build_patch_review_contract(card, patch_id="p1")
+        del review["action_authority"]
+        self.assertEqual(
+            resolve_patch_review_contract(card, review, patch_id="p1")["action_authority"],
+            PATCH_REVIEW_ACTION_AUTHORITY,
+        )
 
     def test_patch_decision_selection_builder_returns_typed_slot_contract(self) -> None:
         card = materialize_terminal_card(
