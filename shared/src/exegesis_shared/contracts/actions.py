@@ -106,6 +106,24 @@ class PatchReviewActionSelection:
         return payload
 
 
+@dataclass(frozen=True)
+class CompletePatchReviewActions:
+    patch_id: str
+    preview: ActionRef
+    apply: ActionRef
+    reject: ActionRef
+
+    def as_contract(self) -> dict[str, Any]:
+        return {
+            "patch_id": self.patch_id,
+            "preview": self.preview.as_contract(),
+            "decisions": {
+                "apply": self.apply.as_contract(),
+                "reject": self.reject.as_contract(),
+            },
+        }
+
+
 class PolicyGate(Protocol):
     def allow_action(self, action_id: str, payload: dict[str, Any], *, policy_sensitive: bool) -> bool:
         ...
@@ -503,6 +521,36 @@ def complete_patch_review_action_refs_from_contract(
             "reject": decision_refs["reject"],
         },
     }
+
+
+def complete_patch_review_actions_from_contract(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+) -> CompletePatchReviewActions:
+    refs = complete_patch_review_action_refs_from_contract(card, review, patch_id=patch_id)
+    preview_ref = refs["preview"]
+    decision_refs = refs["decisions"]
+    if not isinstance(preview_ref, ActionRef):
+        raise ValueError("Complete patch review is missing: preview")
+    if not isinstance(decision_refs, dict):
+        raise ValueError("Complete patch review decisions must be available")
+    apply_ref = decision_refs.get("apply")
+    reject_ref = decision_refs.get("reject")
+    if not isinstance(apply_ref, ActionRef):
+        raise ValueError("Complete patch review is missing: apply")
+    if not isinstance(reject_ref, ActionRef):
+        raise ValueError("Complete patch review is missing: reject")
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch review patch_id is required")
+    return CompletePatchReviewActions(
+        patch_id=expected_patch_id,
+        preview=preview_ref,
+        apply=apply_ref,
+        reject=reject_ref,
+    )
 
 
 def patch_review_action_ref_from_selection(

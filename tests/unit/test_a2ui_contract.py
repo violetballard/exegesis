@@ -15,6 +15,7 @@ from src.qual.ui.a2ui import (
     A2UICapabilities,
     A2UISessionStore,
     ActionRef,
+    CompletePatchReviewActions,
     PatchReviewActionSelection,
     action_ref_from_selection,
     build_complete_patch_review_contract,
@@ -27,6 +28,7 @@ from src.qual.ui.a2ui import (
     build_patch_review_availability,
     build_patch_review_contract,
     build_unknown_card,
+    complete_patch_review_actions_from_contract,
     complete_patch_review_action_refs_from_contract,
     engine_prepare_card,
     execute_action_with_policy_gate,
@@ -968,6 +970,66 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(refs["preview"].id, "preview_patch")
         self.assertEqual(refs["decisions"]["apply"].id, "apply_patch")
         self.assertEqual(refs["decisions"]["reject"].id, "reject_patch")
+
+    def test_complete_patch_review_actions_return_typed_demo_path_bundle(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {
+                        "id": "apply_patch",
+                        "label": "Apply",
+                        "payload": {"patch_id": "p1"},
+                        "confirm": {"title": "Apply patch?"},
+                        "policy_sensitive": True,
+                    },
+                    {
+                        "id": "reject_patch",
+                        "label": "Reject",
+                        "payload": {"patch_id": "p1"},
+                        "confirm": {"title": "Reject patch?"},
+                        "policy_sensitive": True,
+                    },
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        actions = complete_patch_review_actions_from_contract(card, review, patch_id=" p1 ")
+
+        self.assertIsInstance(actions, CompletePatchReviewActions)
+        self.assertEqual(actions.patch_id, "p1")
+        self.assertEqual(actions.preview.id, "preview_patch")
+        self.assertEqual(actions.apply.id, "apply_patch")
+        self.assertTrue(actions.apply.policy_sensitive)
+        self.assertEqual(actions.reject.id, "reject_patch")
+        self.assertEqual(
+            actions.as_contract(),
+            {
+                "patch_id": "p1",
+                "preview": {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                "decisions": {
+                    "apply": {
+                        "id": "apply_patch",
+                        "label": "Apply",
+                        "payload": {"patch_id": "p1"},
+                        "confirm": {"title": "Apply patch?"},
+                        "policy_sensitive": True,
+                    },
+                    "reject": {
+                        "id": "reject_patch",
+                        "label": "Reject",
+                        "payload": {"patch_id": "p1"},
+                        "confirm": {"title": "Reject patch?"},
+                        "policy_sensitive": True,
+                    },
+                },
+            },
+        )
 
     def test_complete_patch_review_action_refs_reject_partial_review(self) -> None:
         card = materialize_terminal_card(

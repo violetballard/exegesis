@@ -6,6 +6,7 @@ from exegesis_shared.contracts.actions import (
     ACTION_SELECTION_CONTRACT_VERSION,
     ALLOWED_ACTION_IDS,
     ActionRef,
+    CompletePatchReviewActions,
     PATCH_DECISION_CONTRACT_VERSION,
     PATCH_PREVIEW_CONTRACT_VERSION,
     PATCH_REVIEW_CONTRACT_VERSION,
@@ -18,6 +19,7 @@ from exegesis_shared.contracts.actions import (
     build_patch_review_availability,
     build_patch_review_contract,
     canonicalize_action_order,
+    complete_patch_review_actions_from_contract,
     complete_patch_review_action_refs_from_contract,
     execute_action_with_policy_gate,
     materialize_action_selection_contract,
@@ -134,6 +136,7 @@ def render_terminal_card(card: dict[str, Any]) -> str:
 
 __all__ = [
     "ActionRef",
+    "CompletePatchReviewActions",
     "A2UICapabilities",
     "A2UI_EVENT_CONTRACT_VERSION",
     "A2UI_STREAM_EVENT_TYPES",
@@ -162,6 +165,7 @@ __all__ = [
     "build_card_published_event",
     "canonicalize_action_order",
     "build_unknown_card",
+    "complete_patch_review_actions_from_contract",
     "complete_patch_review_action_refs_from_contract",
     "engine_prepare_card",
     "execute_action_with_policy_gate",

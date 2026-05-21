@@ -2,6 +2,7 @@ from exegesis_shared.contracts.actions import (
     ACTION_SELECTION_CONTRACT_VERSION,
     ALLOWED_ACTION_IDS,
     ActionRef,
+    CompletePatchReviewActions,
     PATCH_DECISION_CONTRACT_VERSION,
     PATCH_PREVIEW_CONTRACT_VERSION,
     PATCH_REVIEW_CONTRACT_VERSION,
@@ -12,6 +13,7 @@ from exegesis_shared.contracts.actions import (
     build_patch_preview_selection,
     build_patch_review_availability,
     build_patch_review_contract,
+    complete_patch_review_actions_from_contract,
     complete_patch_review_action_refs_from_contract,
     execute_action_with_policy_gate,
     materialize_action_selection_contract,
@@ -64,6 +66,7 @@ from exegesis_shared.contracts.events import (
 
 __all__ = [
     "ActionRef",
+    "CompletePatchReviewActions",
     "ACTION_SELECTION_CONTRACT_VERSION",
     "A2UICapabilities",
     "A2UISessionStore",
@@ -84,6 +87,7 @@ __all__ = [
     "build_patch_preview_selection",
     "build_patch_review_availability",
     "build_patch_review_contract",
+    "complete_patch_review_actions_from_contract",
     "complete_patch_review_action_refs_from_contract",
     "build_action_resolved_event",
     "build_action_selected_event",
