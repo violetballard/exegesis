@@ -2126,11 +2126,17 @@ def validate_action_ref(action: Any) -> None:
     if confirm is not None:
         if not isinstance(confirm, dict):
             raise ValueError("Action confirm must be an object")
+        unexpected_confirm_fields = set(confirm) - {"title"}
+        if unexpected_confirm_fields:
+            field_list = ", ".join(sorted(unexpected_confirm_fields))
+            raise ValueError(f"Unsupported action confirm field(s): {field_list}")
         for key, value in confirm.items():
             if not isinstance(key, str) or not key.strip():
                 raise ValueError("Action confirm keys must be non-empty strings")
             if not isinstance(value, str) or not value.strip():
                 raise ValueError("Action confirm values must be non-empty strings")
+            if value != value.strip():
+                raise ValueError("Action confirm values must be normalized")
     policy_sensitive = action.get("policy_sensitive", False)
     if not isinstance(policy_sensitive, bool):
         raise ValueError("Action policy_sensitive must be a boolean")

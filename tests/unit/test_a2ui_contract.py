@@ -4600,6 +4600,22 @@ class A2UIContractTests(unittest.TestCase):
                 confirm={"title": ""},
             )
 
+        with self.assertRaisesRegex(ValueError, "Unsupported action confirm field"):
+            ActionRef(
+                id="apply_patch",
+                label="Apply",
+                payload={"patch_id": "p1"},
+                confirm={"title": "Apply patch?", "body": "Extra client copy"},
+            )
+
+        with self.assertRaisesRegex(ValueError, "confirm values must be normalized"):
+            ActionRef(
+                id="apply_patch",
+                label="Apply",
+                payload={"patch_id": "p1"},
+                confirm={"title": " Apply patch? "},
+            )
+
     def test_action_metadata_must_stay_typed_for_engine_policy_gate(self) -> None:
         with self.assertRaisesRegex(ValueError, "Unsupported action field"):
             validate_action_ref(
@@ -4628,6 +4644,26 @@ class A2UIContractTests(unittest.TestCase):
                     "label": "Apply",
                     "payload": {"patch_id": "p1"},
                     "confirm": {"title": ""},
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "Unsupported action confirm field"):
+            validate_action_ref(
+                {
+                    "id": "apply_patch",
+                    "label": "Apply",
+                    "payload": {"patch_id": "p1"},
+                    "confirm": {"title": "Apply patch?", "body": "Extra client copy"},
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "confirm values must be normalized"):
+            validate_action_ref(
+                {
+                    "id": "apply_patch",
+                    "label": "Apply",
+                    "payload": {"patch_id": "p1"},
+                    "confirm": {"title": " Apply patch? "},
                 }
             )
 
