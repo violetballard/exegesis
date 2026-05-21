@@ -62,6 +62,9 @@ _ACTION_SCHEMAS: dict[str, dict[str, type]] = {
     "export_document": {"format": str},
     "copy_to_clipboard": {"text": str},
 }
+_ACTION_REF_FIELDS: frozenset[str] = frozenset(
+    {"id", "label", "payload", "confirm", "policy_sensitive"}
+)
 
 
 @dataclass(frozen=True)
@@ -804,6 +807,10 @@ def build_patch_decision_selection(
 def validate_action_ref(action: Any) -> None:
     if not isinstance(action, dict):
         raise ValueError("ActionRef must be an object")
+    unexpected_fields = set(action) - _ACTION_REF_FIELDS
+    if unexpected_fields:
+        field_list = ", ".join(sorted(unexpected_fields))
+        raise ValueError(f"Unsupported action field(s): {field_list}")
     action_id = str(action.get("id", ""))
     if action_id not in _ALLOWED_ACTION_SET:
         raise ValueError(f"Unsupported action id: {action_id}")

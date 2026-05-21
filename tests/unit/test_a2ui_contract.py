@@ -1337,6 +1337,16 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(executed, [])
 
     def test_action_metadata_must_stay_typed_for_engine_policy_gate(self) -> None:
+        with self.assertRaisesRegex(ValueError, "Unsupported action field"):
+            validate_action_ref(
+                {
+                    "id": "apply_patch",
+                    "label": "Apply",
+                    "payload": {"patch_id": "p1"},
+                    "target_file": "chapter.md",
+                }
+            )
+
         with self.assertRaisesRegex(ValueError, "policy_sensitive must be a boolean"):
             validate_action_ref(
                 {
@@ -1369,7 +1379,7 @@ class A2UIContractTests(unittest.TestCase):
                         "id": "apply_patch",
                         "label": "Unsafe apply",
                         "payload": {"patch_id": "p1"},
-                        "policy_sensitive": "yes",
+                        "target_file": "chapter.md",
                     },
                     {
                         "id": "reject_patch",
