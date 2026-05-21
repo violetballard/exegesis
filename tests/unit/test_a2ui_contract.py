@@ -845,6 +845,31 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["type"], "UnknownCard")
         self.assertIn("Unsupported card type: QuestionsCard", card["title"])
 
+    def test_studio_renders_unknown_card_for_unsupported_known_card_type(self) -> None:
+        caps = _capabilities(
+            cards_supported=("GenericCard",),
+            actions_supported=("open_corpus_item", "promote_to_basket"),
+        )
+        payload = {
+            "type": RETRIEVAL_RESULTS_CARD_TYPE,
+            "title": "Retrieval",
+            "query": "chapter five",
+            "results": [{"item_id": "doc-1", "title": "Chapter 5", "snippet": "Relevant paragraph"}],
+            "actions": [
+                {"id": "promote_to_basket", "label": "Add to basket", "payload": {"item_id": "doc-1"}},
+                {"id": "open_corpus_item", "label": "Open", "payload": {"item_id": "doc-1"}},
+            ],
+        }
+
+        card = studio_materialize_card(payload, caps)
+
+        self.assertEqual(card["type"], "UnknownCard")
+        self.assertIn("Unsupported card type: RetrievalResultsCard", card["title"])
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in card["action_selection"]["order"]],
+            [(1, "open_corpus_item"), (2, "promote_to_basket")],
+        )
+
     def test_unknown_card_fallback_honors_supported_actions(self) -> None:
         caps = _capabilities(
             cards_supported=("RunLogCard",),
