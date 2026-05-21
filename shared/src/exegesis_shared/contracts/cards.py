@@ -110,9 +110,14 @@ def validate_complete_patch_review_card_capabilities(capabilities: A2UICapabilit
 def _validate_capability_names(values: Any, field_name: str) -> None:
     if not isinstance(values, tuple):
         raise ValueError(f"{field_name} must be a tuple")
+    seen: set[str] = set()
     for value in values:
         if not isinstance(value, str) or not value.strip():
             raise ValueError(f"{field_name} entries must be non-empty strings")
+        normalized = value.strip()
+        if normalized in seen:
+            raise ValueError(f"{field_name} entries must be unique: {normalized}")
+        seen.add(normalized)
 
 
 def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:

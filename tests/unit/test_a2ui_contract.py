@@ -390,6 +390,42 @@ class A2UIContractTests(unittest.TestCase):
                 )
             )
 
+    def test_capabilities_reject_duplicate_advertised_contracts(self) -> None:
+        with self.assertRaisesRegex(ValueError, "cards_supported entries must be unique: ProposedEditCard"):
+            validate_capabilities(
+                _capabilities(cards_supported=("ProposedEditCard", "ProposedEditCard")),
+            )
+
+        with self.assertRaisesRegex(ValueError, "actions_supported entries must be unique: apply_patch"):
+            validate_capabilities(
+                _capabilities(actions_supported=("preview_patch", "apply_patch", "apply_patch")),
+            )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "primitive_blocks_supported entries must be unique: MarkdownBlock",
+        ):
+            validate_capabilities(
+                A2UICapabilities(
+                    a2ui_version=1,
+                    client_name="Exegesis Studio",
+                    cards_supported=("ProposedEditCard",),
+                    primitive_blocks_supported=(
+                        "MarkdownBlock",
+                        "MarkdownBlock",
+                        "KeyValueBlock",
+                        "ListBlock",
+                        "TableBlock",
+                        "AlertBlock",
+                        "ProgressBlock",
+                        "CodeBlock",
+                    ),
+                    actions_supported=("preview_patch", "apply_patch", "reject_patch"),
+                    max_payload_bytes=1_000_000,
+                    supports_streaming=True,
+                ),
+            )
+
     def test_session_store_rejects_invalid_capabilities_before_registration(self) -> None:
         store = A2UISessionStore()
         caps = _capabilities(actions_supported=("apply_patch", "delete_project"))
