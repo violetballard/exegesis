@@ -51,6 +51,7 @@ from src.qual.ui.a2ui import (
     patch_review_action_selection_from_selection,
     patch_review_availability_from_contract,
     patch_review_action_refs_from_contract,
+    patch_review_control_actions_from_contract,
     patch_review_control_slots_from_contract,
     render_terminal_card,
     resolve_card_selection_contract,
@@ -903,6 +904,54 @@ class A2UIContractTests(unittest.TestCase):
                 "apply": "apply_patch",
                 "reject": "reject_patch",
             },
+        )
+
+    def test_patch_review_contract_exports_fallback_control_actions(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {
+                        "id": "apply_patch",
+                        "label": "Apply",
+                        "payload": {"patch_id": "p1"},
+                        "confirm": {"title": "Apply patch?"},
+                        "policy_sensitive": True,
+                    },
+                    {
+                        "id": "reject_patch",
+                        "label": "Reject",
+                        "payload": {"patch_id": "p1"},
+                        "confirm": {"title": "Reject patch?"},
+                        "policy_sensitive": True,
+                    },
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+
+        controls = patch_review_control_actions_from_contract(card, review, patch_id=" p1 ")
+
+        self.assertEqual(list(controls), ["preview", "apply", "reject"])
+        self.assertEqual(
+            {control: data["slot"] for control, data in controls.items()},
+            {"preview": 1, "apply": 2, "reject": 3},
+        )
+        self.assertEqual(controls["preview"]["label"], "Preview")
+        self.assertEqual(controls["preview"]["payload"], {"patch_id": "p1"})
+        self.assertIsNone(controls["preview"]["confirm"])
+        self.assertFalse(controls["preview"]["policy_sensitive"])
+        self.assertEqual(controls["apply"]["confirm"], {"title": "Apply patch?"})
+        self.assertTrue(controls["apply"]["policy_sensitive"])
+        self.assertEqual(controls["reject"]["confirm"], {"title": "Reject patch?"})
+        self.assertTrue(controls["reject"]["policy_sensitive"])
+        self.assertEqual(
+            shared_contracts.patch_review_control_actions_from_contract(card, review, patch_id="p1"),
+            controls,
         )
 
     def test_patch_review_selection_resolves_cli_slot_through_review_contract(self) -> None:

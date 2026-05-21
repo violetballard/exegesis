@@ -556,6 +556,40 @@ def patch_review_control_slots_from_contract(
     return slots
 
 
+def patch_review_control_actions_from_contract(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+) -> dict[str, dict[str, Any]]:
+    slots = patch_review_control_slots_from_contract(card, review, patch_id=patch_id)
+    refs = patch_review_action_refs_from_contract(card, review, patch_id=patch_id)
+    preview_ref = refs["preview"]
+    decision_refs = refs["decisions"]
+    if not isinstance(decision_refs, dict):
+        raise ValueError("Patch review decisions must be available")
+
+    controls: dict[str, dict[str, Any]] = {}
+    ref_by_control: dict[str, ActionRef | None] = {
+        "preview": preview_ref if isinstance(preview_ref, ActionRef) else None,
+        "apply": decision_refs.get("apply"),
+        "reject": decision_refs.get("reject"),
+    }
+    for control in ("preview", "apply", "reject"):
+        slot = slots.get(control)
+        action_ref = ref_by_control.get(control)
+        if slot is None or not isinstance(action_ref, ActionRef):
+            continue
+        controls[control] = {
+            **slot,
+            "label": action_ref.label,
+            "payload": deepcopy(action_ref.payload),
+            "confirm": deepcopy(action_ref.confirm),
+            "policy_sensitive": action_ref.policy_sensitive,
+        }
+    return controls
+
+
 def complete_patch_review_action_refs_from_contract(
     card: dict[str, Any],
     review: dict[str, Any],
