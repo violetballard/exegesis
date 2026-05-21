@@ -97,6 +97,7 @@ class PatchReviewActionSelection:
 
     def as_contract(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
+            "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
             "kind": self.kind,
             "patch_id": self.patch_id,
             "action": self.action.as_contract(),

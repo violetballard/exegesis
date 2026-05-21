@@ -895,13 +895,17 @@ class A2UIContractTests(unittest.TestCase):
         )
         self.assertEqual(
             selected.as_contract(),
-            patch_review_action_ref_from_selection(
-                card,
-                review,
-                review["decisions"][1]["selection"],
-                patch_id="p1",
-            ),
+            {
+                **patch_review_action_ref_from_selection(
+                    card,
+                    review,
+                    review["decisions"][1]["selection"],
+                    patch_id="p1",
+                ),
+                "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+            },
         )
+        self.assertEqual(selected.as_contract()["contract_version"], PATCH_REVIEW_CONTRACT_VERSION)
         self.assertEqual(selected.as_contract()["action"]["id"], "reject_patch")
 
     def test_patch_review_selection_rejects_actions_outside_review_contract(self) -> None:
