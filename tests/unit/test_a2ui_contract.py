@@ -42,6 +42,7 @@ from src.qual.ui.a2ui import (
     resolve_patch_preview_action,
     resolve_patch_preview_selection,
     resolve_patch_review_contract,
+    resolve_patch_review_selection,
     studio_materialize_card,
     validate_action_ref,
     validate_capabilities,
@@ -774,6 +775,58 @@ class A2UIContractTests(unittest.TestCase):
             {decision: ref.payload for decision, ref in refs["decisions"].items()},
             {"apply": {"patch_id": "p1"}, "reject": {"patch_id": "p1"}},
         )
+
+    def test_patch_review_selection_resolves_cli_slot_through_review_contract(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+
+        preview = resolve_patch_review_selection(card, review, review["preview"], patch_id=" p1 ")
+        decision = resolve_patch_review_selection(
+            card,
+            review,
+            review["decisions"][1]["selection"],
+            patch_id="p1",
+        )
+
+        self.assertEqual(preview["kind"], "preview")
+        self.assertEqual(preview["action"]["id"], "preview_patch")
+        self.assertEqual(decision["kind"], "decision")
+        self.assertEqual(decision["decision"], "reject")
+        self.assertEqual(decision["action"]["id"], "reject_patch")
+
+    def test_patch_review_selection_rejects_actions_outside_review_contract(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+        stale = build_patch_decision_selection(card, patch_id="p1", decision="reject")
+        review["decisions"] = [entry for entry in review["decisions"] if entry["decision"] != "reject"]
+        review["availability"] = patch_review_availability_from_contract(review)
+
+        with self.assertRaisesRegex(ValueError, "not part of the current review contract"):
+            resolve_patch_review_selection(card, review, stale, patch_id="p1")
 
     def test_complete_patch_review_contract_requires_preview_apply_and_reject(self) -> None:
         card = materialize_terminal_card(

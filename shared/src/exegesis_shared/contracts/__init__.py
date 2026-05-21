@@ -27,6 +27,7 @@ from exegesis_shared.contracts.actions import (
     resolve_patch_decision_selection,
     resolve_patch_preview_selection,
     resolve_patch_review_contract,
+    resolve_patch_review_selection,
     validate_action_ref,
 )
 from exegesis_shared.contracts.cards import (
@@ -101,6 +102,7 @@ __all__ = [
     "resolve_patch_decision_selection",
     "resolve_patch_preview_selection",
     "resolve_patch_review_contract",
+    "resolve_patch_review_selection",
     "studio_materialize_card",
     "stream_event_key",
     "validate_action_ref",

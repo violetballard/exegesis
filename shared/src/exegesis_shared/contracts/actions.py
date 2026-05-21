@@ -438,6 +438,52 @@ def patch_review_action_refs_from_contract(
     return refs
 
 
+def resolve_patch_review_selection(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    selection: dict[str, Any],
+    *,
+    patch_id: str,
+) -> dict[str, Any]:
+    resolved = resolve_patch_review_contract(card, review, patch_id=patch_id)
+    if not isinstance(selection, dict):
+        raise ValueError("Patch review selection must be an object")
+
+    preview_selection = review.get("preview")
+    if (
+        isinstance(preview_selection, dict)
+        and selection == preview_selection
+        and resolved["preview"] is not None
+    ):
+        return {
+            "kind": "preview",
+            "patch_id": patch_id.strip(),
+            "action": resolved["preview"],
+        }
+
+    review_decisions = review.get("decisions", [])
+    if not isinstance(review_decisions, list):
+        raise ValueError("Patch review decisions must be a list")
+    resolved_decisions = {
+        entry["decision"]: entry["action"]
+        for entry in resolved["decisions"]
+        if isinstance(entry, dict)
+    }
+    for entry in review_decisions:
+        if not isinstance(entry, dict):
+            raise ValueError("Patch review decision entry must be an object")
+        decision = str(entry.get("decision", "")).strip().lower()
+        if entry.get("selection") == selection and decision in resolved_decisions:
+            return {
+                "kind": "decision",
+                "patch_id": patch_id.strip(),
+                "decision": decision,
+                "action": resolved_decisions[decision],
+            }
+
+    raise ValueError("Patch review selection is not part of the current review contract")
+
+
 def resolve_card_selection(card: dict[str, Any], selected_action_id: str) -> dict[str, Any]:
     actions = materialize_card_actions(card)
     matches = [action for action in actions if action.get("id") == selected_action_id]
