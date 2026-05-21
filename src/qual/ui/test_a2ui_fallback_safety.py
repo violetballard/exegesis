@@ -116,6 +116,23 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
         )
         self.assertIn("Patch review controls: preview=1, apply=2, reject=3", text)
 
+    def test_terminal_rendering_surfaces_missing_patch_controls(self) -> None:
+        card = studio_materialize_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [],
+            },
+            _capabilities(actions_supported=("preview_patch", "apply_patch")),
+        )
+
+        text = render_terminal_card(card)
+
+        self.assertIn("Patch review controls: preview=1, apply=2", text)
+        self.assertIn("Patch review missing controls: reject", text)
+
     def test_terminal_fallback_preserves_distinct_patch_action_slots(self) -> None:
         card = {
             "type": "GenericCard",

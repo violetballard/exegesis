@@ -606,6 +606,27 @@ def patch_review_control_actions_from_contract(
     return controls
 
 
+def patch_review_control_summary_from_contract(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+) -> dict[str, Any]:
+    controls = patch_review_control_actions_from_contract(card, review, patch_id=patch_id)
+    availability = patch_review_availability_from_contract(review)
+    return {
+        "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+        "patch_id": availability["patch_id"],
+        "flow": availability["flow"],
+        "decision_policy": availability["decision_policy"],
+        "required": deepcopy(availability["required"]),
+        "available": deepcopy(availability["available"]),
+        "missing": deepcopy(availability["missing"]),
+        "is_complete": availability["is_complete"],
+        "controls": deepcopy(controls),
+    }
+
+
 def complete_patch_review_action_refs_from_contract(
     card: dict[str, Any],
     review: dict[str, Any],

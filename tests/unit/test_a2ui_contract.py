@@ -54,6 +54,7 @@ from src.qual.ui.a2ui import (
     patch_review_availability_from_contract,
     patch_review_action_refs_from_contract,
     patch_review_control_actions_from_contract,
+    patch_review_control_summary_from_contract,
     patch_review_control_slots_from_contract,
     render_terminal_card,
     resolve_card_selection_contract,
@@ -973,6 +974,38 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(
             shared_contracts.patch_review_control_actions_from_contract(card, review, patch_id="p1"),
             controls,
+        )
+
+    def test_patch_review_control_summary_reports_missing_demo_controls(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+
+        summary = patch_review_control_summary_from_contract(card, review, patch_id="p1")
+
+        self.assertEqual(summary["required"], ["preview", "apply", "reject"])
+        self.assertEqual(summary["available"], ["preview", "apply"])
+        self.assertEqual(summary["missing"], ["reject"])
+        self.assertFalse(summary["is_complete"])
+        self.assertEqual(
+            [(name, control["slot"]) for name, control in summary["controls"].items()],
+            [("preview", 1), ("apply", 2)],
+        )
+        self.assertEqual(summary["controls"]["apply"]["selection"]["patch_decision"], "apply")
+        self.assertFalse(summary["controls"]["apply"]["policy_sensitive"])
+        self.assertEqual(
+            shared_contracts.patch_review_control_summary_from_contract(card, review, patch_id="p1"),
+            summary,
         )
 
     def test_patch_review_selection_resolves_cli_slot_through_review_contract(self) -> None:
