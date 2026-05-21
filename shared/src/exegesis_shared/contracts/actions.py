@@ -123,6 +123,28 @@ class PatchReviewActionSelection:
     action: ActionRef
     decision: str | None = None
 
+    def __post_init__(self) -> None:
+        expected_patch_id = self.patch_id.strip()
+        if not expected_patch_id:
+            raise ValueError("Patch review patch_id is required")
+        if expected_patch_id != self.patch_id:
+            raise ValueError("Patch review patch_id must be normalized")
+        if self.kind == "preview":
+            if self.decision is not None:
+                raise ValueError("Patch preview selection must not include a decision")
+            if self.action.id != "preview_patch":
+                raise ValueError("Patch preview selection must use preview_patch")
+        elif self.kind == "decision":
+            if self.decision not in {"apply", "reject"}:
+                raise ValueError("Patch review decision must be 'apply' or 'reject'")
+            expected_action_id = "apply_patch" if self.decision == "apply" else "reject_patch"
+            if self.action.id != expected_action_id:
+                raise ValueError("Patch review decision does not match the selected action")
+        else:
+            raise ValueError("Patch review kind must be 'preview' or 'decision'")
+        if self.action.payload.get("patch_id") != expected_patch_id:
+            raise ValueError("Patch review action does not match the current patch")
+
     def as_contract(self) -> dict[str, Any]:
         payload: dict[str, Any] = {
             "contract_version": PATCH_REVIEW_CONTRACT_VERSION,

@@ -2156,6 +2156,74 @@ class A2UIContractTests(unittest.TestCase):
             "apply_patch",
         )
 
+    def test_patch_review_action_selection_type_rejects_invalid_direct_contracts(self) -> None:
+        preview = ActionRef(
+            id="preview_patch",
+            label="Preview",
+            payload={"patch_id": "p1"},
+        )
+        apply = ActionRef(
+            id="apply_patch",
+            label="Apply",
+            payload={"patch_id": "p1"},
+        )
+        reject = ActionRef(
+            id="reject_patch",
+            label="Reject",
+            payload={"patch_id": "p1"},
+        )
+
+        self.assertEqual(
+            PatchReviewActionSelection(
+                kind="preview",
+                patch_id="p1",
+                action=preview,
+            ).as_contract()["action"]["id"],
+            "preview_patch",
+        )
+        self.assertEqual(
+            PatchReviewActionSelection(
+                kind="decision",
+                patch_id="p1",
+                action=apply,
+                decision="apply",
+            ).as_contract()["decision"],
+            "apply",
+        )
+
+        with self.assertRaisesRegex(ValueError, "must not include a decision"):
+            PatchReviewActionSelection(
+                kind="preview",
+                patch_id="p1",
+                action=preview,
+                decision="apply",
+            )
+        with self.assertRaisesRegex(ValueError, "does not match the selected action"):
+            PatchReviewActionSelection(
+                kind="decision",
+                patch_id="p1",
+                action=reject,
+                decision="apply",
+            )
+        with self.assertRaisesRegex(ValueError, "current patch"):
+            PatchReviewActionSelection(
+                kind="decision",
+                patch_id="p1",
+                action=ActionRef(
+                    id="apply_patch",
+                    label="Apply",
+                    payload={"patch_id": "p2"},
+                ),
+                decision="apply",
+            )
+        with self.assertRaisesRegex(ValueError, "must be normalized"):
+            PatchReviewActionSelection(
+                kind="decision",
+                patch_id=" p1 ",
+                action=apply,
+                decision="apply",
+            )
+
     def test_patch_decision_action_revalidates_stale_contract_identity(self) -> None:
         card = materialize_terminal_card(
             {
