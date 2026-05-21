@@ -422,6 +422,10 @@ def _validate_typed_mapping(
 ) -> None:
     if not isinstance(value, dict):
         raise ValueError(f"{label} must be an object")
+    unexpected_fields = set(value) - set(required_fields)
+    if unexpected_fields:
+        field_list = ", ".join(sorted(unexpected_fields))
+        raise ValueError(f"Unsupported {label} field(s): {field_list}")
     for field_name, field_type in required_fields.items():
         field_value = value.get(field_name)
         if not isinstance(field_value, field_type):
