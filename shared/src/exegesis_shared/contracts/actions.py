@@ -185,12 +185,52 @@ def materialize_patch_decision_contract(card: dict[str, Any], patch_id: str) -> 
     }
 
 
+def materialize_patch_preview_contract(card: dict[str, Any], patch_id: str) -> dict[str, Any]:
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch preview patch_id is required")
+
+    previews: list[dict[str, Any]] = []
+    for slot, action in enumerate(materialize_card_actions(card), start=1):
+        if action.get("id") != "preview_patch":
+            continue
+        payload = action.get("payload")
+        action_patch_id = payload.get("patch_id") if isinstance(payload, dict) else None
+        if action_patch_id != expected_patch_id:
+            continue
+        selection = {
+            "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+            "selection_model": "one_based_action_slot",
+            "slot": slot,
+            "action_identity": canonical_action_identity_key(action),
+            "patch_preview_contract_version": PATCH_PREVIEW_CONTRACT_VERSION,
+            "patch_id": expected_patch_id,
+        }
+        previews.append(
+            {
+                "slot": slot,
+                "action_id": "preview_patch",
+                "action_identity": canonical_action_identity_key(action),
+                "selection": selection,
+            }
+        )
+
+    return {
+        "contract_version": PATCH_PREVIEW_CONTRACT_VERSION,
+        "patch_id": expected_patch_id,
+        "previews": previews,
+    }
+
+
 def materialize_cli_fallback_card(card: dict[str, Any]) -> dict[str, Any]:
     materialized = deepcopy(card)
     materialized["actions"] = materialize_card_actions(card)
     materialized["action_selection"] = materialize_action_selection_contract(card)
     patch_id = card.get("patch_id")
     if isinstance(patch_id, str) and patch_id.strip():
+        patch_preview = materialize_patch_preview_contract(materialized, patch_id)
+        if patch_preview["previews"]:
+            materialized["patch_preview"] = patch_preview
         patch_decision = materialize_patch_decision_contract(materialized, patch_id)
         if patch_decision["decisions"]:
             materialized["patch_decision"] = patch_decision
@@ -316,20 +356,35 @@ def build_patch_preview_selection(card: dict[str, Any], *, patch_id: str) -> dic
     if not expected_patch_id:
         raise ValueError("Patch preview patch_id is required")
 
-    matching_entries = []
-    for entry in materialize_action_selection_contract(card).get("order", []):
-        if not isinstance(entry, dict):
-            continue
-        action = resolve_card_selection_by_index(card, entry.get("slot"))
-        payload = action.get("payload")
-        action_patch_id = payload.get("patch_id") if isinstance(payload, dict) else None
-        if action.get("id") == "preview_patch" and action_patch_id == expected_patch_id:
-            matching_entries.append(entry)
+    patch_preview = card.get("patch_preview")
+    if not isinstance(patch_preview, dict) or patch_preview.get("patch_id") != expected_patch_id:
+        patch_preview = materialize_patch_preview_contract(card, expected_patch_id)
+    if patch_preview.get("contract_version") != PATCH_PREVIEW_CONTRACT_VERSION:
+        raise ValueError("Unsupported patch preview contract version")
 
+    matching_entries = [
+        entry for entry in patch_preview.get("previews", []) if isinstance(entry, dict)
+    ]
     if len(matching_entries) != 1:
         raise ValueError("Patch preview is not available for the current patch")
 
     entry = matching_entries[0]
+    selection = entry.get("selection")
+    if isinstance(selection, dict):
+        if selection.get("contract_version") != ACTION_SELECTION_CONTRACT_VERSION:
+            raise ValueError("Unsupported action selection contract version")
+        if selection.get("selection_model") != "one_based_action_slot":
+            raise ValueError("Unsupported action selection model")
+        if selection.get("slot") != entry.get("slot"):
+            raise ValueError("Patch preview selection does not match the current card")
+        if selection.get("action_identity") != entry.get("action_identity"):
+            raise ValueError("Patch preview selection does not match the current card")
+        if selection.get("patch_preview_contract_version") != PATCH_PREVIEW_CONTRACT_VERSION:
+            raise ValueError("Unsupported patch preview contract version")
+        if selection.get("patch_id") != expected_patch_id:
+            raise ValueError("Patch preview selection does not match the current patch")
+        resolve_patch_preview_selection(card, selection, patch_id=expected_patch_id)
+        return deepcopy(selection)
     selection = {
         "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
         "selection_model": "one_based_action_slot",

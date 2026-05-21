@@ -22,6 +22,7 @@ from src.qual.ui.a2ui import (
     build_unknown_card,
     engine_prepare_card,
     execute_action_with_policy_gate,
+    materialize_patch_preview_contract,
     materialize_proposed_edit_card,
     materialize_terminal_card,
     render_terminal_card,
@@ -537,8 +538,76 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(selection["patch_id"], "p1")
         self.assertEqual(selection["slot"], 1)
         self.assertEqual(selection["action_identity"], card["action_selection"]["order"][0]["action_identity"])
+        self.assertEqual(card["patch_preview"]["patch_id"], "p1")
+        self.assertEqual(card["patch_preview"]["previews"][0]["selection"], selection)
         self.assertEqual(action["id"], "preview_patch")
         self.assertEqual(resolve_patch_preview_action(card, patch_id="p1")["payload"], {"patch_id": "p1"})
+
+    def test_patch_preview_contract_tracks_only_current_patch_preview_slots(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview A", "payload": {"patch_id": "p1"}},
+                    {"id": "preview_patch", "label": "Preview B", "payload": {"patch_id": "p2"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        self.assertEqual(card["patch_preview"]["patch_id"], "p1")
+        self.assertEqual(
+            [
+                (entry["slot"], entry["action_id"])
+                for entry in card["patch_preview"]["previews"]
+            ],
+            [(1, "preview_patch")],
+        )
+        self.assertEqual(
+            build_patch_preview_selection(card, patch_id="p1"),
+            card["patch_preview"]["previews"][0]["selection"],
+        )
+
+    def test_patch_preview_builder_revalidates_embedded_preview_metadata(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        card["patch_preview"]["previews"][0]["selection"]["patch_id"] = "p2"
+
+        with self.assertRaisesRegex(ValueError, "current patch"):
+            build_patch_preview_selection(card, patch_id="p1")
+
+    def test_patch_preview_contract_is_absent_when_preview_action_is_unsupported(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        self.assertNotIn("patch_preview", card)
+        self.assertEqual(
+            materialize_patch_preview_contract(card, "p1"),
+            {"contract_version": PATCH_PREVIEW_CONTRACT_VERSION, "patch_id": "p1", "previews": []},
+        )
+        with self.assertRaisesRegex(ValueError, "not available"):
+            build_patch_preview_selection(card, patch_id="p1")
 
     def test_patch_preview_selection_revalidates_current_patch_and_action(self) -> None:
         card = materialize_terminal_card(
