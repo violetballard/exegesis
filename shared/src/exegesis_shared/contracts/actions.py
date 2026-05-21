@@ -358,17 +358,33 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
         raise ValueError("Patch review patch_id is required")
 
     available: list[str] = []
-    if isinstance(review.get("preview"), dict):
+    preview = review.get("preview")
+    if (
+        isinstance(preview, dict)
+        and preview.get("patch_id") == patch_id.strip()
+        and preview.get("patch_preview_contract_version") == PATCH_PREVIEW_CONTRACT_VERSION
+    ):
         available.append("preview")
 
     decisions = review.get("decisions")
     if not isinstance(decisions, list):
         raise ValueError("Patch review decisions must be a list")
-    decision_names = {
-        str(entry.get("decision", "")).strip().lower()
-        for entry in decisions
-        if isinstance(entry, dict)
-    }
+    decision_names = set()
+    for entry in decisions:
+        if not isinstance(entry, dict):
+            continue
+        decision = str(entry.get("decision", "")).strip().lower()
+        selection = entry.get("selection")
+        if (
+            decision in {"apply", "reject"}
+            and isinstance(selection, dict)
+            and selection.get("patch_id") == patch_id.strip()
+            and selection.get("patch_decision") == decision
+            and selection.get("patch_decision_contract_version") == PATCH_DECISION_CONTRACT_VERSION
+            and selection.get("slot") == entry.get("slot")
+            and selection.get("action_identity") == entry.get("action_identity")
+        ):
+            decision_names.add(decision)
     for decision in ("apply", "reject"):
         if decision in decision_names:
             available.append(decision)

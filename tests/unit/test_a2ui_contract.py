@@ -1087,6 +1087,33 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(availability["missing"], ["reject"])
         self.assertFalse(availability["is_complete"])
 
+    def test_patch_review_availability_ignores_stale_selection_entries(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+        review["preview"] = dict(review["preview"], patch_id="stale")
+        review["decisions"][0]["selection"] = dict(
+            review["decisions"][0]["selection"],
+            patch_id="stale",
+        )
+
+        availability = patch_review_availability_from_contract(review)
+
+        self.assertEqual(availability["available"], ["reject"])
+        self.assertEqual(availability["missing"], ["preview", "apply"])
+        self.assertFalse(availability["is_complete"])
+
     def test_patch_review_availability_accepts_complete_contract(self) -> None:
         card = materialize_terminal_card(
             {
