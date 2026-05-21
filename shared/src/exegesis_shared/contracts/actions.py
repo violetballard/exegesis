@@ -756,10 +756,16 @@ def patch_review_cli_control_map_from_contract(
     return {
         "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
         "patch_id": summary["patch_id"],
+        "flow": summary["flow"],
+        "decision_policy": summary["decision_policy"],
+        "action_authority": summary["action_authority"],
         "selection_model": "one_based_action_slot",
         "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+        "required": deepcopy(summary["required"]),
+        "available": deepcopy(summary["available"]),
         "is_complete": summary["is_complete"],
         "missing": deepcopy(summary["missing"]),
+        "next_required": summary["next_required"],
         "controls": controls,
     }
 

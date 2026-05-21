@@ -1093,9 +1093,15 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         self.assertEqual(command_map["selection_model"], "one_based_action_slot")
+        self.assertEqual(command_map["flow"], PATCH_REVIEW_FLOW)
+        self.assertEqual(command_map["decision_policy"], PATCH_REVIEW_DECISION_POLICY)
+        self.assertEqual(command_map["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
         self.assertEqual(command_map["demo_path_step"], PATCH_REVIEW_DEMO_PATH_STEP)
+        self.assertEqual(command_map["required"], list(PATCH_REVIEW_REQUIRED_PARTS))
+        self.assertEqual(command_map["available"], list(PATCH_REVIEW_REQUIRED_PARTS))
         self.assertTrue(command_map["is_complete"])
         self.assertEqual(command_map["missing"], [])
+        self.assertIsNone(command_map["next_required"])
         self.assertEqual(
             [
                 (
