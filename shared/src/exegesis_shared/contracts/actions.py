@@ -118,7 +118,10 @@ class CompletePatchReviewActions:
 
     def as_contract(self) -> dict[str, Any]:
         return {
+            "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
             "patch_id": self.patch_id,
+            "flow": PATCH_REVIEW_FLOW,
+            "decision_policy": PATCH_REVIEW_DECISION_POLICY,
             "preview": self.preview.as_contract(),
             "decisions": {
                 "apply": self.apply.as_contract(),

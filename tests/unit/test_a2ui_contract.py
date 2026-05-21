@@ -1085,7 +1085,10 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(
             actions.as_contract(),
             {
+                "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
                 "patch_id": "p1",
+                "flow": PATCH_REVIEW_FLOW,
+                "decision_policy": PATCH_REVIEW_DECISION_POLICY,
                 "preview": {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
                 "decisions": {
                     "apply": {
