@@ -155,7 +155,10 @@ class PatchReviewActionSelection:
             "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
             "kind": self.kind,
             "patch_id": self.patch_id,
+            "flow": PATCH_REVIEW_FLOW,
+            "decision_policy": PATCH_REVIEW_DECISION_POLICY,
             "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+            "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
             "action": self.action.as_contract(),
         }
         if self.kind == "decision":

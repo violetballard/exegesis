@@ -2441,8 +2441,21 @@ class A2UIContractTests(unittest.TestCase):
                 kind="preview",
                 patch_id="p1",
                 action=preview,
-            ).as_contract()["action"]["id"],
-            "preview_patch",
+            ).as_contract(),
+            {
+                "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+                "kind": "preview",
+                "patch_id": "p1",
+                "flow": PATCH_REVIEW_FLOW,
+                "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+                "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+                "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+                "action": {
+                    "id": "preview_patch",
+                    "label": "Preview",
+                    "payload": {"patch_id": "p1"},
+                },
+            },
         )
         self.assertEqual(
             PatchReviewActionSelection(
@@ -2450,8 +2463,22 @@ class A2UIContractTests(unittest.TestCase):
                 patch_id="p1",
                 action=apply,
                 decision="apply",
-            ).as_contract()["decision"],
-            "apply",
+            ).as_contract(),
+            {
+                "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+                "kind": "decision",
+                "patch_id": "p1",
+                "flow": PATCH_REVIEW_FLOW,
+                "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+                "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+                "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+                "action": {
+                    "id": "apply_patch",
+                    "label": "Apply",
+                    "payload": {"patch_id": "p1"},
+                },
+                "decision": "apply",
+            },
         )
 
         with self.assertRaisesRegex(ValueError, "must not include a decision"):
