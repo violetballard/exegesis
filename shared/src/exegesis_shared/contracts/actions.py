@@ -6,6 +6,7 @@ import json
 from typing import Any, Callable, Protocol
 
 ACTION_SELECTION_CONTRACT_VERSION = 1
+PATCH_DECISION_CONTRACT_VERSION = 1
 ALLOWED_ACTION_IDS: tuple[str, ...] = (
     "apply_patch",
     "reject_patch",
@@ -18,6 +19,7 @@ ALLOWED_ACTION_IDS: tuple[str, ...] = (
     "export_document",
     "copy_to_clipboard",
 )
+PATCH_DECISION_ACTION_IDS: tuple[str, ...] = ("apply_patch", "reject_patch")
 
 CANONICAL_ACTION_ORDER: tuple[str, ...] = (
     "apply_patch",
@@ -134,10 +136,45 @@ def materialize_action_selection_contract(card: dict[str, Any]) -> dict[str, Any
     }
 
 
+def materialize_patch_decision_contract(card: dict[str, Any], patch_id: str) -> dict[str, Any]:
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch decision patch_id is required")
+
+    decisions: list[dict[str, Any]] = []
+    for slot, action in enumerate(materialize_card_actions(card), start=1):
+        action_id = action.get("id")
+        if action_id not in PATCH_DECISION_ACTION_IDS:
+            continue
+        payload = action.get("payload")
+        action_patch_id = payload.get("patch_id") if isinstance(payload, dict) else None
+        if action_patch_id != expected_patch_id:
+            continue
+        decisions.append(
+            {
+                "decision": "apply" if action_id == "apply_patch" else "reject",
+                "slot": slot,
+                "action_id": str(action_id),
+                "action_identity": canonical_action_identity_key(action),
+            }
+        )
+
+    return {
+        "contract_version": PATCH_DECISION_CONTRACT_VERSION,
+        "patch_id": expected_patch_id,
+        "decisions": decisions,
+    }
+
+
 def materialize_cli_fallback_card(card: dict[str, Any]) -> dict[str, Any]:
     materialized = deepcopy(card)
     materialized["actions"] = materialize_card_actions(card)
     materialized["action_selection"] = materialize_action_selection_contract(card)
+    patch_id = card.get("patch_id")
+    if isinstance(patch_id, str) and patch_id.strip():
+        patch_decision = materialize_patch_decision_contract(materialized, patch_id)
+        if patch_decision["decisions"]:
+            materialized["patch_decision"] = patch_decision
     return materialized
 
 

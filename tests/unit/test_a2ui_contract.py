@@ -6,6 +6,7 @@ from dataclasses import dataclass
 import exegesis_shared.contracts as shared_contracts
 from exegesis_shared.contracts.actions import (
     ACTION_SELECTION_CONTRACT_VERSION,
+    PATCH_DECISION_CONTRACT_VERSION,
 )
 from exegesis_shared.contracts import studio_materialize_card as shared_studio_materialize_card
 from src.qual.ui.a2ui import (
@@ -112,6 +113,15 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(
             [action["payload"] for action in materialized["actions"]],
             [{"patch_id": "patch-1"}, {"patch_id": "patch-1"}],
+        )
+        self.assertEqual(materialized["patch_decision"]["contract_version"], PATCH_DECISION_CONTRACT_VERSION)
+        self.assertEqual(materialized["patch_decision"]["patch_id"], "patch-1")
+        self.assertEqual(
+            [
+                (entry["decision"], entry["slot"], entry["action_id"])
+                for entry in materialized["patch_decision"]["decisions"]
+            ],
+            [("apply", 1, "apply_patch"), ("reject", 2, "reject_patch")],
         )
 
     def test_cli_fallback_materialization_enforces_negotiated_payload_limit(self) -> None:
@@ -331,6 +341,30 @@ class A2UIContractTests(unittest.TestCase):
                 },
                 patch_id="p1",
             )
+
+    def test_patch_decision_contract_tracks_duplicate_patch_action_slots(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply A", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply B", "payload": {"patch_id": "p2"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        self.assertEqual(card["patch_decision"]["patch_id"], "p1")
+        self.assertEqual(
+            [
+                (entry["decision"], entry["slot"], entry["action_id"])
+                for entry in card["patch_decision"]["decisions"]
+            ],
+            [("apply", 1, "apply_patch"), ("reject", 3, "reject_patch")],
+        )
 
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []
