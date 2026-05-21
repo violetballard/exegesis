@@ -62,6 +62,7 @@ from exegesis_shared.contracts.actions import (
     resolve_patch_review_selection,
     validate_action_capabilities,
     validate_action_ref,
+    validate_complete_patch_review_capabilities,
 )
 from exegesis_shared.contracts.cards import (
     A2UICapabilities,
@@ -193,6 +194,7 @@ __all__ = [
     "validate_basket_card",
     "validate_card_payload_size",
     "validate_capabilities",
+    "validate_complete_patch_review_capabilities",
     "validate_context_set_card",
     "validate_generic_card",
     "validate_known_card",

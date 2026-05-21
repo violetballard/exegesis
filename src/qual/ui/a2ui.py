@@ -69,6 +69,7 @@ from exegesis_shared.contracts.actions import (
     resolve_patch_review_contract,
     resolve_patch_review_selection,
     validate_action_ref,
+    validate_complete_patch_review_capabilities,
 )
 from exegesis_shared.contracts.cards import (
     A2UICapabilities,
@@ -428,6 +429,7 @@ __all__ = [
     "studio_materialize_card",
     "stream_event_key",
     "validate_action_ref",
+    "validate_complete_patch_review_capabilities",
     "validate_basket_card",
     "validate_card_payload_size",
     "validate_capabilities",

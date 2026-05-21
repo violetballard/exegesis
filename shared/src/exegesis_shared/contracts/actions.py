@@ -209,6 +209,19 @@ def validate_action_capabilities(capabilities: Any) -> None:
             raise ValueError(f"Unknown action in capabilities: {action_id}")
 
 
+def validate_complete_patch_review_capabilities(capabilities: Any) -> None:
+    validate_action_capabilities(capabilities)
+    supported_actions = set(capabilities.actions_supported)
+    missing = [
+        control
+        for control in PATCH_REVIEW_REQUIRED_PARTS
+        for action_id in PATCH_REVIEW_CLI_COMMAND_ALIASES[control]
+        if action_id.endswith("_patch") and action_id not in supported_actions
+    ]
+    if missing:
+        raise ValueError(f"Complete patch review client support is missing: {', '.join(missing)}")
+
+
 def canonical_action_key(action: dict[str, Any]) -> str:
     return json.dumps(action, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
@@ -1755,6 +1768,7 @@ def execute_complete_patch_review_action_with_policy_gate(
     policy_gate: PolicyGate,
     executor: Callable[[ActionRef], Any],
 ) -> Any:
+    validate_complete_patch_review_capabilities(capabilities)
     action = complete_patch_review_action_from_card(card, patch_id=patch_id, control=control)
     return execute_action_with_policy_gate(
         action=engine_authoritative_action_ref(action),

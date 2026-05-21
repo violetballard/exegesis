@@ -88,6 +88,7 @@ from src.qual.ui.a2ui import (
     validate_action_ref,
     validate_basket_card,
     validate_capabilities,
+    validate_complete_patch_review_capabilities,
     validate_context_set_card,
     validate_known_card,
     validate_retrieval_results_card,
@@ -3226,12 +3227,52 @@ class A2UIContractTests(unittest.TestCase):
             }
         )
 
-        with self.assertRaisesRegex(ValueError, "Action not supported by client"):
+        with self.assertRaisesRegex(
+            ValueError,
+            "Complete patch review client support is missing: apply",
+        ):
             execute_complete_patch_review_action_with_policy_gate(
                 card=card,
                 patch_id="p1",
                 control="apply",
                 capabilities=_capabilities(actions_supported=("preview_patch", "reject_patch")),
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: action.id,
+            )
+
+    def test_complete_patch_review_capabilities_require_full_demo_controls(self) -> None:
+        with self.assertRaisesRegex(
+            ValueError,
+            "Complete patch review client support is missing: reject",
+        ):
+            validate_complete_patch_review_capabilities(
+                _capabilities(actions_supported=("preview_patch", "apply_patch"))
+            )
+
+    def test_complete_patch_review_action_execution_requires_full_client_controls(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Complete patch review client support is missing: reject",
+        ):
+            execute_complete_patch_review_action_with_policy_gate(
+                card=card,
+                patch_id="p1",
+                control="apply",
+                capabilities=_capabilities(actions_supported=("preview_patch", "apply_patch")),
                 policy_gate=_PolicyGateStub(True),
                 executor=lambda action: action.id,
             )
