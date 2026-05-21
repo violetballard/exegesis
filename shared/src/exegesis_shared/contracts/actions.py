@@ -570,6 +570,26 @@ def complete_patch_review_actions_from_contract(
     )
 
 
+def complete_patch_review_actions_from_card(
+    card: dict[str, Any],
+    *,
+    patch_id: str,
+) -> CompletePatchReviewActions:
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch review patch_id is required")
+
+    review = card.get("patch_review")
+    if not isinstance(review, dict) or review.get("patch_id") != expected_patch_id:
+        review = build_complete_patch_review_contract(card, patch_id=expected_patch_id)
+    resolve_patch_review_contract(card, review, patch_id=expected_patch_id)
+    return complete_patch_review_actions_from_contract(
+        card,
+        review,
+        patch_id=expected_patch_id,
+    )
+
+
 def patch_review_action_ref_from_selection(
     card: dict[str, Any],
     review: dict[str, Any],

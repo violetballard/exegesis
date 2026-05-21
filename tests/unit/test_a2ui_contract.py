@@ -28,6 +28,7 @@ from src.qual.ui.a2ui import (
     build_patch_review_availability,
     build_patch_review_contract,
     build_unknown_card,
+    complete_patch_review_actions_from_card,
     complete_patch_review_actions_from_contract,
     complete_patch_review_action_refs_from_contract,
     engine_prepare_card,
@@ -1035,6 +1036,62 @@ class A2UIContractTests(unittest.TestCase):
                 },
             },
         )
+
+    def test_complete_patch_review_actions_from_card_uses_embedded_cli_fallback_review(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {
+                        "id": "apply_patch",
+                        "label": "Apply",
+                        "payload": {"patch_id": "p1"},
+                        "confirm": {"title": "Apply patch?"},
+                        "policy_sensitive": True,
+                    },
+                    {
+                        "id": "reject_patch",
+                        "label": "Reject",
+                        "payload": {"patch_id": "p1"},
+                        "confirm": {"title": "Reject patch?"},
+                        "policy_sensitive": True,
+                    },
+                ],
+            }
+        )
+
+        actions = complete_patch_review_actions_from_card(card, patch_id=" p1 ")
+
+        self.assertIsInstance(actions, CompletePatchReviewActions)
+        self.assertEqual(actions.patch_id, "p1")
+        self.assertEqual(actions.preview.id, "preview_patch")
+        self.assertEqual(actions.apply.id, "apply_patch")
+        self.assertEqual(actions.reject.id, "reject_patch")
+        self.assertTrue(actions.apply.policy_sensitive)
+        self.assertTrue(actions.reject.policy_sensitive)
+
+    def test_complete_patch_review_actions_from_card_revalidates_embedded_review(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        card["patch_review"]["decisions"][0]["selection"]["patch_id"] = "p2"
+
+        with self.assertRaisesRegex(ValueError, "current patch"):
+            complete_patch_review_actions_from_card(card, patch_id="p1")
 
     def test_complete_patch_review_action_refs_reject_partial_review(self) -> None:
         card = materialize_terminal_card(
