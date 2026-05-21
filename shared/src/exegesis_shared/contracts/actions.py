@@ -63,6 +63,18 @@ PATCH_REVIEW_CLI_COMMAND_ALIASES: dict[str, tuple[str, ...]] = {
     "apply": ("apply", "apply_patch"),
     "reject": ("reject", "reject_patch"),
 }
+ENGINE_NORMALIZED_ACTION_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
+    "preview_patch": ("patch_id",),
+    "apply_patch": ("patch_id",),
+    "reject_patch": ("patch_id",),
+    "open_section": ("section_id",),
+    "open_corpus_item": ("item_id",),
+    "promote_to_basket": ("item_id",),
+    "pin_to_context_set": ("item_id",),
+    "create_context_set": ("name",),
+    "run_agent": ("operation",),
+    "export_document": ("format",),
+}
 
 CANONICAL_ACTION_ORDER: tuple[str, ...] = (
     "preview_patch",
@@ -1898,11 +1910,18 @@ def execute_action_with_policy_gate(
 
 def engine_authoritative_action_ref(action: ActionRef) -> ActionRef:
     validate_action_ref(action.as_contract())
-    if action.id in {"preview_patch", *PATCH_DECISION_ACTION_IDS}:
-        patch_id = action.payload.get("patch_id")
-        if isinstance(patch_id, str):
-            normalized_payload = dict(action.payload)
-            normalized_payload["patch_id"] = patch_id.strip()
+    normalized_fields = ENGINE_NORMALIZED_ACTION_PAYLOAD_FIELDS.get(action.id, ())
+    if normalized_fields:
+        normalized_payload = dict(action.payload)
+        changed = False
+        for field_name in normalized_fields:
+            value = normalized_payload.get(field_name)
+            if isinstance(value, str):
+                normalized_value = value.strip()
+                if normalized_value != value:
+                    normalized_payload[field_name] = normalized_value
+                    changed = True
+        if changed:
             action = replace(action, payload=normalized_payload)
             validate_action_ref(action.as_contract())
     if action.id == "preview_patch":

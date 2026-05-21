@@ -60,6 +60,7 @@ from src.qual.ui.a2ui import (
     execute_action_with_policy_gate,
     execute_patch_review_selection_with_policy_gate,
     engine_authoritative_action_ref,
+    materialize_card_actions,
     materialize_patch_preview_contract,
     materialize_proposed_edit_card,
     materialize_terminal_card,
@@ -3942,6 +3943,92 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(preview_action.payload, {"patch_id": "p1"})
         self.assertTrue(apply_action.policy_sensitive)
         self.assertFalse(preview_action.policy_sensitive)
+
+    def test_engine_authoritative_mvp_actions_normalize_control_payloads(self) -> None:
+        actions = [
+            engine_authoritative_action_ref(
+                ActionRef(
+                    id="promote_to_basket",
+                    label="Add",
+                    payload={"item_id": " doc-1 "},
+                )
+            ),
+            engine_authoritative_action_ref(
+                ActionRef(
+                    id="pin_to_context_set",
+                    label="Pin",
+                    payload={"item_id": " doc-1 "},
+                )
+            ),
+            engine_authoritative_action_ref(
+                ActionRef(
+                    id="open_corpus_item",
+                    label="Open",
+                    payload={"item_id": " doc-1 "},
+                )
+            ),
+            engine_authoritative_action_ref(
+                ActionRef(
+                    id="open_section",
+                    label="Open section",
+                    payload={"section_id": " sec-1 "},
+                )
+            ),
+            engine_authoritative_action_ref(
+                ActionRef(
+                    id="create_context_set",
+                    label="Create",
+                    payload={"name": " Chapter 5 "},
+                )
+            ),
+            engine_authoritative_action_ref(
+                ActionRef(
+                    id="run_agent",
+                    label="Plan",
+                    payload={"operation": " plan "},
+                )
+            ),
+            engine_authoritative_action_ref(
+                ActionRef(
+                    id="export_document",
+                    label="Export",
+                    payload={"format": " markdown "},
+                )
+            ),
+            engine_authoritative_action_ref(
+                ActionRef(
+                    id="copy_to_clipboard",
+                    label="Copy",
+                    payload={"text": " keep intentional whitespace "},
+                )
+            ),
+        ]
+
+        self.assertEqual(actions[0].payload, {"item_id": "doc-1"})
+        self.assertEqual(actions[1].payload, {"item_id": "doc-1"})
+        self.assertEqual(actions[2].payload, {"item_id": "doc-1"})
+        self.assertEqual(actions[3].payload, {"section_id": "sec-1"})
+        self.assertEqual(actions[4].payload, {"name": "Chapter 5"})
+        self.assertEqual(actions[5].payload, {"operation": "plan"})
+        self.assertEqual(actions[6].payload, {"format": "markdown"})
+        self.assertEqual(actions[7].payload, {"text": " keep intentional whitespace "})
+
+    def test_engine_action_materialization_dedupes_padded_item_payloads(self) -> None:
+        card = {
+            "type": RETRIEVAL_RESULTS_CARD_TYPE,
+            "title": "Retrieval",
+            "query": "chapter five",
+            "results": [{"item_id": "doc-1", "title": "Chapter 5", "snippet": "Relevant paragraph"}],
+            "actions": [
+                {"id": "promote_to_basket", "label": "Add padded", "payload": {"item_id": " doc-1 "}},
+                {"id": "promote_to_basket", "label": "Add", "payload": {"item_id": "doc-1"}},
+            ],
+        }
+
+        actions = materialize_card_actions(card)
+
+        self.assertEqual(len(actions), 1)
+        self.assertEqual(actions[0]["payload"], {"item_id": "doc-1"})
 
     def test_engine_authoritative_preview_action_stays_optional_non_mutating(self) -> None:
         gate = _RecordingPolicyGate(False, [])
