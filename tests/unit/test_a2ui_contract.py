@@ -486,6 +486,39 @@ class A2UIContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "current card"):
             resolve_patch_decision_action(card, patch_id="p1", decision="apply")
 
+    def test_patch_decision_builder_revalidates_embedded_selection_metadata(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        card["patch_decision"]["decisions"][0]["selection"]["patch_decision"] = "reject"
+        with self.assertRaisesRegex(ValueError, "selected action"):
+            build_patch_decision_selection(card, patch_id="p1", decision="apply")
+
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        card["patch_decision"]["decisions"][0]["selection"]["patch_id"] = "p2"
+        with self.assertRaisesRegex(ValueError, "current patch"):
+            build_patch_decision_selection(card, patch_id="p1", decision="apply")
+
     def test_patch_decision_action_requires_current_patch_and_known_decision(self) -> None:
         card = materialize_terminal_card(
             {

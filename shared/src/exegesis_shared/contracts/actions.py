@@ -312,10 +312,18 @@ def build_patch_decision_selection(
     entry = matching_entries[0]
     selection = entry.get("selection")
     if isinstance(selection, dict):
+        if selection.get("contract_version") != ACTION_SELECTION_CONTRACT_VERSION:
+            raise ValueError("Unsupported action selection contract version")
+        if selection.get("selection_model") != "one_based_action_slot":
+            raise ValueError("Unsupported action selection model")
         if selection.get("action_identity") != entry.get("action_identity"):
             raise ValueError("Patch decision selection does not match the current card")
         if selection.get("slot") != entry.get("slot"):
             raise ValueError("Patch decision selection does not match the current card")
+        if selection.get("patch_decision") != normalized_decision:
+            raise ValueError("Patch decision selection does not match the selected action")
+        if selection.get("patch_id") != expected_patch_id:
+            raise ValueError("Patch decision selection does not match the current patch")
         return deepcopy(selection)
     return {
         "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
