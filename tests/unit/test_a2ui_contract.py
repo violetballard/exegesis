@@ -452,6 +452,9 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         selection = build_patch_decision_selection(card, patch_id=" p1 ", decision=" APPLY ")
+        decision_entry = next(
+            entry for entry in card["patch_decision"]["decisions"] if entry["decision"] == "apply"
+        )
 
         self.assertEqual(selection["contract_version"], ACTION_SELECTION_CONTRACT_VERSION)
         self.assertEqual(selection["selection_model"], "one_based_action_slot")
@@ -459,6 +462,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(selection["patch_id"], "p1")
         self.assertEqual(selection["slot"], 1)
         self.assertEqual(selection["action_identity"], card["action_selection"]["order"][0]["action_identity"])
+        self.assertEqual(decision_entry["selection"], selection)
         self.assertEqual(
             resolve_patch_decision_selection(card, selection, patch_id="p1")["id"],
             "apply_patch",

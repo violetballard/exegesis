@@ -154,12 +154,22 @@ def materialize_patch_decision_contract(card: dict[str, Any], patch_id: str) -> 
         action_patch_id = payload.get("patch_id") if isinstance(payload, dict) else None
         if action_patch_id != expected_patch_id:
             continue
+        decision = "apply" if action_id == "apply_patch" else "reject"
+        selection = {
+            "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+            "selection_model": "one_based_action_slot",
+            "slot": slot,
+            "action_identity": canonical_action_identity_key(action),
+            "patch_decision": decision,
+            "patch_id": expected_patch_id,
+        }
         decisions.append(
             {
-                "decision": "apply" if action_id == "apply_patch" else "reject",
+                "decision": decision,
                 "slot": slot,
                 "action_id": str(action_id),
                 "action_identity": canonical_action_identity_key(action),
+                "selection": selection,
             }
         )
 
@@ -300,6 +310,13 @@ def build_patch_decision_selection(
         raise ValueError(f"Patch decision '{normalized_decision}' is not available for the current patch")
 
     entry = matching_entries[0]
+    selection = entry.get("selection")
+    if isinstance(selection, dict):
+        if selection.get("action_identity") != entry.get("action_identity"):
+            raise ValueError("Patch decision selection does not match the current card")
+        if selection.get("slot") != entry.get("slot"):
+            raise ValueError("Patch decision selection does not match the current card")
+        return deepcopy(selection)
     return {
         "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
         "selection_model": "one_based_action_slot",
