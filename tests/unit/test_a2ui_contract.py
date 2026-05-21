@@ -1341,6 +1341,8 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(review["contract_version"], PATCH_REVIEW_CONTRACT_VERSION)
         self.assertEqual(review["patch_id"], "p1")
+        self.assertEqual(review["flow"], PATCH_REVIEW_FLOW)
+        self.assertEqual(review["decision_policy"], PATCH_REVIEW_DECISION_POLICY)
         self.assertEqual(review["preview"], card["patch_preview"]["previews"][0]["selection"])
         self.assertEqual(review["availability"]["available"], ["preview", "apply", "reject"])
         self.assertEqual(review["availability"]["missing"], [])
@@ -1350,6 +1352,8 @@ class A2UIContractTests(unittest.TestCase):
             [("apply", "p1"), ("reject", "p1")],
         )
         self.assertEqual(resolved["preview"]["id"], "preview_patch")
+        self.assertEqual(resolved["flow"], PATCH_REVIEW_FLOW)
+        self.assertEqual(resolved["decision_policy"], PATCH_REVIEW_DECISION_POLICY)
         self.assertEqual(
             [(entry["decision"], entry["action"]["id"]) for entry in resolved["decisions"]],
             [("apply", "apply_patch"), ("reject", "reject_patch")],
@@ -1393,6 +1397,16 @@ class A2UIContractTests(unittest.TestCase):
         review = build_patch_review_contract(card, patch_id="p1")
         review["decisions"][0]["action_identity"] = "{}"
         with self.assertRaisesRegex(ValueError, "action_identity"):
+            resolve_patch_review_contract(card, review, patch_id="p1")
+
+        review = build_patch_review_contract(card, patch_id="p1")
+        review["flow"] = "decide_without_preview"
+        with self.assertRaisesRegex(ValueError, "flow"):
+            resolve_patch_review_contract(card, review, patch_id="p1")
+
+        review = build_patch_review_contract(card, patch_id="p1")
+        review["decision_policy"] = "apply_only"
+        with self.assertRaisesRegex(ValueError, "decision policy"):
             resolve_patch_review_contract(card, review, patch_id="p1")
 
     def test_patch_decision_selection_builder_returns_typed_slot_contract(self) -> None:

@@ -306,6 +306,8 @@ def build_patch_review_contract(card: dict[str, Any], *, patch_id: str) -> dict[
     review: dict[str, Any] = {
         "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
         "patch_id": expected_patch_id,
+        "flow": PATCH_REVIEW_FLOW,
+        "decision_policy": PATCH_REVIEW_DECISION_POLICY,
         "preview": None,
         "decisions": [],
     }
@@ -419,9 +421,15 @@ def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], 
         raise ValueError("Unsupported patch review contract version")
     if review.get("patch_id") != expected_patch_id:
         raise ValueError("Patch review contract does not match the current patch")
+    if review.get("flow") != PATCH_REVIEW_FLOW:
+        raise ValueError("Unsupported patch review flow")
+    if review.get("decision_policy") != PATCH_REVIEW_DECISION_POLICY:
+        raise ValueError("Unsupported patch review decision policy")
     resolved: dict[str, Any] = {
         "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
         "patch_id": expected_patch_id,
+        "flow": PATCH_REVIEW_FLOW,
+        "decision_policy": PATCH_REVIEW_DECISION_POLICY,
         "preview": None,
         "decisions": [],
     }
