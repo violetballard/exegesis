@@ -15,6 +15,7 @@ from src.qual.ui.a2ui import (
     build_unknown_card,
     engine_prepare_card,
     execute_action_with_policy_gate,
+    materialize_proposed_edit_card,
     materialize_terminal_card,
     render_terminal_card,
     studio_materialize_card,
@@ -75,10 +76,42 @@ class A2UIContractTests(unittest.TestCase):
 
     def test_engine_falls_back_to_generic_for_unsupported_specialized_card(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
-        payload = {"type": "ProposedEditCard", "title": "Patch"}
+        payload = {"type": "RunDecisionCard", "title": "Patch"}
         card = engine_prepare_card(payload, caps)
         self.assertEqual(card["type"], "GenericCard")
         self.assertEqual(card["blocks"][0]["type"], "AlertBlock")
+
+    def test_proposed_edit_card_materializes_patch_actions_for_cli_fallback(self) -> None:
+        card = {
+            "type": "ProposedEditCard",
+            "patch_id": " patch-1 ",
+            "title": "Preview patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "```diff\n+new\n```"}],
+            "actions": [],
+        }
+
+        materialized = studio_materialize_card(card, _capabilities())
+
+        self.assertEqual(materialized["patch_id"], "patch-1")
+        self.assertEqual([action["id"] for action in materialized["actions"]], ["apply_patch", "reject_patch"])
+        self.assertEqual(
+            [action["payload"] for action in materialized["actions"]],
+            [{"patch_id": "patch-1"}, {"patch_id": "patch-1"}],
+        )
+
+    def test_proposed_edit_card_rejects_mismatched_patch_actions(self) -> None:
+        card = {
+            "type": "ProposedEditCard",
+            "patch_id": "patch-1",
+            "title": "Preview patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+            "actions": [
+                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "other"}},
+            ],
+        }
+
+        with self.assertRaisesRegex(ValueError, "must match ProposedEditCard patch_id"):
+            materialize_proposed_edit_card(card)
 
     def test_studio_renders_unknown_card_for_unsupported_type(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
