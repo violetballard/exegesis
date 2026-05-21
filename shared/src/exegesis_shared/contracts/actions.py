@@ -198,6 +198,17 @@ class PolicyGate(Protocol):
         ...
 
 
+def validate_action_capabilities(capabilities: Any) -> None:
+    actions_supported = getattr(capabilities, "actions_supported", None)
+    if not isinstance(actions_supported, tuple):
+        raise ValueError("actions_supported must be a tuple")
+    for action_id in actions_supported:
+        if not isinstance(action_id, str) or not action_id.strip():
+            raise ValueError("actions_supported entries must be non-empty strings")
+        if action_id not in _ALLOWED_ACTION_SET:
+            raise ValueError(f"Unknown action in capabilities: {action_id}")
+
+
 def canonical_action_key(action: dict[str, Any]) -> str:
     return json.dumps(action, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
@@ -1628,6 +1639,7 @@ def execute_action_with_policy_gate(
     policy_gate: PolicyGate,
     executor: Callable[[ActionRef], Any],
 ) -> Any:
+    validate_action_capabilities(capabilities)
     action = engine_authoritative_action_ref(action)
     validate_action_ref(action.as_contract())
     if action.id not in _ALLOWED_ACTION_SET:

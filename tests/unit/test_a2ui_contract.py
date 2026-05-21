@@ -3236,6 +3236,48 @@ class A2UIContractTests(unittest.TestCase):
                 executor=lambda action: action.id,
             )
 
+    def test_complete_patch_review_action_execution_rejects_malformed_action_capabilities(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        malformed_caps = A2UICapabilities(
+            a2ui_version=1,
+            client_name="Exegesis Studio",
+            cards_supported=("ProposedEditCard",),
+            primitive_blocks_supported=(
+                "MarkdownBlock",
+                "KeyValueBlock",
+                "ListBlock",
+                "TableBlock",
+                "AlertBlock",
+                "ProgressBlock",
+                "CodeBlock",
+            ),
+            actions_supported=["preview_patch", "apply_patch", "reject_patch"],  # type: ignore[arg-type]
+            max_payload_bytes=1_000_000,
+            supports_streaming=True,
+        )
+
+        with self.assertRaisesRegex(ValueError, "actions_supported must be a tuple"):
+            execute_complete_patch_review_action_with_policy_gate(
+                card=card,
+                patch_id="p1",
+                control="apply",
+                capabilities=malformed_caps,
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: action.id,
+            )
+
     def test_patch_decision_execution_is_policy_sensitive_even_when_card_omits_flag(self) -> None:
         card = materialize_terminal_card(
             {
