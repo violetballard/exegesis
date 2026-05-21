@@ -590,6 +590,23 @@ def complete_patch_review_actions_from_card(
     )
 
 
+def complete_patch_review_action_from_card(
+    card: dict[str, Any],
+    *,
+    patch_id: str,
+    control: str,
+) -> ActionRef:
+    actions = complete_patch_review_actions_from_card(card, patch_id=patch_id)
+    normalized_control = control.strip().lower()
+    if normalized_control == "preview":
+        return actions.preview
+    if normalized_control == "apply":
+        return actions.apply
+    if normalized_control == "reject":
+        return actions.reject
+    raise ValueError("Patch review control must be 'preview', 'apply', or 'reject'")
+
+
 def patch_review_action_ref_from_selection(
     card: dict[str, Any],
     review: dict[str, Any],
