@@ -2454,6 +2454,7 @@ class A2UIContractTests(unittest.TestCase):
                 "decision_policy": PATCH_REVIEW_DECISION_POLICY,
                 "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
                 "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+                "execution_policy": PATCH_REVIEW_EXECUTION_POLICY,
                 "preview": {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
                 "decisions": {
                     "apply": {
@@ -4423,6 +4424,30 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(rejected["action_id"], "reject_patch")
         self.assertEqual(rejected["status"], "rejected")
         self.assertEqual(rejected["message"], "User rejected patch")
+
+    def test_complete_patch_review_contract_carries_engine_execution_policy(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        self.assertEqual(review["execution_policy"], PATCH_REVIEW_EXECUTION_POLICY)
+        resolved = resolve_patch_review_contract(card, review, patch_id="p1")
+        self.assertEqual(resolved["execution_policy"], PATCH_REVIEW_EXECUTION_POLICY)
+
+        review["execution_policy"]["apply"]["policy_gate"] = "optional"
+        with self.assertRaisesRegex(ValueError, "Unsupported patch review execution policy"):
+            resolve_patch_review_contract(card, review, patch_id="p1")
 
     def test_complete_patch_review_actions_normalizes_policy_gated_decisions(self) -> None:
         actions = CompletePatchReviewActions(

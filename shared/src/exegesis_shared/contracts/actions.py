@@ -246,6 +246,7 @@ class CompletePatchReviewActions:
             "decision_policy": PATCH_REVIEW_DECISION_POLICY,
             "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
             "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+            "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY),
             "preview": self.preview.as_contract(),
             "decisions": {
                 "apply": self.apply.as_contract(),
@@ -514,6 +515,7 @@ def build_patch_review_contract(card: dict[str, Any], *, patch_id: str) -> dict[
         "decision_policy": PATCH_REVIEW_DECISION_POLICY,
         "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
         "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+        "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY),
         "preview": None,
         "decisions": [],
     }
@@ -576,6 +578,8 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
         raise ValueError("Unsupported patch review action authority")
     if review.get("demo_path_step") != PATCH_REVIEW_DEMO_PATH_STEP:
         raise ValueError("Unsupported patch review demo path step")
+    if review.get("execution_policy") != PATCH_REVIEW_EXECUTION_POLICY:
+        raise ValueError("Unsupported patch review execution policy")
 
     available: list[str] = []
     preview = review.get("preview")
@@ -661,6 +665,8 @@ def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], 
         raise ValueError("Unsupported patch review action authority")
     if review.get("demo_path_step") != PATCH_REVIEW_DEMO_PATH_STEP:
         raise ValueError("Unsupported patch review demo path step")
+    if review.get("execution_policy") != PATCH_REVIEW_EXECUTION_POLICY:
+        raise ValueError("Unsupported patch review execution policy")
     resolved: dict[str, Any] = {
         "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
         "patch_id": expected_patch_id,
@@ -668,6 +674,7 @@ def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], 
         "decision_policy": PATCH_REVIEW_DECISION_POLICY,
         "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
         "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+        "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY),
         "preview": None,
         "decisions": [],
     }
