@@ -1448,6 +1448,25 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(executed, [])
 
+    def test_action_ref_metadata_rejects_bad_runtime_values_before_policy_gate(self) -> None:
+        executed: list[str] = []
+        action = ActionRef(
+            id="apply_patch",
+            label="Apply",
+            payload={"patch_id": "p1"},
+            confirm={"title": ""},
+        )
+
+        with self.assertRaisesRegex(ValueError, "confirm values must be non-empty strings"):
+            execute_action_with_policy_gate(
+                action=action,
+                capabilities=_capabilities(),
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda a: executed.append(a.id),
+            )
+
+        self.assertEqual(executed, [])
+
     def test_action_metadata_must_stay_typed_for_engine_policy_gate(self) -> None:
         with self.assertRaisesRegex(ValueError, "Unsupported action field"):
             validate_action_ref(

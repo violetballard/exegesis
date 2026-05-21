@@ -937,11 +937,11 @@ def execute_action_with_policy_gate(
     policy_gate: PolicyGate,
     executor: Callable[[ActionRef], Any],
 ) -> Any:
+    validate_action_ref(action.as_contract())
     if action.id not in _ALLOWED_ACTION_SET:
         raise ValueError("Unknown action id")
     if action.id not in set(capabilities.actions_supported):
         raise ValueError("Action not supported by client")
-    _validate_action_payload(action.id, action.payload)
     if not policy_gate.allow_action(action.id, action.payload, policy_sensitive=action.policy_sensitive):
         raise PermissionError("PolicyGate blocked action")
     return executor(action)
