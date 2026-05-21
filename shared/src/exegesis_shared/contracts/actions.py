@@ -76,6 +76,24 @@ class ActionRef:
     policy_sensitive: bool = False
 
 
+@dataclass(frozen=True)
+class PatchReviewActionSelection:
+    kind: str
+    patch_id: str
+    action: ActionRef
+    decision: str | None = None
+
+    def as_contract(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {
+            "kind": self.kind,
+            "patch_id": self.patch_id,
+            "action": self.action,
+        }
+        if self.kind == "decision":
+            payload["decision"] = self.decision
+        return payload
+
+
 class PolicyGate(Protocol):
     def allow_action(self, action_id: str, payload: dict[str, Any], *, policy_sensitive: bool) -> bool:
         ...
@@ -482,19 +500,36 @@ def patch_review_action_ref_from_selection(
     *,
     patch_id: str,
 ) -> dict[str, Any]:
+    return patch_review_action_selection_from_selection(
+        card,
+        review,
+        selection,
+        patch_id=patch_id,
+    ).as_contract()
+
+
+def patch_review_action_selection_from_selection(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    selection: dict[str, Any],
+    *,
+    patch_id: str,
+) -> PatchReviewActionSelection:
     resolved = resolve_patch_review_selection(card, review, selection, patch_id=patch_id)
     action_ref = action_ref_from_selection(card, selection)
     if action_ref.id != resolved["action"].get("id"):
         raise ValueError("Patch review selection does not match the resolved action")
 
-    selected: dict[str, Any] = {
-        "kind": resolved["kind"],
-        "patch_id": resolved["patch_id"],
-        "action": action_ref,
-    }
+    decision = resolved.get("decision") if resolved["kind"] == "decision" else None
     if resolved["kind"] == "decision":
-        selected["decision"] = resolved["decision"]
-    return selected
+        if decision not in {"apply", "reject"}:
+            raise ValueError("Patch review decision must be 'apply' or 'reject'")
+    return PatchReviewActionSelection(
+        kind=resolved["kind"],
+        patch_id=resolved["patch_id"],
+        action=action_ref,
+        decision=decision,
+    )
 
 
 def resolve_patch_review_selection(

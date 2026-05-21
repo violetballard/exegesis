@@ -15,6 +15,7 @@ from src.qual.ui.a2ui import (
     A2UICapabilities,
     A2UISessionStore,
     ActionRef,
+    PatchReviewActionSelection,
     action_ref_from_selection,
     build_complete_patch_review_contract,
     build_action_resolved_event,
@@ -35,6 +36,7 @@ from src.qual.ui.a2ui import (
     patch_decision_action_ref_from_selection,
     patch_preview_action_ref_from_selection,
     patch_review_action_ref_from_selection,
+    patch_review_action_selection_from_selection,
     patch_review_availability_from_contract,
     patch_review_action_refs_from_contract,
     render_terminal_card,
@@ -851,6 +853,44 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(selected["action"].payload, {"patch_id": "p1"})
         self.assertEqual(selected["action"].confirm, {"title": "Apply patch?"})
         self.assertTrue(selected["action"].policy_sensitive)
+
+    def test_patch_review_selection_has_typed_shared_result_with_contract_shape(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+
+        selected = patch_review_action_selection_from_selection(
+            card,
+            review,
+            review["decisions"][1]["selection"],
+            patch_id="p1",
+        )
+
+        self.assertIsInstance(selected, PatchReviewActionSelection)
+        self.assertEqual(selected.kind, "decision")
+        self.assertEqual(selected.patch_id, "p1")
+        self.assertEqual(selected.decision, "reject")
+        self.assertEqual(selected.action.id, "reject_patch")
+        self.assertEqual(
+            selected.as_contract(),
+            patch_review_action_ref_from_selection(
+                card,
+                review,
+                review["decisions"][1]["selection"],
+                patch_id="p1",
+            ),
+        )
 
     def test_patch_review_selection_rejects_actions_outside_review_contract(self) -> None:
         card = materialize_terminal_card(
