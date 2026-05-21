@@ -886,6 +886,7 @@ class A2UIContractTests(unittest.TestCase):
                 "required": ["preview", "apply", "reject"],
                 "available": ["preview", "apply", "reject"],
                 "missing": [],
+                "next_required": None,
                 "is_complete": True,
             },
         )
@@ -1087,6 +1088,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(summary["required"], ["preview", "apply", "reject"])
         self.assertEqual(summary["available"], ["preview", "apply"])
         self.assertEqual(summary["missing"], ["reject"])
+        self.assertEqual(summary["next_required"], "reject")
         self.assertFalse(summary["is_complete"])
         self.assertEqual(
             [(name, control["slot"]) for name, control in summary["controls"].items()],
@@ -1209,6 +1211,23 @@ class A2UIContractTests(unittest.TestCase):
             "reject=available(slot 3, confirm, policy-gated)",
             text,
         )
+
+    def test_terminal_patch_review_fallback_renders_next_required_control(self) -> None:
+        text = render_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        self.assertIn("Patch review missing controls: reject", text)
+        self.assertIn("Patch review next required control: reject", text)
 
     def test_patch_review_selection_resolves_cli_slot_through_review_contract(self) -> None:
         card = materialize_terminal_card(
@@ -1687,6 +1706,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(availability["required"], list(PATCH_REVIEW_REQUIRED_PARTS))
         self.assertEqual(availability["available"], ["preview", "apply"])
         self.assertEqual(availability["missing"], ["reject"])
+        self.assertEqual(availability["next_required"], "reject")
         self.assertFalse(availability["is_complete"])
 
     def test_patch_review_availability_ignores_stale_selection_entries(self) -> None:
@@ -1715,6 +1735,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(availability["required"], list(PATCH_REVIEW_REQUIRED_PARTS))
         self.assertEqual(availability["available"], ["reject"])
         self.assertEqual(availability["missing"], ["preview", "apply"])
+        self.assertEqual(availability["next_required"], "preview")
         self.assertFalse(availability["is_complete"])
 
     def test_patch_review_availability_revalidates_decision_action_ids(self) -> None:
@@ -1738,6 +1759,7 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(availability["available"], ["preview", "reject"])
         self.assertEqual(availability["missing"], ["apply"])
+        self.assertEqual(availability["next_required"], "apply")
         self.assertFalse(availability["is_complete"])
 
     def test_complete_patch_review_refs_reject_mismatched_decision_action_ids(self) -> None:
@@ -1781,6 +1803,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(availability["required"], list(PATCH_REVIEW_REQUIRED_PARTS))
         self.assertEqual(availability["available"], ["preview", "apply", "reject"])
         self.assertEqual(availability["missing"], [])
+        self.assertIsNone(availability["next_required"])
         self.assertEqual(availability["flow"], PATCH_REVIEW_FLOW)
         self.assertEqual(availability["decision_policy"], PATCH_REVIEW_DECISION_POLICY)
         self.assertEqual(availability["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)

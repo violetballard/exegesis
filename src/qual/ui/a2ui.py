@@ -187,6 +187,9 @@ def render_terminal_card(card: dict[str, Any]) -> str:
             lines.append(f"Patch review control plan: {', '.join(control_plan)}")
         if summary["missing"]:
             lines.append(f"Patch review missing controls: {', '.join(summary['missing'])}")
+            next_required = summary.get("next_required")
+            if isinstance(next_required, str) and next_required:
+                lines.append(f"Patch review next required control: {next_required}")
     for slot, action in enumerate(materialized.get("actions", []), start=1):
         if isinstance(action, dict):
             label = str(action.get("label", action.get("id", "action")))

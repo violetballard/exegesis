@@ -440,6 +440,7 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
             available.append(decision)
 
     missing = [part for part in PATCH_REVIEW_REQUIRED_PARTS if part not in set(available)]
+    next_required = missing[0] if missing else None
     return {
         "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
         "patch_id": patch_id.strip(),
@@ -450,6 +451,7 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
         "required": list(PATCH_REVIEW_REQUIRED_PARTS),
         "available": available,
         "missing": missing,
+        "next_required": next_required,
         "is_complete": not missing,
     }
 
@@ -681,6 +683,7 @@ def patch_review_control_summary_from_contract(
         "required": deepcopy(availability["required"]),
         "available": deepcopy(availability["available"]),
         "missing": deepcopy(availability["missing"]),
+        "next_required": availability["next_required"],
         "is_complete": availability["is_complete"],
         "controls": deepcopy(controls),
         "control_plan": control_plan,
