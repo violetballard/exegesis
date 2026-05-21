@@ -8,6 +8,7 @@ from exegesis_shared.contracts.actions import (
     ACTION_SELECTION_CONTRACT_VERSION,
     ALLOWED_ACTION_IDS,
     PATCH_DECISION_CONTRACT_VERSION,
+    action_ref_from_selection,
 )
 from exegesis_shared.contracts.cards import (
     A2UICapabilities,
@@ -54,6 +55,24 @@ def build_action_selected_event(
     event["selection"] = deepcopy(selection)
     validate_stream_event(event)
     return event
+
+
+def build_action_selected_event_from_selection(
+    *,
+    event_id: str,
+    run_id: str,
+    sequence: int,
+    card: dict[str, Any],
+    selection: dict[str, Any],
+) -> dict[str, Any]:
+    action = action_ref_from_selection(card, selection)
+    return build_action_selected_event(
+        event_id=event_id,
+        run_id=run_id,
+        sequence=sequence,
+        action_id=action.id,
+        selection=selection,
+    )
 
 
 def build_action_resolved_event(

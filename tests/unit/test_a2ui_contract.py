@@ -18,6 +18,7 @@ from src.qual.ui.a2ui import (
     action_ref_from_selection,
     build_action_resolved_event,
     build_action_selected_event,
+    build_action_selected_event_from_selection,
     build_card_published_event,
     build_patch_decision_selection,
     build_patch_preview_selection,
@@ -991,6 +992,56 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(selected["selection"]["patch_decision"], "apply")
         self.assertEqual(resolved["status"], "applied")
+
+    def test_streaming_action_selected_event_can_derive_action_id_from_selection(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+
+        selected = build_action_selected_event_from_selection(
+            event_id="evt-2",
+            run_id="run-1",
+            sequence=2,
+            card=card,
+            selection=selection,
+        )
+
+        self.assertEqual(selected["action_id"], "apply_patch")
+        self.assertEqual(selected["selection"]["action_identity"], selection["action_identity"])
+
+    def test_streaming_action_selected_event_rejects_stale_selection_identity(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+        selection["action_identity"] = "stale"
+
+        with self.assertRaisesRegex(ValueError, "does not match the current card"):
+            build_action_selected_event_from_selection(
+                event_id="evt-2",
+                run_id="run-1",
+                sequence=2,
+                card=card,
+                selection=selection,
+            )
 
     def test_streaming_action_events_reject_unknown_action_ids(self) -> None:
         selection = {
