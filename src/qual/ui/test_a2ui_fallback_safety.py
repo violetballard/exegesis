@@ -92,6 +92,29 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
             ["* 1. Apply", "* 2. Reject", "* 3. Revise"],
         )
 
+    def test_terminal_rendering_surfaces_patch_confirmation_prompts(self) -> None:
+        card = studio_materialize_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [],
+            },
+            _capabilities(actions_supported=("preview_patch", "apply_patch", "reject_patch")),
+        )
+
+        text = render_terminal_card(card)
+
+        self.assertEqual(
+            [line for line in text.splitlines() if line.startswith("* ")],
+            [
+                "* 1. Preview patch",
+                "* 2. Apply patch [confirm: Apply patch?]",
+                "* 3. Reject patch [confirm: Reject patch?]",
+            ],
+        )
+
     def test_terminal_fallback_preserves_distinct_patch_action_slots(self) -> None:
         card = {
             "type": "GenericCard",

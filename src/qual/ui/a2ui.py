@@ -138,7 +138,13 @@ def render_terminal_card(card: dict[str, Any]) -> str:
                         lines.append(" | ".join(str(value) for value in row))
     for slot, action in enumerate(materialized.get("actions", []), start=1):
         if isinstance(action, dict):
-            lines.append(f"* {slot}. {action.get('label', action.get('id', 'action'))}")
+            label = str(action.get("label", action.get("id", "action")))
+            confirm = action.get("confirm")
+            if isinstance(confirm, dict):
+                title = confirm.get("title")
+                if isinstance(title, str) and title.strip():
+                    label = f"{label} [confirm: {title.strip()}]"
+            lines.append(f"* {slot}. {label}")
     return "\n".join(lines)
 
 
