@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import unittest
+from copy import deepcopy
 from dataclasses import dataclass
 
 import exegesis_shared.contracts as shared_contracts
@@ -4773,6 +4774,37 @@ class A2UIContractTests(unittest.TestCase):
         review["execution_policy"]["apply"]["policy_gate"] = "optional"
         with self.assertRaisesRegex(ValueError, "Unsupported patch review execution policy"):
             resolve_patch_review_contract(card, review, patch_id="p1")
+
+    def test_patch_review_contract_rejects_untyped_fields(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        contract_with_extra = deepcopy(review)
+        contract_with_extra["client_hint"] = "apply"
+        with self.assertRaisesRegex(ValueError, "Unsupported patch review contract field"):
+            resolve_patch_review_contract(card, contract_with_extra, patch_id="p1")
+
+        decision_with_extra = deepcopy(review)
+        decision_with_extra["decisions"][0]["client_hint"] = "apply"
+        with self.assertRaisesRegex(ValueError, "Unsupported patch review decision entry field"):
+            patch_review_availability_from_contract(decision_with_extra)
+
+        availability_with_extra = deepcopy(review)
+        availability_with_extra["availability"]["client_hint"] = "apply"
+        with self.assertRaisesRegex(ValueError, "Unsupported patch review availability field"):
+            resolve_patch_review_contract(card, availability_with_extra, patch_id="p1")
 
     def test_complete_patch_review_actions_normalizes_policy_gated_decisions(self) -> None:
         actions = CompletePatchReviewActions(

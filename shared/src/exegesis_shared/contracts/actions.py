@@ -138,6 +138,38 @@ _PATCH_DECISION_SELECTION_FIELDS: frozenset[str] = _ACTION_SELECTION_FIELDS | fr
 _PATCH_REVIEW_SELECTION_FIELDS: frozenset[str] = (
     _PATCH_PREVIEW_SELECTION_FIELDS | _PATCH_DECISION_SELECTION_FIELDS
 )
+_PATCH_REVIEW_CONTRACT_FIELDS: frozenset[str] = frozenset(
+    {
+        "contract_version",
+        "patch_id",
+        "flow",
+        "decision_policy",
+        "action_authority",
+        "demo_path_step",
+        "execution_policy",
+        "preview",
+        "decisions",
+        "availability",
+    }
+)
+_PATCH_REVIEW_DECISION_ENTRY_FIELDS: frozenset[str] = frozenset(
+    {"decision", "slot", "action_id", "action_identity", "selection"}
+)
+_PATCH_REVIEW_AVAILABILITY_FIELDS: frozenset[str] = frozenset(
+    {
+        "contract_version",
+        "patch_id",
+        "flow",
+        "decision_policy",
+        "action_authority",
+        "demo_path_step",
+        "required",
+        "available",
+        "missing",
+        "next_required",
+        "is_complete",
+    }
+)
 
 
 @dataclass(frozen=True)
@@ -579,6 +611,7 @@ def build_complete_patch_review_contract(card: dict[str, Any], *, patch_id: str)
 def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(review, dict):
         raise ValueError("Patch review contract must be an object")
+    _validate_selection_fields(review, _PATCH_REVIEW_CONTRACT_FIELDS, "patch review contract")
     if review.get("contract_version") != PATCH_REVIEW_CONTRACT_VERSION:
         raise ValueError("Unsupported patch review contract version")
     patch_id = review.get("patch_id")
@@ -615,7 +648,12 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
     decision_names = set()
     for entry in decisions:
         if not isinstance(entry, dict):
-            continue
+            raise ValueError("Patch review decision entry must be an object")
+        _validate_selection_fields(
+            entry,
+            _PATCH_REVIEW_DECISION_ENTRY_FIELDS,
+            "patch review decision entry",
+        )
         decision = str(entry.get("decision", "")).strip().lower()
         selection = entry.get("selection")
         expected_action_id = {"apply": "apply_patch", "reject": "reject_patch"}.get(decision)
@@ -641,7 +679,7 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
 
     missing = [part for part in PATCH_REVIEW_REQUIRED_PARTS if part not in set(available)]
     next_required = missing[0] if missing else None
-    return {
+    expected = {
         "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
         "patch_id": patch_id.strip(),
         "flow": PATCH_REVIEW_FLOW,
@@ -654,6 +692,19 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
         "next_required": next_required,
         "is_complete": not missing,
     }
+    return expected
+
+
+def _validate_patch_review_availability(availability: Any, expected: dict[str, Any]) -> None:
+    if not isinstance(availability, dict):
+        raise ValueError("Patch review availability must be an object")
+    _validate_selection_fields(
+        availability,
+        _PATCH_REVIEW_AVAILABILITY_FIELDS,
+        "patch review availability",
+    )
+    if availability != expected:
+        raise ValueError("Patch review availability does not match the current contract")
 
 
 def build_patch_review_availability(card: dict[str, Any], *, patch_id: str) -> dict[str, Any]:
@@ -667,6 +718,7 @@ def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], 
         raise ValueError("Patch review patch_id is required")
     if not isinstance(review, dict):
         raise ValueError("Patch review contract must be an object")
+    _validate_selection_fields(review, _PATCH_REVIEW_CONTRACT_FIELDS, "patch review contract")
     if review.get("contract_version") != PATCH_REVIEW_CONTRACT_VERSION:
         raise ValueError("Unsupported patch review contract version")
     if review.get("patch_id") != expected_patch_id:
@@ -707,6 +759,11 @@ def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], 
     for entry in review.get("decisions", []):
         if not isinstance(entry, dict):
             raise ValueError("Patch review decision entry must be an object")
+        _validate_selection_fields(
+            entry,
+            _PATCH_REVIEW_DECISION_ENTRY_FIELDS,
+            "patch review decision entry",
+        )
         decision = str(entry.get("decision", "")).strip().lower()
         if decision not in {"apply", "reject"}:
             raise ValueError("Patch review decision must be 'apply' or 'reject'")
@@ -731,8 +788,8 @@ def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], 
         raise ValueError("Patch review is not available for the current patch")
     expected_availability = patch_review_availability_from_contract(review)
     availability = review.get("availability")
-    if availability is not None and availability != expected_availability:
-        raise ValueError("Patch review availability does not match the current contract")
+    if availability is not None:
+        _validate_patch_review_availability(availability, expected_availability)
     return resolved
 
 
