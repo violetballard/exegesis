@@ -2151,6 +2151,7 @@ def build_patch_decision_selection(
         "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
         "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY[normalized_decision]),
         "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
+        "decision_group": PATCH_REVIEW_DECISION_GROUP,
         "patch_decision": normalized_decision,
         "patch_id": expected_patch_id,
     }

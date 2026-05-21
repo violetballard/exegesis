@@ -5428,6 +5428,32 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(execution["demo_path_step"], PATCH_REVIEW_DEMO_PATH_STEP)
         self.assertEqual(execution["selection"]["patch_decision"], "apply")
 
+    def test_patch_decision_selection_rebuilds_legacy_entry_with_decision_group(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        legacy_card = deepcopy(card)
+        del legacy_card["patch_decision"]["decisions"][0]["selection"]
+
+        selection = build_patch_decision_selection(legacy_card, patch_id="p1", decision="apply")
+
+        self.assertEqual(selection["decision_group"], PATCH_REVIEW_DECISION_GROUP)
+        self.assertEqual(selection["patch_decision"], "apply")
+        self.assertEqual(
+            resolve_patch_decision_selection(legacy_card, selection, patch_id="p1")["id"],
+            "apply_patch",
+        )
+
     def test_patch_review_control_execution_rejects_missing_control(self) -> None:
         card = materialize_terminal_card(
             {
