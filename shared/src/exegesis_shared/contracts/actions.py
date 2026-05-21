@@ -27,6 +27,7 @@ PATCH_DECISION_BY_ACTION_ID: dict[str, str] = {
     "reject_patch": "reject",
 }
 PATCH_PREVIEW_CONTRACT_VERSION = 1
+PATCH_REVIEW_REQUIRED_PARTS: tuple[str, ...] = ("preview", "apply", "reject")
 
 CANONICAL_ACTION_ORDER: tuple[str, ...] = (
     "preview_patch",
@@ -280,20 +281,51 @@ def build_patch_review_contract(card: dict[str, Any], *, patch_id: str) -> dict[
 
 def build_complete_patch_review_contract(card: dict[str, Any], *, patch_id: str) -> dict[str, Any]:
     review = build_patch_review_contract(card, patch_id=patch_id)
-    missing: list[str] = []
-    if review["preview"] is None:
-        missing.append("preview")
-    available_decisions = {
-        entry.get("decision")
-        for entry in review["decisions"]
-        if isinstance(entry, dict)
-    }
-    for decision in ("apply", "reject"):
-        if decision not in available_decisions:
-            missing.append(decision)
+    availability = patch_review_availability_from_contract(review)
+    missing = availability["missing"]
     if missing:
         raise ValueError(f"Complete patch review is missing: {', '.join(missing)}")
     return review
+
+
+def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(review, dict):
+        raise ValueError("Patch review contract must be an object")
+    if review.get("contract_version") != PATCH_REVIEW_CONTRACT_VERSION:
+        raise ValueError("Unsupported patch review contract version")
+    patch_id = review.get("patch_id")
+    if not isinstance(patch_id, str) or not patch_id.strip():
+        raise ValueError("Patch review patch_id is required")
+
+    available: list[str] = []
+    if isinstance(review.get("preview"), dict):
+        available.append("preview")
+
+    decisions = review.get("decisions")
+    if not isinstance(decisions, list):
+        raise ValueError("Patch review decisions must be a list")
+    decision_names = {
+        str(entry.get("decision", "")).strip().lower()
+        for entry in decisions
+        if isinstance(entry, dict)
+    }
+    for decision in ("apply", "reject"):
+        if decision in decision_names:
+            available.append(decision)
+
+    missing = [part for part in PATCH_REVIEW_REQUIRED_PARTS if part not in set(available)]
+    return {
+        "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+        "patch_id": patch_id.strip(),
+        "available": available,
+        "missing": missing,
+        "is_complete": not missing,
+    }
+
+
+def build_patch_review_availability(card: dict[str, Any], *, patch_id: str) -> dict[str, Any]:
+    review = build_patch_review_contract(card, patch_id=patch_id)
+    return patch_review_availability_from_contract(review)
 
 
 def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], *, patch_id: str) -> dict[str, Any]:

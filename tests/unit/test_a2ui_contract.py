@@ -23,6 +23,7 @@ from src.qual.ui.a2ui import (
     build_card_published_event,
     build_patch_decision_selection,
     build_patch_preview_selection,
+    build_patch_review_availability,
     build_patch_review_contract,
     build_unknown_card,
     engine_prepare_card,
@@ -32,6 +33,7 @@ from src.qual.ui.a2ui import (
     materialize_terminal_card,
     patch_decision_action_ref_from_selection,
     patch_preview_action_ref_from_selection,
+    patch_review_availability_from_contract,
     patch_review_action_refs_from_contract,
     render_terminal_card,
     resolve_card_selection_contract,
@@ -744,6 +746,49 @@ class A2UIContractTests(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "missing: reject"):
             build_complete_patch_review_contract(card, patch_id="p1")
+
+    def test_patch_review_availability_reports_demo_path_gaps(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        availability = build_patch_review_availability(card, patch_id=" p1 ")
+
+        self.assertEqual(availability["patch_id"], "p1")
+        self.assertEqual(availability["available"], ["preview", "apply"])
+        self.assertEqual(availability["missing"], ["reject"])
+        self.assertFalse(availability["is_complete"])
+
+    def test_patch_review_availability_accepts_complete_contract(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+
+        availability = patch_review_availability_from_contract(review)
+
+        self.assertEqual(availability["available"], ["preview", "apply", "reject"])
+        self.assertEqual(availability["missing"], [])
+        self.assertTrue(availability["is_complete"])
 
     def test_cli_fallback_materializes_patch_review_contract_for_current_patch(self) -> None:
         card = materialize_terminal_card(
