@@ -665,6 +665,7 @@ def patch_review_control_summary_from_contract(
 ) -> dict[str, Any]:
     controls = patch_review_control_actions_from_contract(card, review, patch_id=patch_id)
     availability = patch_review_availability_from_contract(review)
+    control_plan = patch_review_control_plan_from_contract(card, review, patch_id=patch_id)
     ordered_controls = [
         {"control": control, **deepcopy(controls[control])}
         for control in PATCH_REVIEW_REQUIRED_PARTS
@@ -682,8 +683,42 @@ def patch_review_control_summary_from_contract(
         "missing": deepcopy(availability["missing"]),
         "is_complete": availability["is_complete"],
         "controls": deepcopy(controls),
+        "control_plan": control_plan,
         "order": ordered_controls,
     }
+
+
+def patch_review_control_plan_from_contract(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+) -> list[dict[str, Any]]:
+    controls = patch_review_control_actions_from_contract(card, review, patch_id=patch_id)
+    availability = patch_review_availability_from_contract(review)
+    missing = set(availability["missing"])
+    plan: list[dict[str, Any]] = []
+    for control in PATCH_REVIEW_REQUIRED_PARTS:
+        entry: dict[str, Any] = {
+            "control": control,
+            "status": "missing" if control in missing else "available",
+            "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY[control]),
+        }
+        control_payload = controls.get(control)
+        if control_payload is not None:
+            entry.update(
+                {
+                    "slot": control_payload["slot"],
+                    "action_id": control_payload["action_id"],
+                    "action_identity": control_payload["action_identity"],
+                    "label": control_payload["label"],
+                    "payload": deepcopy(control_payload["payload"]),
+                    "confirm": deepcopy(control_payload["confirm"]),
+                    "policy_sensitive": control_payload["policy_sensitive"],
+                }
+            )
+        plan.append(entry)
+    return plan
 
 
 def complete_patch_review_action_refs_from_contract(

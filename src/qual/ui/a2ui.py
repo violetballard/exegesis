@@ -46,6 +46,7 @@ from exegesis_shared.contracts.actions import (
     patch_review_availability_from_contract,
     patch_review_action_refs_from_contract,
     patch_review_control_actions_from_contract,
+    patch_review_control_plan_from_contract,
     patch_review_control_summary_from_contract,
     patch_review_control_slots_from_contract,
     resolve_card_selection,
@@ -177,6 +178,13 @@ def render_terminal_card(card: dict[str, Any]) -> str:
             ]
             if gated_controls:
                 lines.append(f"Policy-gated patch controls: {', '.join(gated_controls)}")
+        control_plan = [
+            _format_patch_review_control_plan_entry(entry)
+            for entry in summary["control_plan"]
+            if isinstance(entry, dict)
+        ]
+        if control_plan:
+            lines.append(f"Patch review control plan: {', '.join(control_plan)}")
         if summary["missing"]:
             lines.append(f"Patch review missing controls: {', '.join(summary['missing'])}")
     for slot, action in enumerate(materialized.get("actions", []), start=1):
@@ -189,6 +197,24 @@ def render_terminal_card(card: dict[str, Any]) -> str:
                     label = f"{label} [confirm: {title.strip()}]"
             lines.append(f"* {slot}. {label}")
     return "\n".join(lines)
+
+
+def _format_patch_review_control_plan_entry(entry: dict[str, Any]) -> str:
+    control = str(entry.get("control", "control"))
+    status = str(entry.get("status", "missing"))
+    if status != "available":
+        return f"{control}=missing"
+    parts = [f"{control}=available"]
+    slot = entry.get("slot")
+    if isinstance(slot, int):
+        parts.append(f"slot {slot}")
+    policy = entry.get("execution_policy")
+    if isinstance(policy, dict):
+        if policy.get("requires_confirmation"):
+            parts.append("confirm")
+        if policy.get("policy_gate") == "required":
+            parts.append("policy-gated")
+    return f"{parts[0]}({', '.join(parts[1:])})" if len(parts) > 1 else parts[0]
 
 
 __all__ = [
@@ -253,6 +279,7 @@ __all__ = [
     "patch_review_availability_from_contract",
     "patch_review_action_refs_from_contract",
     "patch_review_control_actions_from_contract",
+    "patch_review_control_plan_from_contract",
     "patch_review_control_summary_from_contract",
     "patch_review_control_slots_from_contract",
     "materialize_card_actions",

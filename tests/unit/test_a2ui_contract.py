@@ -58,6 +58,7 @@ from src.qual.ui.a2ui import (
     patch_review_availability_from_contract,
     patch_review_action_refs_from_contract,
     patch_review_control_actions_from_contract,
+    patch_review_control_plan_from_contract,
     patch_review_control_summary_from_contract,
     patch_review_control_slots_from_contract,
     render_terminal_card,
@@ -1034,6 +1035,38 @@ class A2UIContractTests(unittest.TestCase):
             controls,
         )
 
+    def test_patch_review_control_plan_reports_available_and_missing_controls(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+
+        plan = patch_review_control_plan_from_contract(card, review, patch_id=" p1 ")
+
+        self.assertEqual(
+            [(entry["control"], entry["status"]) for entry in plan],
+            [("preview", "available"), ("apply", "available"), ("reject", "missing")],
+        )
+        self.assertEqual(
+            [(entry.get("slot"), entry.get("action_id")) for entry in plan],
+            [(1, "preview_patch"), (2, "apply_patch"), (None, None)],
+        )
+        self.assertFalse(plan[0]["execution_policy"]["requires_confirmation"])
+        self.assertTrue(plan[1]["execution_policy"]["requires_confirmation"])
+        self.assertEqual(
+            shared_contracts.patch_review_control_plan_from_contract(card, review, patch_id="p1"),
+            plan,
+        )
+
     def test_patch_review_control_summary_reports_missing_demo_controls(self) -> None:
         card = materialize_terminal_card(
             {
@@ -1062,6 +1095,10 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(
             [(entry["control"], entry["slot"], entry["action_id"]) for entry in summary["order"]],
             [("preview", 1, "preview_patch"), ("apply", 2, "apply_patch")],
+        )
+        self.assertEqual(
+            [(entry["control"], entry["status"]) for entry in summary["control_plan"]],
+            [("preview", "available"), ("apply", "available"), ("reject", "missing")],
         )
         self.assertEqual(summary["controls"]["apply"]["selection"]["patch_decision"], "apply")
         self.assertTrue(summary["controls"]["apply"]["policy_sensitive"])
@@ -1165,6 +1202,13 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertIn("Patch review controls: preview=1, apply=2, reject=3", text)
         self.assertIn("Policy-gated patch controls: apply, reject", text)
+        self.assertIn(
+            "Patch review control plan: "
+            "preview=available(slot 1), "
+            "apply=available(slot 2, confirm, policy-gated), "
+            "reject=available(slot 3, confirm, policy-gated)",
+            text,
+        )
 
     def test_patch_review_selection_resolves_cli_slot_through_review_contract(self) -> None:
         card = materialize_terminal_card(
