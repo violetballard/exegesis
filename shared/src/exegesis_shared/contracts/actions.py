@@ -906,6 +906,39 @@ def resolve_patch_review_control_execution(
     }
 
 
+def resolve_complete_patch_review_control_execution(
+    card: dict[str, Any],
+    *,
+    patch_id: str,
+    control: str,
+    capabilities: Any | None = None,
+) -> dict[str, Any]:
+    if capabilities is not None:
+        validate_complete_patch_review_capabilities(capabilities)
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch review patch_id is required")
+    review = build_complete_patch_review_contract(card, patch_id=expected_patch_id)
+    complete_patch_review_actions_from_contract(card, review, patch_id=expected_patch_id)
+    execution = resolve_patch_review_control_execution(
+        card,
+        review,
+        patch_id=expected_patch_id,
+        control=control,
+        capabilities=capabilities,
+    )
+    execution["complete_patch_review"] = {
+        "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+        "flow": PATCH_REVIEW_FLOW,
+        "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+        "required": list(PATCH_REVIEW_REQUIRED_PARTS),
+        "available": deepcopy(review["availability"]["available"]),
+        "missing": deepcopy(review["availability"]["missing"]),
+        "is_complete": review["availability"]["is_complete"],
+    }
+    return execution
+
+
 def patch_review_control_summary_from_contract(
     card: dict[str, Any],
     review: dict[str, Any],

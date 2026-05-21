@@ -87,6 +87,7 @@ from src.qual.ui.a2ui import (
     resolve_patch_decision_selection,
     resolve_patch_preview_action,
     resolve_patch_preview_selection,
+    resolve_complete_patch_review_control_execution,
     resolve_patch_review_contract,
     resolve_patch_review_control_execution,
     resolve_patch_review_selection,
@@ -4693,6 +4694,81 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(execution["control"], "apply")
         self.assertEqual(execution["action_id"], "apply_patch")
+
+    def test_complete_patch_review_control_execution_rebuilds_full_contract(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        execution = resolve_complete_patch_review_control_execution(
+            card,
+            patch_id=" p1 ",
+            control="reject",
+            capabilities=_capabilities(actions_supported=("preview_patch", "apply_patch", "reject_patch")),
+        )
+
+        self.assertEqual(execution["control"], "reject")
+        self.assertEqual(execution["action_id"], "reject_patch")
+        self.assertEqual(execution["payload"], {"patch_id": "p1"})
+        self.assertEqual(execution["action_contract"]["confirm"], {"title": "Reject patch?"})
+        self.assertTrue(execution["action_contract"]["policy_sensitive"])
+        self.assertEqual(execution["execution_policy"], PATCH_REVIEW_EXECUTION_POLICY["reject"])
+        self.assertEqual(
+            execution["complete_patch_review"],
+            {
+                "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+                "flow": PATCH_REVIEW_FLOW,
+                "decision_policy": PATCH_REVIEW_DECISION_POLICY,
+                "required": ["preview", "apply", "reject"],
+                "available": ["preview", "apply", "reject"],
+                "missing": [],
+                "is_complete": True,
+            },
+        )
+        self.assertIs(
+            shared_contracts.resolve_complete_patch_review_control_execution,
+            resolve_complete_patch_review_control_execution,
+        )
+
+    def test_complete_patch_review_control_execution_requires_full_demo_controls(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        with self.assertRaisesRegex(ValueError, "Complete patch review is missing: reject"):
+            resolve_complete_patch_review_control_execution(
+                card,
+                patch_id="p1",
+                control="apply",
+                capabilities=_capabilities(actions_supported=("preview_patch", "apply_patch", "reject_patch")),
+            )
+
+        with self.assertRaisesRegex(ValueError, "Complete patch review client support is missing: reject"):
+            resolve_complete_patch_review_control_execution(
+                card,
+                patch_id="p1",
+                control="apply",
+                capabilities=_capabilities(actions_supported=("preview_patch", "apply_patch")),
+            )
 
     def test_complete_patch_review_contract_carries_engine_execution_policy(self) -> None:
         card = materialize_terminal_card(
