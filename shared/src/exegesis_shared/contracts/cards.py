@@ -108,6 +108,7 @@ def _validate_capability_names(values: Any, field_name: str) -> None:
 
 
 def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
+    validate_capabilities(capabilities)
     card_type = str(card.get("type", "")).strip()
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card)
@@ -158,6 +159,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
 
 
 def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
+    validate_capabilities(capabilities)
     card_type = str(card.get("type", "")).strip()
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card, strict_actions=False)
@@ -184,6 +186,7 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
 
 
 def validate_card_payload_size(card: dict[str, Any], capabilities: A2UICapabilities) -> None:
+    validate_capabilities(capabilities)
     encoded = json.dumps(card, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
     if len(encoded) > capabilities.max_payload_bytes:
         raise ValueError(

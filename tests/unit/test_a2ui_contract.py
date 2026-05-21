@@ -406,6 +406,34 @@ class A2UIContractTests(unittest.TestCase):
         with self.assertRaisesRegex(KeyError, "Unknown session"):
             store.get("sess-1")
 
+    def test_card_materialization_revalidates_malformed_capabilities(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Review patch"}],
+            "actions": [{"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}}],
+        }
+
+        with self.assertRaisesRegex(ValueError, "Unknown action in capabilities: delete_everything"):
+            studio_materialize_card(
+                card,
+                _capabilities(actions_supported=("apply_patch", "delete_everything")),
+            )
+
+        with self.assertRaisesRegex(ValueError, "Missing required primitive block support"):
+            engine_prepare_card(
+                card,
+                A2UICapabilities(
+                    a2ui_version=1,
+                    client_name="CLI",
+                    cards_supported=("GenericCard",),
+                    primitive_blocks_supported=("MarkdownBlock",),
+                    actions_supported=("apply_patch",),
+                    max_payload_bytes=1_000_000,
+                    supports_streaming=True,
+                ),
+            )
+
     def test_session_store_rejects_untyped_streaming_flag_before_registration(self) -> None:
         store = A2UISessionStore()
         caps = A2UICapabilities(
