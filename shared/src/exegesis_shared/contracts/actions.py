@@ -50,6 +50,10 @@ PATCH_REVIEW_EXECUTION_POLICY: dict[str, dict[str, Any]] = {
         "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
     },
 }
+PATCH_REVIEW_CONFIRMATION_TITLES: dict[str, str] = {
+    "apply_patch": "Apply patch?",
+    "reject_patch": "Reject patch?",
+}
 PATCH_REVIEW_REQUIRED_PARTS: tuple[str, ...] = ("preview", "apply", "reject")
 
 CANONICAL_ACTION_ORDER: tuple[str, ...] = (
@@ -1203,8 +1207,14 @@ def execute_action_with_policy_gate(
 
 def engine_authoritative_action_ref(action: ActionRef) -> ActionRef:
     validate_action_ref(action.as_contract())
-    if action.id in PATCH_DECISION_ACTION_IDS and not action.policy_sensitive:
-        return replace(action, policy_sensitive=True)
+    if action.id in PATCH_DECISION_ACTION_IDS:
+        confirm = action.confirm
+        confirmation_added = False
+        if confirm is None:
+            confirm = {"title": PATCH_REVIEW_CONFIRMATION_TITLES[action.id]}
+            confirmation_added = True
+        if not action.policy_sensitive or confirmation_added:
+            return replace(action, confirm=confirm, policy_sensitive=True)
     return action
 
 

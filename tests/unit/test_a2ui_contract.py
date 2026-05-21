@@ -46,6 +46,7 @@ from src.qual.ui.a2ui import (
     execute_complete_patch_review_action_with_policy_gate,
     execute_action_with_policy_gate,
     execute_patch_review_selection_with_policy_gate,
+    engine_authoritative_action_ref,
     materialize_patch_preview_contract,
     materialize_proposed_edit_card,
     materialize_terminal_card,
@@ -2299,6 +2300,45 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertTrue(result)
         self.assertEqual(gate.calls, [("reject_patch", {"patch_id": "p1"}, True)])
+
+    def test_patch_decision_execution_adds_engine_confirmation_metadata(self) -> None:
+        executed: list[ActionRef] = []
+        action = ActionRef(
+            id="apply_patch",
+            label="Apply",
+            payload={"patch_id": "p1"},
+        )
+
+        execute_action_with_policy_gate(
+            action=engine_authoritative_action_ref(action),
+            capabilities=_capabilities(),
+            policy_gate=_PolicyGateStub(True),
+            executor=lambda a: executed.append(a),
+        )
+
+        self.assertEqual(len(executed), 1)
+        self.assertEqual(executed[0].confirm, {"title": "Apply patch?"})
+        self.assertTrue(executed[0].policy_sensitive)
+
+    def test_patch_decision_execution_preserves_explicit_confirmation_metadata(self) -> None:
+        executed: list[ActionRef] = []
+        action = ActionRef(
+            id="reject_patch",
+            label="Reject",
+            payload={"patch_id": "p1"},
+            confirm={"title": "Reject this generated patch?"},
+        )
+
+        execute_action_with_policy_gate(
+            action=engine_authoritative_action_ref(action),
+            capabilities=_capabilities(),
+            policy_gate=_PolicyGateStub(True),
+            executor=lambda a: executed.append(a),
+        )
+
+        self.assertEqual(len(executed), 1)
+        self.assertEqual(executed[0].confirm, {"title": "Reject this generated patch?"})
+        self.assertTrue(executed[0].policy_sensitive)
 
     def test_action_payload_rejects_untyped_extra_fields_before_policy_gate(self) -> None:
         executed: list[str] = []
