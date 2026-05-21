@@ -124,6 +124,8 @@ def build_complete_patch_review_action_resolved_event(
 ) -> dict[str, Any]:
     review = build_complete_patch_review_contract(card, patch_id=patch_id)
     normalized_control = control.strip().lower()
+    if normalized_control not in {"preview", "apply", "reject"}:
+        raise ValueError("Patch review control must be 'preview', 'apply', or 'reject'")
     selection = build_patch_review_selection(
         card,
         review,
