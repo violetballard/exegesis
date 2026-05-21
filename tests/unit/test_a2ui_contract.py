@@ -23,9 +23,13 @@ from src.qual.ui.a2ui import (
     A2UICapabilities,
     A2UISessionStore,
     ActionRef,
+    BASKET_CARD_TYPE,
+    CONTEXT_SET_CARD_TYPE,
     CompletePatchReviewActions,
+    KNOWN_CARD_TYPES,
     PATCH_REVIEW_REQUIRED_PARTS as UI_PATCH_REVIEW_REQUIRED_PARTS,
     PatchReviewActionSelection,
+    RETRIEVAL_RESULTS_CARD_TYPE,
     action_ref_from_selection,
     build_complete_patch_review_contract,
     build_action_resolved_event,
@@ -81,7 +85,11 @@ from src.qual.ui.a2ui import (
     resolve_patch_review_selection,
     studio_materialize_card,
     validate_action_ref,
+    validate_basket_card,
     validate_capabilities,
+    validate_context_set_card,
+    validate_known_card,
+    validate_retrieval_results_card,
     validate_stream_event,
 )
 
@@ -155,6 +163,95 @@ class _RecordingPolicyGate:
 
 
 class A2UIContractTests(unittest.TestCase):
+    def test_shared_exports_engine_demo_card_contract_types(self) -> None:
+        self.assertIn(RETRIEVAL_RESULTS_CARD_TYPE, KNOWN_CARD_TYPES)
+        self.assertIn(BASKET_CARD_TYPE, KNOWN_CARD_TYPES)
+        self.assertIn(CONTEXT_SET_CARD_TYPE, KNOWN_CARD_TYPES)
+        self.assertIs(shared_contracts.RETRIEVAL_RESULTS_CARD_TYPE, RETRIEVAL_RESULTS_CARD_TYPE)
+        self.assertIs(shared_contracts.BASKET_CARD_TYPE, BASKET_CARD_TYPE)
+        self.assertIs(shared_contracts.CONTEXT_SET_CARD_TYPE, CONTEXT_SET_CARD_TYPE)
+
+    def test_retrieval_basket_and_context_cards_validate_typed_payloads(self) -> None:
+        retrieval_card = {
+            "type": RETRIEVAL_RESULTS_CARD_TYPE,
+            "title": "Retrieval",
+            "query": "chapter five",
+            "results": [{"item_id": "doc-1", "title": "Chapter 5", "snippet": "Relevant paragraph"}],
+            "actions": [{"id": "pin_to_context_set", "label": "Pin", "payload": {"item_id": "doc-1"}}],
+        }
+        basket_card = {
+            "type": BASKET_CARD_TYPE,
+            "title": "Basket",
+            "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
+            "actions": [{"id": "create_context_set", "label": "Create context", "payload": {"name": "Chapter 5"}}],
+        }
+        context_card = {
+            "type": CONTEXT_SET_CARD_TYPE,
+            "title": "Context",
+            "context_set_id": "ctx-1",
+            "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
+            "actions": [{"id": "run_agent", "label": "Plan", "payload": {"operation": "plan"}}],
+        }
+
+        validate_retrieval_results_card(retrieval_card)
+        validate_basket_card(basket_card)
+        validate_context_set_card(context_card)
+        validate_known_card(retrieval_card)
+        validate_known_card(basket_card)
+        validate_known_card(context_card)
+
+        with self.assertRaisesRegex(ValueError, "RetrievalResultsCard result field 'snippet' is required"):
+            validate_retrieval_results_card(
+                {
+                    "type": RETRIEVAL_RESULTS_CARD_TYPE,
+                    "title": "Retrieval",
+                    "query": "chapter five",
+                    "results": [{"item_id": "doc-1", "title": "Chapter 5", "snippet": ""}],
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "BasketCard item field 'item_id' is required"):
+            validate_basket_card(
+                {
+                    "type": BASKET_CARD_TYPE,
+                    "title": "Basket",
+                    "items": [{"item_id": " ", "title": "Chapter 5"}],
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "ContextSetCard context_set_id is required"):
+            validate_context_set_card(
+                {
+                    "type": CONTEXT_SET_CARD_TYPE,
+                    "title": "Context",
+                    "context_set_id": "",
+                    "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
+                }
+            )
+
+    def test_engine_known_card_fallback_preserves_supported_typed_actions(self) -> None:
+        card = {
+            "type": RETRIEVAL_RESULTS_CARD_TYPE,
+            "title": "Retrieval",
+            "query": "chapter five",
+            "results": [{"item_id": "doc-1", "title": "Chapter 5", "snippet": "Relevant paragraph"}],
+            "actions": [
+                {"id": "pin_to_context_set", "label": "Pin", "payload": {"item_id": "doc-1"}},
+                {"id": "open_corpus_item", "label": "Open", "payload": {"item_id": "doc-1"}},
+            ],
+        }
+        prepared = engine_prepare_card(
+            card,
+            _capabilities(
+                cards_supported=("GenericCard",),
+                actions_supported=("pin_to_context_set",),
+            ),
+        )
+
+        self.assertEqual(prepared["type"], "GenericCard")
+        self.assertEqual([action["id"] for action in prepared["actions"]], ["pin_to_context_set"])
+        self.assertEqual(prepared["action_selection"]["order"][0]["action_id"], "pin_to_context_set")
+
     def test_capabilities_handshake_is_stored_per_session(self) -> None:
         store = A2UISessionStore()
         caps = _capabilities()

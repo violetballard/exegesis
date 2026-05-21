@@ -15,6 +15,16 @@ A2UI_VERSION = 1
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
 PROPOSED_EDIT_CARD_TYPE = "ProposedEditCard"
+RETRIEVAL_RESULTS_CARD_TYPE = "RetrievalResultsCard"
+BASKET_CARD_TYPE = "BasketCard"
+CONTEXT_SET_CARD_TYPE = "ContextSetCard"
+KNOWN_CARD_TYPES: tuple[str, ...] = (
+    GENERIC_CARD_TYPE,
+    PROPOSED_EDIT_CARD_TYPE,
+    RETRIEVAL_RESULTS_CARD_TYPE,
+    BASKET_CARD_TYPE,
+    CONTEXT_SET_CARD_TYPE,
+)
 
 REQUIRED_PRIMITIVE_BLOCKS: tuple[str, ...] = (
     "MarkdownBlock",
@@ -109,6 +119,8 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
             validate_card_payload_size(prepared, capabilities)
             return prepared
         card = prepared
+    elif card_type in _VALIDATORS_BY_CARD_TYPE:
+        validate_known_card(card)
     if card_type in set(capabilities.cards_supported):
         validate_card_payload_size(card, capabilities)
         return card
@@ -148,6 +160,11 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
         return materialized
     if card_type == PROPOSED_EDIT_CARD_TYPE:
         card = materialize_proposed_edit_card(card)
+        materialized = materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
+        validate_card_payload_size(materialized, capabilities)
+        return materialized
+    if card_type in _VALIDATORS_BY_CARD_TYPE:
+        validate_known_card(card, strict_actions=False)
         materialized = materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
         validate_card_payload_size(materialized, capabilities)
         return materialized
@@ -270,6 +287,62 @@ def validate_proposed_edit_card(card: dict[str, Any], *, strict_actions: bool = 
             validate_action_ref(action)
 
 
+def validate_known_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
+    card_type = str(card.get("type", "")).strip()
+    validator = _VALIDATORS_BY_CARD_TYPE.get(card_type)
+    if validator is None:
+        raise ValueError(f"Unsupported known A2UI card type: {card_type}")
+    validator(card, strict_actions=strict_actions)
+
+
+def validate_retrieval_results_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
+    _validate_card_title(card, RETRIEVAL_RESULTS_CARD_TYPE)
+    query = card.get("query")
+    if not isinstance(query, str) or not query.strip():
+        raise ValueError("RetrievalResultsCard query is required")
+    results = card.get("results")
+    if not isinstance(results, list):
+        raise ValueError("RetrievalResultsCard results must be a list")
+    for result in results:
+        _validate_typed_mapping(
+            result,
+            "RetrievalResultsCard result",
+            required_fields={"item_id": str, "title": str, "snippet": str},
+        )
+    _validate_optional_card_actions(card, strict_actions=strict_actions)
+
+
+def validate_basket_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
+    _validate_card_title(card, BASKET_CARD_TYPE)
+    items = card.get("items")
+    if not isinstance(items, list):
+        raise ValueError("BasketCard items must be a list")
+    for item in items:
+        _validate_typed_mapping(
+            item,
+            "BasketCard item",
+            required_fields={"item_id": str, "title": str},
+        )
+    _validate_optional_card_actions(card, strict_actions=strict_actions)
+
+
+def validate_context_set_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
+    _validate_card_title(card, CONTEXT_SET_CARD_TYPE)
+    context_set_id = card.get("context_set_id")
+    if not isinstance(context_set_id, str) or not context_set_id.strip():
+        raise ValueError("ContextSetCard context_set_id is required")
+    items = card.get("items")
+    if not isinstance(items, list):
+        raise ValueError("ContextSetCard items must be a list")
+    for item in items:
+        _validate_typed_mapping(
+            item,
+            "ContextSetCard item",
+            required_fields={"item_id": str, "title": str},
+        )
+    _validate_optional_card_actions(card, strict_actions=strict_actions)
+
+
 def validate_primitive_block(block: Any) -> None:
     if not isinstance(block, dict):
         raise ValueError("Primitive block must be an object")
@@ -289,6 +362,39 @@ def validate_primitive_block(block: Any) -> None:
             raise ValueError(f"{block_type} field '{field_name}' must be {type_names}")
         if field_type is str and not value.strip():
             raise ValueError(f"{block_type} field '{field_name}' is required")
+
+
+def _validate_card_title(card: dict[str, Any], card_type: str) -> None:
+    if card.get("type") != card_type:
+        raise ValueError(f"Card type must be {card_type}")
+    title = card.get("title")
+    if not isinstance(title, str) or not title.strip():
+        raise ValueError(f"{card_type} title is required")
+
+
+def _validate_typed_mapping(
+    value: Any,
+    label: str,
+    *,
+    required_fields: dict[str, type],
+) -> None:
+    if not isinstance(value, dict):
+        raise ValueError(f"{label} must be an object")
+    for field_name, field_type in required_fields.items():
+        field_value = value.get(field_name)
+        if not isinstance(field_value, field_type):
+            raise ValueError(f"{label} field '{field_name}' must be {field_type.__name__}")
+        if field_type is str and not field_value.strip():
+            raise ValueError(f"{label} field '{field_name}' is required")
+
+
+def _validate_optional_card_actions(card: dict[str, Any], *, strict_actions: bool) -> None:
+    actions = card.get("actions", [])
+    if not isinstance(actions, list):
+        raise ValueError(f"{card.get('type')} actions must be a list")
+    if strict_actions:
+        for action in actions:
+            validate_action_ref(action)
 
 
 def _is_same_patch_review_action(action: dict[str, Any], patch_id: str) -> bool:
@@ -316,6 +422,13 @@ def _canonical_patch_review_actions(patch_id: str) -> list[dict[str, Any]]:
             "policy_sensitive": True,
         },
     ]
+
+
+_VALIDATORS_BY_CARD_TYPE = {
+    RETRIEVAL_RESULTS_CARD_TYPE: validate_retrieval_results_card,
+    BASKET_CARD_TYPE: validate_basket_card,
+    CONTEXT_SET_CARD_TYPE: validate_context_set_card,
+}
 
 
 def _studio_filter_actions(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
