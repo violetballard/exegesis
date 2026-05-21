@@ -794,6 +794,18 @@ class A2UIContractTests(unittest.TestCase):
                 },
             )
 
+        with self.assertRaisesRegex(ValueError, "Unsupported action selection field"):
+            resolve_card_selection_contract(
+                fallback,
+                {
+                    "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+                    "selection_model": "one_based_action_slot",
+                    "slot": second_slot["slot"],
+                    "action_identity": second_slot["action_identity"],
+                    "client_note": "apply the second patch",
+                },
+            )
+
     def test_patch_decision_selection_must_match_current_patch(self) -> None:
         card = materialize_terminal_card(
             {
@@ -853,6 +865,22 @@ class A2UIContractTests(unittest.TestCase):
                     "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
                     "patch_decision": "apply",
                     "patch_id": "p1",
+                },
+                patch_id="p1",
+            )
+        with self.assertRaisesRegex(ValueError, "Unsupported patch decision selection field"):
+            resolve_patch_decision_selection(
+                card,
+                {
+                    "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+                    "selection_model": "one_based_action_slot",
+                    "slot": apply_slot["slot"],
+                    "action_identity": apply_slot["action_identity"],
+                    **_patch_review_selection_metadata(),
+                    "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
+                    "patch_decision": "apply",
+                    "patch_id": "p1",
+                    "client_note": "apply without preview",
                 },
                 patch_id="p1",
             )
@@ -1083,6 +1111,11 @@ class A2UIContractTests(unittest.TestCase):
 
         preview_selection["patch_preview_contract_version"] = 0
         with self.assertRaisesRegex(ValueError, "Unsupported patch preview contract version"):
+            resolve_patch_preview_selection(card, preview_selection, patch_id="p1")
+
+        preview_selection = build_patch_preview_selection(card, patch_id="p1")
+        preview_selection["client_note"] = "preview this patch"
+        with self.assertRaisesRegex(ValueError, "Unsupported patch preview selection field"):
             resolve_patch_preview_selection(card, preview_selection, patch_id="p1")
 
     def test_patch_review_contract_bundles_preview_and_decisions_for_current_patch(self) -> None:

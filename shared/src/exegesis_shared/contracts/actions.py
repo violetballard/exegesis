@@ -102,6 +102,30 @@ _ACTION_SCHEMAS: dict[str, dict[str, type]] = {
 _ACTION_REF_FIELDS: frozenset[str] = frozenset(
     {"id", "label", "payload", "confirm", "policy_sensitive"}
 )
+_ACTION_SELECTION_FIELDS: frozenset[str] = frozenset(
+    {"contract_version", "selection_model", "slot", "action_identity"}
+)
+_PATCH_PREVIEW_SELECTION_FIELDS: frozenset[str] = _ACTION_SELECTION_FIELDS | frozenset(
+    {
+        "action_authority",
+        "demo_path_step",
+        "patch_preview_contract_version",
+        "patch_id",
+    }
+)
+_PATCH_DECISION_SELECTION_FIELDS: frozenset[str] = _ACTION_SELECTION_FIELDS | frozenset(
+    {
+        "action_authority",
+        "demo_path_step",
+        "patch_decision_contract_version",
+        "decision_group",
+        "patch_decision",
+        "patch_id",
+    }
+)
+_PATCH_REVIEW_SELECTION_FIELDS: frozenset[str] = (
+    _PATCH_PREVIEW_SELECTION_FIELDS | _PATCH_DECISION_SELECTION_FIELDS
+)
 
 
 @dataclass(frozen=True)
@@ -1373,20 +1397,12 @@ def resolve_card_selection_by_index(card: dict[str, Any], selected_action_index:
 
 
 def resolve_card_selection_contract(card: dict[str, Any], selection: dict[str, Any]) -> dict[str, Any]:
-    if not isinstance(selection, dict):
-        raise ValueError("Action selection must be an object")
-    if selection.get("contract_version") != ACTION_SELECTION_CONTRACT_VERSION:
-        raise ValueError("Unsupported action selection contract version")
-    if selection.get("selection_model") != "one_based_action_slot":
-        raise ValueError("Unsupported action selection model")
-
-    slot = selection.get("slot")
-    action = resolve_card_selection_by_index(card, slot)
-    expected_identity = canonical_action_identity_key(action)
-    submitted_identity = selection.get("action_identity")
-    if submitted_identity != expected_identity:
-        raise ValueError("Action selection identity does not match the current card")
-    return action
+    return _resolve_card_selection_contract(
+        card,
+        selection,
+        allowed_fields=_ACTION_SELECTION_FIELDS,
+        contract_name="action selection",
+    )
 
 
 def _validate_patch_review_selection_metadata(selection: dict[str, Any]) -> None:
@@ -1396,8 +1412,33 @@ def _validate_patch_review_selection_metadata(selection: dict[str, Any]) -> None
         raise ValueError("Patch review selection does not match the demo path step")
 
 
+def _validate_selection_fields(
+    selection: dict[str, Any],
+    allowed_fields: frozenset[str],
+    contract_name: str,
+) -> None:
+    unexpected_fields = set(selection) - allowed_fields
+    if unexpected_fields:
+        field_list = ", ".join(sorted(unexpected_fields))
+        raise ValueError(f"Unsupported {contract_name} field(s): {field_list}")
+
+
 def action_ref_from_selection(card: dict[str, Any], selection: dict[str, Any]) -> ActionRef:
-    action = resolve_card_selection_contract(card, selection)
+    allowed_fields = (
+        _PATCH_REVIEW_SELECTION_FIELDS
+        if {
+            "action_authority",
+            "demo_path_step",
+            "patch_id",
+        }.issubset(selection)
+        else _ACTION_SELECTION_FIELDS
+    )
+    action = _resolve_card_selection_contract(
+        card,
+        selection,
+        allowed_fields=allowed_fields,
+        contract_name="action selection",
+    )
     validate_action_ref(action)
     confirm = action.get("confirm")
     if isinstance(confirm, dict):
@@ -1417,9 +1458,19 @@ def resolve_patch_decision_selection(
     *,
     patch_id: str,
 ) -> dict[str, Any]:
-    action = resolve_card_selection_contract(card, selection)
+    action = _resolve_card_selection_contract(
+        card,
+        selection,
+        allowed_fields=_PATCH_REVIEW_SELECTION_FIELDS,
+        contract_name="patch decision selection",
+    )
     if action.get("id") not in {"apply_patch", "reject_patch"}:
         raise ValueError("Action selection is not a patch decision")
+    _validate_selection_fields(
+        selection,
+        _PATCH_DECISION_SELECTION_FIELDS,
+        "patch decision selection",
+    )
     payload = action.get("payload")
     action_patch_id = payload.get("patch_id") if isinstance(payload, dict) else None
     expected_patch_id = patch_id.strip()
@@ -1468,9 +1519,19 @@ def resolve_patch_preview_selection(
     *,
     patch_id: str,
 ) -> dict[str, Any]:
-    action = resolve_card_selection_contract(card, selection)
+    action = _resolve_card_selection_contract(
+        card,
+        selection,
+        allowed_fields=_PATCH_REVIEW_SELECTION_FIELDS,
+        contract_name="patch preview selection",
+    )
     if action.get("id") != "preview_patch":
         raise ValueError("Action selection is not a patch preview")
+    _validate_selection_fields(
+        selection,
+        _PATCH_PREVIEW_SELECTION_FIELDS,
+        "patch preview selection",
+    )
     payload = action.get("payload")
     action_patch_id = payload.get("patch_id") if isinstance(payload, dict) else None
     expected_patch_id = patch_id.strip()
@@ -1483,6 +1544,30 @@ def resolve_patch_preview_selection(
         raise ValueError("Unsupported patch preview contract version")
     if action_patch_id != expected_patch_id:
         raise ValueError("Patch preview selection does not match the current patch")
+    return action
+
+
+def _resolve_card_selection_contract(
+    card: dict[str, Any],
+    selection: dict[str, Any],
+    *,
+    allowed_fields: frozenset[str] | set[str],
+    contract_name: str,
+) -> dict[str, Any]:
+    if not isinstance(selection, dict):
+        raise ValueError("Action selection must be an object")
+    _validate_selection_fields(selection, frozenset(allowed_fields), contract_name)
+    if selection.get("contract_version") != ACTION_SELECTION_CONTRACT_VERSION:
+        raise ValueError("Unsupported action selection contract version")
+    if selection.get("selection_model") != "one_based_action_slot":
+        raise ValueError("Unsupported action selection model")
+
+    slot = selection.get("slot")
+    action = resolve_card_selection_by_index(card, slot)
+    expected_identity = canonical_action_identity_key(action)
+    submitted_identity = selection.get("action_identity")
+    if submitted_identity != expected_identity:
+        raise ValueError("Action selection identity does not match the current card")
     return action
 
 
