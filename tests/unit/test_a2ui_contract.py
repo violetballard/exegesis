@@ -943,10 +943,13 @@ class A2UIContractTests(unittest.TestCase):
         )
         self.assertEqual(controls["preview"]["label"], "Preview")
         self.assertEqual(controls["preview"]["payload"], {"patch_id": "p1"})
+        self.assertEqual(controls["preview"]["selection"], review["preview"])
         self.assertIsNone(controls["preview"]["confirm"])
         self.assertFalse(controls["preview"]["policy_sensitive"])
+        self.assertEqual(controls["apply"]["selection"], review["decisions"][0]["selection"])
         self.assertEqual(controls["apply"]["confirm"], {"title": "Apply patch?"})
         self.assertTrue(controls["apply"]["policy_sensitive"])
+        self.assertEqual(controls["reject"]["selection"], review["decisions"][1]["selection"])
         self.assertEqual(controls["reject"]["confirm"], {"title": "Reject patch?"})
         self.assertTrue(controls["reject"]["policy_sensitive"])
         self.assertEqual(

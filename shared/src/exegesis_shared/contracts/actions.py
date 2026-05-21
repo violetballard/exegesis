@@ -570,6 +570,21 @@ def patch_review_control_actions_from_contract(
         raise ValueError("Patch review decisions must be available")
 
     controls: dict[str, dict[str, Any]] = {}
+    selection_by_control: dict[str, dict[str, Any]] = {}
+    preview_selection = review.get("preview")
+    if isinstance(preview_selection, dict):
+        selection_by_control["preview"] = preview_selection
+    review_decisions = review.get("decisions", [])
+    if not isinstance(review_decisions, list):
+        raise ValueError("Patch review decisions must be a list")
+    for entry in review_decisions:
+        if not isinstance(entry, dict):
+            raise ValueError("Patch review decision entry must be an object")
+        decision = str(entry.get("decision", "")).strip().lower()
+        selection = entry.get("selection")
+        if decision in {"apply", "reject"} and isinstance(selection, dict):
+            selection_by_control[decision] = selection
+
     ref_by_control: dict[str, ActionRef | None] = {
         "preview": preview_ref if isinstance(preview_ref, ActionRef) else None,
         "apply": decision_refs.get("apply"),
@@ -584,6 +599,7 @@ def patch_review_control_actions_from_contract(
             **slot,
             "label": action_ref.label,
             "payload": deepcopy(action_ref.payload),
+            "selection": deepcopy(selection_by_control[control]),
             "confirm": deepcopy(action_ref.confirm),
             "policy_sensitive": action_ref.policy_sensitive,
         }
