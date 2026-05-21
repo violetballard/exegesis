@@ -2972,6 +2972,26 @@ class A2UIContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "action authority"):
             patch_review_availability_from_contract(review)
 
+    def test_patch_review_availability_rejects_duplicate_decisions(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+        review["decisions"].append(deepcopy(review["decisions"][0]))
+
+        with self.assertRaisesRegex(ValueError, "duplicated"):
+            patch_review_availability_from_contract(review)
+
     def test_cli_fallback_materializes_patch_review_contract_for_current_patch(self) -> None:
         card = materialize_terminal_card(
             {

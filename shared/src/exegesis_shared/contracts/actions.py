@@ -660,6 +660,8 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
             "patch review decision entry",
         )
         decision = str(entry.get("decision", "")).strip().lower()
+        if decision in decision_names:
+            raise ValueError("Patch review decision is duplicated")
         selection = entry.get("selection")
         expected_action_id = {"apply": "apply_patch", "reject": "reject_patch"}.get(decision)
         if (
