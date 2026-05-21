@@ -19,6 +19,7 @@ from src.qual.ui.a2ui import (
     materialize_terminal_card,
     render_terminal_card,
     resolve_card_selection_contract,
+    resolve_patch_decision_selection,
     studio_materialize_card,
     validate_capabilities,
 )
@@ -278,6 +279,57 @@ class A2UIContractTests(unittest.TestCase):
                     "slot": second_slot["slot"],
                     "action_identity": fallback["action_selection"]["order"][0]["action_identity"],
                 },
+            )
+
+    def test_patch_decision_selection_must_match_current_patch(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "open_section", "label": "Open", "payload": {"section_id": "intro"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        apply_slot = card["action_selection"]["order"][0]
+        open_slot = card["action_selection"]["order"][2]
+
+        action = resolve_patch_decision_selection(
+            card,
+            {
+                "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+                "selection_model": "one_based_action_slot",
+                "slot": apply_slot["slot"],
+                "action_identity": apply_slot["action_identity"],
+            },
+            patch_id=" p1 ",
+        )
+        self.assertEqual(action["id"], "apply_patch")
+
+        with self.assertRaisesRegex(ValueError, "current patch"):
+            resolve_patch_decision_selection(
+                card,
+                {
+                    "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+                    "selection_model": "one_based_action_slot",
+                    "slot": apply_slot["slot"],
+                    "action_identity": apply_slot["action_identity"],
+                },
+                patch_id="p2",
+            )
+        with self.assertRaisesRegex(ValueError, "not a patch decision"):
+            resolve_patch_decision_selection(
+                card,
+                {
+                    "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+                    "selection_model": "one_based_action_slot",
+                    "slot": open_slot["slot"],
+                    "action_identity": open_slot["action_identity"],
+                },
+                patch_id="p1",
             )
 
     def test_engine_policy_gate_is_authoritative(self) -> None:

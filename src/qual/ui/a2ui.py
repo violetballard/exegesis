@@ -15,6 +15,7 @@ from exegesis_shared.contracts.actions import (
     resolve_card_selection,
     resolve_card_selection_contract,
     resolve_card_selection_by_index,
+    resolve_patch_decision_selection,
     validate_action_ref,
 )
 from exegesis_shared.contracts.cards import (
@@ -122,6 +123,7 @@ __all__ = [
     "resolve_card_selection",
     "resolve_card_selection_contract",
     "resolve_card_selection_by_index",
+    "resolve_patch_decision_selection",
     "studio_materialize_card",
     "validate_action_ref",
     "validate_card_payload_size",

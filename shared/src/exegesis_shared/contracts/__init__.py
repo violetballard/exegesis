@@ -7,6 +7,7 @@ from exegesis_shared.contracts.actions import (
     materialize_cli_fallback_card,
     resolve_card_selection_contract,
     resolve_card_selection_by_index,
+    resolve_patch_decision_selection,
     validate_action_ref,
 )
 from exegesis_shared.contracts.cards import (
@@ -45,6 +46,7 @@ __all__ = [
     "materialize_proposed_edit_card",
     "resolve_card_selection_contract",
     "resolve_card_selection_by_index",
+    "resolve_patch_decision_selection",
     "studio_materialize_card",
     "validate_action_ref",
     "validate_card_payload_size",

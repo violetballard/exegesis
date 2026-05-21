@@ -192,6 +192,25 @@ def resolve_card_selection_contract(card: dict[str, Any], selection: dict[str, A
     return action
 
 
+def resolve_patch_decision_selection(
+    card: dict[str, Any],
+    selection: dict[str, Any],
+    *,
+    patch_id: str,
+) -> dict[str, Any]:
+    action = resolve_card_selection_contract(card, selection)
+    if action.get("id") not in {"apply_patch", "reject_patch"}:
+        raise ValueError("Action selection is not a patch decision")
+    payload = action.get("payload")
+    action_patch_id = payload.get("patch_id") if isinstance(payload, dict) else None
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch decision patch_id is required")
+    if action_patch_id != expected_patch_id:
+        raise ValueError("Patch decision selection does not match the current patch")
+    return action
+
+
 def validate_action_ref(action: Any) -> None:
     if not isinstance(action, dict):
         raise ValueError("ActionRef must be an object")
