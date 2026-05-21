@@ -34,6 +34,8 @@ from src.qual.ui.a2ui import (
     KNOWN_CARD_TYPES,
     PATCH_REVIEW_REQUIRED_PARTS as UI_PATCH_REVIEW_REQUIRED_PARTS,
     PatchReviewActionSelection,
+    PATCH_REVIEW_CLI_COMMAND_ALIASES as UI_PATCH_REVIEW_CLI_COMMAND_ALIASES,
+    PATCH_REVIEW_DECISION_GROUP as UI_PATCH_REVIEW_DECISION_GROUP,
     RETRIEVAL_RESULTS_CARD_TYPE,
     action_ref_from_selection,
     build_complete_patch_review_contract,
@@ -5787,6 +5789,15 @@ class A2UIContractTests(unittest.TestCase):
         review["execution_policy"]["apply"]["policy_gate"] = "optional"
         with self.assertRaisesRegex(ValueError, "Unsupported patch review execution policy"):
             resolve_patch_review_contract(card, review, patch_id="p1")
+
+    def test_cli_shim_exports_patch_review_contract_constants(self) -> None:
+        self.assertEqual(UI_PATCH_REVIEW_DECISION_GROUP, PATCH_REVIEW_DECISION_GROUP)
+        self.assertEqual(UI_PATCH_REVIEW_CLI_COMMAND_ALIASES, PATCH_REVIEW_CLI_COMMAND_ALIASES)
+        self.assertIs(shared_contracts.PATCH_REVIEW_DECISION_GROUP, PATCH_REVIEW_DECISION_GROUP)
+        self.assertIs(
+            shared_contracts.PATCH_REVIEW_CLI_COMMAND_ALIASES,
+            PATCH_REVIEW_CLI_COMMAND_ALIASES,
+        )
 
     def test_patch_review_selections_carry_engine_execution_policy(self) -> None:
         card = materialize_terminal_card(
