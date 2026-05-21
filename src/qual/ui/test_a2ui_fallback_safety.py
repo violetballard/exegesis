@@ -114,6 +114,7 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
                 "* 3. Reject patch [confirm: Reject patch?]",
             ],
         )
+        self.assertIn("Patch review controls: preview=1, apply=2, reject=3", text)
 
     def test_terminal_fallback_preserves_distinct_patch_action_slots(self) -> None:
         card = {

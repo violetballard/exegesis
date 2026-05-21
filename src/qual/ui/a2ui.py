@@ -41,6 +41,7 @@ from exegesis_shared.contracts.actions import (
     patch_review_action_selection_from_selection,
     patch_review_availability_from_contract,
     patch_review_action_refs_from_contract,
+    patch_review_control_slots_from_contract,
     resolve_card_selection,
     resolve_card_selection_contract,
     resolve_card_selection_by_index,
@@ -137,6 +138,21 @@ def render_terminal_card(card: dict[str, Any]) -> str:
                 for row in rows:
                     if isinstance(row, list):
                         lines.append(" | ".join(str(value) for value in row))
+    review = materialized.get("patch_review")
+    patch_id = materialized.get("patch_id")
+    if isinstance(review, dict) and isinstance(patch_id, str) and patch_id.strip():
+        controls = patch_review_control_slots_from_contract(
+            materialized,
+            review,
+            patch_id=patch_id,
+        )
+        ordered_controls = [
+            f"{control}={controls[control]['slot']}"
+            for control in ("preview", "apply", "reject")
+            if control in controls
+        ]
+        if ordered_controls:
+            lines.append(f"Patch review controls: {', '.join(ordered_controls)}")
     for slot, action in enumerate(materialized.get("actions", []), start=1):
         if isinstance(action, dict):
             label = str(action.get("label", action.get("id", "action")))
@@ -204,6 +220,7 @@ __all__ = [
     "patch_review_action_selection_from_selection",
     "patch_review_availability_from_contract",
     "patch_review_action_refs_from_contract",
+    "patch_review_control_slots_from_contract",
     "materialize_card_actions",
     "materialize_terminal_card",
     "render_terminal_card",

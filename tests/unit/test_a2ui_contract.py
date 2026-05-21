@@ -51,6 +51,7 @@ from src.qual.ui.a2ui import (
     patch_review_action_selection_from_selection,
     patch_review_availability_from_contract,
     patch_review_action_refs_from_contract,
+    patch_review_control_slots_from_contract,
     render_terminal_card,
     resolve_card_selection_contract,
     resolve_patch_decision_action,
@@ -871,6 +872,37 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(
             {decision: ref.payload for decision, ref in refs["decisions"].items()},
             {"apply": {"patch_id": "p1"}, "reject": {"patch_id": "p1"}},
+        )
+
+    def test_patch_review_contract_exports_current_cli_control_slots(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+
+        slots = patch_review_control_slots_from_contract(card, review, patch_id=" p1 ")
+
+        self.assertEqual(
+            {control: slot["slot"] for control, slot in slots.items()},
+            {"preview": 1, "apply": 2, "reject": 3},
+        )
+        self.assertEqual(
+            {control: slot["action_id"] for control, slot in slots.items()},
+            {
+                "preview": "preview_patch",
+                "apply": "apply_patch",
+                "reject": "reject_patch",
+            },
         )
 
     def test_patch_review_selection_resolves_cli_slot_through_review_contract(self) -> None:

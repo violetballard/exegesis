@@ -524,6 +524,38 @@ def patch_review_action_refs_from_contract(
     return refs
 
 
+def patch_review_control_slots_from_contract(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+) -> dict[str, dict[str, Any]]:
+    resolve_patch_review_contract(card, review, patch_id=patch_id)
+    slots: dict[str, dict[str, Any]] = {}
+    preview = review.get("preview")
+    if isinstance(preview, dict):
+        slots["preview"] = {
+            "slot": preview["slot"],
+            "action_id": "preview_patch",
+            "action_identity": preview["action_identity"],
+        }
+
+    decisions = review.get("decisions", [])
+    if not isinstance(decisions, list):
+        raise ValueError("Patch review decisions must be a list")
+    for entry in decisions:
+        if not isinstance(entry, dict):
+            raise ValueError("Patch review decision entry must be an object")
+        decision = str(entry.get("decision", "")).strip().lower()
+        if decision in {"apply", "reject"}:
+            slots[decision] = {
+                "slot": entry["slot"],
+                "action_id": entry["action_id"],
+                "action_identity": entry["action_identity"],
+            }
+    return slots
+
+
 def complete_patch_review_action_refs_from_contract(
     card: dict[str, Any],
     review: dict[str, Any],
