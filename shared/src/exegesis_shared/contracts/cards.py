@@ -7,6 +7,7 @@ from typing import Any
 from exegesis_shared.contracts.actions import (
     ALLOWED_ACTION_IDS,
     validate_complete_patch_review_capabilities,
+    materialize_action_selection_contract,
     materialize_card_actions,
     materialize_cli_fallback_card,
     validate_action_ref,
@@ -317,6 +318,7 @@ def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) 
     if strict_actions:
         for action in actions:
             validate_action_ref(action)
+    _validate_optional_action_selection(card, strict_actions=strict_actions)
 
 
 def materialize_proposed_edit_card(card: dict[str, Any]) -> dict[str, Any]:
@@ -366,6 +368,7 @@ def validate_proposed_edit_card(card: dict[str, Any], *, strict_actions: bool = 
                 raise ValueError(f"{action_id} payload patch_id must match ProposedEditCard patch_id")
         if strict_actions:
             validate_action_ref(action)
+    _validate_optional_action_selection(card, strict_actions=strict_actions)
 
 
 def validate_known_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
@@ -512,6 +515,18 @@ def _validate_optional_card_actions(card: dict[str, Any], *, strict_actions: boo
     if strict_actions:
         for action in actions:
             validate_action_ref(action)
+    _validate_optional_action_selection(card, strict_actions=strict_actions)
+
+
+def _validate_optional_action_selection(card: dict[str, Any], *, strict_actions: bool) -> None:
+    if not strict_actions or "action_selection" not in card:
+        return
+    selection = card["action_selection"]
+    if not isinstance(selection, dict):
+        raise ValueError(f"{card.get('type')} action_selection must be an object")
+    expected = materialize_action_selection_contract(card)
+    if selection != expected:
+        raise ValueError(f"{card.get('type')} action_selection must match materialized actions")
 
 
 def _validate_item_scoped_actions(card: dict[str, Any], items: list[Any], item_label: str) -> None:

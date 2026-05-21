@@ -18,6 +18,7 @@ from exegesis_shared.contracts.actions import (
     PATCH_REVIEW_EXECUTION_POLICY,
     PATCH_REVIEW_FLOW,
     PATCH_REVIEW_REQUIRED_PARTS,
+    materialize_action_selection_contract,
 )
 from exegesis_shared.contracts import studio_materialize_card as shared_studio_materialize_card
 from src.qual.ui.a2ui import (
@@ -563,6 +564,29 @@ class A2UIContractTests(unittest.TestCase):
                     "items": [{"item_id": "doc-1", "title": "Chapter 5", "client_hint": "render-wide"}],
                 }
             )
+
+    def test_known_cards_reject_stale_embedded_action_selection_contracts(self) -> None:
+        card = {
+            "type": RETRIEVAL_RESULTS_CARD_TYPE,
+            "title": "Retrieval",
+            "query": "chapter five",
+            "results": [{"item_id": "doc-1", "title": "Chapter 5", "snippet": "Relevant paragraph"}],
+            "actions": [
+                {"id": "promote_to_basket", "label": "Add", "payload": {"item_id": "doc-1"}},
+            ],
+        }
+        card["action_selection"] = materialize_action_selection_contract(card)
+        validate_retrieval_results_card(card)
+
+        stale = deepcopy(card)
+        stale["action_selection"] = deepcopy(card["action_selection"])
+        stale["action_selection"]["order"][0]["action_identity"] = "stale-client-selection"
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "RetrievalResultsCard action_selection must match materialized actions",
+        ):
+            validate_retrieval_results_card(stale)
 
     def test_known_card_validator_covers_full_known_card_registry(self) -> None:
         generic_card = {
