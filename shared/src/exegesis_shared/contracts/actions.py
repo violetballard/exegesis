@@ -854,6 +854,7 @@ def resolve_patch_review_control_execution(
     *,
     patch_id: str,
     control: str,
+    capabilities: Any | None = None,
 ) -> dict[str, Any]:
     normalized_control = control.strip().lower()
     if normalized_control not in set(PATCH_REVIEW_REQUIRED_PARTS):
@@ -869,6 +870,11 @@ def resolve_patch_review_control_execution(
     if not isinstance(action_contract, dict):
         raise ValueError("Patch review control action contract must be an object")
     validate_action_ref(action_contract)
+    if capabilities is not None:
+        validate_action_capabilities(capabilities)
+        action_id = str(action_payload["action_id"])
+        if action_id not in set(capabilities.actions_supported):
+            raise ValueError(f"Patch review {normalized_control} action is not supported by client")
     return {
         "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
         "patch_id": patch_id.strip(),
@@ -1976,6 +1982,7 @@ def execute_patch_review_control_with_policy_gate(
         review,
         patch_id=patch_id,
         control=control,
+        capabilities=capabilities,
     )
     return execute_patch_review_selection_with_policy_gate(
         card=card,

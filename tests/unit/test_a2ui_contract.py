@@ -4571,6 +4571,42 @@ class A2UIContractTests(unittest.TestCase):
                 control="reject",
             )
 
+    def test_patch_review_control_execution_revalidates_client_capability(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        with self.assertRaisesRegex(ValueError, "apply action is not supported by client"):
+            resolve_patch_review_control_execution(
+                card,
+                review,
+                patch_id="p1",
+                control="apply",
+                capabilities=_capabilities(actions_supported=("preview_patch", "reject_patch")),
+            )
+
+        execution = resolve_patch_review_control_execution(
+            card,
+            review,
+            patch_id="p1",
+            control="apply",
+            capabilities=_capabilities(actions_supported=("preview_patch", "apply_patch", "reject_patch")),
+        )
+
+        self.assertEqual(execution["control"], "apply")
+        self.assertEqual(execution["action_id"], "apply_patch")
+
     def test_complete_patch_review_contract_carries_engine_execution_policy(self) -> None:
         card = materialize_terminal_card(
             {
