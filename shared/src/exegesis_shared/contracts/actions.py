@@ -1279,8 +1279,12 @@ def complete_patch_review_actions_from_card(
     if not expected_patch_id:
         raise ValueError("Patch review patch_id is required")
 
-    review = card.get("patch_review")
-    if not isinstance(review, dict) or review.get("patch_id") != expected_patch_id:
+    embedded_review = card.get("patch_review")
+    if embedded_review is not None:
+        if not isinstance(embedded_review, dict):
+            raise ValueError("Patch review contract must be an object")
+        review = embedded_review
+    else:
         review = build_complete_patch_review_contract(card, patch_id=expected_patch_id)
     resolve_patch_review_contract(card, review, patch_id=expected_patch_id)
     return complete_patch_review_actions_from_contract(

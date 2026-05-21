@@ -3404,6 +3404,52 @@ class A2UIContractTests(unittest.TestCase):
                 executor=lambda action: action.id,
             )
 
+    def test_complete_patch_review_action_execution_rejects_stale_embedded_review(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        card["patch_review"] = build_complete_patch_review_contract(card, patch_id="p1")
+        card["patch_review"]["patch_id"] = "stale"
+
+        with self.assertRaisesRegex(ValueError, "does not match the current patch"):
+            execute_complete_patch_review_action_with_policy_gate(
+                card=card,
+                patch_id="p1",
+                control="apply",
+                capabilities=_capabilities(),
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: action.id,
+            )
+
+    def test_complete_patch_review_action_execution_rejects_untyped_embedded_review(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        card["patch_review"] = "stale"
+
+        with self.assertRaisesRegex(ValueError, "contract must be an object"):
+            complete_patch_review_actions_from_card(card, patch_id="p1")
+
     def test_complete_patch_review_action_execution_rejects_unsupported_client_action(self) -> None:
         card = materialize_terminal_card(
             {
