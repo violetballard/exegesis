@@ -433,6 +433,24 @@ class A2UIContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "not available"):
             build_patch_decision_selection(card, patch_id="patch-1", decision="apply")
 
+    def test_engine_supported_proposed_edit_card_filters_unsupported_patch_decisions(self) -> None:
+        caps = _capabilities(actions_supported=("preview_patch", "reject_patch"))
+        payload = {
+            "type": "ProposedEditCard",
+            "patch_id": "patch-1",
+            "title": "Preview patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "```diff\n+new\n```"}],
+            "actions": [],
+        }
+
+        card = engine_prepare_card(payload, caps)
+
+        self.assertEqual(card["type"], "ProposedEditCard")
+        self.assertEqual([action["id"] for action in card["actions"]], ["preview_patch", "reject_patch"])
+        self.assertEqual(card["patch_review"]["availability"]["missing"], ["apply"])
+        with self.assertRaisesRegex(ValueError, "not available"):
+            build_patch_decision_selection(card, patch_id="patch-1", decision="apply")
+
     def test_engine_rejects_cards_over_negotiated_payload_limit(self) -> None:
         caps = _capabilities(max_payload_bytes=100)
         payload = {

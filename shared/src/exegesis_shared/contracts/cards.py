@@ -111,19 +111,25 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
     card_type = str(card.get("type", "")).strip()
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card)
-        validate_card_payload_size(card, capabilities)
-        return card
+        prepared = _engine_filter_actions(card, capabilities)
+        prepared = materialize_cli_fallback_card(prepared)
+        validate_card_payload_size(prepared, capabilities)
+        return prepared
     if card_type == PROPOSED_EDIT_CARD_TYPE:
         prepared = materialize_proposed_edit_card(card)
         if card_type in set(capabilities.cards_supported):
+            prepared = _engine_filter_actions(prepared, capabilities)
+            prepared = materialize_cli_fallback_card(prepared)
             validate_card_payload_size(prepared, capabilities)
             return prepared
         card = prepared
     elif card_type in _VALIDATORS_BY_CARD_TYPE:
         validate_known_card(card)
     if card_type in set(capabilities.cards_supported):
-        validate_card_payload_size(card, capabilities)
-        return card
+        prepared = _engine_filter_actions(card, capabilities)
+        prepared = materialize_cli_fallback_card(prepared)
+        validate_card_payload_size(prepared, capabilities)
+        return prepared
     fallback_actions = _engine_fallback_actions(card, capabilities)
     fallback = {
         "type": GENERIC_CARD_TYPE,
@@ -454,13 +460,19 @@ def _studio_filter_actions(card: dict[str, Any], capabilities: A2UICapabilities)
     return filtered
 
 
-def _engine_fallback_actions(
-    card: dict[str, Any],
-    capabilities: A2UICapabilities,
-) -> list[dict[str, Any]]:
+def _engine_filter_actions(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
+    filtered = dict(card)
     supported_actions = set(capabilities.actions_supported)
-    return [
+    filtered["actions"] = [
         action
         for action in materialize_card_actions(card)
         if action.get("id") in supported_actions
     ]
+    return filtered
+
+
+def _engine_fallback_actions(
+    card: dict[str, Any],
+    capabilities: A2UICapabilities,
+) -> list[dict[str, Any]]:
+    return _engine_filter_actions(card, capabilities)["actions"]
