@@ -2339,6 +2339,46 @@ class A2UIContractTests(unittest.TestCase):
                 caps,
             )
 
+    def test_streaming_events_reject_untyped_metadata_fields(self) -> None:
+        selection = {
+            "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+            "selection_model": "one_based_action_slot",
+            "slot": 1,
+            "action_identity": "apply_patch:1:p1",
+            "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
+            "patch_decision": "apply",
+            "patch_id": "p1",
+        }
+
+        with self.assertRaisesRegex(ValueError, "Unsupported A2UI stream event field"):
+            validate_stream_event(
+                {
+                    "contract_version": 1,
+                    "event_id": "evt-1",
+                    "run_id": "run-1",
+                    "sequence": 1,
+                    "event_type": "action_selected",
+                    "action_id": "apply_patch",
+                    "selection": selection,
+                    "target_file": "chapter.md",
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "message must be a non-empty string"):
+            validate_stream_event(
+                {
+                    "contract_version": 1,
+                    "event_id": "evt-2",
+                    "run_id": "run-1",
+                    "sequence": 2,
+                    "event_type": "action_resolved",
+                    "action_id": "apply_patch",
+                    "status": "applied",
+                    "selection": selection,
+                    "message": "",
+                }
+            )
+
     def test_terminal_can_render_inline_generic_and_unknown_cards(self) -> None:
         generic = {
             "type": "GenericCard",

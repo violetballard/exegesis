@@ -26,6 +26,14 @@ A2UI_STREAM_EVENT_TYPES: tuple[str, ...] = (
 )
 _A2UI_STREAM_EVENT_SET = set(A2UI_STREAM_EVENT_TYPES)
 _ALLOWED_ACTION_SET = set(ALLOWED_ACTION_IDS)
+_BASE_EVENT_FIELDS: frozenset[str] = frozenset(
+    {"contract_version", "event_id", "run_id", "sequence", "event_type"}
+)
+_EVENT_FIELDS_BY_TYPE: dict[str, frozenset[str]] = {
+    "card_published": _BASE_EVENT_FIELDS | {"card"},
+    "action_selected": _BASE_EVENT_FIELDS | {"action_id", "selection"},
+    "action_resolved": _BASE_EVENT_FIELDS | {"action_id", "status", "selection", "message"},
+}
 
 
 def build_card_published_event(
@@ -130,6 +138,7 @@ def validate_stream_event(
     event_type = event.get("event_type")
     if event_type not in _A2UI_STREAM_EVENT_SET:
         raise ValueError(f"Unsupported A2UI stream event type: {event_type}")
+    _validate_event_fields(event, str(event_type))
     _validate_required_text(event, "event_id")
     _validate_required_text(event, "run_id")
     sequence = event.get("sequence")
@@ -159,6 +168,9 @@ def validate_stream_event(
         status = event.get("status")
         if status not in {"applied", "rejected", "blocked", "failed"}:
             raise ValueError("Unsupported action_resolved status")
+        message = event.get("message")
+        if message is not None and (not isinstance(message, str) or not message.strip()):
+            raise ValueError("action_resolved event message must be a non-empty string")
         selection = event.get("selection")
         if selection is not None:
             if not isinstance(selection, dict):
@@ -180,6 +192,14 @@ def _validate_required_text(event: dict[str, Any], key: str) -> None:
     value = event.get(key)
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"A2UI stream event {key} is required")
+
+
+def _validate_event_fields(event: dict[str, Any], event_type: str) -> None:
+    allowed_fields = _EVENT_FIELDS_BY_TYPE[event_type]
+    unexpected_fields = set(event) - allowed_fields
+    if unexpected_fields:
+        field_list = ", ".join(sorted(unexpected_fields))
+        raise ValueError(f"Unsupported A2UI stream event field(s): {field_list}")
 
 
 def _validate_action_id(event: dict[str, Any], capabilities: A2UICapabilities | None) -> None:
