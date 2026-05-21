@@ -388,6 +388,13 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
     patch_id = review.get("patch_id")
     if not isinstance(patch_id, str) or not patch_id.strip():
         raise ValueError("Patch review patch_id is required")
+    if review.get("flow") != PATCH_REVIEW_FLOW:
+        raise ValueError("Unsupported patch review flow")
+    if review.get("decision_policy") != PATCH_REVIEW_DECISION_POLICY:
+        raise ValueError("Unsupported patch review decision policy")
+    authority = review.get("action_authority", PATCH_REVIEW_ACTION_AUTHORITY)
+    if authority != PATCH_REVIEW_ACTION_AUTHORITY:
+        raise ValueError("Unsupported patch review action authority")
 
     available: list[str] = []
     preview = review.get("preview")
