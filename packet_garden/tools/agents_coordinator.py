@@ -24,7 +24,7 @@ try:
     from lane_profiles import ENGINE_PRIORITY_ORDER, lane_priority_order
     from git_ops import run_git
     from git_hygiene import run_hygiene
-    from planner import LANE_OWNED_PATHS
+    from planner import _owned_patterns_for_lane
     from local_exec_sweeper import (
         find_context_exhausted_repo_local_exec_pids,
         find_repo_owned_local_exec_pids,
@@ -37,7 +37,7 @@ except ImportError:  # pragma: no cover - package execution fallback
     from .lane_profiles import ENGINE_PRIORITY_ORDER, lane_priority_order
     from .git_ops import run_git
     from .git_hygiene import run_hygiene
-    from .planner import LANE_OWNED_PATHS
+    from .planner import _owned_patterns_for_lane
     from .local_exec_sweeper import (
         find_context_exhausted_repo_local_exec_pids,
         find_repo_owned_local_exec_pids,
@@ -105,6 +105,7 @@ FEATURE_TOTAL_CHILD_RSS_LIMIT_KB = int(os.environ.get("FEATURE_TOTAL_CHILD_RSS_L
 WORKTREE_RECOVERY_ROOT = REPO_ROOT / ".codex/worktree_recovery"
 ROUTER_JOB_STATE_KEYS = (
     "fixer_fallback_jobs",
+    "metadata_repair_jobs",
     "local_reviewer_jobs",
     "cloud_reviewer_jobs",
     "local_integrator_jobs",
@@ -1205,7 +1206,7 @@ def _lane_worktree_changed_files(lane: str) -> List[str]:
 
 
 def _lane_scope_violations(lane: str) -> List[str]:
-    patterns = list(LANE_OWNED_PATHS.get(lane, []))
+    patterns = _owned_patterns_for_lane(lane)
     if not patterns:
         return []
     branch = _lane_branch_map().get(lane, f"codex/{lane}")
@@ -1922,6 +1923,39 @@ def _lane_queue_empty(lane: str) -> bool:
     )
 
 
+def _lane_branch(lane: str) -> str:
+    cfg = load_json(ROUTER_CONFIG_FILE, {})
+    lanes = cfg.get("lanes") if isinstance(cfg, dict) else {}
+    lane_cfg = lanes.get(lane) if isinstance(lanes, dict) else {}
+    if isinstance(lane_cfg, dict):
+        branch = str(lane_cfg.get("branch") or "").strip()
+        if branch:
+            return branch
+    return f"codex/{lane}"
+
+
+def _lane_has_current_head_integrated(lane: str) -> bool:
+    """Return True when a queue-empty lane already integrated its current head.
+
+    Free-lane refill is intentionally aggressive so every enabled lane keeps
+    moving. The counterweight is this satisfied-state check: if the current
+    branch head already has an integrator archive record, relaunching the lane
+    just burns context and redoes completed work.
+    """
+    branch = _lane_branch(lane)
+    head = _git_rev(branch)
+    if not head:
+        return False
+    archive_dir = PACKETS_ROOT / lane / "archive"
+    if not archive_dir.exists():
+        return False
+    return any(
+        path.name.startswith("INTEGRATOR__")
+        and f"__{head}__" in path.name
+        for path in archive_dir.glob("INTEGRATOR__*.md")
+    )
+
+
 def _feature_thread_state() -> Dict[str, Dict[str, object]]:
     state = load_json(FEATURE_RUNNER_STATE_FILE, {})
     lanes = state.get("lanes") if isinstance(state, dict) else {}
@@ -2086,6 +2120,16 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
         lane_state.pop("scope_violation_count", None)
         last_launch_attempt_ts = float(lane_state.get("last_launch_attempt_ts", 0) or 0)
         force_resume_once = bool(lane_state.get("force_resume_once"))
+        if queue_empty and not feature_active and _lane_has_current_head_integrated(lane):
+            lane_state["queue_empty"] = queue_empty
+            lane_state["feature_active"] = feature_active
+            lane_state["satisfied_current_head"] = True
+            lane_state["last_launch_reason"] = "current_head_already_integrated"
+            lane_state.pop("force_resume_once", None)
+            lane_state["last_seen_at"] = utc_now()
+            lane_refill[lane] = lane_state
+            continue
+        lane_state.pop("satisfied_current_head", None)
         if (
             queue_empty
             and not feature_active

@@ -40,6 +40,26 @@ class LaneProfileDefaultsTests(unittest.TestCase):
         self.assertTrue(merged["definition_of_done"])
         self.assertTrue(merged["do_not_spend_time_on"])
 
+    def test_active_engine_lane_roadmap_uses_canonical_profile(self) -> None:
+        merged = merge_lane_meta_defaults(
+            "feat-engine-runs",
+            {
+                "scope_goal": "Complete the active engine run path.",
+                "tasks_completed": ["Updated engine run behavior."],
+                "risk": "LOW",
+                "roadmap_items": [
+                    "Milestone 4: Retrieval Layer (Planned)",
+                    "Milestone 3: Product Readiness (Planned)",
+                ],
+                "vision_capabilities": ["Auditable generation."],
+                "routing_provider_impact": "None",
+            },
+        )
+
+        self.assertEqual(merged["roadmap_items"], default_lane_meta("feat-engine-runs")["roadmap_items"])
+        self.assertNotIn("Product Readiness", " ".join(merged["roadmap_items"]))
+        self.assertNotIn("Retrieval Layer", " ".join(merged["roadmap_items"]))
+
     def test_planner_packet_includes_program_brief_and_lane_guardrails(self) -> None:
         meta = merge_lane_meta_defaults(
             "feat-context-storage",

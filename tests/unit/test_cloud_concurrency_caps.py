@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -1199,6 +1201,211 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         self.assertIn("Do not edit or commit control-plane files from this fixer", prompt)
         self.assertIn("THREAD_PACKET.md", prompt)
         self.assertIn("packet_garden/**", prompt)
+
+    def test_reviewer_backlog_routes_metadata_repairs_to_cloud_job(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            packet_root = Path(tmpdir) / "packets"
+            lane = "feat-engine-runs"
+            lane_dir = packet_root / lane / "inbox" / "reviewer"
+            lane_dir.mkdir(parents=True, exist_ok=True)
+            note = lane_dir / "R__CHANGES__codex-feat-engine-runs__abc123__20260520T000000Z.md"
+            note.write_text(
+                "## Verdict: `CHANGES_REQUESTED`\n\n"
+                "## Findings\n"
+                "1. implementation range is not reviewable locally.\n"
+                "2. Roadmap mapping is off-plan.\n\n"
+                "## Required fixes before re-review\n"
+                "1. Reissue the packet with a locally resolvable implementation target.\n"
+                "2. Correct handoff metadata and THREAD_PACKET.md references.\n",
+                encoding="utf-8",
+            )
+            cfg = SimpleNamespace(
+                inline_fixer=True,
+                kick_fixers_on_reviewer_backlog=True,
+                lanes={lane: {"branch": "codex/feat-engine-runs", "enabled": True}},
+                max_local_fixer_kicks_per_run=1,
+                max_cloud_fixer_kicks_per_run=1,
+                max_local_fixer_jobs=1,
+                max_cloud_fixer_jobs=1,
+                max_total_local_lms_jobs=4,
+                max_total_cloud_jobs=4,
+                reviewer_fixer_retry_cooldown_seconds=120.0,
+                fixer_quota_retry_cooldown_seconds=3600.0,
+                auto_switch_to_local_on_quota=True,
+            )
+
+            def fake_ensure_lane_dirs(lane_name: str) -> Path:
+                lane_root = packet_root / lane_name
+                (lane_root / "inbox" / "feature").mkdir(parents=True, exist_ok=True)
+                (lane_root / "outbox" / "integrator").mkdir(parents=True, exist_ok=True)
+                (lane_root / "archive").mkdir(parents=True, exist_ok=True)
+                return lane_root
+
+            metadata_calls: list[tuple[str, str]] = []
+
+            def fake_prepare_metadata(*args, **kwargs):
+                metadata_calls.append((args[3], args[4].name))
+                return False, args[1]
+
+            with (
+                mock.patch.object(router, "ensure_lane_dirs", side_effect=fake_ensure_lane_dirs),
+                mock.patch.object(router, "_local_lms_slot_available", return_value=True),
+                mock.patch.object(router, "_materialize_reviewer_packet", return_value="review packet"),
+                mock.patch.object(router, "_prepare_metadata_repair_job", side_effect=fake_prepare_metadata),
+                mock.patch.object(router, "run_fixer") as run_fixer_mock,
+            ):
+                kicked, updated = router.process_reviewer_backlog(object(), cfg, {}, str(packet_root))
+
+        self.assertEqual(kicked, 0)
+        self.assertEqual(metadata_calls, [(lane, note.name)])
+        run_fixer_mock.assert_not_called()
+        self.assertEqual(updated.get("reviewer_fixer_cursor"), {})
+
+    def test_missing_concrete_handoff_tasks_routes_to_metadata_repair(self) -> None:
+        note_text = (
+            "## Verdict: `CHANGES_REQUESTED`\n\n"
+            "## Findings\n"
+            "The handoff packet does not provide concrete completed tasks.\n\n"
+            "## Required fixes before re-review\n"
+            "1. Replace the placeholder task list with concrete numbered tasks completed.\n"
+            "2. Add the canonical demo-path step advanced by the feature implementation.\n"
+            "3. Correct the missing handoff fields in `.codex/lane_meta/feat-retrieval-fts.json`.\n"
+        )
+
+        self.assertTrue(router._requires_control_plane_metadata_repair(note_text))
+
+    def test_metadata_repair_sandbox_block_falls_back_to_local_control_plane_repair(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            packet_root = root / ".codex" / "packets" / "lanes"
+            lane = "feat-engine-runs"
+            lane_root = packet_root / lane
+            reviewer_dir = lane_root / "inbox" / "reviewer"
+            feature_dir = lane_root / "inbox" / "feature"
+            reviewer_dir.mkdir(parents=True, exist_ok=True)
+            feature_dir.mkdir(parents=True, exist_ok=True)
+            note = reviewer_dir / "R__CHANGES__codex-feat-engine-runs__abc123__20260520T000000Z.md"
+            note.write_text("## Verdict: `CHANGES_REQUESTED`\n\nmetadata repair required\n", encoding="utf-8")
+            (feature_dir / "F__codex-feat-engine-runs__abc123__20260520T000000Z.shared.md").write_text(
+                "stale shared-only packet",
+                encoding="utf-8",
+            )
+            lane_meta = root / ".codex" / "lane_meta" / f"{lane}.json"
+            lane_meta.parent.mkdir(parents=True, exist_ok=True)
+            lane_meta.write_text(
+                json.dumps(
+                    {
+                        "roadmap_items": ["Milestone 4: Retrieval Layer (Planned)"],
+                        "source_commits": ["missing..range"],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            planner_state = root / ".codex" / "packet_planner" / "state.json"
+            planner_state.parent.mkdir(parents=True, exist_ok=True)
+            planner_state.write_text(
+                json.dumps({"lanes": {lane: {"last_submitted_sha": "abc123", "last_emitted_packet": "old.md"}}}),
+                encoding="utf-8",
+            )
+
+            def fake_run_git(args: list[str], **_kwargs: object):
+                class Result:
+                    returncode = 0
+                    stdout = "headsha\n"
+
+                result = Result()
+                if args[:2] == ["merge-base", "HEAD"]:
+                    result.stdout = "basesha\n"
+                return result
+
+            old_cwd = os.getcwd()
+            os.chdir(root)
+            try:
+                with (
+                    mock.patch.object(router, "PACKETS_ROOT", packet_root),
+                    mock.patch.object(router, "run_git", side_effect=fake_run_git),
+                ):
+                    repair = router._repair_control_plane_metadata_locally(
+                        str(root),
+                        lane,
+                        "codex/feat-engine-runs",
+                        note,
+                    )
+            finally:
+                os.chdir(old_cwd)
+
+            repaired_meta = json.loads(lane_meta.read_text(encoding="utf-8"))
+            repaired_planner_state = json.loads(planner_state.read_text(encoding="utf-8"))
+            self.assertEqual(repaired_meta["source_commits"], ["basesha..headsha"])
+            self.assertIn("Milestone 3: Real workflow loop", " ".join(repaired_meta["roadmap_items"]))
+            self.assertNotIn("Retrieval Layer", " ".join(repaired_meta["roadmap_items"]))
+            self.assertFalse(note.exists())
+            self.assertEqual(repair["shared_only_archived"], 1)
+            self.assertNotIn("last_submitted_sha", repaired_planner_state["lanes"][lane])
+            self.assertEqual(repaired_planner_state["lanes"][lane]["force_reemit_sha"], "headsha")
+            self.assertEqual(
+                repaired_planner_state["lanes"][lane]["force_reemit_reason"],
+                "control_plane_metadata_repair",
+            )
+
+    def test_metadata_repair_writes_retrieval_specific_handoff_tasks(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            packet_root = root / ".codex" / "packets" / "lanes"
+            lane = "feat-retrieval-fts"
+            lane_root = packet_root / lane
+            reviewer_dir = lane_root / "inbox" / "reviewer"
+            reviewer_dir.mkdir(parents=True, exist_ok=True)
+            note = reviewer_dir / "R__CHANGES__codex-feat-retrieval-fts__abc123__20260520T000000Z.md"
+            note.write_text("## Verdict: `CHANGES_REQUESTED`\n\nmissing handoff fields\n", encoding="utf-8")
+            lane_meta = root / ".codex" / "lane_meta" / f"{lane}.json"
+            lane_meta.parent.mkdir(parents=True, exist_ok=True)
+            lane_meta.write_text("{}", encoding="utf-8")
+
+            def fake_run_git(args: list[str], **_kwargs: object):
+                class Result:
+                    returncode = 0
+                    stdout = "retrievalhead\n"
+
+                result = Result()
+                if args[:2] == ["merge-base", "HEAD"]:
+                    result.stdout = "retrievalbase\n"
+                return result
+
+            old_cwd = os.getcwd()
+            os.chdir(root)
+            try:
+                with (
+                    mock.patch.object(router, "PACKETS_ROOT", packet_root),
+                    mock.patch.object(router, "run_git", side_effect=fake_run_git),
+                ):
+                    router._repair_control_plane_metadata_locally(
+                        str(root),
+                        lane,
+                        "codex/feat-retrieval-fts",
+                        note,
+                    )
+            finally:
+                os.chdir(old_cwd)
+
+            repaired_meta = json.loads(lane_meta.read_text(encoding="utf-8"))
+            kickoff_text = (root / ".codex" / "kickoff_packets" / f"{lane}.md").read_text(encoding="utf-8")
+            self.assertIn("deterministic FTS provenance", repaired_meta["canonical_demo_path_step"])
+            self.assertIn("retrieval demo-path contract", " ".join(repaired_meta["tasks_completed"]))
+            self.assertIn("Concrete tasks completed", kickoff_text)
+
+    def test_metadata_repair_jobs_count_against_cloud_total_cap(self) -> None:
+        state = {
+            "metadata_repair_jobs": {
+                "feat-engine-runs": {"pid": 12345, "local": False, "result_path": "/tmp/missing-result.json"},
+            }
+        }
+        with (
+            mock.patch.object(router, "_count_active_feature_cloud_jobs", return_value=0),
+            mock.patch.object(router, "_live_untracked_cloud_integrator_exec_pids", return_value=[]),
+            mock.patch.object(router, "_pid_alive", return_value=True),
+        ):
+            self.assertEqual(router._count_active_cloud_jobs(state), 1)
 
     def test_spawn_detached_cli_job_writes_prompt_to_spec_stdin_path(self) -> None:
         cfg = router.RouterConfig(

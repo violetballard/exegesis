@@ -37,6 +37,7 @@ ROOT = Path('.codex/packets/lanes')
 CONFIG_FILE = Path('.codex/packet_router/config.json')
 PLANNER_STATE_FILE = Path('.codex/packet_planner/state.json')
 FEATURE_STATE_FILE = Path('.codex/feature_runner/state.json')
+ROUTER_STATE_FILE = Path('.codex/packet_router/state.json')
 
 @dataclass
 class LaneStatus:
@@ -106,6 +107,15 @@ def _feature_session_active(lane: str) -> bool:
     return False
 
 
+def _metadata_repair_active(lane: str) -> bool:
+    state = _load_json(ROUTER_STATE_FILE, {})
+    jobs = state.get("metadata_repair_jobs") if isinstance(state, dict) else {}
+    job = jobs.get(lane) if isinstance(jobs, dict) else None
+    if not isinstance(job, dict):
+        return False
+    return _pid_alive(int(job.get("pid") or 0))
+
+
 def _integrator_dependency_blockers(lane_dir: Path, approval_packet: Path) -> List[str]:
     """Return integration dependency blockers using the router's merge policy."""
     try:
@@ -141,6 +151,7 @@ def _derive_lane_state(
     last_submitted_sha: Optional[str],
     feature_active: bool = False,
     integration_blockers: Optional[List[str]] = None,
+    lane: str = "",
 ) -> tuple[str, str]:
     if approved:
         if integration_blockers:
@@ -152,6 +163,8 @@ def _derive_lane_state(
     if pending:
         return ("pending_review", "feature packet waiting for reviewer")
     if reviewer:
+        if _metadata_repair_active(lane):
+            return ("metadata_repair", "control-plane metadata repair running in cloud")
         if head_sha and last_submitted_sha and head_sha != last_submitted_sha:
             return ("ready_for_reemit", "review notes present, lane advanced, planner should re-emit")
         return ("waiting_feature_update", "review notes present, lane has not advanced yet")
@@ -196,6 +209,7 @@ def scan_lane(lane_dir: Path, lane_cfg: Dict, planner_lane_state: Dict) -> LaneS
                 last_submitted_sha,
                 _feature_session_active(lane),
                 integration_blockers,
+                lane,
             )
     if not bool((lane_cfg or {}).get("enabled", True)):
         integration_blockers = []

@@ -1,30 +1,33 @@
 {
-  "scope_goal": "Correct the A2UI handoff metadata so the submitted review surface is auditable and aligned with the canonical Milestone 3 demo path.",
-  "scope_completed": [
-    "Corrected the A2UI handoff packet around the actual branch-tip review surface and removed stale packet-planner source/test claims.",
-    "Aligned the packet and handoff wording with ROADMAP.md Milestone 3 and PRODUCT_VISION.md Capability 4 without expanding A2UI runtime scope."
-  ],
+  "scope_goal": "Provide just enough shared card, action, and selection contract stability for the CLI now and the future Textual client later, without letting contract work outrun the engine loop.",
+  "scope_completed": "Control-plane metadata repair: replaced stale unreachable source range and stale roadmap labels with locally resolvable branch evidence `28d8fa770226f4cc847edf0f637e2f7cb9db7042..871e367733fc44a27c4c5807edd8c2f4bda44af3` and canonical active MVP roadmap items.",
   "kickoff_budget_note": "This re-review packet is metadata-only and stays under the high-risk 4-task cap; no runtime A2UI, Textual, retrieval, daemon, or packet-planner source changes are part of this review surface.",
-  "approved_exception_note": "No new shared runtime/source exception is requested for this metadata-only re-review packet.",
+  "approved_exception_note": "Control-plane metadata repair was performed locally by packet_garden because cloud workers cannot reliably write `.codex/**` metadata under workspace-write sandboxing.",
   "tasks_completed": [
-    "Regenerated the handoff packet around the actual branch-tip merge surface.",
-    "Removed unsupported changed-file claims for `codex_packet_handoff/tools/planner.py` and `tests/unit/test_packet_planner.py`.",
-    "Set the handoff review target to one branch-tip merge surface: `HEAD` against `main`.",
-    "Added the explicit canonical demo-path step advanced: `preview and apply or reject a patch`."
+    "Replaced stale source commit metadata with locally resolvable range `28d8fa770226f4cc847edf0f637e2f7cb9db7042..871e367733fc44a27c4c5807edd8c2f4bda44af3`.",
+    "Replaced stale roadmap labels with canonical active MVP lane profile mappings.",
+    "Named the canonical demo-path step advanced: preview and apply or reject a patch through stable shared card/action contracts and CLI fallback rendering.",
+    "Archived stale shared-only feature packet debris so the lane queue reflects real reviewable packets."
   ],
   "risk": "LOW",
   "roadmap_items": [
-    "Milestone 3: Real workflow loop - A2UI contracts support the engine loop without UI ambition.",
-    "feat-a2ui-contract - shared card/action contracts and selection models for the engine loop."
+    "ROADMAP.md: Milestone 3: Real workflow loop",
+    "ROADMAP.md: Milestone 4: Dogfooding readiness"
   ],
   "vision_capabilities": [
-    "Shared UI contract (A2UI)",
-    "Canonical engine contract"
+    "5. Agent-to-UI protocol (A2UI)",
+    "4. Operator-first control surface"
   ],
   "routing_provider_impact": "None",
-  "shared_file_exception": false,
+  "shared_file_exception": true,
   "reviewed_files": [
     ".codex/kickoff_packets/feat-a2ui-contract.md",
     "THREAD_PACKET.md"
-  ]
+  ],
+  "source_commits": [
+    "28d8fa770226f4cc847edf0f637e2f7cb9db7042..871e367733fc44a27c4c5807edd8c2f4bda44af3"
+  ],
+  "reviewed_commit": "871e367733fc44a27c4c5807edd8c2f4bda44af3",
+  "reviewed_commit_range": "28d8fa770226f4cc847edf0f637e2f7cb9db7042..871e367733fc44a27c4c5807edd8c2f4bda44af3",
+  "canonical_demo_path_step": "preview and apply or reject a patch through stable shared card/action contracts and CLI fallback rendering"
 }

@@ -18,15 +18,16 @@ except ImportError:  # pragma: no cover - package execution fallback
     from .git_ops import require_git_output, run_git
 
 try:
-    from lane_profiles import ENGINE_MILESTONE_FOCUS, default_lane_meta, engine_priority_lines
+    from lane_profiles import ENGINE_MILESTONE_FOCUS, ENGINE_PRIORITY_ORDER, default_lane_meta, engine_priority_lines
 except ImportError:  # pragma: no cover - package execution fallback
-    from .lane_profiles import ENGINE_MILESTONE_FOCUS, default_lane_meta, engine_priority_lines
+    from .lane_profiles import ENGINE_MILESTONE_FOCUS, ENGINE_PRIORITY_ORDER, default_lane_meta, engine_priority_lines
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 PACKETS_ROOT = Path(".codex/packets/lanes")
 PLANNER_ROOT = Path(".codex/packet_planner")
 STATE_FILE = PLANNER_ROOT / "state.json"
 COORDINATOR_STATE_FILE = Path(".codex/packet_coordinator/state.json")
+FEATURE_RUNNER_STATE_FILE = Path(".codex/feature_runner/state.json")
 CONFIG_FILE = Path(".codex/packet_router/config.json")
 SCOPE_CHECK_SCRIPT = REPO_ROOT / "scripts/scope-check.sh"
 FORMAT_CHECK_SCRIPT = REPO_ROOT / "quality-format.sh"
@@ -48,6 +49,7 @@ REQUIRED_GATES_DEFAULT = [
 
 CHANGED_FILES_DIFF_TIMEOUT = 8
 CHANGED_FILES_FALLBACK_TIMEOUT = 8
+ACTIVE_ENGINE_LANES = set(ENGINE_PRIORITY_ORDER)
 
 LANE_OWNED_PATHS = {
     "feat-commands": ["src/qual/commands/**"],
@@ -239,6 +241,52 @@ LANE_OWNED_PATHS = {
     ],
 }
 
+LANE_OWNED_UNIT_TEST_PATTERNS = {
+    "feat-commands": ["tests/unit/test_commands*.py"],
+    "feat-context-storage": [
+        "tests/unit/test_context*.py",
+        "tests/unit/test_storage*.py",
+        "tests/unit/test_state*.py",
+    ],
+    "feat-retrieval-fts": [
+        "tests/unit/test_retrieval*.py",
+        "tests/unit/test_fts*.py",
+    ],
+    "feat-a2ui-contract": ["tests/unit/test_a2ui*.py"],
+    "feat-engine-runs": [
+        "tests/unit/test_engine*.py",
+        "tests/unit/test_draft*.py",
+        "tests/unit/test_workflow*.py",
+        "tests/unit/test_patch*.py",
+        "tests/unit/test_audit*.py",
+    ],
+    "feat-ocr-import": [
+        "tests/unit/test_import*.py",
+        "tests/unit/test_ocr*.py",
+    ],
+    "feat-literature-import": ["tests/unit/test_literature*.py"],
+    "feat-rag-index": ["tests/unit/test_rag*.py"],
+    "feat-qual-coding": [
+        "tests/unit/test_coding*.py",
+        "tests/unit/test_project_folder*.py",
+    ],
+    "feat-editor-basics": ["tests/unit/test_editor*.py"],
+    "feat-citations": ["tests/unit/test_citation*.py"],
+    "feat-export": ["tests/unit/test_export*.py"],
+    "feat-zotero-import": ["tests/unit/test_zotero*.py"],
+    "feat-formatting-bar": ["tests/unit/test_format*.py"],
+    "feat-developer-provider-config": [
+        "tests/unit/test_provider*.py",
+        "tests/unit/test_credential*.py",
+    ],
+    "feat-project-transfer": ["tests/unit/test_project_transfer*.py"],
+    "feat-cop-lite-licensing": [
+        "tests/unit/test_license*.py",
+        "tests/unit/test_lite*.py",
+        "tests/unit/test_nanonets_usage*.py",
+    ],
+}
+
 Json = Dict[str, Any]
 
 
@@ -258,6 +306,13 @@ def merge_lane_meta_defaults(lane: str, meta: Json) -> Json:
         if _is_missing(value) and key in merged:
             continue
         merged[key] = value
+    if lane in ACTIVE_ENGINE_LANES:
+        # Active MVP lanes get their milestone mapping from lane_profiles.py.
+        # Lane metadata is allowed to describe completed work, but stale local
+        # .codex metadata must not relabel the canonical roadmap target.
+        canonical_roadmap = default_lane_meta(lane).get("roadmap_items")
+        if not _is_missing(canonical_roadmap):
+            merged["roadmap_items"] = list(canonical_roadmap)
     return merged
 
 def load_json(p: Path, default: Any) -> Any:
@@ -271,12 +326,36 @@ def load_coordinator_state() -> Dict[str, Any]:
         return {}
     return data if isinstance(data, dict) else {}
 
+def _pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+def lane_feature_process_active(lane: str) -> bool:
+    state = load_json(FEATURE_RUNNER_STATE_FILE, {})
+    lanes = state.get("lanes") if isinstance(state, dict) else {}
+    lane_state = lanes.get(lane) if isinstance(lanes, dict) else None
+    if not isinstance(lane_state, dict):
+        return False
+    status = str(lane_state.get("status") or "")
+    if status in {"managed_thread", "launching"}:
+        return True
+    if status == "direct_exec_running":
+        return _pid_alive(int(lane_state.get("pid") or 0))
+    return False
+
 def lane_feature_active(coordinator_state: Dict[str, Any], lane: str) -> bool:
     lane_refill = coordinator_state.get("lane_refill")
     if not isinstance(lane_refill, dict):
         return False
     lane_state = lane_refill.get(lane)
-    return isinstance(lane_state, dict) and lane_state.get("feature_active") is True
+    if not isinstance(lane_state, dict) or lane_state.get("feature_active") is not True:
+        return False
+    return lane_feature_process_active(lane)
 
 def should_skip_for_active_feature(coordinator_state: Dict[str, Any], lane: str, *, fast_reemit: bool) -> bool:
     return lane_feature_active(coordinator_state, lane) and not fast_reemit
@@ -482,6 +561,67 @@ def ref_exists(cwd: str, ref: str) -> bool:
     return result.returncode == 0
 
 
+def source_commit_token_valid(cwd: str, token: str) -> bool:
+    value = str(token or "").strip()
+    if not value:
+        return False
+    if "..." in value:
+        start_ref, end_ref = value.split("...", 1)
+        return (
+            bool(start_ref.strip() and end_ref.strip())
+            and ref_exists(cwd, start_ref.strip())
+            and ref_exists(cwd, end_ref.strip())
+        )
+    if ".." in value:
+        start_ref, end_ref = value.split("..", 1)
+        return (
+            bool(start_ref.strip() and end_ref.strip())
+            and ref_exists(cwd, start_ref.strip())
+            and ref_exists(cwd, end_ref.strip())
+        )
+    return ref_exists(cwd, value)
+
+
+def fallback_source_commit_range(cwd: str, branch: str, sha: str) -> str:
+    result = run_git(["merge-base", "HEAD", branch], cwd=cwd, timeout=120)
+    base = result.stdout.strip()
+    if result.returncode == 0 and base:
+        return f"{base}..{sha}"
+    return sha
+
+
+def normalize_source_commit_traceability(
+    cwd: str,
+    lane: str,
+    branch: str,
+    sha: str,
+    meta: Json,
+) -> Tuple[Json, Optional[str]]:
+    out = dict(meta or {})
+    raw = out.get("source_commits")
+    if _is_missing(raw):
+        return out, None
+    tokens = [str(item).strip() for item in raw] if isinstance(raw, list) else [str(raw).strip()]
+    tokens = [item for item in tokens if item]
+    if tokens and all(source_commit_token_valid(cwd, token) for token in tokens):
+        first = tokens[0]
+        out["source_commits"] = tokens
+        if ".." in first and _is_missing(out.get("reviewed_commit_range")):
+            out["reviewed_commit_range"] = first
+        if _is_missing(out.get("reviewed_commit")):
+            out["reviewed_commit"] = sha
+        return out, None
+    fallback = fallback_source_commit_range(cwd, branch, sha)
+    out["source_commits"] = [fallback]
+    out["reviewed_commit"] = sha
+    if ".." in fallback:
+        out["reviewed_commit_range"] = fallback
+    note = f"{lane}: source_commits invalid or stale; using `{fallback}`"
+    if _is_missing(out.get("metadata_only_note")):
+        out["metadata_only_note"] = "Planner replaced stale source commit metadata with a locally resolvable branch range."
+    return out, note
+
+
 def resolve_branch_sha(repo_cwd: str, branch: str, *, fallback_cwd: Optional[str] = None) -> str:
     branch_ref = branch if branch.startswith("refs/") else branch
     result = run_git(["rev-parse", branch_ref], cwd=repo_cwd, timeout=120)
@@ -519,6 +659,20 @@ def _collect_commit_range_files(cwd: str, start_ref: str, head_ref: str) -> List
 
 def compute_changed_files(cwd: str, base_ref: str, *, head_ref: str = "HEAD") -> List[str]:
     try:
+        merge_base = require_git_output(
+            ["merge-base", base_ref, head_ref],
+            cwd=cwd,
+            timeout=CHANGED_FILES_DIFF_TIMEOUT,
+        ).strip()
+        if merge_base:
+            diff_result = run_git(
+                ["diff", "--name-only", f"{merge_base}..{head_ref}"],
+                cwd=cwd,
+                timeout=CHANGED_FILES_DIFF_TIMEOUT,
+            )
+            files = _parse_changed_files(diff_result.stdout)
+            if diff_result.returncode == 0 and files:
+                return files
         files = _collect_commit_range_files(cwd, base_ref, head_ref)
         if files:
             return files
@@ -617,8 +771,13 @@ def run_required_gate(cmd: str, cwd: str, env: Optional[Dict[str, str]] = None) 
         return 0, "\n".join(chunks)
     return run(cmd, cwd=cwd, env=env, timeout=3600)
 
+
+def _owned_patterns_for_lane(lane: str) -> List[str]:
+    return LANE_OWNED_PATHS.get(lane, []) + LANE_OWNED_UNIT_TEST_PATTERNS.get(lane, [])
+
+
 def _split_files(lane: str, files: List[str]) -> Tuple[List[str], List[str]]:
-    owned_patterns = LANE_OWNED_PATHS.get(lane, [])
+    owned_patterns = _owned_patterns_for_lane(lane)
     owned_files = [f for f in files if any(fnmatchcase(f, pattern) for pattern in owned_patterns)]
     shared_files = [f for f in files if f not in owned_files]
     return owned_files, shared_files
@@ -626,7 +785,7 @@ def _split_files(lane: str, files: List[str]) -> Tuple[List[str], List[str]]:
 
 def _full_branch_scope_violations(lane: str, files: List[str]) -> List[str]:
     """Return files outside the lane ownership map for the full branch diff."""
-    owned_patterns = LANE_OWNED_PATHS.get(lane, [])
+    owned_patterns = _owned_patterns_for_lane(lane)
     if not owned_patterns:
         return []
     violations: List[str] = []
@@ -641,7 +800,7 @@ def _full_branch_scope_violations(lane: str, files: List[str]) -> List[str]:
 
 
 def _owned_path_note(lane: str) -> str:
-    patterns = LANE_OWNED_PATHS.get(lane, [])
+    patterns = _owned_patterns_for_lane(lane)
     if not patterns:
         return "(no lane-owned paths configured)"
     return ", ".join(f"`{pattern}`" for pattern in patterns)
@@ -704,7 +863,7 @@ def build_packet(
     do_not_spend_time_on = [str(item).strip() for item in (meta.get("do_not_spend_time_on") or []) if str(item).strip()]
     if do_not_spend_time_on:
         lines += ["## Do not spend time on"] + [f"- {item}" for item in do_not_spend_time_on] + [""]
-    lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
+    lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in _owned_patterns_for_lane(lane)] + [""]
     scope_completed = str_list(meta.get("scope_completed"))
     if scope_completed:
         lines += ["## Scope completed"] + [f"- {item}" for item in scope_completed] + [""]
@@ -864,13 +1023,18 @@ def main()->None:
             continue
         prev_lane_state = lane_state.get(lane) or {}
         last_submitted_sha = infer_last_submitted_sha(PACKETS_ROOT / lane, prev_lane_state)
+        force_reemit_sha = str(prev_lane_state.get("force_reemit_sha") or "").strip()
+        force_metadata_reemit = bool(force_reemit_sha and force_reemit_sha == sha)
         # Reviewer notes should block new packets until lane HEAD advances.
         # This allows one-at-a-time re-review submissions from the feature lane.
         if has_reviewer_notes and (not last_submitted_sha or last_submitted_sha == sha):
             continue
-        if last_submitted_sha == sha:
+        if last_submitted_sha == sha and not force_metadata_reemit:
             continue
-        fast_reemit = bool(has_reviewer_notes and last_submitted_sha and last_submitted_sha != sha)
+        fast_reemit = bool(
+            (has_reviewer_notes and last_submitted_sha and last_submitted_sha != sha)
+            or force_metadata_reemit
+        )
         if should_skip_for_active_feature(coordinator_state, lane, fast_reemit=fast_reemit):
             print(f"[planner] {lane}: feature worker active; skipping gate run until handoff")
             continue
@@ -885,22 +1049,28 @@ def main()->None:
         if miss:
             print(f"[planner] {lane}: lane_meta missing: {miss} (using auto defaults)")
             meta = apply_meta_defaults(meta, miss, lane)
+        meta, traceability_note = normalize_source_commit_traceability(repo, lane, branch, sha, meta)
+        if traceability_note:
+            print(f"[planner] {traceability_note}")
         env=os.environ.copy()
         if bool(meta.get("shared_file_exception")):
             env["SCOPE_ALLOW_SHARED"]="1"
         if fast_reemit:
+            carry_sha = last_submitted_sha or sha
             files = infer_last_changed_files(
                 PACKETS_ROOT / lane,
                 prev_lane_state,
-                sha=last_submitted_sha,
+                sha=carry_sha,
             )
             carried = infer_last_gate_results(
                 PACKETS_ROOT / lane,
                 prev_lane_state,
-                sha=last_submitted_sha,
+                sha=carry_sha,
             )
             if carried and files:
-                if active_repo:
+                if force_metadata_reemit:
+                    print(f"[planner] {lane}: re-emitting after local metadata repair (reuse prior gate results)")
+                elif active_repo:
                     print(f"[planner] {lane}: fast re-emit from advanced HEAD after reviewer notes (reuse prior gate results)")
                 else:
                     print(
@@ -951,9 +1121,10 @@ def main()->None:
                 continue
         ts=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         if fast_reemit:
-            moved = archive_lane_reviewer_notes(lane)
-            if moved:
-                print(f"[planner] {lane}: archived {moved} stale reviewer note(s) on re-emit")
+            if has_reviewer_notes:
+                moved = archive_lane_reviewer_notes(lane)
+                if moved:
+                    print(f"[planner] {lane}: archived {moved} stale reviewer note(s) on re-emit")
         fn=f"F__{branch.replace('/','-')}__{sha}__{ts}.md"
         outp=PACKETS_ROOT/lane/"inbox/feature"/fn
         _owned_files, shared_files = _split_files(lane, files)

@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
 
 from packet_garden.tools.planner import (
     _full_branch_scope_violations,
     build_packet,
     build_shared_packet,
+    normalize_source_commit_traceability,
     should_skip_for_active_feature,
+    source_commit_token_valid,
     validate_meta,
 )
 
@@ -28,8 +31,51 @@ class PacketPlannerTests(unittest.TestCase):
     def test_active_feature_does_not_block_reemit_after_review_notes(self) -> None:
         state = {"lane_refill": {"feat-engine-runs": {"feature_active": True}}}
 
-        self.assertTrue(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=False))
-        self.assertFalse(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=True))
+        with patch("packet_garden.tools.planner.lane_feature_process_active", return_value=True):
+            self.assertTrue(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=False))
+            self.assertFalse(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=True))
+
+    def test_stale_feature_active_flag_does_not_block_planner(self) -> None:
+        state = {"lane_refill": {"feat-engine-runs": {"feature_active": True}}}
+
+        with patch("packet_garden.tools.planner.lane_feature_process_active", return_value=False):
+            self.assertFalse(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=False))
+
+    def test_source_commit_token_valid_checks_both_ends_of_range(self) -> None:
+        with patch(
+            "packet_garden.tools.planner.ref_exists",
+            side_effect=lambda _cwd, ref: ref in {"base", "head"},
+        ):
+            self.assertTrue(source_commit_token_valid("/repo", "base..head"))
+            self.assertFalse(source_commit_token_valid("/repo", "missing..head"))
+            self.assertFalse(source_commit_token_valid("/repo", "base..missing"))
+
+    def test_stale_source_commits_are_replaced_with_merge_base_range(self) -> None:
+        def fake_run_git(args: list[str], **_kwargs: object):
+            class Result:
+                returncode = 0
+                stdout = "mergebase\n"
+
+            self.assertEqual(args, ["merge-base", "HEAD", "codex/feat-engine-runs"])
+            return Result()
+
+        with patch("packet_garden.tools.planner.source_commit_token_valid", return_value=False), patch(
+            "packet_garden.tools.planner.run_git",
+            side_effect=fake_run_git,
+        ):
+            meta, note = normalize_source_commit_traceability(
+                "/repo",
+                "feat-engine-runs",
+                "codex/feat-engine-runs",
+                "headsha",
+                {"source_commits": ["deadbeef..missing"], "tasks_completed": ["Updated engine runs."]},
+            )
+
+        self.assertEqual(meta["source_commits"], ["mergebase..headsha"])
+        self.assertEqual(meta["reviewed_commit"], "headsha")
+        self.assertEqual(meta["reviewed_commit_range"], "mergebase..headsha")
+        self.assertIn("source_commits invalid or stale", note or "")
+        self.assertIn("Planner replaced stale source commit metadata", meta["metadata_only_note"])
 
     def test_validate_meta_requires_approval_note_for_shared_files(self) -> None:
         missing = validate_meta(
