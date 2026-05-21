@@ -67,10 +67,14 @@ class A2UISessionStore:
 
 
 def validate_capabilities(capabilities: A2UICapabilities) -> None:
+    if not isinstance(capabilities.a2ui_version, int) or isinstance(capabilities.a2ui_version, bool):
+        raise ValueError("a2ui_version must be a positive integer")
     if capabilities.a2ui_version < 1:
         raise ValueError("Unsupported a2ui version")
     if not isinstance(capabilities.client_name, str) or not capabilities.client_name.strip():
         raise ValueError("client_name is required")
+    if not isinstance(capabilities.max_payload_bytes, int) or isinstance(capabilities.max_payload_bytes, bool):
+        raise ValueError("max_payload_bytes must be a positive integer")
     if capabilities.max_payload_bytes <= 0:
         raise ValueError("max_payload_bytes must be positive")
     _validate_capability_names(capabilities.cards_supported, "cards_supported")

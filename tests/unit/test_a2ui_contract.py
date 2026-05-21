@@ -222,6 +222,38 @@ class A2UIContractTests(unittest.TestCase):
         with self.assertRaisesRegex(KeyError, "Unknown session"):
             store.get("sess-1")
 
+    def test_session_store_rejects_untyped_numeric_handshake_fields_before_registration(self) -> None:
+        store = A2UISessionStore()
+        caps = _capabilities()
+        invalid_version = A2UICapabilities(
+            a2ui_version=True,  # type: ignore[arg-type]
+            client_name=caps.client_name,
+            cards_supported=caps.cards_supported,
+            primitive_blocks_supported=caps.primitive_blocks_supported,
+            actions_supported=caps.actions_supported,
+            max_payload_bytes=caps.max_payload_bytes,
+            supports_streaming=caps.supports_streaming,
+        )
+
+        with self.assertRaisesRegex(ValueError, "a2ui_version must be a positive integer"):
+            store.register("sess-1", invalid_version)
+
+        invalid_payload_limit = A2UICapabilities(
+            a2ui_version=caps.a2ui_version,
+            client_name=caps.client_name,
+            cards_supported=caps.cards_supported,
+            primitive_blocks_supported=caps.primitive_blocks_supported,
+            actions_supported=caps.actions_supported,
+            max_payload_bytes=False,  # type: ignore[arg-type]
+            supports_streaming=caps.supports_streaming,
+        )
+
+        with self.assertRaisesRegex(ValueError, "max_payload_bytes must be a positive integer"):
+            store.register("sess-1", invalid_payload_limit)
+
+        with self.assertRaisesRegex(KeyError, "Unknown session"):
+            store.get("sess-1")
+
     def test_session_store_requires_stable_session_id(self) -> None:
         store = A2UISessionStore()
 
