@@ -213,7 +213,14 @@ class A2UIContractTests(unittest.TestCase):
             "title": "Context",
             "context_set_id": "ctx-1",
             "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
-            "actions": [{"id": "run_agent", "label": "Plan", "payload": {"operation": "plan"}}],
+            "actions": [
+                {
+                    "id": "pin_to_context_set",
+                    "label": "Keep pinned",
+                    "payload": {"item_id": "doc-1", "context_set_id": "ctx-1"},
+                },
+                {"id": "run_agent", "label": "Plan", "payload": {"operation": "plan"}},
+            ],
         }
 
         validate_retrieval_results_card(retrieval_card)
@@ -362,6 +369,26 @@ class A2UIContractTests(unittest.TestCase):
                     "context_set_id": "ctx-1",
                     "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
                     "actions": [{"id": "open_corpus_item", "label": "Open", "payload": {"item_id": "doc-2"}}],
+                }
+            )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "pin_to_context_set context_set_id must match ContextSetCard context_set_id",
+        ):
+            validate_context_set_card(
+                {
+                    "type": CONTEXT_SET_CARD_TYPE,
+                    "title": "Context",
+                    "context_set_id": "ctx-1",
+                    "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
+                    "actions": [
+                        {
+                            "id": "pin_to_context_set",
+                            "label": "Pin",
+                            "payload": {"item_id": "doc-1", "context_set_id": "ctx-2"},
+                        }
+                    ],
                 }
             )
 

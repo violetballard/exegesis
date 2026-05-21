@@ -364,6 +364,7 @@ def validate_context_set_card(card: dict[str, Any], *, strict_actions: bool = Tr
     _validate_unique_item_ids(items, "ContextSetCard item")
     _validate_optional_card_actions(card, strict_actions=strict_actions)
     _validate_item_scoped_actions(card, items, "ContextSetCard item")
+    _validate_context_set_scoped_actions(card, context_set_id.strip())
 
 
 def validate_primitive_block(block: Any) -> None:
@@ -452,6 +453,18 @@ def _validate_item_scoped_actions(card: dict[str, Any], items: list[Any], item_l
             continue
         if item_id.strip() not in known_item_ids:
             raise ValueError(f"{action_id} item_id must reference a {item_label}")
+
+
+def _validate_context_set_scoped_actions(card: dict[str, Any], context_set_id: str) -> None:
+    for action in card.get("actions", []):
+        if not isinstance(action, dict) or action.get("id") != "pin_to_context_set":
+            continue
+        payload = action.get("payload")
+        action_context_set_id = payload.get("context_set_id") if isinstance(payload, dict) else None
+        if not isinstance(action_context_set_id, str) or not action_context_set_id.strip():
+            continue
+        if action_context_set_id.strip() != context_set_id:
+            raise ValueError("pin_to_context_set context_set_id must match ContextSetCard context_set_id")
 
 
 def _is_same_patch_review_action(action: dict[str, Any], patch_id: str) -> bool:
