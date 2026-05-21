@@ -964,6 +964,30 @@ def execute_action_with_policy_gate(
     return executor(action)
 
 
+def execute_patch_review_selection_with_policy_gate(
+    *,
+    card: dict[str, Any],
+    review: dict[str, Any],
+    selection: dict[str, Any],
+    patch_id: str,
+    capabilities: Any,
+    policy_gate: PolicyGate,
+    executor: Callable[[ActionRef], Any],
+) -> Any:
+    selected = patch_review_action_selection_from_selection(
+        card,
+        review,
+        selection,
+        patch_id=patch_id,
+    )
+    return execute_action_with_policy_gate(
+        action=selected.action,
+        capabilities=capabilities,
+        policy_gate=policy_gate,
+        executor=executor,
+    )
+
+
 def _validate_action_payload(action_id: str, payload: dict[str, Any]) -> None:
     schema = _ACTION_SCHEMAS.get(action_id)
     if schema is None:

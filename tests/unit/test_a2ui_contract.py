@@ -32,6 +32,7 @@ from src.qual.ui.a2ui import (
     complete_patch_review_action_refs_from_contract,
     engine_prepare_card,
     execute_action_with_policy_gate,
+    execute_patch_review_selection_with_policy_gate,
     materialize_patch_preview_contract,
     materialize_proposed_edit_card,
     materialize_terminal_card,
@@ -1460,6 +1461,54 @@ class A2UIContractTests(unittest.TestCase):
             executor=lambda a: executed.append(a.id),
         )
         self.assertEqual(executed, ["export_document"])
+
+    def test_patch_review_selection_execution_revalidates_policy_gate(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {
+                        "id": "apply_patch",
+                        "label": "Apply",
+                        "payload": {"patch_id": "p1"},
+                        "confirm": {"title": "Apply patch?"},
+                        "policy_sensitive": True,
+                    },
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+        apply_selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+        executed: list[str] = []
+
+        with self.assertRaises(PermissionError):
+            execute_patch_review_selection_with_policy_gate(
+                card=card,
+                review=review,
+                selection=apply_selection,
+                patch_id="p1",
+                capabilities=_capabilities(),
+                policy_gate=_PolicyGateStub(False),
+                executor=lambda action: executed.append(action.id),
+            )
+        self.assertEqual(executed, [])
+
+        execute_patch_review_selection_with_policy_gate(
+            card=card,
+            review=review,
+            selection=apply_selection,
+            patch_id="p1",
+            capabilities=_capabilities(),
+            policy_gate=_PolicyGateStub(True),
+            executor=lambda action: executed.append(action.id),
+        )
+
+        self.assertEqual(executed, ["apply_patch"])
 
     def test_action_payload_rejects_untyped_extra_fields_before_policy_gate(self) -> None:
         executed: list[str] = []
