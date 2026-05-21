@@ -431,6 +431,32 @@ class A2UIContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "must match ProposedEditCard patch_id"):
             materialize_proposed_edit_card(card)
 
+    def test_primitive_blocks_require_typed_payload_fields(self) -> None:
+        malformed = {
+            "type": "GenericCard",
+            "title": "Bad blocks",
+            "blocks": [{"type": "MarkdownBlock", "markdown": ["not", "text"]}],
+            "actions": [],
+        }
+
+        with self.assertRaisesRegex(ValueError, "MarkdownBlock field 'markdown' must be str"):
+            studio_materialize_card(malformed, _capabilities())
+
+    def test_unknown_card_fallback_filters_invalid_nested_primitive_blocks(self) -> None:
+        card = build_unknown_card(
+            {
+                "type": "FuturePatchCard",
+                "title": "Future patch",
+                "blocks": [
+                    {"type": "MarkdownBlock", "markdown": ["not", "text"]},
+                    {"type": "MarkdownBlock", "markdown": "safe preview"},
+                ],
+            }
+        )
+
+        self.assertEqual(card["blocks"][0], {"type": "MarkdownBlock", "markdown": "safe preview"})
+        self.assertEqual(card["blocks"][1]["type"], "CodeBlock")
+
     def test_studio_renders_unknown_card_for_unsupported_type(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
         payload = {"type": "QuestionsCard", "title": "Questions", "foo": "bar"}

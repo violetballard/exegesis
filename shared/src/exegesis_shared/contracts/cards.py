@@ -28,6 +28,15 @@ REQUIRED_PRIMITIVE_BLOCKS: tuple[str, ...] = (
 
 _PRIMITIVE_BLOCK_SET = set(REQUIRED_PRIMITIVE_BLOCKS)
 _ALLOWED_ACTION_SET = set(ALLOWED_ACTION_IDS)
+_PRIMITIVE_BLOCK_REQUIRED_FIELDS: dict[str, dict[str, type | tuple[type, ...]]] = {
+    "MarkdownBlock": {"markdown": str},
+    "KeyValueBlock": {"items": list},
+    "ListBlock": {"items": list},
+    "TableBlock": {"columns": list, "rows": list},
+    "AlertBlock": {"message": str},
+    "ProgressBlock": {"title": str, "status_text": str},
+    "CodeBlock": {"language": str, "code": str},
+}
 
 
 @dataclass(frozen=True)
@@ -162,8 +171,11 @@ def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
     blocks: list[dict[str, Any]] = []
     if isinstance(nested_blocks, list):
         for block in nested_blocks:
-            if isinstance(block, dict) and str(block.get("type", "")) in _PRIMITIVE_BLOCK_SET:
-                blocks.append(block)
+            try:
+                validate_primitive_block(block)
+            except ValueError:
+                continue
+            blocks.append(block)
     blocks.append(
         {
             "type": "CodeBlock",
@@ -260,6 +272,19 @@ def validate_primitive_block(block: Any) -> None:
     block_type = str(block.get("type", ""))
     if block_type not in _PRIMITIVE_BLOCK_SET:
         raise ValueError(f"Unsupported primitive block: {block_type}")
+    required_fields = _PRIMITIVE_BLOCK_REQUIRED_FIELDS[block_type]
+    for field_name, field_type in required_fields.items():
+        if field_name not in block:
+            raise ValueError(f"{block_type} requires '{field_name}'")
+        value = block[field_name]
+        if not isinstance(value, field_type):
+            if isinstance(field_type, tuple):
+                type_names = " or ".join(value_type.__name__ for value_type in field_type)
+            else:
+                type_names = field_type.__name__
+            raise ValueError(f"{block_type} field '{field_name}' must be {type_names}")
+        if field_type is str and not value.strip():
+            raise ValueError(f"{block_type} field '{field_name}' is required")
 
 
 def _is_same_patch_review_action(action: dict[str, Any], patch_id: str) -> bool:
