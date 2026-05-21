@@ -12,6 +12,7 @@ from exegesis_shared.contracts.actions import (
     PATCH_REVIEW_ACTION_AUTHORITY,
     PATCH_REVIEW_DECISION_GROUP,
     PATCH_REVIEW_DEMO_PATH_STEP,
+    PATCH_REVIEW_EXECUTION_POLICY,
     action_ref_from_selection,
     build_complete_patch_review_contract,
     build_patch_review_selection,
@@ -39,6 +40,34 @@ _EVENT_FIELDS_BY_TYPE: dict[str, frozenset[str]] = {
     "action_selected": _BASE_EVENT_FIELDS | {"action_id", "selection"},
     "action_resolved": _BASE_EVENT_FIELDS | {"action_id", "status", "selection", "message"},
 }
+_PATCH_PREVIEW_SELECTION_FIELDS: frozenset[str] = frozenset(
+    {
+        "contract_version",
+        "selection_model",
+        "slot",
+        "action_identity",
+        "action_authority",
+        "demo_path_step",
+        "execution_policy",
+        "patch_preview_contract_version",
+        "patch_id",
+    }
+)
+_PATCH_DECISION_SELECTION_FIELDS: frozenset[str] = frozenset(
+    {
+        "contract_version",
+        "selection_model",
+        "slot",
+        "action_identity",
+        "action_authority",
+        "demo_path_step",
+        "execution_policy",
+        "patch_decision_contract_version",
+        "decision_group",
+        "patch_decision",
+        "patch_id",
+    }
+)
 
 
 def build_card_published_event(
@@ -304,6 +333,11 @@ def _validate_action_selection(selection: dict[str, Any], action_id: str) -> Non
 
     patch_decision = selection.get("patch_decision")
     if patch_decision is not None:
+        _validate_selection_fields(
+            selection,
+            _PATCH_DECISION_SELECTION_FIELDS,
+            "patch decision selection",
+        )
         patch_id = selection.get("patch_id")
         if not isinstance(patch_id, str) or not patch_id.strip():
             raise ValueError("Patch review selection patch_id is required")
@@ -320,8 +354,16 @@ def _validate_action_selection(selection: dict[str, Any], action_id: str) -> Non
             raise ValueError("Unsupported patch decision selection")
         if action_id != expected_action_id:
             raise ValueError("Action id does not match patch decision selection")
+        expected_policy = PATCH_REVIEW_EXECUTION_POLICY[str(patch_decision)]
+        if selection.get("execution_policy") != expected_policy:
+            raise ValueError("Patch review selection execution policy does not match engine policy")
 
     if "patch_preview_contract_version" in selection:
+        _validate_selection_fields(
+            selection,
+            _PATCH_PREVIEW_SELECTION_FIELDS,
+            "patch preview selection",
+        )
         patch_id = selection.get("patch_id")
         if not isinstance(patch_id, str) or not patch_id.strip():
             raise ValueError("Patch review selection patch_id is required")
@@ -333,6 +375,19 @@ def _validate_action_selection(selection: dict[str, Any], action_id: str) -> Non
             raise ValueError("Unsupported patch preview selection contract version")
         if action_id != "preview_patch":
             raise ValueError("Action id does not match patch preview selection")
+        if selection.get("execution_policy") != PATCH_REVIEW_EXECUTION_POLICY["preview"]:
+            raise ValueError("Patch review selection execution policy does not match engine policy")
+
+
+def _validate_selection_fields(
+    selection: dict[str, Any],
+    allowed_fields: frozenset[str],
+    selection_label: str,
+) -> None:
+    unexpected_fields = set(selection) - allowed_fields
+    if unexpected_fields:
+        field_list = ", ".join(sorted(unexpected_fields))
+        raise ValueError(f"Unsupported {selection_label} field(s): {field_list}")
 
 
 def stream_event_key(event: dict[str, Any]) -> str:

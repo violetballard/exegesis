@@ -5316,6 +5316,66 @@ class A2UIContractTests(unittest.TestCase):
                 caps,
             )
 
+    def test_streaming_events_reject_patch_review_selection_policy_tampering(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+        selection["execution_policy"] = deepcopy(PATCH_REVIEW_EXECUTION_POLICY["preview"])
+
+        with self.assertRaisesRegex(ValueError, "execution policy does not match engine policy"):
+            validate_stream_event(
+                {
+                    "contract_version": 1,
+                    "event_id": "evt-1",
+                    "run_id": "run-1",
+                    "sequence": 1,
+                    "event_type": "action_selected",
+                    "action_id": "apply_patch",
+                    "selection": selection,
+                }
+            )
+
+    def test_streaming_events_reject_untyped_patch_review_selection_fields(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        selection = build_patch_preview_selection(card, patch_id="p1")
+        selection["target_file"] = "chapter.md"
+
+        with self.assertRaisesRegex(ValueError, "Unsupported patch preview selection field"):
+            validate_stream_event(
+                {
+                    "contract_version": 1,
+                    "event_id": "evt-1",
+                    "run_id": "run-1",
+                    "sequence": 1,
+                    "event_type": "action_selected",
+                    "action_id": "preview_patch",
+                    "selection": selection,
+                }
+            )
+
     def test_streaming_events_reject_untyped_metadata_fields(self) -> None:
         selection = {
             "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
