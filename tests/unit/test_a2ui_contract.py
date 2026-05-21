@@ -32,6 +32,7 @@ from src.qual.ui.a2ui import (
     materialize_terminal_card,
     patch_decision_action_ref_from_selection,
     patch_preview_action_ref_from_selection,
+    patch_review_action_refs_from_contract,
     render_terminal_card,
     resolve_card_selection_contract,
     resolve_patch_decision_action,
@@ -671,6 +672,36 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(
             [(entry["decision"], entry["action"]["id"]) for entry in resolved["decisions"]],
             [("apply", "apply_patch"), ("reject", "reject_patch")],
+        )
+
+    def test_patch_review_contract_resolves_to_typed_action_refs(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+
+        refs = patch_review_action_refs_from_contract(card, review, patch_id=" p1 ")
+
+        self.assertIsInstance(refs["preview"], ActionRef)
+        self.assertEqual(refs["preview"].id, "preview_patch")
+        self.assertEqual(refs["preview"].payload, {"patch_id": "p1"})
+        self.assertEqual(
+            {decision: ref.id for decision, ref in refs["decisions"].items()},
+            {"apply": "apply_patch", "reject": "reject_patch"},
+        )
+        self.assertEqual(
+            {decision: ref.payload for decision, ref in refs["decisions"].items()},
+            {"apply": {"patch_id": "p1"}, "reject": {"patch_id": "p1"}},
         )
 
     def test_complete_patch_review_contract_requires_preview_apply_and_reject(self) -> None:

@@ -346,6 +346,48 @@ def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], 
     return resolved
 
 
+def patch_review_action_refs_from_contract(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+) -> dict[str, ActionRef | None | dict[str, ActionRef]]:
+    resolved = resolve_patch_review_contract(card, review, patch_id=patch_id)
+    refs: dict[str, ActionRef | None | dict[str, ActionRef]] = {
+        "preview": None,
+        "decisions": {},
+    }
+    preview_selection = review.get("preview")
+    if resolved["preview"] is not None:
+        if not isinstance(preview_selection, dict):
+            raise ValueError("Patch review preview selection must be an object")
+        refs["preview"] = patch_preview_action_ref_from_selection(
+            card,
+            preview_selection,
+            patch_id=patch_id,
+        )
+
+    decision_refs: dict[str, ActionRef] = {}
+    review_decisions = review.get("decisions", [])
+    if not isinstance(review_decisions, list):
+        raise ValueError("Patch review decisions must be a list")
+    for entry in review_decisions:
+        if not isinstance(entry, dict):
+            raise ValueError("Patch review decision entry must be an object")
+        decision = str(entry.get("decision", "")).strip().lower()
+        selection = entry.get("selection")
+        if not isinstance(selection, dict):
+            raise ValueError("Patch review decision selection must be an object")
+        if decision in {item["decision"] for item in resolved["decisions"]}:
+            decision_refs[decision] = patch_decision_action_ref_from_selection(
+                card,
+                selection,
+                patch_id=patch_id,
+            )
+    refs["decisions"] = decision_refs
+    return refs
+
+
 def resolve_card_selection(card: dict[str, Any], selected_action_id: str) -> dict[str, Any]:
     actions = materialize_card_actions(card)
     matches = [action for action in actions if action.get("id") == selected_action_id]
