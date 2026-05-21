@@ -1025,6 +1025,24 @@ def execute_patch_review_selection_with_policy_gate(
     )
 
 
+def execute_complete_patch_review_action_with_policy_gate(
+    *,
+    card: dict[str, Any],
+    patch_id: str,
+    control: str,
+    capabilities: Any,
+    policy_gate: PolicyGate,
+    executor: Callable[[ActionRef], Any],
+) -> Any:
+    action = complete_patch_review_action_from_card(card, patch_id=patch_id, control=control)
+    return execute_action_with_policy_gate(
+        action=action,
+        capabilities=capabilities,
+        policy_gate=policy_gate,
+        executor=executor,
+    )
+
+
 def _validate_action_payload(action_id: str, payload: dict[str, Any]) -> None:
     schema = _ACTION_SCHEMAS.get(action_id)
     if schema is None:
