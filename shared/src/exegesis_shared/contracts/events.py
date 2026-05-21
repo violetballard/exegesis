@@ -10,6 +10,8 @@ from exegesis_shared.contracts.actions import (
     PATCH_DECISION_CONTRACT_VERSION,
     PATCH_PREVIEW_CONTRACT_VERSION,
     action_ref_from_selection,
+    build_complete_patch_review_contract,
+    build_patch_review_selection,
 )
 from exegesis_shared.contracts.cards import (
     A2UICapabilities,
@@ -80,6 +82,31 @@ def build_action_selected_event_from_selection(
         run_id=run_id,
         sequence=sequence,
         action_id=action.id,
+        selection=selection,
+    )
+
+
+def build_complete_patch_review_action_selected_event(
+    *,
+    event_id: str,
+    run_id: str,
+    sequence: int,
+    card: dict[str, Any],
+    patch_id: str,
+    control: str,
+) -> dict[str, Any]:
+    review = build_complete_patch_review_contract(card, patch_id=patch_id)
+    selection = build_patch_review_selection(
+        card,
+        review,
+        patch_id=patch_id,
+        control=control,
+    )
+    return build_action_selected_event_from_selection(
+        event_id=event_id,
+        run_id=run_id,
+        sequence=sequence,
+        card=card,
         selection=selection,
     )
 

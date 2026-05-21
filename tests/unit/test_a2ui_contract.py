@@ -28,6 +28,7 @@ from src.qual.ui.a2ui import (
     build_action_selected_event,
     build_action_selected_event_from_selection,
     build_card_published_event,
+    build_complete_patch_review_action_selected_event,
     build_patch_decision_selection,
     build_patch_preview_selection,
     build_patch_review_availability,
@@ -2387,6 +2388,59 @@ class A2UIContractTests(unittest.TestCase):
                 sequence=3,
                 action_id="apply_patch",
                 selection=preview_selection,
+            )
+
+    def test_complete_patch_review_action_selected_event_uses_named_control(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        event = build_complete_patch_review_action_selected_event(
+            event_id="evt-4",
+            run_id="run-1",
+            sequence=4,
+            card=card,
+            patch_id=" p1 ",
+            control=" APPLY ",
+        )
+
+        self.assertEqual(event["event_type"], "action_selected")
+        self.assertEqual(event["action_id"], "apply_patch")
+        self.assertEqual(event["selection"]["patch_decision"], "apply")
+        self.assertEqual(event["selection"]["patch_id"], "p1")
+
+    def test_complete_patch_review_action_selected_event_requires_full_demo_controls(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        with self.assertRaisesRegex(ValueError, "Complete patch review is missing: reject"):
+            build_complete_patch_review_action_selected_event(
+                event_id="evt-4",
+                run_id="run-1",
+                sequence=4,
+                card=card,
+                patch_id="p1",
+                control="apply",
             )
 
     def test_streaming_events_are_rejected_when_client_does_not_support_streaming(self) -> None:

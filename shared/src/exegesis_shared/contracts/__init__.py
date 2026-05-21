@@ -71,6 +71,7 @@ from exegesis_shared.contracts.events import (
     build_action_selected_event,
     build_action_selected_event_from_selection,
     build_card_published_event,
+    build_complete_patch_review_action_selected_event,
     stream_event_key,
     validate_stream_event,
 )
@@ -110,6 +111,7 @@ __all__ = [
     "build_action_selected_event",
     "build_action_selected_event_from_selection",
     "build_card_published_event",
+    "build_complete_patch_review_action_selected_event",
     "build_unknown_card",
     "engine_authoritative_action_ref",
     "engine_prepare_card",
