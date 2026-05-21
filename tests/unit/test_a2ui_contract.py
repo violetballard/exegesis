@@ -9,6 +9,7 @@ from exegesis_shared.contracts.actions import (
     PATCH_DECISION_CONTRACT_VERSION,
     PATCH_PREVIEW_CONTRACT_VERSION,
     PATCH_REVIEW_ACTION_AUTHORITY,
+    PATCH_REVIEW_CLI_COMMAND_ALIASES,
     PATCH_REVIEW_CONTRACT_VERSION,
     PATCH_REVIEW_DECISION_POLICY,
     PATCH_REVIEW_DEMO_PATH_STEP,
@@ -1148,6 +1149,7 @@ class A2UIContractTests(unittest.TestCase):
                 (
                     entry["control"],
                     entry["command"],
+                    entry["command_aliases"],
                     entry["slot"],
                     entry["action_id"],
                     entry["policy_gate"],
@@ -1156,9 +1158,9 @@ class A2UIContractTests(unittest.TestCase):
                 for entry in command_map["controls"]
             ],
             [
-                ("preview", "1", 1, "preview_patch", "optional", False),
-                ("apply", "2", 2, "apply_patch", "required", True),
-                ("reject", "3", 3, "reject_patch", "required", True),
+                ("preview", "1", ["preview", "preview_patch"], 1, "preview_patch", "optional", False),
+                ("apply", "2", ["apply", "apply_patch"], 2, "apply_patch", "required", True),
+                ("reject", "3", ["reject", "reject_patch"], 3, "reject_patch", "required", True),
             ],
         )
         self.assertEqual(
@@ -1172,6 +1174,10 @@ class A2UIContractTests(unittest.TestCase):
                 patch_id="p1",
             ),
             command_map,
+        )
+        self.assertEqual(
+            shared_contracts.PATCH_REVIEW_CLI_COMMAND_ALIASES,
+            PATCH_REVIEW_CLI_COMMAND_ALIASES,
         )
 
     def test_patch_review_cli_command_resolves_to_current_selection(self) -> None:
@@ -1224,12 +1230,28 @@ class A2UIContractTests(unittest.TestCase):
         )
         review = build_complete_patch_review_contract(card, patch_id="p1")
 
-        with self.assertRaisesRegex(ValueError, "Unsupported patch review CLI command: apply"):
+        apply_selection = patch_review_selection_from_cli_command(
+            card,
+            review,
+            patch_id="p1",
+            command="apply",
+        )
+        self.assertEqual(apply_selection, review["decisions"][0]["selection"])
+
+        reject_selection = patch_review_selection_from_cli_command(
+            card,
+            review,
+            patch_id="p1",
+            command="reject_patch",
+        )
+        self.assertEqual(reject_selection, review["decisions"][1]["selection"])
+
+        with self.assertRaisesRegex(ValueError, "Unsupported patch review CLI command: approve"):
             patch_review_selection_from_cli_command(
                 card,
                 review,
                 patch_id="p1",
-                command="apply",
+                command="approve",
             )
 
         stale_review = build_complete_patch_review_contract(card, patch_id="p1")

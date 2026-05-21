@@ -56,6 +56,11 @@ PATCH_REVIEW_CONFIRMATION_TITLES: dict[str, str] = {
     "reject_patch": "Reject patch?",
 }
 PATCH_REVIEW_REQUIRED_PARTS: tuple[str, ...] = ("preview", "apply", "reject")
+PATCH_REVIEW_CLI_COMMAND_ALIASES: dict[str, tuple[str, ...]] = {
+    "preview": ("preview", "preview_patch"),
+    "apply": ("apply", "apply_patch"),
+    "reject": ("reject", "reject_patch"),
+}
 
 CANONICAL_ACTION_ORDER: tuple[str, ...] = (
     "preview_patch",
@@ -744,6 +749,9 @@ def patch_review_cli_control_map_from_contract(
             {
                 "control": entry["control"],
                 "command": str(slot),
+                "command_aliases": list(
+                    PATCH_REVIEW_CLI_COMMAND_ALIASES.get(str(entry["control"]), ())
+                ),
                 "slot": slot,
                 "action_id": entry["action_id"],
                 "action_identity": entry["action_identity"],
@@ -793,7 +801,10 @@ def patch_review_selection_from_cli_command(
     for entry in command_map["controls"]:
         if not isinstance(entry, dict):
             continue
-        if entry.get("command") != command_text:
+        command_aliases = entry.get("command_aliases", [])
+        if not isinstance(command_aliases, list):
+            command_aliases = []
+        if entry.get("command") != command_text and command_text not in command_aliases:
             continue
         selection = entry.get("selection")
         if not isinstance(selection, dict):

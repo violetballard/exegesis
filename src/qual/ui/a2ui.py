@@ -178,7 +178,7 @@ def render_terminal_card(card: dict[str, Any]) -> str:
                 patch_id=patch_id,
             )
             command_map = [
-                f"{entry['control']}={entry['command']}"
+                _format_patch_review_cli_command_entry(entry)
                 for entry in cli_controls["controls"]
                 if isinstance(entry, dict)
             ]
@@ -232,6 +232,15 @@ def _format_patch_review_control_plan_entry(entry: dict[str, Any]) -> str:
         if policy.get("policy_gate") == "required":
             parts.append("policy-gated")
     return f"{parts[0]}({', '.join(parts[1:])})" if len(parts) > 1 else parts[0]
+
+
+def _format_patch_review_cli_command_entry(entry: dict[str, Any]) -> str:
+    control = str(entry.get("control", "control"))
+    command = str(entry.get("command", ""))
+    aliases = entry.get("command_aliases", [])
+    if not isinstance(aliases, list) or not aliases:
+        return f"{control}={command}"
+    return f"{control}={command}/{'/'.join(str(alias) for alias in aliases)}"
 
 
 __all__ = [
