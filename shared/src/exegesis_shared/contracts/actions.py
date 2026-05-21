@@ -29,6 +29,7 @@ PATCH_DECISION_BY_ACTION_ID: dict[str, str] = {
 PATCH_PREVIEW_CONTRACT_VERSION = 1
 PATCH_REVIEW_FLOW = "preview_then_decide"
 PATCH_REVIEW_DECISION_POLICY = "apply_or_reject"
+PATCH_REVIEW_DECISION_GROUP = "patch_terminal_decision"
 PATCH_REVIEW_ACTION_AUTHORITY = "engine_revalidated"
 PATCH_REVIEW_DEMO_PATH_STEP = "preview_apply_or_reject_patch"
 PATCH_REVIEW_EXECUTION_POLICY: dict[str, dict[str, Any]] = {
@@ -285,6 +286,7 @@ def materialize_patch_decision_contract(card: dict[str, Any], patch_id: str) -> 
             "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
             "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
             "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
+            "decision_group": PATCH_REVIEW_DECISION_GROUP,
             "patch_decision": decision,
             "patch_id": expected_patch_id,
         }
@@ -471,6 +473,7 @@ def patch_review_availability_from_contract(review: dict[str, Any]) -> dict[str,
             and selection.get("patch_id") == patch_id.strip()
             and selection.get("action_authority") == PATCH_REVIEW_ACTION_AUTHORITY
             and selection.get("demo_path_step") == PATCH_REVIEW_DEMO_PATH_STEP
+            and selection.get("decision_group", PATCH_REVIEW_DECISION_GROUP) == PATCH_REVIEW_DECISION_GROUP
             and selection.get("patch_decision") == decision
             and selection.get("patch_decision_contract_version") == PATCH_DECISION_CONTRACT_VERSION
             and selection.get("slot") == entry.get("slot")
@@ -888,6 +891,7 @@ def patch_review_cli_command_lookup_from_contract(
         "patch_id": command_map["patch_id"],
         "flow": command_map["flow"],
         "decision_policy": command_map["decision_policy"],
+        "decision_group": PATCH_REVIEW_DECISION_GROUP,
         "action_authority": command_map["action_authority"],
         "selection_model": command_map["selection_model"],
         "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
@@ -914,6 +918,7 @@ def patch_review_decision_controls_from_contract(
         "patch_id": command_map["patch_id"],
         "flow": command_map["flow"],
         "decision_policy": command_map["decision_policy"],
+        "decision_group": PATCH_REVIEW_DECISION_GROUP,
         "action_authority": command_map["action_authority"],
         "selection_model": command_map["selection_model"],
         "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
@@ -968,6 +973,7 @@ def patch_review_decision_cli_command_lookup_from_contract(
         "patch_id": decisions["patch_id"],
         "flow": decisions["flow"],
         "decision_policy": decisions["decision_policy"],
+        "decision_group": PATCH_REVIEW_DECISION_GROUP,
         "action_authority": decisions["action_authority"],
         "selection_model": decisions["selection_model"],
         "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,

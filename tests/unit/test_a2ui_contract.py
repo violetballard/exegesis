@@ -11,6 +11,7 @@ from exegesis_shared.contracts.actions import (
     PATCH_REVIEW_ACTION_AUTHORITY,
     PATCH_REVIEW_CLI_COMMAND_ALIASES,
     PATCH_REVIEW_CONTRACT_VERSION,
+    PATCH_REVIEW_DECISION_GROUP,
     PATCH_REVIEW_DECISION_POLICY,
     PATCH_REVIEW_DEMO_PATH_STEP,
     PATCH_REVIEW_EXECUTION_POLICY,
@@ -1323,6 +1324,7 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(decisions["selection_model"], "one_based_action_slot")
         self.assertEqual(decisions["decision_policy"], PATCH_REVIEW_DECISION_POLICY)
+        self.assertEqual(decisions["decision_group"], PATCH_REVIEW_DECISION_GROUP)
         self.assertEqual(decisions["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
         self.assertEqual(decisions["demo_path_step"], PATCH_REVIEW_DEMO_PATH_STEP)
         self.assertEqual(decisions["required"], ["apply", "reject"])
@@ -1380,6 +1382,7 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(lookup["selection_model"], "one_based_action_slot")
         self.assertEqual(lookup["decision_policy"], PATCH_REVIEW_DECISION_POLICY)
+        self.assertEqual(lookup["decision_group"], PATCH_REVIEW_DECISION_GROUP)
         self.assertEqual(lookup["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
         self.assertEqual(lookup["demo_path_step"], PATCH_REVIEW_DEMO_PATH_STEP)
         self.assertEqual(lookup["required"], ["apply", "reject"])
@@ -2522,6 +2525,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(selection["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
         self.assertEqual(selection["demo_path_step"], PATCH_REVIEW_DEMO_PATH_STEP)
         self.assertEqual(selection["patch_decision_contract_version"], PATCH_DECISION_CONTRACT_VERSION)
+        self.assertEqual(selection["decision_group"], PATCH_REVIEW_DECISION_GROUP)
         self.assertEqual(selection["patch_decision"], "apply")
         self.assertEqual(selection["patch_id"], "p1")
         self.assertEqual(selection["slot"], 1)

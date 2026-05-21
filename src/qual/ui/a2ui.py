@@ -11,6 +11,7 @@ from exegesis_shared.contracts.actions import (
     PATCH_PREVIEW_CONTRACT_VERSION,
     PATCH_REVIEW_ACTION_AUTHORITY,
     PATCH_REVIEW_CONTRACT_VERSION,
+    PATCH_REVIEW_DECISION_GROUP,
     PATCH_REVIEW_DECISION_POLICY,
     PATCH_REVIEW_DEMO_PATH_STEP,
     PATCH_REVIEW_EXECUTION_POLICY,
@@ -165,6 +166,7 @@ def render_terminal_card(card: dict[str, Any]) -> str:
         )
         lines.append(f"Patch review flow: {summary['flow']}")
         lines.append(f"Patch review decision policy: {summary['decision_policy']}")
+        lines.append(f"Patch review decision group: {PATCH_REVIEW_DECISION_GROUP}")
         lines.append(f"Patch review action authority: {summary['action_authority']}")
         lines.append(f"Patch review demo path step: {summary['demo_path_step']}")
         lines.append(
