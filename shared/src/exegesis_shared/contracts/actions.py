@@ -770,6 +770,7 @@ def patch_review_control_actions_from_contract(
             **slot,
             "label": action_ref.label,
             "payload": deepcopy(action_ref.payload),
+            "action_contract": action_ref.as_contract(),
             "selection": deepcopy(selection_by_control[control]),
             "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY[control]),
             "confirm": deepcopy(action_ref.confirm),
@@ -852,6 +853,7 @@ def patch_review_next_control_from_contract(
         "action_identity": control["action_identity"],
         "label": control["label"],
         "payload": deepcopy(control["payload"]),
+        "action_contract": deepcopy(control["action_contract"]),
         "selection": deepcopy(control["selection"]),
         "requires_confirmation": bool(
             isinstance(execution_policy, dict)
@@ -895,6 +897,7 @@ def patch_review_cli_control_map_from_contract(
                 "action_identity": entry["action_identity"],
                 "label": entry["label"],
                 "payload": deepcopy(entry["payload"]),
+                "action_contract": deepcopy(entry["action_contract"]),
                 "requires_confirmation": bool(
                     isinstance(execution_policy, dict)
                     and execution_policy.get("requires_confirmation") is True
@@ -955,6 +958,7 @@ def patch_review_cli_command_lookup_from_contract(
                 "action_id": entry["action_id"],
                 "action_identity": entry["action_identity"],
                 "payload": deepcopy(entry["payload"]),
+                "action_contract": deepcopy(entry["action_contract"]),
                 "requires_confirmation": entry["requires_confirmation"],
                 "policy_gate": entry["policy_gate"],
                 "policy_sensitive": entry["policy_sensitive"],
@@ -1037,6 +1041,7 @@ def patch_review_decision_cli_command_lookup_from_contract(
                 "action_id": entry["action_id"],
                 "action_identity": entry["action_identity"],
                 "payload": deepcopy(entry["payload"]),
+                "action_contract": deepcopy(entry["action_contract"]),
                 "requires_confirmation": entry["requires_confirmation"],
                 "policy_gate": entry["policy_gate"],
                 "policy_sensitive": entry["policy_sensitive"],
@@ -1134,6 +1139,7 @@ def patch_review_control_plan_from_contract(
                     "action_identity": control_payload["action_identity"],
                     "label": control_payload["label"],
                     "payload": deepcopy(control_payload["payload"]),
+                    "action_contract": deepcopy(control_payload["action_contract"]),
                     "confirm": deepcopy(control_payload["confirm"]),
                     "policy_sensitive": control_payload["policy_sensitive"],
                 }

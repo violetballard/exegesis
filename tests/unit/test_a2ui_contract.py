@@ -1474,6 +1474,16 @@ class A2UIContractTests(unittest.TestCase):
             review["decisions"][0]["selection"],
         )
         self.assertEqual(
+            command_map["controls"][1]["action_contract"],
+            {
+                "id": "apply_patch",
+                "label": "Apply",
+                "payload": {"patch_id": "p1"},
+                "confirm": {"title": "Apply patch?"},
+                "policy_sensitive": True,
+            },
+        )
+        self.assertEqual(
             shared_contracts.patch_review_cli_control_map_from_contract(
                 card,
                 review,
@@ -1579,6 +1589,16 @@ class A2UIContractTests(unittest.TestCase):
         self.assertNotIn("preview_patch", lookup["commands"])
         self.assertEqual(lookup["commands"]["apply"]["control"], "apply")
         self.assertEqual(lookup["commands"]["apply_patch"]["selection"], review["decisions"][0]["selection"])
+        self.assertEqual(
+            lookup["commands"]["apply_patch"]["action_contract"],
+            {
+                "id": "apply_patch",
+                "label": "Apply",
+                "payload": {"patch_id": "p1"},
+                "confirm": {"title": "Apply patch?"},
+                "policy_sensitive": True,
+            },
+        )
         self.assertEqual(lookup["commands"]["reject"]["policy_gate"], "required")
         self.assertTrue(lookup["commands"]["reject"]["policy_sensitive"])
         self.assertEqual(
