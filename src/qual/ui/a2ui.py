@@ -45,6 +45,7 @@ from exegesis_shared.contracts.actions import (
     patch_review_action_selection_from_selection,
     patch_review_availability_from_contract,
     patch_review_action_refs_from_contract,
+    patch_review_cli_command_lookup_from_contract,
     patch_review_cli_control_map_from_contract,
     patch_review_control_actions_from_contract,
     patch_review_decision_controls_from_contract,
@@ -193,6 +194,18 @@ def render_terminal_card(card: dict[str, Any]) -> str:
             ]
             if alias_map:
                 lines.append(f"Patch review CLI aliases: {', '.join(alias_map)}")
+            command_lookup = patch_review_cli_command_lookup_from_contract(
+                materialized,
+                review,
+                patch_id=patch_id,
+            )
+            if command_lookup["commands"]:
+                lookup_map = [
+                    f"{command}->{entry['control']}"
+                    for command, entry in sorted(command_lookup["commands"].items())
+                    if isinstance(entry, dict)
+                ]
+                lines.append(f"Patch review CLI command lookup: {', '.join(lookup_map)}")
             next_control = patch_review_next_control_from_contract(
                 materialized,
                 review,
@@ -354,6 +367,7 @@ __all__ = [
     "patch_review_action_selection_from_selection",
     "patch_review_availability_from_contract",
     "patch_review_action_refs_from_contract",
+    "patch_review_cli_command_lookup_from_contract",
     "patch_review_cli_control_map_from_contract",
     "patch_review_control_actions_from_contract",
     "patch_review_decision_controls_from_contract",

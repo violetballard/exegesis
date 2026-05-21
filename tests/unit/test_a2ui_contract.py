@@ -58,6 +58,7 @@ from src.qual.ui.a2ui import (
     patch_review_action_selection_from_selection,
     patch_review_availability_from_contract,
     patch_review_action_refs_from_contract,
+    patch_review_cli_command_lookup_from_contract,
     patch_review_cli_control_map_from_contract,
     patch_review_control_actions_from_contract,
     patch_review_decision_controls_from_contract,
@@ -1289,6 +1290,40 @@ class A2UIContractTests(unittest.TestCase):
                 patch_id="p1",
             ),
             decisions,
+        )
+
+    def test_patch_review_cli_command_lookup_exports_slots_and_aliases(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        lookup = patch_review_cli_command_lookup_from_contract(card, review, patch_id=" p1 ")
+
+        self.assertEqual(lookup["selection_model"], "one_based_action_slot")
+        self.assertEqual(lookup["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
+        self.assertEqual(lookup["demo_path_step"], PATCH_REVIEW_DEMO_PATH_STEP)
+        self.assertEqual(
+            sorted(lookup["commands"]),
+            ["1", "2", "3", "apply", "apply_patch", "preview", "preview_patch", "reject", "reject_patch"],
+        )
+        self.assertEqual(lookup["commands"]["2"]["control"], "apply")
+        self.assertEqual(lookup["commands"]["apply_patch"]["slot"], 2)
+        self.assertEqual(lookup["commands"]["reject"]["action_id"], "reject_patch")
+        self.assertEqual(lookup["commands"]["reject"]["selection"], review["decisions"][1]["selection"])
+        self.assertEqual(
+            shared_contracts.patch_review_cli_command_lookup_from_contract(card, review, patch_id="p1"),
+            lookup,
         )
 
     def test_patch_review_cli_command_resolves_to_current_selection(self) -> None:

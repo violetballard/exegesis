@@ -127,6 +127,12 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
             "preview=preview/preview_patch, apply=apply/apply_patch, reject=reject/reject_patch",
             text,
         )
+        self.assertIn(
+            "Patch review CLI command lookup: "
+            "1->preview, 2->apply, 3->reject, apply->apply, apply_patch->apply, "
+            "preview->preview, preview_patch->preview, reject->reject, reject_patch->reject",
+            text,
+        )
 
     def test_terminal_rendering_surfaces_missing_patch_controls(self) -> None:
         card = studio_materialize_card(

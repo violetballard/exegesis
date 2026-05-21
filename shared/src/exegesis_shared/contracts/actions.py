@@ -845,6 +845,51 @@ def patch_review_cli_control_map_from_contract(
     }
 
 
+def patch_review_cli_command_lookup_from_contract(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+) -> dict[str, Any]:
+    command_map = patch_review_cli_control_map_from_contract(card, review, patch_id=patch_id)
+    lookup: dict[str, dict[str, Any]] = {}
+    for entry in command_map["controls"]:
+        if not isinstance(entry, dict):
+            continue
+        command = entry.get("command")
+        aliases = entry.get("command_aliases", [])
+        terms = [command] if isinstance(command, str) and command else []
+        if isinstance(aliases, list):
+            terms.extend(str(alias) for alias in aliases if str(alias).strip())
+        for term in terms:
+            normalized = str(term).strip().lower()
+            if not normalized:
+                continue
+            if normalized in lookup:
+                raise ValueError(f"Duplicate patch review CLI command: {normalized}")
+            lookup[normalized] = {
+                "control": entry["control"],
+                "command": entry["command"],
+                "slot": entry["slot"],
+                "action_id": entry["action_id"],
+                "action_identity": entry["action_identity"],
+                "requires_confirmation": entry["requires_confirmation"],
+                "policy_gate": entry["policy_gate"],
+                "policy_sensitive": entry["policy_sensitive"],
+                "selection": deepcopy(entry["selection"]),
+            }
+    return {
+        "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+        "patch_id": command_map["patch_id"],
+        "flow": command_map["flow"],
+        "decision_policy": command_map["decision_policy"],
+        "action_authority": command_map["action_authority"],
+        "selection_model": command_map["selection_model"],
+        "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+        "commands": lookup,
+    }
+
+
 def patch_review_decision_controls_from_contract(
     card: dict[str, Any],
     review: dict[str, Any],
