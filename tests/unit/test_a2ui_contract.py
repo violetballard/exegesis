@@ -16,6 +16,7 @@ from src.qual.ui.a2ui import (
     A2UISessionStore,
     ActionRef,
     action_ref_from_selection,
+    build_complete_patch_review_contract,
     build_action_resolved_event,
     build_action_selected_event,
     build_action_selected_event_from_selection,
@@ -671,6 +672,46 @@ class A2UIContractTests(unittest.TestCase):
             [(entry["decision"], entry["action"]["id"]) for entry in resolved["decisions"]],
             [("apply", "apply_patch"), ("reject", "reject_patch")],
         )
+
+    def test_complete_patch_review_contract_requires_preview_apply_and_reject(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        review = build_complete_patch_review_contract(card, patch_id=" p1 ")
+
+        self.assertEqual(review["preview"], build_patch_preview_selection(card, patch_id="p1"))
+        self.assertEqual(
+            [entry["decision"] for entry in review["decisions"]],
+            ["apply", "reject"],
+        )
+
+    def test_complete_patch_review_contract_rejects_partial_demo_path_controls(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        with self.assertRaisesRegex(ValueError, "missing: reject"):
+            build_complete_patch_review_contract(card, patch_id="p1")
 
     def test_cli_fallback_materializes_patch_review_contract_for_current_patch(self) -> None:
         card = materialize_terminal_card(

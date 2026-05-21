@@ -278,6 +278,24 @@ def build_patch_review_contract(card: dict[str, Any], *, patch_id: str) -> dict[
     return review
 
 
+def build_complete_patch_review_contract(card: dict[str, Any], *, patch_id: str) -> dict[str, Any]:
+    review = build_patch_review_contract(card, patch_id=patch_id)
+    missing: list[str] = []
+    if review["preview"] is None:
+        missing.append("preview")
+    available_decisions = {
+        entry.get("decision")
+        for entry in review["decisions"]
+        if isinstance(entry, dict)
+    }
+    for decision in ("apply", "reject"):
+        if decision not in available_decisions:
+            missing.append(decision)
+    if missing:
+        raise ValueError(f"Complete patch review is missing: {', '.join(missing)}")
+    return review
+
+
 def resolve_patch_review_contract(card: dict[str, Any], review: dict[str, Any], *, patch_id: str) -> dict[str, Any]:
     expected_patch_id = patch_id.strip()
     if not expected_patch_id:
