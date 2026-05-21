@@ -179,6 +179,12 @@ class A2UIContractTests(unittest.TestCase):
             [action["payload"] for action in materialized["actions"]],
             [{"patch_id": "patch-1"}, {"patch_id": "patch-1"}, {"patch_id": "patch-1"}],
         )
+        apply_action = materialized["actions"][1]
+        reject_action = materialized["actions"][2]
+        self.assertEqual(apply_action["confirm"], {"title": "Apply patch?"})
+        self.assertTrue(apply_action["policy_sensitive"])
+        self.assertEqual(reject_action["confirm"], {"title": "Reject patch?"})
+        self.assertTrue(reject_action["policy_sensitive"])
         self.assertEqual(materialized["patch_decision"]["contract_version"], PATCH_DECISION_CONTRACT_VERSION)
         self.assertEqual(materialized["patch_decision"]["patch_id"], "patch-1")
         self.assertEqual(
@@ -195,6 +201,34 @@ class A2UIContractTests(unittest.TestCase):
             ],
             [("apply", 2, "apply_patch"), ("reject", 3, "reject_patch")],
         )
+
+    def test_generated_patch_decision_action_refs_preserve_policy_gate_metadata(self) -> None:
+        card = studio_materialize_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "patch-1",
+                "title": "Preview patch",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "```diff\n+new\n```"}],
+                "actions": [],
+            },
+            _capabilities(),
+        )
+
+        apply_ref = patch_decision_action_ref_from_selection(
+            card,
+            build_patch_decision_selection(card, patch_id="patch-1", decision="apply"),
+            patch_id="patch-1",
+        )
+        reject_ref = patch_decision_action_ref_from_selection(
+            card,
+            build_patch_decision_selection(card, patch_id="patch-1", decision="reject"),
+            patch_id="patch-1",
+        )
+
+        self.assertEqual(apply_ref.confirm, {"title": "Apply patch?"})
+        self.assertTrue(apply_ref.policy_sensitive)
+        self.assertEqual(reject_ref.confirm, {"title": "Reject patch?"})
+        self.assertTrue(reject_ref.policy_sensitive)
 
     def test_cli_fallback_materialization_enforces_negotiated_payload_limit(self) -> None:
         card = {

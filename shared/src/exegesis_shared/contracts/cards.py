@@ -196,9 +196,25 @@ def materialize_proposed_edit_card(card: dict[str, Any]) -> dict[str, Any]:
     if not _has_patch_action(actions, "preview_patch", patch_id):
         actions.append({"id": "preview_patch", "label": "Preview patch", "payload": {"patch_id": patch_id}})
     if not _has_patch_action(actions, "apply_patch", patch_id):
-        actions.append({"id": "apply_patch", "label": "Apply patch", "payload": {"patch_id": patch_id}})
+        actions.append(
+            {
+                "id": "apply_patch",
+                "label": "Apply patch",
+                "payload": {"patch_id": patch_id},
+                "confirm": {"title": "Apply patch?"},
+                "policy_sensitive": True,
+            }
+        )
     if not _has_patch_action(actions, "reject_patch", patch_id):
-        actions.append({"id": "reject_patch", "label": "Reject patch", "payload": {"patch_id": patch_id}})
+        actions.append(
+            {
+                "id": "reject_patch",
+                "label": "Reject patch",
+                "payload": {"patch_id": patch_id},
+                "confirm": {"title": "Reject patch?"},
+                "policy_sensitive": True,
+            }
+        )
     materialized["actions"] = actions
     validate_proposed_edit_card(materialized)
     return materialized
