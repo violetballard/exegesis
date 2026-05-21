@@ -2139,12 +2139,8 @@ def engine_authoritative_action_ref(action: ActionRef) -> ActionRef:
         if action.confirm is not None or action.policy_sensitive:
             return replace(action, confirm=None, policy_sensitive=False)
     if action.id in PATCH_DECISION_ACTION_IDS:
-        confirm = action.confirm
-        confirmation_added = False
-        if confirm is None:
-            confirm = {"title": PATCH_REVIEW_CONFIRMATION_TITLES[action.id]}
-            confirmation_added = True
-        if not action.policy_sensitive or confirmation_added:
+        confirm = {"title": PATCH_REVIEW_CONFIRMATION_TITLES[action.id]}
+        if action.confirm != confirm or not action.policy_sensitive:
             return replace(action, confirm=confirm, policy_sensitive=True)
     return action
 

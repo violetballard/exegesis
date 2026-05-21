@@ -4327,7 +4327,7 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(gate.calls, [("preview_patch", {"patch_id": "p1"}, False)])
 
-    def test_patch_decision_execution_preserves_explicit_confirmation_metadata(self) -> None:
+    def test_patch_decision_execution_uses_engine_confirmation_metadata(self) -> None:
         executed: list[ActionRef] = []
         action = ActionRef(
             id="reject_patch",
@@ -4344,7 +4344,7 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         self.assertEqual(len(executed), 1)
-        self.assertEqual(executed[0].confirm, {"title": "Reject this generated patch?"})
+        self.assertEqual(executed[0].confirm, {"title": "Reject patch?"})
         self.assertTrue(executed[0].policy_sensitive)
 
     def test_action_payload_rejects_untyped_extra_fields_before_policy_gate(self) -> None:
