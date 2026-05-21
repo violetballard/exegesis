@@ -268,6 +268,33 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
             ["* 1. Apply [confirm: Apply patch?]", "* 2. Reject [confirm: Reject patch?]"],
         )
 
+    def test_unknown_patch_card_fallback_dedupes_padded_patch_actions(self) -> None:
+        caps = _capabilities(
+            cards_supported=("RunLogCard",),
+            actions_supported=("apply_patch", "reject_patch"),
+        )
+
+        card = studio_materialize_card(
+            {
+                "type": "FuturePatchCard",
+                "patch_id": "p1",
+                "title": "Future patch",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "reject_patch", "label": "Reject padded", "payload": {"patch_id": " p1 "}},
+                    {"id": "apply_patch", "label": "Apply padded", "payload": {"patch_id": " p1 "}},
+                ],
+            },
+            caps,
+        )
+
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in card["action_selection"]["order"]],
+            [(1, "apply_patch"), (2, "reject_patch")],
+        )
+        self.assertEqual(resolve_card_selection_by_index(card, 1)["payload"], {"patch_id": "p1"})
+        self.assertEqual(resolve_card_selection_by_index(card, 2)["payload"], {"patch_id": "p1"})
+
 
 if __name__ == "__main__":
     unittest.main()

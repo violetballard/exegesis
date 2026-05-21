@@ -458,7 +458,8 @@ def _is_same_patch_review_action(action: dict[str, Any], patch_id: str) -> bool:
     if action.get("id") not in {"preview_patch", "apply_patch", "reject_patch"}:
         return False
     payload = action.get("payload")
-    return isinstance(payload, dict) and payload.get("patch_id") == patch_id
+    action_patch_id = payload.get("patch_id") if isinstance(payload, dict) else None
+    return isinstance(action_patch_id, str) and action_patch_id.strip() == patch_id
 
 
 def _canonical_patch_review_actions(patch_id: str) -> list[dict[str, Any]]:
