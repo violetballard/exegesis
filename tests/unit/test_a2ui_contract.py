@@ -1403,6 +1403,12 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         self.assertIn("Patch review controls: preview=1, apply=2, reject=3", text)
+        self.assertIn("Patch review CLI commands: preview=1, apply=2, reject=3", text)
+        self.assertIn(
+            "Patch review CLI aliases: "
+            "preview=preview/preview_patch, apply=apply/apply_patch, reject=reject/reject_patch",
+            text,
+        )
         self.assertIn("Policy-gated patch controls: apply, reject", text)
         self.assertIn(
             "Patch review control plan: "
