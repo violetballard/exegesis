@@ -967,6 +967,8 @@ def _tracked_local_exec_log_paths() -> Dict[int, str]:
         for lane_state in lanes.values():
             if not isinstance(lane_state, dict):
                 continue
+            if str(lane_state.get("mode") or "") != "local_fallback":
+                continue
             pid = int(lane_state.get("pid") or 0)
             log_path = str(lane_state.get("log_path") or "")
             if pid > 0 and log_path:
@@ -979,6 +981,10 @@ def _tracked_local_exec_log_paths() -> Dict[int, str]:
                 continue
             for job in jobs.values():
                 if not isinstance(job, dict):
+                    continue
+                if key == "fixer_fallback_jobs" and not bool(job.get("local", True)):
+                    continue
+                if key in {"cloud_reviewer_jobs", "cloud_integrator_jobs", "metadata_repair_jobs"}:
                     continue
                 pid = int(job.get("pid") or 0)
                 log_path = str(job.get("output_path") or "")
