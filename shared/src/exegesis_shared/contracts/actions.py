@@ -955,6 +955,27 @@ def patch_review_selection_from_cli_command(
     raise ValueError(f"Unsupported patch review CLI command: {command_text}")
 
 
+def patch_review_action_ref_from_cli_command(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+    command: str,
+) -> ActionRef:
+    selection = patch_review_selection_from_cli_command(
+        card,
+        review,
+        patch_id=patch_id,
+        command=command,
+    )
+    return patch_review_action_selection_from_selection(
+        card,
+        review,
+        selection,
+        patch_id=patch_id,
+    ).action
+
+
 def patch_review_control_plan_from_contract(
     card: dict[str, Any],
     review: dict[str, Any],
@@ -1572,6 +1593,30 @@ def execute_patch_review_selection_with_policy_gate(
     )
     return execute_action_with_policy_gate(
         action=engine_authoritative_action_ref(selected.action),
+        capabilities=capabilities,
+        policy_gate=policy_gate,
+        executor=executor,
+    )
+
+
+def execute_patch_review_cli_command_with_policy_gate(
+    *,
+    card: dict[str, Any],
+    review: dict[str, Any],
+    patch_id: str,
+    command: str,
+    capabilities: Any,
+    policy_gate: PolicyGate,
+    executor: Callable[[ActionRef], Any],
+) -> Any:
+    action = patch_review_action_ref_from_cli_command(
+        card,
+        review,
+        patch_id=patch_id,
+        command=command,
+    )
+    return execute_action_with_policy_gate(
+        action=engine_authoritative_action_ref(action),
         capabilities=capabilities,
         policy_gate=policy_gate,
         executor=executor,

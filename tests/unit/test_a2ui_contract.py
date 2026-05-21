@@ -45,6 +45,7 @@ from src.qual.ui.a2ui import (
     complete_patch_review_actions_from_contract,
     complete_patch_review_action_refs_from_contract,
     engine_prepare_card,
+    execute_patch_review_cli_command_with_policy_gate,
     execute_complete_patch_review_action_with_policy_gate,
     execute_action_with_policy_gate,
     execute_patch_review_selection_with_policy_gate,
@@ -57,6 +58,7 @@ from src.qual.ui.a2ui import (
     patch_review_action_ref_from_selection,
     patch_review_action_selection_from_selection,
     patch_review_availability_from_contract,
+    patch_review_action_ref_from_cli_command,
     patch_review_action_refs_from_contract,
     patch_review_cli_command_lookup_from_contract,
     patch_review_cli_control_map_from_contract,
@@ -1358,6 +1360,42 @@ class A2UIContractTests(unittest.TestCase):
                 command="2",
             ),
             selection,
+        )
+
+    def test_patch_review_cli_command_resolves_to_typed_action_ref(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        action = patch_review_action_ref_from_cli_command(
+            card,
+            review,
+            patch_id=" p1 ",
+            command="apply_patch",
+        )
+
+        self.assertIsInstance(action, ActionRef)
+        self.assertEqual(action.id, "apply_patch")
+        self.assertEqual(action.payload, {"patch_id": "p1"})
+        self.assertEqual(
+            shared_contracts.patch_review_action_ref_from_cli_command(
+                card,
+                review,
+                patch_id="p1",
+                command="2",
+            ),
+            action,
         )
 
     def test_patch_review_cli_command_rejects_unknown_or_stale_commands(self) -> None:
@@ -2689,6 +2727,50 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         self.assertEqual(executed, ["apply_patch"])
+
+    def test_patch_review_cli_command_execution_uses_engine_policy_gate(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+        gate = _RecordingPolicyGate(False, [])
+
+        with self.assertRaises(PermissionError):
+            execute_patch_review_cli_command_with_policy_gate(
+                card=card,
+                review=review,
+                patch_id="p1",
+                command="apply",
+                capabilities=_capabilities(),
+                policy_gate=gate,
+                executor=lambda action: action.id,
+            )
+
+        self.assertEqual(gate.calls, [("apply_patch", {"patch_id": "p1"}, True)])
+
+        gate = _RecordingPolicyGate(True, [])
+        result = execute_patch_review_cli_command_with_policy_gate(
+            card=card,
+            review=review,
+            patch_id="p1",
+            command="3",
+            capabilities=_capabilities(),
+            policy_gate=gate,
+            executor=lambda action: (action.id, action.policy_sensitive, action.confirm),
+        )
+
+        self.assertEqual(result, ("reject_patch", True, {"title": "Reject patch?"}))
+        self.assertEqual(gate.calls, [("reject_patch", {"patch_id": "p1"}, True)])
 
     def test_complete_patch_review_action_execution_uses_engine_policy_gate(self) -> None:
         card = materialize_terminal_card(
