@@ -49,7 +49,9 @@ _PRIMITIVE_BLOCK_REQUIRED_FIELDS: dict[str, dict[str, type | tuple[type, ...]]] 
     "CodeBlock": {"language": str, "code": str},
 }
 _RETRIEVAL_RESULTS_CARD_FIELDS = frozenset({"type", "title", "query", "results", "actions", "action_selection"})
-_BASKET_CARD_FIELDS = frozenset({"type", "title", "items", "actions", "action_selection"})
+_BASKET_CARD_FIELDS = frozenset(
+    {"type", "title", "basket_id", "items", "actions", "action_selection"}
+)
 _CONTEXT_SET_CARD_FIELDS = frozenset(
     {"type", "title", "context_set_id", "items", "actions", "action_selection"}
 )
@@ -352,6 +354,7 @@ def validate_basket_card(card: dict[str, Any], *, strict_actions: bool = True) -
     _validate_unique_item_ids(items, "BasketCard item")
     _validate_optional_card_actions(card, strict_actions=strict_actions)
     _validate_item_scoped_actions(card, items, "BasketCard item")
+    _validate_basket_scoped_actions(card)
 
 
 def validate_context_set_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
@@ -468,6 +471,21 @@ def _validate_item_scoped_actions(card: dict[str, Any], items: list[Any], item_l
             continue
         if item_id.strip() not in known_item_ids:
             raise ValueError(f"{action_id} item_id must reference a {item_label}")
+
+
+def _validate_basket_scoped_actions(card: dict[str, Any]) -> None:
+    basket_id = card.get("basket_id")
+    for action in card.get("actions", []):
+        if not isinstance(action, dict) or action.get("id") != "gather_context":
+            continue
+        payload = action.get("payload")
+        action_basket_id = payload.get("basket_id") if isinstance(payload, dict) else None
+        if not isinstance(action_basket_id, str) or not action_basket_id.strip():
+            continue
+        if not isinstance(basket_id, str) or not basket_id.strip():
+            raise ValueError("gather_context requires BasketCard basket_id")
+        if action_basket_id.strip() != basket_id.strip():
+            raise ValueError("gather_context basket_id must match BasketCard basket_id")
 
 
 def _validate_context_set_scoped_actions(card: dict[str, Any], context_set_id: str) -> None:

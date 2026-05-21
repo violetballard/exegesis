@@ -23,6 +23,7 @@ def _capabilities(
         "promote_to_basket",
         "pin_to_context_set",
         "create_context_set",
+        "gather_context",
         "run_agent",
         "refresh_license",
         "export_document",

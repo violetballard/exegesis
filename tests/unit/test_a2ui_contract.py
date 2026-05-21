@@ -120,6 +120,7 @@ def _capabilities(
         "promote_to_basket",
         "pin_to_context_set",
         "create_context_set",
+        "gather_context",
         "run_agent",
         "refresh_license",
         "export_document",
@@ -205,8 +206,16 @@ class A2UIContractTests(unittest.TestCase):
         basket_card = {
             "type": BASKET_CARD_TYPE,
             "title": "Basket",
+            "basket_id": "basket-1",
             "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
-            "actions": [{"id": "create_context_set", "label": "Create context", "payload": {"name": "Chapter 5"}}],
+            "actions": [
+                {"id": "create_context_set", "label": "Create context", "payload": {"name": "Chapter 5"}},
+                {
+                    "id": "gather_context",
+                    "label": "Gather context",
+                    "payload": {"basket_id": "basket-1", "context_set_id": "ctx-1"},
+                },
+            ],
         }
         context_card = {
             "type": CONTEXT_SET_CARD_TYPE,
@@ -344,6 +353,39 @@ class A2UIContractTests(unittest.TestCase):
                     "title": "Basket",
                     "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
                     "actions": [{"id": "pin_to_context_set", "label": "Pin", "payload": {"item_id": "doc-1"}}],
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "gather_context requires BasketCard basket_id"):
+            validate_basket_card(
+                {
+                    "type": BASKET_CARD_TYPE,
+                    "title": "Basket",
+                    "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
+                    "actions": [
+                        {
+                            "id": "gather_context",
+                            "label": "Gather context",
+                            "payload": {"basket_id": "basket-1", "context_set_id": "ctx-1"},
+                        }
+                    ],
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "gather_context basket_id must match BasketCard basket_id"):
+            validate_basket_card(
+                {
+                    "type": BASKET_CARD_TYPE,
+                    "title": "Basket",
+                    "basket_id": "basket-1",
+                    "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
+                    "actions": [
+                        {
+                            "id": "gather_context",
+                            "label": "Gather context",
+                            "payload": {"basket_id": "basket-2", "context_set_id": "ctx-1"},
+                        }
+                    ],
                 }
             )
 
@@ -4094,6 +4136,13 @@ class A2UIContractTests(unittest.TestCase):
             ),
             engine_authoritative_action_ref(
                 ActionRef(
+                    id="gather_context",
+                    label="Gather",
+                    payload={"basket_id": " basket-1 ", "context_set_id": " ctx-1 "},
+                )
+            ),
+            engine_authoritative_action_ref(
+                ActionRef(
                     id="run_agent",
                     label="Plan",
                     payload={"operation": " plan "},
@@ -4120,9 +4169,10 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(actions[2].payload, {"item_id": "doc-1"})
         self.assertEqual(actions[3].payload, {"section_id": "sec-1"})
         self.assertEqual(actions[4].payload, {"name": "Chapter 5"})
-        self.assertEqual(actions[5].payload, {"operation": "plan"})
-        self.assertEqual(actions[6].payload, {"format": "markdown"})
-        self.assertEqual(actions[7].payload, {"text": " keep intentional whitespace "})
+        self.assertEqual(actions[5].payload, {"basket_id": "basket-1", "context_set_id": "ctx-1"})
+        self.assertEqual(actions[6].payload, {"operation": "plan"})
+        self.assertEqual(actions[7].payload, {"format": "markdown"})
+        self.assertEqual(actions[8].payload, {"text": " keep intentional whitespace "})
 
     def test_engine_action_materialization_dedupes_padded_item_payloads(self) -> None:
         card = {
