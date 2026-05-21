@@ -89,6 +89,7 @@ from src.qual.ui.a2ui import (
     resolve_patch_review_contract,
     resolve_patch_review_selection,
     studio_materialize_card,
+    validate_action_capabilities,
     validate_action_ref,
     validate_basket_card,
     validate_capabilities,
@@ -400,6 +401,14 @@ class A2UIContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "actions_supported entries must be unique: apply_patch"):
             validate_capabilities(
                 _capabilities(actions_supported=("preview_patch", "apply_patch", "apply_patch")),
+            )
+        with self.assertRaisesRegex(ValueError, "actions_supported entries must be unique: apply_patch"):
+            validate_action_capabilities(
+                _capabilities(actions_supported=("preview_patch", "apply_patch", "apply_patch")),
+            )
+        with self.assertRaisesRegex(ValueError, "actions_supported entries must be unique: apply_patch"):
+            validate_complete_patch_review_capabilities(
+                _capabilities(actions_supported=("preview_patch", "apply_patch", "apply_patch", "reject_patch")),
             )
 
         with self.assertRaisesRegex(

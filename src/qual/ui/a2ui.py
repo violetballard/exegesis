@@ -71,6 +71,7 @@ from exegesis_shared.contracts.actions import (
     resolve_patch_preview_selection,
     resolve_patch_review_contract,
     resolve_patch_review_selection,
+    validate_action_capabilities,
     validate_action_ref,
     validate_complete_patch_review_capabilities,
 )
@@ -436,6 +437,7 @@ __all__ = [
     "studio_materialize_card",
     "stream_event_key",
     "validate_action_ref",
+    "validate_action_capabilities",
     "validate_complete_patch_review_capabilities",
     "validate_complete_patch_review_card_capabilities",
     "validate_basket_card",

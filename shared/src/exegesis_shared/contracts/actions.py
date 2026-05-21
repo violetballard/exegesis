@@ -263,11 +263,15 @@ def validate_action_capabilities(capabilities: Any) -> None:
     actions_supported = getattr(capabilities, "actions_supported", None)
     if not isinstance(actions_supported, tuple):
         raise ValueError("actions_supported must be a tuple")
+    seen: set[str] = set()
     for action_id in actions_supported:
         if not isinstance(action_id, str) or not action_id.strip():
             raise ValueError("actions_supported entries must be non-empty strings")
         if action_id not in _ALLOWED_ACTION_SET:
             raise ValueError(f"Unknown action in capabilities: {action_id}")
+        if action_id in seen:
+            raise ValueError(f"actions_supported entries must be unique: {action_id}")
+        seen.add(action_id)
 
 
 def validate_complete_patch_review_capabilities(capabilities: Any) -> None:
