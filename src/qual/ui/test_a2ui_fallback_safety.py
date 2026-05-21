@@ -90,7 +90,11 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
 
         self.assertEqual(
             [line for line in text.splitlines() if line.startswith("* ")],
-            ["* 1. Apply", "* 2. Reject", "* 3. Revise"],
+            [
+                "* 1. Apply [confirm: Apply patch?]",
+                "* 2. Reject [confirm: Reject patch?]",
+                "* 3. Revise",
+            ],
         )
 
     def test_terminal_rendering_surfaces_patch_confirmation_prompts(self) -> None:
@@ -183,7 +187,11 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(resolve_card_selection_by_index(materialized, 2)["payload"], {"patch_id": "b"})
         self.assertEqual(
             [line for line in text.splitlines() if line.startswith("* ")],
-            ["* 1. Apply A", "* 2. Apply B", "* 3. Reject"],
+            [
+                "* 1. Apply A [confirm: Apply patch?]",
+                "* 2. Apply B [confirm: Apply patch?]",
+                "* 3. Reject [confirm: Reject patch?]",
+            ],
         )
 
     def test_terminal_fallback_drops_blank_patch_action_slots(self) -> None:
@@ -206,7 +214,10 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
             [(1, "apply_patch")],
         )
         self.assertEqual(resolve_card_selection_by_index(materialized, 1)["payload"], {"patch_id": "a"})
-        self.assertEqual([line for line in text.splitlines() if line.startswith("* ")], ["* 1. Apply A"])
+        self.assertEqual(
+            [line for line in text.splitlines() if line.startswith("* ")],
+            ["* 1. Apply A [confirm: Apply patch?]"],
+        )
 
     def test_unknown_card_fallback_stays_cli_renderable_when_copy_is_unsupported(self) -> None:
         caps = _capabilities(
@@ -254,7 +265,7 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Patch review controls: apply=1, reject=2", text)
         self.assertEqual(
             [line for line in text.splitlines() if line.startswith("* ")],
-            ["* 1. Apply", "* 2. Reject"],
+            ["* 1. Apply [confirm: Apply patch?]", "* 2. Reject [confirm: Reject patch?]"],
         )
 
 

@@ -244,11 +244,24 @@ def materialize_card_actions(card: dict[str, Any]) -> list[dict[str, Any]]:
             validate_action_ref(action)
         except ValueError:
             continue
+        action = _materialize_engine_authoritative_action(action)
         identity_key = canonical_action_identity_key(action)
         current = by_identity.get(identity_key)
         if current is None or canonical_action_key(action) < canonical_action_key(current):
             by_identity[identity_key] = deepcopy(action)
     return canonicalize_action_order(list(by_identity.values()))
+
+
+def _materialize_engine_authoritative_action(action: dict[str, Any]) -> dict[str, Any]:
+    confirm = action.get("confirm")
+    action_ref = ActionRef(
+        id=str(action["id"]),
+        label=str(action["label"]),
+        payload=deepcopy(action["payload"]),
+        confirm=deepcopy(confirm) if isinstance(confirm, dict) else None,
+        policy_sensitive=action.get("policy_sensitive", False),
+    )
+    return engine_authoritative_action_ref(action_ref).as_contract()
 
 
 def materialize_action_selection_contract(card: dict[str, Any]) -> dict[str, Any]:

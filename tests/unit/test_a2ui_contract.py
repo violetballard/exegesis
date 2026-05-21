@@ -732,7 +732,11 @@ class A2UIContractTests(unittest.TestCase):
         )
         self.assertEqual(
             [line for line in text.splitlines() if line.startswith("* ")],
-            ["* 1. Apply", "* 2. Reject", "* 3. Revise"],
+            [
+                "* 1. Apply [confirm: Apply patch?]",
+                "* 2. Reject [confirm: Reject patch?]",
+                "* 3. Revise",
+            ],
         )
 
     def test_shared_selection_contract_resolves_only_current_slot_identity(self) -> None:
@@ -2019,7 +2023,13 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(selected.action.id, "reject_patch")
         self.assertEqual(
             selected.action.as_contract(),
-            {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+            {
+                "id": "reject_patch",
+                "label": "Reject",
+                "payload": {"patch_id": "p1"},
+                "confirm": {"title": "Reject patch?"},
+                "policy_sensitive": True,
+            },
         )
         self.assertEqual(
             selected.as_contract(),
@@ -3371,6 +3381,25 @@ class A2UIContractTests(unittest.TestCase):
                     "confirm": {"title": ""},
                 }
             )
+
+    def test_cli_fallback_materializes_patch_decisions_as_engine_authoritative(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Patch choices",
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        apply_action = card["actions"][0]
+        reject_action = card["actions"][1]
+        self.assertEqual(apply_action["confirm"], {"title": "Apply patch?"})
+        self.assertTrue(apply_action["policy_sensitive"])
+        self.assertEqual(reject_action["confirm"], {"title": "Reject patch?"})
+        self.assertTrue(reject_action["policy_sensitive"])
 
     def test_cli_fallback_drops_actions_with_untyped_metadata(self) -> None:
         card = materialize_terminal_card(
