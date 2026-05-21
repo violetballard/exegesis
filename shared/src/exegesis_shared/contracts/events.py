@@ -10,6 +10,7 @@ from exegesis_shared.contracts.actions import (
     PATCH_DECISION_CONTRACT_VERSION,
     PATCH_PREVIEW_CONTRACT_VERSION,
     PATCH_REVIEW_ACTION_AUTHORITY,
+    PATCH_REVIEW_DECISION_GROUP,
     PATCH_REVIEW_DEMO_PATH_STEP,
     action_ref_from_selection,
     build_complete_patch_review_contract,
@@ -312,6 +313,8 @@ def _validate_action_selection(selection: dict[str, Any], action_id: str) -> Non
             raise ValueError("Patch review selection does not match the demo path step")
         if selection.get("patch_decision_contract_version") != PATCH_DECISION_CONTRACT_VERSION:
             raise ValueError("Unsupported patch decision selection contract version")
+        if selection.get("decision_group") != PATCH_REVIEW_DECISION_GROUP:
+            raise ValueError("Patch decision selection does not match the decision group")
         expected_action_id = {"apply": "apply_patch", "reject": "reject_patch"}.get(str(patch_decision))
         if expected_action_id is None:
             raise ValueError("Unsupported patch decision selection")

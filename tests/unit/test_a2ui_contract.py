@@ -3612,6 +3612,32 @@ class A2UIContractTests(unittest.TestCase):
                 selection=selection,
             )
 
+    def test_streaming_patch_review_events_require_decision_group(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+        self.assertEqual(selection["decision_group"], PATCH_REVIEW_DECISION_GROUP)
+        selection["decision_group"] = "client_decision"
+
+        with self.assertRaisesRegex(ValueError, "decision group"):
+            build_action_selected_event(
+                event_id="evt-2",
+                run_id="run-1",
+                sequence=2,
+                action_id="apply_patch",
+                selection=selection,
+            )
+
     def test_streaming_action_events_reject_unknown_action_ids(self) -> None:
         selection = {
             "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
