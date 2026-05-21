@@ -176,6 +176,8 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
         return materialized
     if card_type == PROPOSED_EDIT_CARD_TYPE:
         card = materialize_proposed_edit_card(card)
+        if card_type not in set(capabilities.cards_supported):
+            card = build_unknown_card(card)
         materialized = materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
         validate_card_payload_size(materialized, capabilities)
         return materialized

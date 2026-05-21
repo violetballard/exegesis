@@ -880,6 +880,29 @@ class A2UIContractTests(unittest.TestCase):
             [(1, "open_corpus_item"), (2, "promote_to_basket")],
         )
 
+    def test_unsupported_proposed_edit_card_degrades_to_unknown_with_patch_controls(self) -> None:
+        caps = _capabilities(
+            cards_supported=("GenericCard",),
+            actions_supported=("preview_patch", "apply_patch", "reject_patch"),
+        )
+        payload = {
+            "type": "ProposedEditCard",
+            "title": "Patch",
+            "patch_id": "p1",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+            "actions": [],
+        }
+
+        card = studio_materialize_card(payload, caps)
+
+        self.assertEqual(card["type"], "UnknownCard")
+        self.assertEqual(card["patch_id"], "p1")
+        self.assertIn("Unsupported card type: ProposedEditCard", card["title"])
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in card["action_selection"]["order"]],
+            [(1, "preview_patch"), (2, "apply_patch"), (3, "reject_patch")],
+        )
+
     def test_unknown_card_fallback_honors_supported_actions(self) -> None:
         caps = _capabilities(
             cards_supported=("RunLogCard",),
