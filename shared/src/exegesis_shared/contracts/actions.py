@@ -254,6 +254,17 @@ def resolve_patch_decision_action(
     patch_id: str,
     decision: str,
 ) -> dict[str, Any]:
+    selection = build_patch_decision_selection(card, patch_id=patch_id, decision=decision)
+    expected_patch_id = patch_id.strip()
+    return resolve_patch_decision_selection(card, selection, patch_id=expected_patch_id)
+
+
+def build_patch_decision_selection(
+    card: dict[str, Any],
+    *,
+    patch_id: str,
+    decision: str,
+) -> dict[str, Any]:
     expected_patch_id = patch_id.strip()
     if not expected_patch_id:
         raise ValueError("Patch decision patch_id is required")
@@ -277,16 +288,14 @@ def resolve_patch_decision_action(
         raise ValueError(f"Patch decision '{normalized_decision}' is not available for the current patch")
 
     entry = matching_entries[0]
-    return resolve_patch_decision_selection(
-        card,
-        {
-            "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
-            "selection_model": "one_based_action_slot",
-            "slot": entry.get("slot"),
-            "action_identity": entry.get("action_identity"),
-        },
-        patch_id=expected_patch_id,
-    )
+    return {
+        "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+        "selection_model": "one_based_action_slot",
+        "slot": entry.get("slot"),
+        "action_identity": entry.get("action_identity"),
+        "patch_decision": normalized_decision,
+        "patch_id": expected_patch_id,
+    }
 
 
 def validate_action_ref(action: Any) -> None:

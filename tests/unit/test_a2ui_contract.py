@@ -13,6 +13,7 @@ from src.qual.ui.a2ui import (
     A2UICapabilities,
     A2UISessionStore,
     ActionRef,
+    build_patch_decision_selection,
     build_unknown_card,
     engine_prepare_card,
     execute_action_with_policy_gate,
@@ -388,6 +389,33 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(apply_action["payload"], {"patch_id": "p1"})
         self.assertEqual(reject_action["id"], "reject_patch")
         self.assertEqual(reject_action["payload"], {"patch_id": "p1"})
+
+    def test_patch_decision_selection_builder_returns_typed_slot_contract(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        selection = build_patch_decision_selection(card, patch_id=" p1 ", decision=" APPLY ")
+
+        self.assertEqual(selection["contract_version"], ACTION_SELECTION_CONTRACT_VERSION)
+        self.assertEqual(selection["selection_model"], "one_based_action_slot")
+        self.assertEqual(selection["patch_decision"], "apply")
+        self.assertEqual(selection["patch_id"], "p1")
+        self.assertEqual(selection["slot"], 1)
+        self.assertEqual(selection["action_identity"], card["action_selection"]["order"][0]["action_identity"])
+        self.assertEqual(
+            resolve_patch_decision_selection(card, selection, patch_id="p1")["id"],
+            "apply_patch",
+        )
 
     def test_patch_decision_action_revalidates_stale_contract_identity(self) -> None:
         card = materialize_terminal_card(
