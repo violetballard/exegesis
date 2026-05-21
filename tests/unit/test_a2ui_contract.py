@@ -1481,7 +1481,7 @@ class A2UIContractTests(unittest.TestCase):
             card,
             review,
             patch_id="p1",
-            command="APPLY",
+            command=" APPLY ",
         )
         self.assertEqual(apply_selection, review["decisions"][0]["selection"])
 

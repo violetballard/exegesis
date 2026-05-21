@@ -937,16 +937,9 @@ def patch_review_selection_from_cli_command(
         raise ValueError("Patch review CLI command is required")
     normalized_command = command_text.lower()
 
-    command_map = patch_review_cli_control_map_from_contract(card, review, patch_id=patch_id)
-    for entry in command_map["controls"]:
-        if not isinstance(entry, dict):
-            continue
-        command_aliases = entry.get("command_aliases", [])
-        if not isinstance(command_aliases, list):
-            command_aliases = []
-        normalized_aliases = {str(alias).lower() for alias in command_aliases}
-        if entry.get("command") != command_text and normalized_command not in normalized_aliases:
-            continue
+    command_lookup = patch_review_cli_command_lookup_from_contract(card, review, patch_id=patch_id)
+    entry = command_lookup["commands"].get(normalized_command)
+    if isinstance(entry, dict):
         selection = entry.get("selection")
         if not isinstance(selection, dict):
             raise ValueError("Patch review CLI command selection must be an object")
