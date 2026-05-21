@@ -192,7 +192,7 @@ def materialize_proposed_edit_card(card: dict[str, Any]) -> dict[str, Any]:
     materialized = dict(card)
     patch_id = str(materialized["patch_id"]).strip()
     materialized["patch_id"] = patch_id
-    actions = list(materialized.get("actions", []))
+    actions = materialize_card_actions(materialized)
     if not _has_patch_action(actions, "preview_patch", patch_id):
         actions.append({"id": "preview_patch", "label": "Preview patch", "payload": {"patch_id": patch_id}})
     if not _has_patch_action(actions, "apply_patch", patch_id):

@@ -211,6 +211,37 @@ class A2UIContractTests(unittest.TestCase):
             [("apply", 2, "apply_patch"), ("reject", 3, "reject_patch")],
         )
 
+    def test_proposed_edit_card_replaces_malformed_same_patch_actions_for_cli_fallback(self) -> None:
+        card = {
+            "type": "ProposedEditCard",
+            "patch_id": "patch-1",
+            "title": "Preview patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "```diff\n+new\n```"}],
+            "actions": [
+                {
+                    "id": "apply_patch",
+                    "label": "Unsafe apply",
+                    "payload": {"patch_id": "patch-1"},
+                    "target_file": "chapter.md",
+                },
+                {
+                    "id": "preview_patch",
+                    "label": "Preview patch",
+                    "payload": {"patch_id": "patch-1"},
+                },
+            ],
+        }
+
+        materialized = studio_materialize_card(card, _capabilities())
+
+        self.assertEqual(
+            [action["id"] for action in materialized["actions"]],
+            ["preview_patch", "apply_patch", "reject_patch"],
+        )
+        self.assertNotIn("target_file", materialized["actions"][1])
+        self.assertEqual(materialized["patch_review"]["availability"]["missing"], [])
+        self.assertTrue(materialized["patch_review"]["availability"]["is_complete"])
+
     def test_generated_patch_decision_action_refs_preserve_policy_gate_metadata(self) -> None:
         card = studio_materialize_card(
             {
