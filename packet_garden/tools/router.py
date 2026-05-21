@@ -461,7 +461,9 @@ def _branch_scope_violations(
         files = _branch_changed_files(repo_cwd, branch) if branch else []
     violations: List[str] = []
     for file_name in files:
-        normalized = str(file_name).strip().lstrip("./")
+        normalized = str(file_name).strip()
+        while normalized.startswith("./"):
+            normalized = normalized[2:]
         if not normalized:
             continue
         if any(fnmatchcase(normalized, pattern) for pattern in patterns):
@@ -537,7 +539,9 @@ def _metadata_only_review_files(files: List[str]) -> bool:
     if not files:
         return False
     for file_name in files:
-        normalized = file_name.strip().lstrip("./")
+        normalized = file_name.strip()
+        while normalized.startswith("./"):
+            normalized = normalized[2:]
         if not normalized:
             continue
         if normalized in CONTROL_PLANE_REVIEW_PATH_NAMES:
@@ -552,7 +556,9 @@ def _merge_relevant_review_files(files: List[str]) -> List[str]:
     """Drop control-plane metadata paths from merge dependency comparisons."""
     relevant: List[str] = []
     for file_name in files:
-        normalized = str(file_name).strip().lstrip("./")
+        normalized = str(file_name).strip()
+        while normalized.startswith("./"):
+            normalized = normalized[2:]
         if not normalized:
             continue
         if normalized in CONTROL_PLANE_REVIEW_PATH_NAMES:
@@ -1636,8 +1642,8 @@ def metadata_repair_prompt(lane: str, branch: str, reviewer_packet: str) -> str:
         "This is not feature implementation work.\n"
         "Operate from the main repo root only. Do not edit feature source files.\n"
         "Allowed edit surface:\n"
-        f"- `.codex/kickoff_packets/{lane}.md`\n"
-        f"- `.codex/kickoff_packets/{lane}.shared.md`\n"
+        f"- `.codex/metadata_repairs/{lane}.md`\n"
+        f"- `.codex/metadata_repairs/{lane}.shared.md`\n"
         f"- `.codex/lane_meta/{lane}.json`\n"
         f"- `.codex/packets/lanes/{lane}/**` packet metadata files\n"
         "- `THREAD_PACKET.md` only if it is clean and belongs to this lane; if it is dirty for another lane, leave it alone and state that.\n\n"
@@ -1790,10 +1796,11 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
     )
     save_json(meta_path, meta)
 
-    kickoff = Path(".codex/kickoff_packets") / f"{lane}.md"
-    shared = Path(".codex/kickoff_packets") / f"{lane}.shared.md"
+    repair_dir = Path(".codex/metadata_repairs")
+    handoff = repair_dir / f"{lane}.md"
+    shared = repair_dir / f"{lane}.shared.md"
     write_text(
-        kickoff,
+        handoff,
         "\n".join(
             [
                 f"# {lane} Handoff Metadata",
@@ -1811,6 +1818,7 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
                 *[f"  {idx}. {task}" for idx, task in enumerate(tasks_completed, start=1)],
                 "",
                 "This file is control-plane metadata. The feature implementation remains on the lane branch.",
+                "This file is intentionally separate from `.codex/kickoff_packets/`; do not use it as a feature-worker kickoff brief.",
                 "",
             ]
         ),

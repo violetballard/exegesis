@@ -790,7 +790,9 @@ def _full_branch_scope_violations(lane: str, files: List[str]) -> List[str]:
         return []
     violations: List[str] = []
     for file_name in files:
-        normalized = str(file_name).strip().lstrip("./")
+        normalized = str(file_name).strip()
+        while normalized.startswith("./"):
+            normalized = normalized[2:]
         if not normalized:
             continue
         if any(fnmatchcase(normalized, pattern) for pattern in owned_patterns):
@@ -878,6 +880,15 @@ def build_packet(
     reviewed_files = str_list(meta.get("reviewed_files"))
     metadata_only_files = str_list(meta.get("metadata_only_files"))
     if reviewed_files or metadata_only_files:
+        # Metadata repair packets may carry a stale reviewed_files list from a
+        # prior handoff. The current branch/range diff is the stronger source
+        # for lane-owned files, so never let stale metadata hide owned tests or
+        # source files from reviewer accounting.
+        reviewed_set = set(reviewed_files)
+        for file_name in owned_files:
+            if file_name not in reviewed_set:
+                reviewed_files.append(file_name)
+                reviewed_set.add(file_name)
         if reviewed_files:
             lines += ["### Reviewed implementation files"] + [f"- `{f}`" for f in reviewed_files]
         if metadata_only_files:
@@ -1025,11 +1036,17 @@ def main()->None:
         last_submitted_sha = infer_last_submitted_sha(PACKETS_ROOT / lane, prev_lane_state)
         force_reemit_sha = str(prev_lane_state.get("force_reemit_sha") or "").strip()
         force_metadata_reemit = bool(force_reemit_sha and force_reemit_sha == sha)
-        # Reviewer notes should block new packets until lane HEAD advances.
-        # This allows one-at-a-time re-review submissions from the feature lane.
-        if has_reviewer_notes and (not last_submitted_sha or last_submitted_sha == sha):
-            continue
         if last_submitted_sha == sha and not force_metadata_reemit:
+            continue
+        # Reviewer notes should block new packets until lane HEAD advances,
+        # except for explicit control-plane metadata repairs. Those repairs
+        # intentionally re-emit the same feature head with corrected packet
+        # evidence, so the reviewer-note guard must not swallow them first.
+        if (
+            has_reviewer_notes
+            and (not last_submitted_sha or last_submitted_sha == sha)
+            and not force_metadata_reemit
+        ):
             continue
         fast_reemit = bool(
             (has_reviewer_notes and last_submitted_sha and last_submitted_sha != sha)
@@ -1070,6 +1087,12 @@ def main()->None:
             if carried and files:
                 if force_metadata_reemit:
                     print(f"[planner] {lane}: re-emitting after local metadata repair (reuse prior gate results)")
+                    try:
+                        current_files = compute_changed_files(repo, base_ref, head_ref=branch)
+                        if current_files:
+                            files = current_files
+                    except Exception as e:
+                        print(f"[planner] {lane}: metadata re-emit changed-files refresh failed: {e}")
                 elif active_repo:
                     print(f"[planner] {lane}: fast re-emit from advanced HEAD after reviewer notes (reuse prior gate results)")
                 else:

@@ -1389,10 +1389,11 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 os.chdir(old_cwd)
 
             repaired_meta = json.loads(lane_meta.read_text(encoding="utf-8"))
-            kickoff_text = (root / ".codex" / "kickoff_packets" / f"{lane}.md").read_text(encoding="utf-8")
+            repair_text = (root / ".codex" / "metadata_repairs" / f"{lane}.md").read_text(encoding="utf-8")
             self.assertIn("deterministic FTS provenance", repaired_meta["canonical_demo_path_step"])
             self.assertIn("retrieval demo-path contract", " ".join(repaired_meta["tasks_completed"]))
-            self.assertIn("Concrete tasks completed", kickoff_text)
+            self.assertIn("Concrete tasks completed", repair_text)
+            self.assertFalse((root / ".codex" / "kickoff_packets" / f"{lane}.md").exists())
 
     def test_metadata_repair_jobs_count_against_cloud_total_cap(self) -> None:
         state = {

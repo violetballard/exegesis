@@ -1935,16 +1935,27 @@ def _lane_branch(lane: str) -> str:
 
 
 def _lane_has_current_head_integrated(lane: str) -> bool:
-    """Return True when a queue-empty lane already integrated its current head.
+    """Return True when a queue-empty lane has no remaining branch-tip diff.
 
     Free-lane refill is intentionally aggressive so every enabled lane keeps
     moving. The counterweight is this satisfied-state check: if the current
-    branch head already has an integrator archive record, relaunching the lane
-    just burns context and redoes completed work.
+    branch head already has an integrator archive record *and* the branch tip
+    matches main, relaunching the lane just burns context and redoes completed
+    work.
+
+    Integrators often consume narrow reviewed slices without merging the whole
+    feature branch. In that case an archive can exist for the branch head while
+    lane-owned changes still remain on the branch. Those lanes must keep
+    running instead of being marked satisfied.
     """
     branch = _lane_branch(lane)
     head = _git_rev(branch)
     if not head:
+        return False
+    diff = run_git(["diff", "--name-only", f"main..{branch}"], cwd=REPO_ROOT, timeout=30)
+    if diff.returncode != 0:
+        return False
+    if any(line.strip() for line in (diff.stdout or "").splitlines()):
         return False
     archive_dir = PACKETS_ROOT / lane / "archive"
     if not archive_dir.exists():
@@ -2185,6 +2196,7 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
             print(f"[coordinator] local feature lane launch failed for {local_lanes}: rc={rc}")
             if out:
                 print(out, end="" if out.endswith("\n") else "\n")
+            _mark_feature_launch_failed(lane_refill, local_lanes, out)
         else:
             launched.extend(local_lanes)
     if cloud_lanes:
@@ -2193,11 +2205,30 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
             print(f"[coordinator] cloud feature lane launch failed for {cloud_lanes}: rc={rc}")
             if out:
                 print(out, end="" if out.endswith("\n") else "\n")
+            _mark_feature_launch_failed(lane_refill, cloud_lanes, out)
         else:
             launched.extend(cloud_lanes)
     if launched:
         print(f"[coordinator] launched free lanes: {', '.join(launched)}")
     return launched
+
+
+def _mark_feature_launch_failed(lane_refill: Dict[str, object], lanes: List[str], output: str) -> None:
+    detail = (output or "").strip()
+    if len(detail) > 2000:
+        detail = detail[-2000:]
+    for lane in lanes:
+        lane_state = lane_refill.get(lane)
+        if not isinstance(lane_state, dict):
+            lane_state = {}
+        lane_state["force_resume_once"] = True
+        lane_state["force_resume_reason"] = "feature_launch_failed"
+        if detail:
+            lane_state["force_resume_detail"] = detail
+        lane_state["last_launch_attempt_ts"] = 0
+        lane_state["last_launch_reason"] = "feature_launch_failed"
+        lane_state["last_seen_at"] = utc_now()
+        lane_refill[lane] = lane_state
 
 
 def _has_lane_backlog() -> bool:
