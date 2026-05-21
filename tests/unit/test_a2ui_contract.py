@@ -2216,6 +2216,47 @@ class A2UIContractTests(unittest.TestCase):
         self.assertTrue(actions.apply.policy_sensitive)
         self.assertTrue(actions.reject.policy_sensitive)
 
+    def test_cli_fallback_embeds_complete_patch_review_action_contract(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        embedded = card["complete_patch_review_actions"]
+
+        self.assertEqual(embedded["patch_id"], "p1")
+        self.assertEqual(embedded["preview"]["id"], "preview_patch")
+        self.assertEqual(embedded["decisions"]["apply"]["id"], "apply_patch")
+        self.assertEqual(embedded["decisions"]["reject"]["id"], "reject_patch")
+        self.assertTrue(embedded["decisions"]["apply"]["policy_sensitive"])
+        self.assertTrue(embedded["decisions"]["reject"]["policy_sensitive"])
+
+    def test_partial_patch_review_fallback_omits_complete_action_contract(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        self.assertIn("patch_review", card)
+        self.assertNotIn("complete_patch_review_actions", card)
+
     def test_complete_patch_review_action_from_card_resolves_named_demo_path_control(self) -> None:
         card = materialize_terminal_card(
             {

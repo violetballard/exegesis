@@ -379,6 +379,16 @@ def materialize_cli_fallback_card(card: dict[str, Any]) -> dict[str, Any]:
         except ValueError as exc:
             if "not available" not in str(exc):
                 raise
+        else:
+            try:
+                materialized["complete_patch_review_actions"] = complete_patch_review_actions_from_contract(
+                    materialized,
+                    materialized["patch_review"],
+                    patch_id=patch_id,
+                ).as_contract()
+            except ValueError as exc:
+                if "missing" not in str(exc):
+                    raise
     return materialized
 
 
