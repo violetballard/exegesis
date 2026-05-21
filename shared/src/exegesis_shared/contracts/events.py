@@ -62,11 +62,12 @@ def build_action_selected_event(
     sequence: int,
     selection: dict[str, Any],
     action_id: str,
+    capabilities: A2UICapabilities | None = None,
 ) -> dict[str, Any]:
     event = _base_event(event_id=event_id, run_id=run_id, sequence=sequence, event_type="action_selected")
     event["action_id"] = action_id
     event["selection"] = deepcopy(selection)
-    validate_stream_event(event)
+    validate_stream_event(event, capabilities)
     return event
 
 
@@ -77,6 +78,7 @@ def build_action_selected_event_from_selection(
     sequence: int,
     card: dict[str, Any],
     selection: dict[str, Any],
+    capabilities: A2UICapabilities | None = None,
 ) -> dict[str, Any]:
     action = action_ref_from_selection(card, selection)
     return build_action_selected_event(
@@ -85,6 +87,7 @@ def build_action_selected_event_from_selection(
         sequence=sequence,
         action_id=action.id,
         selection=selection,
+        capabilities=capabilities,
     )
 
 
@@ -96,6 +99,7 @@ def build_complete_patch_review_action_selected_event(
     card: dict[str, Any],
     patch_id: str,
     control: str,
+    capabilities: A2UICapabilities | None = None,
 ) -> dict[str, Any]:
     review = build_complete_patch_review_contract(card, patch_id=patch_id)
     selection = build_patch_review_selection(
@@ -110,6 +114,7 @@ def build_complete_patch_review_action_selected_event(
         sequence=sequence,
         card=card,
         selection=selection,
+        capabilities=capabilities,
     )
 
 
@@ -123,6 +128,7 @@ def build_complete_patch_review_action_resolved_event(
     control: str,
     status: str | None = None,
     message: str | None = None,
+    capabilities: A2UICapabilities | None = None,
 ) -> dict[str, Any]:
     review = build_complete_patch_review_contract(card, patch_id=patch_id)
     normalized_control = control.strip().lower()
@@ -150,6 +156,7 @@ def build_complete_patch_review_action_resolved_event(
         selection=selection,
         status=resolved_status,
         message=message,
+        capabilities=capabilities,
     )
 
 
@@ -162,6 +169,7 @@ def build_action_resolved_event(
     status: str,
     selection: dict[str, Any] | None = None,
     message: str | None = None,
+    capabilities: A2UICapabilities | None = None,
 ) -> dict[str, Any]:
     event = _base_event(event_id=event_id, run_id=run_id, sequence=sequence, event_type="action_resolved")
     event["action_id"] = action_id
@@ -170,7 +178,7 @@ def build_action_resolved_event(
         event["selection"] = deepcopy(selection)
     if message is not None:
         event["message"] = message
-    validate_stream_event(event)
+    validate_stream_event(event, capabilities)
     return event
 
 
@@ -183,6 +191,7 @@ def build_action_resolved_event_from_selection(
     selection: dict[str, Any],
     status: str,
     message: str | None = None,
+    capabilities: A2UICapabilities | None = None,
 ) -> dict[str, Any]:
     action = action_ref_from_selection(card, selection)
     return build_action_resolved_event(
@@ -193,6 +202,7 @@ def build_action_resolved_event_from_selection(
         status=status,
         selection=selection,
         message=message,
+        capabilities=capabilities,
     )
 
 

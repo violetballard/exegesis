@@ -3130,6 +3130,32 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(selected["action_id"], "apply_patch")
         self.assertEqual(selected["selection"]["action_identity"], selection["action_identity"])
 
+    def test_streaming_action_selected_event_revalidates_client_action_capabilities(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+
+        with self.assertRaisesRegex(ValueError, "Client does not support A2UI stream event action id"):
+            build_action_selected_event_from_selection(
+                event_id="evt-2",
+                run_id="run-1",
+                sequence=2,
+                card=card,
+                selection=selection,
+                capabilities=_capabilities(actions_supported=("preview_patch", "reject_patch")),
+            )
+
     def test_streaming_action_selected_event_rejects_stale_selection_identity(self) -> None:
         card = materialize_terminal_card(
             {
@@ -3354,6 +3380,43 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(rejected["action_id"], "reject_patch")
         self.assertEqual(rejected["status"], "rejected")
         self.assertEqual(rejected["message"], "User rejected patch")
+
+    def test_complete_patch_review_events_revalidate_client_action_capabilities(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        caps = _capabilities(actions_supported=("preview_patch", "reject_patch"))
+
+        with self.assertRaisesRegex(ValueError, "Client does not support A2UI stream event action id"):
+            build_complete_patch_review_action_selected_event(
+                event_id="evt-1",
+                run_id="run-1",
+                sequence=1,
+                card=card,
+                patch_id="p1",
+                control="apply",
+                capabilities=caps,
+            )
+        with self.assertRaisesRegex(ValueError, "Client does not support A2UI stream event action id"):
+            build_complete_patch_review_action_resolved_event(
+                event_id="evt-2",
+                run_id="run-1",
+                sequence=2,
+                card=card,
+                patch_id="p1",
+                control="apply",
+                capabilities=caps,
+            )
 
     def test_complete_patch_review_action_resolved_event_rejects_wrong_status(self) -> None:
         card = materialize_terminal_card(
