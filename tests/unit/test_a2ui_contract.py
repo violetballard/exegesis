@@ -113,6 +113,22 @@ class _PolicyGateStub:
         return self.allow
 
 
+@dataclass
+class _RecordingPolicyGate:
+    allow: bool
+    calls: list[tuple[str, dict[str, object], bool]]
+
+    def allow_action(
+        self,
+        action_id: str,
+        payload: dict[str, object],
+        *,
+        policy_sensitive: bool,
+    ) -> bool:
+        self.calls.append((action_id, payload, policy_sensitive))
+        return self.allow
+
+
 class A2UIContractTests(unittest.TestCase):
     def test_capabilities_handshake_is_stored_per_session(self) -> None:
         store = A2UISessionStore()
@@ -1988,6 +2004,65 @@ class A2UIContractTests(unittest.TestCase):
                 policy_gate=_PolicyGateStub(True),
                 executor=lambda action: action.id,
             )
+
+    def test_patch_decision_execution_is_policy_sensitive_even_when_card_omits_flag(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_patch_review_contract(card, patch_id="p1")
+        apply_selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+        gate = _RecordingPolicyGate(False, [])
+
+        with self.assertRaises(PermissionError):
+            execute_patch_review_selection_with_policy_gate(
+                card=card,
+                review=review,
+                selection=apply_selection,
+                patch_id="p1",
+                capabilities=_capabilities(),
+                policy_gate=gate,
+                executor=lambda action: action.id,
+            )
+
+        self.assertEqual(gate.calls, [("apply_patch", {"patch_id": "p1"}, True)])
+
+    def test_complete_patch_review_decision_is_policy_sensitive_even_when_card_omits_flag(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        gate = _RecordingPolicyGate(True, [])
+
+        result = execute_complete_patch_review_action_with_policy_gate(
+            card=card,
+            patch_id="p1",
+            control="reject",
+            capabilities=_capabilities(),
+            policy_gate=gate,
+            executor=lambda action: action.policy_sensitive,
+        )
+
+        self.assertTrue(result)
+        self.assertEqual(gate.calls, [("reject_patch", {"patch_id": "p1"}, True)])
 
     def test_action_payload_rejects_untyped_extra_fields_before_policy_gate(self) -> None:
         executed: list[str] = []

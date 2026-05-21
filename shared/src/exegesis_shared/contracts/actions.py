@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 import json
 from typing import Any, Callable, Protocol
 
@@ -1135,6 +1135,13 @@ def execute_action_with_policy_gate(
     return executor(action)
 
 
+def engine_authoritative_action_ref(action: ActionRef) -> ActionRef:
+    validate_action_ref(action.as_contract())
+    if action.id in PATCH_DECISION_ACTION_IDS and not action.policy_sensitive:
+        return replace(action, policy_sensitive=True)
+    return action
+
+
 def execute_patch_review_selection_with_policy_gate(
     *,
     card: dict[str, Any],
@@ -1152,7 +1159,7 @@ def execute_patch_review_selection_with_policy_gate(
         patch_id=patch_id,
     )
     return execute_action_with_policy_gate(
-        action=selected.action,
+        action=engine_authoritative_action_ref(selected.action),
         capabilities=capabilities,
         policy_gate=policy_gate,
         executor=executor,
@@ -1170,7 +1177,7 @@ def execute_complete_patch_review_action_with_policy_gate(
 ) -> Any:
     action = complete_patch_review_action_from_card(card, patch_id=patch_id, control=control)
     return execute_action_with_policy_gate(
-        action=action,
+        action=engine_authoritative_action_ref(action),
         capabilities=capabilities,
         policy_gate=policy_gate,
         executor=executor,
