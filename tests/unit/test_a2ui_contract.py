@@ -826,6 +826,54 @@ class A2UIContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "session_id is required"):
             store.register(" ", _capabilities())
 
+    def test_capability_names_must_be_normalized_before_registration(self) -> None:
+        caps = _capabilities()
+        store = A2UISessionStore()
+
+        padded_action = A2UICapabilities(
+            a2ui_version=caps.a2ui_version,
+            client_name=caps.client_name,
+            cards_supported=caps.cards_supported,
+            primitive_blocks_supported=caps.primitive_blocks_supported,
+            actions_supported=("preview_patch", " apply_patch ", "reject_patch"),
+            max_payload_bytes=caps.max_payload_bytes,
+            supports_streaming=caps.supports_streaming,
+        )
+        with self.assertRaisesRegex(ValueError, "actions_supported entries must be normalized"):
+            store.register("sess-actions", padded_action)
+
+        padded_card = A2UICapabilities(
+            a2ui_version=caps.a2ui_version,
+            client_name=caps.client_name,
+            cards_supported=(" ProposedEditCard ",),
+            primitive_blocks_supported=caps.primitive_blocks_supported,
+            actions_supported=caps.actions_supported,
+            max_payload_bytes=caps.max_payload_bytes,
+            supports_streaming=caps.supports_streaming,
+        )
+        with self.assertRaisesRegex(ValueError, "cards_supported entries must be normalized"):
+            validate_capabilities(padded_card)
+
+        padded_block = A2UICapabilities(
+            a2ui_version=caps.a2ui_version,
+            client_name=caps.client_name,
+            cards_supported=caps.cards_supported,
+            primitive_blocks_supported=(
+                "MarkdownBlock",
+                " KeyValueBlock ",
+                "ListBlock",
+                "TableBlock",
+                "AlertBlock",
+                "ProgressBlock",
+                "CodeBlock",
+            ),
+            actions_supported=caps.actions_supported,
+            max_payload_bytes=caps.max_payload_bytes,
+            supports_streaming=caps.supports_streaming,
+        )
+        with self.assertRaisesRegex(ValueError, "primitive_blocks_supported entries must be normalized"):
+            validate_capabilities(padded_block)
+
     def test_engine_falls_back_to_generic_for_unsupported_specialized_card(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
         payload = {"type": "RunDecisionCard", "title": "Patch"}

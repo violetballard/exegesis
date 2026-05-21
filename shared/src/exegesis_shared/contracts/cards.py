@@ -160,6 +160,8 @@ def _validate_capability_names(values: Any, field_name: str) -> None:
         if not isinstance(value, str) or not value.strip():
             raise ValueError(f"{field_name} entries must be non-empty strings")
         normalized = value.strip()
+        if value != normalized:
+            raise ValueError(f"{field_name} entries must be normalized: {normalized}")
         if normalized in seen:
             raise ValueError(f"{field_name} entries must be unique: {normalized}")
         seen.add(normalized)
