@@ -288,6 +288,23 @@ def resolve_card_selection_contract(card: dict[str, Any], selection: dict[str, A
     return action
 
 
+def action_ref_from_selection(card: dict[str, Any], selection: dict[str, Any]) -> ActionRef:
+    action = resolve_card_selection_contract(card, selection)
+    validate_action_ref(action)
+    confirm = action.get("confirm")
+    if confirm is not None and not isinstance(confirm, dict):
+        raise ValueError("Action confirm must be an object")
+    if isinstance(confirm, dict):
+        confirm = {str(key): str(value) for key, value in confirm.items()}
+    return ActionRef(
+        id=str(action["id"]),
+        label=str(action["label"]).strip(),
+        payload=deepcopy(action["payload"]),
+        confirm=confirm,
+        policy_sensitive=bool(action.get("policy_sensitive", False)),
+    )
+
+
 def resolve_patch_decision_selection(
     card: dict[str, Any],
     selection: dict[str, Any],
@@ -315,6 +332,16 @@ def resolve_patch_decision_selection(
     if action_patch_id != expected_patch_id:
         raise ValueError("Patch decision selection does not match the current patch")
     return action
+
+
+def patch_decision_action_ref_from_selection(
+    card: dict[str, Any],
+    selection: dict[str, Any],
+    *,
+    patch_id: str,
+) -> ActionRef:
+    resolve_patch_decision_selection(card, selection, patch_id=patch_id)
+    return action_ref_from_selection(card, selection)
 
 
 def resolve_patch_decision_action(
@@ -349,6 +376,16 @@ def resolve_patch_preview_selection(
     if action_patch_id != expected_patch_id:
         raise ValueError("Patch preview selection does not match the current patch")
     return action
+
+
+def patch_preview_action_ref_from_selection(
+    card: dict[str, Any],
+    selection: dict[str, Any],
+    *,
+    patch_id: str,
+) -> ActionRef:
+    resolve_patch_preview_selection(card, selection, patch_id=patch_id)
+    return action_ref_from_selection(card, selection)
 
 
 def build_patch_preview_selection(card: dict[str, Any], *, patch_id: str) -> dict[str, Any]:

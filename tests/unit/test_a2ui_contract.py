@@ -14,6 +14,7 @@ from src.qual.ui.a2ui import (
     A2UICapabilities,
     A2UISessionStore,
     ActionRef,
+    action_ref_from_selection,
     build_action_resolved_event,
     build_action_selected_event,
     build_card_published_event,
@@ -25,6 +26,8 @@ from src.qual.ui.a2ui import (
     materialize_patch_preview_contract,
     materialize_proposed_edit_card,
     materialize_terminal_card,
+    patch_decision_action_ref_from_selection,
+    patch_preview_action_ref_from_selection,
     render_terminal_card,
     resolve_card_selection_contract,
     resolve_patch_decision_action,
@@ -773,6 +776,64 @@ class A2UIContractTests(unittest.TestCase):
             resolve_patch_decision_action(card, patch_id="p2", decision="apply")
         with self.assertRaisesRegex(ValueError, "must be 'apply' or 'reject'"):
             resolve_patch_decision_action(card, patch_id="p1", decision="open")
+
+    def test_selection_contract_materializes_typed_action_ref_for_engine_policy_gate(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {
+                        "id": "apply_patch",
+                        "label": " Apply ",
+                        "payload": {"patch_id": "p1"},
+                        "confirm": {"title": "Apply patch?"},
+                        "policy_sensitive": True,
+                    },
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+
+        action = action_ref_from_selection(card, selection)
+
+        self.assertEqual(action.id, "apply_patch")
+        self.assertEqual(action.label, "Apply")
+        self.assertEqual(action.payload, {"patch_id": "p1"})
+        self.assertEqual(action.confirm, {"title": "Apply patch?"})
+        self.assertTrue(action.policy_sensitive)
+
+    def test_patch_selection_action_refs_revalidate_current_patch_kind(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        preview_selection = build_patch_preview_selection(card, patch_id="p1")
+        apply_selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+
+        self.assertEqual(
+            patch_preview_action_ref_from_selection(card, preview_selection, patch_id="p1").id,
+            "preview_patch",
+        )
+        self.assertEqual(
+            patch_decision_action_ref_from_selection(card, apply_selection, patch_id="p1").id,
+            "apply_patch",
+        )
+        with self.assertRaisesRegex(ValueError, "not a patch decision"):
+            patch_decision_action_ref_from_selection(card, preview_selection, patch_id="p1")
+        with self.assertRaisesRegex(ValueError, "not a patch preview"):
+            patch_preview_action_ref_from_selection(card, apply_selection, patch_id="p1")
 
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []
