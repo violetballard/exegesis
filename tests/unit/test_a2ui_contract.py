@@ -57,6 +57,7 @@ from src.qual.ui.a2ui import (
     patch_review_action_selection_from_selection,
     patch_review_availability_from_contract,
     patch_review_action_refs_from_contract,
+    patch_review_cli_control_map_from_contract,
     patch_review_control_actions_from_contract,
     patch_review_control_plan_from_contract,
     patch_review_control_summary_from_contract,
@@ -1066,6 +1067,63 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(
             shared_contracts.patch_review_control_plan_from_contract(card, review, patch_id="p1"),
             plan,
+        )
+
+    def test_patch_review_cli_control_map_exports_one_based_commands(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        command_map = patch_review_cli_control_map_from_contract(
+            card,
+            review,
+            patch_id=" p1 ",
+        )
+
+        self.assertEqual(command_map["selection_model"], "one_based_action_slot")
+        self.assertEqual(command_map["demo_path_step"], PATCH_REVIEW_DEMO_PATH_STEP)
+        self.assertTrue(command_map["is_complete"])
+        self.assertEqual(command_map["missing"], [])
+        self.assertEqual(
+            [
+                (
+                    entry["control"],
+                    entry["command"],
+                    entry["slot"],
+                    entry["action_id"],
+                    entry["policy_gate"],
+                    entry["requires_confirmation"],
+                )
+                for entry in command_map["controls"]
+            ],
+            [
+                ("preview", "1", 1, "preview_patch", "optional", False),
+                ("apply", "2", 2, "apply_patch", "required", True),
+                ("reject", "3", 3, "reject_patch", "required", True),
+            ],
+        )
+        self.assertEqual(
+            command_map["controls"][1]["selection"],
+            review["decisions"][0]["selection"],
+        )
+        self.assertEqual(
+            shared_contracts.patch_review_cli_control_map_from_contract(
+                card,
+                review,
+                patch_id="p1",
+            ),
+            command_map,
         )
 
     def test_patch_review_control_summary_reports_missing_demo_controls(self) -> None:

@@ -691,6 +691,53 @@ def patch_review_control_summary_from_contract(
     }
 
 
+def patch_review_cli_control_map_from_contract(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+) -> dict[str, Any]:
+    summary = patch_review_control_summary_from_contract(card, review, patch_id=patch_id)
+    controls: list[dict[str, Any]] = []
+    for entry in summary["order"]:
+        if not isinstance(entry, dict):
+            continue
+        slot = entry.get("slot")
+        if not isinstance(slot, int):
+            continue
+        execution_policy = entry.get("execution_policy", {})
+        controls.append(
+            {
+                "control": entry["control"],
+                "command": str(slot),
+                "slot": slot,
+                "action_id": entry["action_id"],
+                "action_identity": entry["action_identity"],
+                "label": entry["label"],
+                "requires_confirmation": bool(
+                    isinstance(execution_policy, dict)
+                    and execution_policy.get("requires_confirmation") is True
+                ),
+                "policy_gate": (
+                    execution_policy.get("policy_gate")
+                    if isinstance(execution_policy, dict)
+                    else None
+                ),
+                "policy_sensitive": entry["policy_sensitive"],
+                "selection": deepcopy(entry["selection"]),
+            }
+        )
+    return {
+        "contract_version": PATCH_REVIEW_CONTRACT_VERSION,
+        "patch_id": summary["patch_id"],
+        "selection_model": "one_based_action_slot",
+        "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+        "is_complete": summary["is_complete"],
+        "missing": deepcopy(summary["missing"]),
+        "controls": controls,
+    }
+
+
 def patch_review_control_plan_from_contract(
     card: dict[str, Any],
     review: dict[str, Any],

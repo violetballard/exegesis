@@ -45,6 +45,7 @@ from exegesis_shared.contracts.actions import (
     patch_review_action_selection_from_selection,
     patch_review_availability_from_contract,
     patch_review_action_refs_from_contract,
+    patch_review_cli_control_map_from_contract,
     patch_review_control_actions_from_contract,
     patch_review_control_plan_from_contract,
     patch_review_control_summary_from_contract,
@@ -170,6 +171,18 @@ def render_terminal_card(card: dict[str, Any]) -> str:
         ]
         if ordered_controls:
             lines.append(f"Patch review controls: {', '.join(ordered_controls)}")
+            cli_controls = patch_review_cli_control_map_from_contract(
+                materialized,
+                review,
+                patch_id=patch_id,
+            )
+            command_map = [
+                f"{entry['control']}={entry['command']}"
+                for entry in cli_controls["controls"]
+                if isinstance(entry, dict)
+            ]
+            if command_map:
+                lines.append(f"Patch review CLI commands: {', '.join(command_map)}")
             gated_controls = [
                 entry["control"]
                 for entry in summary["order"]
@@ -281,6 +294,7 @@ __all__ = [
     "patch_review_action_selection_from_selection",
     "patch_review_availability_from_contract",
     "patch_review_action_refs_from_contract",
+    "patch_review_cli_control_map_from_contract",
     "patch_review_control_actions_from_contract",
     "patch_review_control_plan_from_contract",
     "patch_review_control_summary_from_contract",
