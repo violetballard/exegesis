@@ -50,6 +50,7 @@ from exegesis_shared.contracts.actions import (
     patch_review_cli_command_lookup_from_contract,
     patch_review_cli_control_map_from_contract,
     patch_review_control_actions_from_contract,
+    patch_review_decision_cli_command_lookup_from_contract,
     patch_review_decision_controls_from_contract,
     patch_review_next_control_from_contract,
     patch_review_control_plan_from_contract,
@@ -235,6 +236,21 @@ def render_terminal_card(card: dict[str, Any]) -> str:
                     "Patch review decision controls: "
                     f"{', '.join(decision_command_map)}"
                 )
+                decision_lookup = patch_review_decision_cli_command_lookup_from_contract(
+                    materialized,
+                    review,
+                    patch_id=patch_id,
+                )
+                decision_lookup_map = [
+                    f"{command}->{entry['control']}"
+                    for command, entry in sorted(decision_lookup["commands"].items())
+                    if isinstance(entry, dict)
+                ]
+                if decision_lookup_map:
+                    lines.append(
+                        "Patch review decision command lookup: "
+                        f"{', '.join(decision_lookup_map)}"
+                    )
             gated_controls = [
                 entry["control"]
                 for entry in summary["order"]
@@ -374,6 +390,7 @@ __all__ = [
     "patch_review_cli_command_lookup_from_contract",
     "patch_review_cli_control_map_from_contract",
     "patch_review_control_actions_from_contract",
+    "patch_review_decision_cli_command_lookup_from_contract",
     "patch_review_decision_controls_from_contract",
     "patch_review_next_control_from_contract",
     "patch_review_control_plan_from_contract",

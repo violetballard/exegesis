@@ -123,6 +123,12 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Patch review CLI commands: preview=1, apply=2, reject=3", text)
         self.assertIn("Patch review decision controls: apply=2, reject=3", text)
         self.assertIn(
+            "Patch review decision command lookup: "
+            "2->apply, 3->reject, apply->apply, apply_patch->apply, "
+            "reject->reject, reject_patch->reject",
+            text,
+        )
+        self.assertIn(
             "Patch review CLI aliases: "
             "preview=preview/preview_patch, apply=apply/apply_patch, reject=reject/reject_patch",
             text,
