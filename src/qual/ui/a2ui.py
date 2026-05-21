@@ -40,6 +40,15 @@ from exegesis_shared.contracts.cards import (
     validate_proposed_edit_card,
     validate_primitive_block,
 )
+from exegesis_shared.contracts.events import (
+    A2UI_EVENT_CONTRACT_VERSION,
+    A2UI_STREAM_EVENT_TYPES,
+    build_action_resolved_event,
+    build_action_selected_event,
+    build_card_published_event,
+    stream_event_key,
+    validate_stream_event,
+)
 
 
 def _deduped_sorted_actions(card: dict[str, Any]) -> list[dict[str, Any]]:
@@ -105,6 +114,8 @@ def render_terminal_card(card: dict[str, Any]) -> str:
 __all__ = [
     "ActionRef",
     "A2UICapabilities",
+    "A2UI_EVENT_CONTRACT_VERSION",
+    "A2UI_STREAM_EVENT_TYPES",
     "A2UISessionStore",
     "A2UI_VERSION",
     "ACTION_SELECTION_CONTRACT_VERSION",
@@ -116,6 +127,9 @@ __all__ = [
     "REQUIRED_PRIMITIVE_BLOCKS",
     "UNKNOWN_CARD_TYPE",
     "build_patch_decision_selection",
+    "build_action_resolved_event",
+    "build_action_selected_event",
+    "build_card_published_event",
     "canonicalize_action_order",
     "build_unknown_card",
     "engine_prepare_card",
@@ -133,10 +147,12 @@ __all__ = [
     "resolve_patch_decision_action",
     "resolve_patch_decision_selection",
     "studio_materialize_card",
+    "stream_event_key",
     "validate_action_ref",
     "validate_card_payload_size",
     "validate_capabilities",
     "validate_generic_card",
     "validate_proposed_edit_card",
     "validate_primitive_block",
+    "validate_stream_event",
 ]

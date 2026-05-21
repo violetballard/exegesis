@@ -31,6 +31,15 @@ from exegesis_shared.contracts.cards import (
     validate_proposed_edit_card,
     validate_primitive_block,
 )
+from exegesis_shared.contracts.events import (
+    A2UI_EVENT_CONTRACT_VERSION,
+    A2UI_STREAM_EVENT_TYPES,
+    build_action_resolved_event,
+    build_action_selected_event,
+    build_card_published_event,
+    stream_event_key,
+    validate_stream_event,
+)
 
 __all__ = [
     "ActionRef",
@@ -38,12 +47,17 @@ __all__ = [
     "A2UICapabilities",
     "A2UISessionStore",
     "A2UI_VERSION",
+    "A2UI_EVENT_CONTRACT_VERSION",
+    "A2UI_STREAM_EVENT_TYPES",
     "ALLOWED_ACTION_IDS",
     "PATCH_DECISION_CONTRACT_VERSION",
     "GENERIC_CARD_TYPE",
     "PROPOSED_EDIT_CARD_TYPE",
     "UNKNOWN_CARD_TYPE",
     "build_patch_decision_selection",
+    "build_action_resolved_event",
+    "build_action_selected_event",
+    "build_card_published_event",
     "build_unknown_card",
     "engine_prepare_card",
     "execute_action_with_policy_gate",
@@ -56,10 +70,12 @@ __all__ = [
     "resolve_card_selection_by_index",
     "resolve_patch_decision_selection",
     "studio_materialize_card",
+    "stream_event_key",
     "validate_action_ref",
     "validate_card_payload_size",
     "validate_capabilities",
     "validate_generic_card",
     "validate_proposed_edit_card",
     "validate_primitive_block",
+    "validate_stream_event",
 ]

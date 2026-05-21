@@ -13,6 +13,9 @@ from src.qual.ui.a2ui import (
     A2UICapabilities,
     A2UISessionStore,
     ActionRef,
+    build_action_resolved_event,
+    build_action_selected_event,
+    build_card_published_event,
     build_patch_decision_selection,
     build_unknown_card,
     engine_prepare_card,
@@ -25,6 +28,7 @@ from src.qual.ui.a2ui import (
     resolve_patch_decision_selection,
     studio_materialize_card,
     validate_capabilities,
+    validate_stream_event,
 )
 
 
@@ -601,6 +605,98 @@ class A2UIContractTests(unittest.TestCase):
             executor=lambda a: executed.append(a.id),
         )
         self.assertEqual(executed, ["export_document"])
+
+    def test_streaming_card_event_materializes_engine_card_contract(self) -> None:
+        event = build_card_published_event(
+            event_id="evt-1",
+            run_id="run-1",
+            sequence=1,
+            card={
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [],
+            },
+            capabilities=_capabilities(),
+        )
+
+        self.assertEqual(event["event_type"], "card_published")
+        self.assertEqual(event["card"]["type"], "ProposedEditCard")
+        self.assertEqual([action["id"] for action in event["card"]["actions"]], ["apply_patch", "reject_patch"])
+        self.assertEqual(event["card"]["patch_decision"]["patch_id"], "p1")
+
+    def test_streaming_action_events_carry_versioned_selection_and_resolution(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [{"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}}],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+
+        selected = build_action_selected_event(
+            event_id="evt-2",
+            run_id="run-1",
+            sequence=2,
+            action_id="apply_patch",
+            selection=selection,
+        )
+        resolved = build_action_resolved_event(
+            event_id="evt-3",
+            run_id="run-1",
+            sequence=3,
+            action_id="apply_patch",
+            status="applied",
+        )
+
+        self.assertEqual(selected["selection"]["patch_decision"], "apply")
+        self.assertEqual(resolved["status"], "applied")
+
+    def test_streaming_action_events_reject_unknown_action_ids(self) -> None:
+        selection = {
+            "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+            "selection_model": "one_based_action_slot",
+            "slot": 1,
+            "action_identity": "unknown",
+        }
+
+        with self.assertRaisesRegex(ValueError, "Unsupported A2UI stream event action id"):
+            build_action_selected_event(
+                event_id="evt-2",
+                run_id="run-1",
+                sequence=2,
+                action_id="delete_everything",
+                selection=selection,
+            )
+
+    def test_streaming_events_are_rejected_when_client_does_not_support_streaming(self) -> None:
+        caps = _capabilities()
+        caps = A2UICapabilities(
+            a2ui_version=caps.a2ui_version,
+            client_name=caps.client_name,
+            cards_supported=caps.cards_supported,
+            primitive_blocks_supported=caps.primitive_blocks_supported,
+            actions_supported=caps.actions_supported,
+            max_payload_bytes=caps.max_payload_bytes,
+            supports_streaming=False,
+        )
+
+        with self.assertRaisesRegex(ValueError, "does not support A2UI streaming"):
+            validate_stream_event(
+                {
+                    "contract_version": 1,
+                    "event_id": "evt-1",
+                    "run_id": "run-1",
+                    "sequence": 1,
+                    "event_type": "card_published",
+                    "card": {"type": "GenericCard", "title": "Run", "blocks": []},
+                },
+                caps,
+            )
 
     def test_terminal_can_render_inline_generic_and_unknown_cards(self) -> None:
         generic = {
