@@ -1567,6 +1567,56 @@ class A2UIContractTests(unittest.TestCase):
                 selection=selection,
             )
 
+    def test_streaming_action_selected_event_rejects_untyped_selection_shape(self) -> None:
+        selection = {
+            "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+            "selection_model": "freeform",
+            "slot": 0,
+            "action_identity": "",
+        }
+
+        with self.assertRaisesRegex(ValueError, "Unsupported action selection model"):
+            build_action_selected_event(
+                event_id="evt-2",
+                run_id="run-1",
+                sequence=2,
+                action_id="apply_patch",
+                selection=selection,
+            )
+
+    def test_streaming_action_selected_event_rejects_mismatched_patch_selection(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        apply_selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+        preview_selection = build_patch_preview_selection(card, patch_id="p1")
+
+        with self.assertRaisesRegex(ValueError, "does not match patch decision selection"):
+            build_action_selected_event(
+                event_id="evt-2",
+                run_id="run-1",
+                sequence=2,
+                action_id="reject_patch",
+                selection=apply_selection,
+            )
+        with self.assertRaisesRegex(ValueError, "does not match patch preview selection"):
+            build_action_selected_event(
+                event_id="evt-3",
+                run_id="run-1",
+                sequence=3,
+                action_id="apply_patch",
+                selection=preview_selection,
+            )
+
     def test_streaming_events_are_rejected_when_client_does_not_support_streaming(self) -> None:
         caps = _capabilities()
         caps = A2UICapabilities(
