@@ -13,6 +13,7 @@ from exegesis_shared.contracts.actions import (
     materialize_card_actions,
     materialize_cli_fallback_card,
     resolve_card_selection,
+    resolve_card_selection_contract,
     resolve_card_selection_by_index,
     validate_action_ref,
 )
@@ -118,6 +119,7 @@ __all__ = [
     "materialize_terminal_card",
     "render_terminal_card",
     "resolve_card_selection",
+    "resolve_card_selection_contract",
     "resolve_card_selection_by_index",
     "studio_materialize_card",
     "validate_action_ref",

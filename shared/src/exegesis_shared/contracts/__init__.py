@@ -5,6 +5,7 @@ from exegesis_shared.contracts.actions import (
     execute_action_with_policy_gate,
     materialize_action_selection_contract,
     materialize_cli_fallback_card,
+    resolve_card_selection_contract,
     resolve_card_selection_by_index,
     validate_action_ref,
 )
@@ -41,6 +42,7 @@ __all__ = [
     "materialize_action_selection_contract",
     "materialize_cli_fallback_card",
     "materialize_proposed_edit_card",
+    "resolve_card_selection_contract",
     "resolve_card_selection_by_index",
     "studio_materialize_card",
     "validate_action_ref",

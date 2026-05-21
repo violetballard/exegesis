@@ -175,6 +175,23 @@ def resolve_card_selection_by_index(card: dict[str, Any], selected_action_index:
     return action
 
 
+def resolve_card_selection_contract(card: dict[str, Any], selection: dict[str, Any]) -> dict[str, Any]:
+    if not isinstance(selection, dict):
+        raise ValueError("Action selection must be an object")
+    if selection.get("contract_version") != ACTION_SELECTION_CONTRACT_VERSION:
+        raise ValueError("Unsupported action selection contract version")
+    if selection.get("selection_model") != "one_based_action_slot":
+        raise ValueError("Unsupported action selection model")
+
+    slot = selection.get("slot")
+    action = resolve_card_selection_by_index(card, slot)
+    expected_identity = canonical_action_identity_key(action)
+    submitted_identity = selection.get("action_identity")
+    if submitted_identity != expected_identity:
+        raise ValueError("Action selection identity does not match the current card")
+    return action
+
+
 def validate_action_ref(action: Any) -> None:
     if not isinstance(action, dict):
         raise ValueError("ActionRef must be an object")

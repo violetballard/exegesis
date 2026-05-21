@@ -18,6 +18,7 @@ from src.qual.ui.a2ui import (
     materialize_proposed_edit_card,
     materialize_terminal_card,
     render_terminal_card,
+    resolve_card_selection_contract,
     studio_materialize_card,
     validate_capabilities,
 )
@@ -217,6 +218,42 @@ class A2UIContractTests(unittest.TestCase):
             [line for line in text.splitlines() if line.startswith("* ")],
             ["* 1. Apply", "* 2. Reject", "* 3. Revise"],
         )
+
+    def test_shared_selection_contract_resolves_only_current_slot_identity(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+            "actions": [
+                {"id": "apply_patch", "label": "Apply A", "payload": {"patch_id": "a"}},
+                {"id": "apply_patch", "label": "Apply B", "payload": {"patch_id": "b"}},
+            ],
+        }
+        fallback = materialize_terminal_card(card)
+        second_slot = fallback["action_selection"]["order"][1]
+
+        action = resolve_card_selection_contract(
+            fallback,
+            {
+                "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+                "selection_model": "one_based_action_slot",
+                "slot": second_slot["slot"],
+                "action_identity": second_slot["action_identity"],
+            },
+        )
+
+        self.assertEqual(action["payload"], {"patch_id": "b"})
+
+        with self.assertRaisesRegex(ValueError, "identity does not match"):
+            resolve_card_selection_contract(
+                fallback,
+                {
+                    "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+                    "selection_model": "one_based_action_slot",
+                    "slot": second_slot["slot"],
+                    "action_identity": fallback["action_selection"]["order"][0]["action_identity"],
+                },
+            )
 
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []
