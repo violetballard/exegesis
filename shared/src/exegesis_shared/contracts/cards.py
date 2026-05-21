@@ -55,6 +55,18 @@ _BASKET_CARD_FIELDS = frozenset(
 _CONTEXT_SET_CARD_FIELDS = frozenset(
     {"type", "title", "context_set_id", "items", "actions", "action_selection"}
 )
+DEMO_CONTEXT_CARD_TYPES: tuple[str, ...] = (
+    RETRIEVAL_RESULTS_CARD_TYPE,
+    BASKET_CARD_TYPE,
+    CONTEXT_SET_CARD_TYPE,
+)
+DEMO_CONTEXT_ACTION_IDS: tuple[str, ...] = (
+    "open_corpus_item",
+    "promote_to_basket",
+    "pin_to_context_set",
+    "create_context_set",
+    "gather_context",
+)
 
 
 @dataclass(frozen=True)
@@ -112,6 +124,32 @@ def validate_complete_patch_review_card_capabilities(capabilities: A2UICapabilit
     if PROPOSED_EDIT_CARD_TYPE not in set(capabilities.cards_supported):
         raise ValueError("Complete patch review requires ProposedEditCard support")
     validate_complete_patch_review_capabilities(capabilities)
+
+
+def validate_demo_context_card_capabilities(capabilities: A2UICapabilities) -> None:
+    validate_capabilities(capabilities)
+    cards_supported = set(capabilities.cards_supported)
+    missing_cards = [
+        card_type
+        for card_type in DEMO_CONTEXT_CARD_TYPES
+        if card_type not in cards_supported
+    ]
+    if missing_cards:
+        raise ValueError(
+            "Demo context flow requires card support: "
+            + ", ".join(missing_cards)
+        )
+    actions_supported = set(capabilities.actions_supported)
+    missing_actions = [
+        action_id
+        for action_id in DEMO_CONTEXT_ACTION_IDS
+        if action_id not in actions_supported
+    ]
+    if missing_actions:
+        raise ValueError(
+            "Demo context flow requires action support: "
+            + ", ".join(missing_actions)
+        )
 
 
 def _validate_capability_names(values: Any, field_name: str) -> None:

@@ -26,6 +26,8 @@ from src.qual.ui.a2ui import (
     ActionRef,
     BASKET_CARD_TYPE,
     CONTEXT_SET_CARD_TYPE,
+    DEMO_CONTEXT_ACTION_IDS,
+    DEMO_CONTEXT_CARD_TYPES,
     CompletePatchReviewActions,
     GENERIC_CARD_TYPE,
     KNOWN_CARD_TYPES,
@@ -102,6 +104,7 @@ from src.qual.ui.a2ui import (
     validate_complete_patch_review_capabilities,
     validate_complete_patch_review_card_capabilities,
     validate_context_set_card,
+    validate_demo_context_card_capabilities,
     validate_known_card,
     validate_retrieval_results_card,
     validate_stream_event,
@@ -187,6 +190,42 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIs(shared_contracts.RETRIEVAL_RESULTS_CARD_TYPE, RETRIEVAL_RESULTS_CARD_TYPE)
         self.assertIs(shared_contracts.BASKET_CARD_TYPE, BASKET_CARD_TYPE)
         self.assertIs(shared_contracts.CONTEXT_SET_CARD_TYPE, CONTEXT_SET_CARD_TYPE)
+        self.assertEqual(
+            DEMO_CONTEXT_CARD_TYPES,
+            (RETRIEVAL_RESULTS_CARD_TYPE, BASKET_CARD_TYPE, CONTEXT_SET_CARD_TYPE),
+        )
+        self.assertEqual(
+            shared_contracts.DEMO_CONTEXT_ACTION_IDS,
+            DEMO_CONTEXT_ACTION_IDS,
+        )
+
+    def test_demo_context_card_capabilities_require_full_context_flow_surface(self) -> None:
+        caps = _capabilities(cards_supported=DEMO_CONTEXT_CARD_TYPES)
+
+        validate_demo_context_card_capabilities(caps)
+        shared_contracts.validate_demo_context_card_capabilities(caps)
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Demo context flow requires card support: ContextSetCard",
+        ):
+            validate_demo_context_card_capabilities(
+                _capabilities(cards_supported=(RETRIEVAL_RESULTS_CARD_TYPE, BASKET_CARD_TYPE))
+            )
+        with self.assertRaisesRegex(
+            ValueError,
+            "Demo context flow requires action support: gather_context",
+        ):
+            validate_demo_context_card_capabilities(
+                _capabilities(
+                    cards_supported=DEMO_CONTEXT_CARD_TYPES,
+                    actions_supported=tuple(
+                        action_id
+                        for action_id in _capabilities().actions_supported
+                        if action_id != "gather_context"
+                    ),
+                )
+            )
 
     def test_retrieval_basket_and_context_cards_validate_typed_payloads(self) -> None:
         retrieval_card = {
