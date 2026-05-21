@@ -2217,6 +2217,10 @@ def execute_action_with_policy_gate(
 
 def engine_authoritative_action_ref(action: ActionRef) -> ActionRef:
     validate_action_ref(action.as_contract())
+    normalized_label = action.label.strip()
+    if normalized_label != action.label:
+        action = replace(action, label=normalized_label)
+        validate_action_ref(action.as_contract())
     normalized_fields = ENGINE_NORMALIZED_ACTION_PAYLOAD_FIELDS.get(action.id, ())
     if normalized_fields:
         normalized_payload = dict(action.payload)

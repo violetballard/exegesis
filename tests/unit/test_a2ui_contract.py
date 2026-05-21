@@ -1050,6 +1050,32 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(reject_ref.confirm, {"title": "Reject patch?"})
         self.assertTrue(reject_ref.policy_sensitive)
 
+    def test_engine_authoritative_patch_actions_normalize_labels_and_payloads(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Patch",
+                "patch_id": "patch-1",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
+                "actions": [
+                    {
+                        "id": "apply_patch",
+                        "label": " Apply patch ",
+                        "payload": {"patch_id": " patch-1 "},
+                    },
+                    {
+                        "id": "reject_patch",
+                        "label": " Reject patch ",
+                        "payload": {"patch_id": " patch-1 "},
+                    },
+                ],
+            }
+        )
+
+        self.assertEqual([action["label"] for action in card["actions"]], ["Apply patch", "Reject patch"])
+        self.assertEqual([action["payload"]["patch_id"] for action in card["actions"]], ["patch-1", "patch-1"])
+        self.assertEqual(card["patch_review"]["decisions"][0]["selection"]["patch_id"], "patch-1")
+
     def test_cli_fallback_materialization_enforces_negotiated_payload_limit(self) -> None:
         card = {
             "type": "ProposedEditCard",
