@@ -62,6 +62,7 @@ from src.qual.ui.a2ui import (
     patch_review_control_plan_from_contract,
     patch_review_control_summary_from_contract,
     patch_review_control_slots_from_contract,
+    patch_review_selection_from_cli_command,
     render_terminal_card,
     resolve_card_selection_contract,
     resolve_patch_decision_action,
@@ -1125,6 +1126,74 @@ class A2UIContractTests(unittest.TestCase):
             ),
             command_map,
         )
+
+    def test_patch_review_cli_command_resolves_to_current_selection(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        selection = patch_review_selection_from_cli_command(
+            card,
+            review,
+            patch_id=" p1 ",
+            command=" 2 ",
+        )
+
+        self.assertEqual(selection, review["decisions"][0]["selection"])
+        self.assertEqual(
+            shared_contracts.patch_review_selection_from_cli_command(
+                card,
+                review,
+                patch_id="p1",
+                command="2",
+            ),
+            selection,
+        )
+
+    def test_patch_review_cli_command_rejects_unknown_or_stale_commands(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        with self.assertRaisesRegex(ValueError, "Unsupported patch review CLI command: apply"):
+            patch_review_selection_from_cli_command(
+                card,
+                review,
+                patch_id="p1",
+                command="apply",
+            )
+
+        stale_review = build_complete_patch_review_contract(card, patch_id="p1")
+        stale_review["decisions"][0]["selection"]["action_identity"] = "{}"
+        with self.assertRaisesRegex(ValueError, "does not match"):
+            patch_review_selection_from_cli_command(
+                card,
+                stale_review,
+                patch_id="p1",
+                command="2",
+            )
 
     def test_patch_review_control_summary_reports_missing_demo_controls(self) -> None:
         card = materialize_terminal_card(

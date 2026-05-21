@@ -738,6 +738,36 @@ def patch_review_cli_control_map_from_contract(
     }
 
 
+def patch_review_selection_from_cli_command(
+    card: dict[str, Any],
+    review: dict[str, Any],
+    *,
+    patch_id: str,
+    command: str,
+) -> dict[str, Any]:
+    command_text = command.strip()
+    if not command_text:
+        raise ValueError("Patch review CLI command is required")
+
+    command_map = patch_review_cli_control_map_from_contract(card, review, patch_id=patch_id)
+    for entry in command_map["controls"]:
+        if not isinstance(entry, dict):
+            continue
+        if entry.get("command") != command_text:
+            continue
+        selection = entry.get("selection")
+        if not isinstance(selection, dict):
+            raise ValueError("Patch review CLI command selection must be an object")
+        patch_review_action_selection_from_selection(
+            card,
+            review,
+            selection,
+            patch_id=patch_id,
+        )
+        return deepcopy(selection)
+    raise ValueError(f"Unsupported patch review CLI command: {command_text}")
+
+
 def patch_review_control_plan_from_contract(
     card: dict[str, Any],
     review: dict[str, Any],
