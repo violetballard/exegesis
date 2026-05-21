@@ -1114,6 +1114,31 @@ def resolve_complete_patch_review_cli_command_execution(
     return execution
 
 
+def resolve_complete_patch_review_decision_cli_command_execution(
+    card: dict[str, Any],
+    *,
+    patch_id: str,
+    command: str,
+    capabilities: Any | None = None,
+) -> dict[str, Any]:
+    if capabilities is not None:
+        validate_complete_patch_review_capabilities(capabilities)
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch review patch_id is required")
+    complete_patch_review_actions_from_card(card, patch_id=expected_patch_id)
+    review = _complete_patch_review_contract_from_card(card, patch_id=expected_patch_id)
+    execution = resolve_patch_review_decision_cli_command_execution(
+        card,
+        review,
+        patch_id=expected_patch_id,
+        command=command,
+        capabilities=capabilities,
+    )
+    execution["complete_patch_review"] = _complete_patch_review_execution_contract(review)
+    return execution
+
+
 def _complete_patch_review_contract_from_card(card: dict[str, Any], *, patch_id: str) -> dict[str, Any]:
     embedded_review = card.get("patch_review")
     if embedded_review is not None:
@@ -2464,6 +2489,30 @@ def execute_complete_patch_review_cli_command_with_policy_gate(
 ) -> Any:
     validate_complete_patch_review_capabilities(capabilities)
     execution = resolve_complete_patch_review_cli_command_execution(
+        card,
+        patch_id=patch_id,
+        command=command,
+        capabilities=capabilities,
+    )
+    return execute_action_with_policy_gate(
+        action=_action_ref_from_contract(execution["action_contract"]),
+        capabilities=capabilities,
+        policy_gate=policy_gate,
+        executor=executor,
+    )
+
+
+def execute_complete_patch_review_decision_cli_command_with_policy_gate(
+    *,
+    card: dict[str, Any],
+    patch_id: str,
+    command: str,
+    capabilities: Any,
+    policy_gate: PolicyGate,
+    executor: Callable[[ActionRef], Any],
+) -> Any:
+    validate_complete_patch_review_capabilities(capabilities)
+    execution = resolve_complete_patch_review_decision_cli_command_execution(
         card,
         patch_id=patch_id,
         command=command,
