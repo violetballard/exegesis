@@ -51,6 +51,7 @@ from src.qual.ui.a2ui import (
     complete_patch_review_action_refs_from_contract,
     engine_prepare_card,
     execute_patch_review_cli_command_with_policy_gate,
+    execute_patch_review_control_with_policy_gate,
     execute_complete_patch_review_action_with_policy_gate,
     execute_action_with_policy_gate,
     execute_patch_review_selection_with_policy_gate,
@@ -3040,6 +3041,62 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(result, ("reject_patch", True, {"title": "Reject patch?"}))
         self.assertEqual(gate.calls, [("reject_patch", {"patch_id": "p1"}, True)])
+
+    def test_patch_review_named_control_execution_uses_typed_selection_contract(self) -> None:
+        card = materialize_terminal_card(
+            materialize_proposed_edit_card(
+                {
+                    "type": "ProposedEditCard",
+                    "patch_id": "p1",
+                    "title": "Patch choices",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                    "actions": [],
+                }
+            )
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+        gate = _RecordingPolicyGate(True, [])
+        executed: list[ActionRef] = []
+
+        result = execute_patch_review_control_with_policy_gate(
+            card=card,
+            review=review,
+            patch_id=" p1 ",
+            control=" REJECT ",
+            capabilities=_capabilities(),
+            policy_gate=gate,
+            executor=lambda action: executed.append(action) or f"ran {action.id}",
+        )
+
+        self.assertEqual(result, "ran reject_patch")
+        self.assertEqual(gate.calls, [("reject_patch", {"patch_id": "p1"}, True)])
+        self.assertEqual(executed[0].confirm, {"title": "Reject patch?"})
+        self.assertTrue(executed[0].policy_sensitive)
+
+    def test_patch_review_named_control_execution_rejects_unsupported_control(self) -> None:
+        card = materialize_terminal_card(
+            materialize_proposed_edit_card(
+                {
+                    "type": "ProposedEditCard",
+                    "patch_id": "p1",
+                    "title": "Patch choices",
+                    "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                    "actions": [],
+                }
+            )
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        with self.assertRaisesRegex(ValueError, "control must be 'preview', 'apply', or 'reject'"):
+            execute_patch_review_control_with_policy_gate(
+                card=card,
+                review=review,
+                patch_id="p1",
+                control="open",
+                capabilities=_capabilities(),
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: action,
+            )
 
     def test_complete_patch_review_action_execution_uses_engine_policy_gate(self) -> None:
         card = materialize_terminal_card(

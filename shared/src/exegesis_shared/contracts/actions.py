@@ -1684,6 +1684,33 @@ def execute_patch_review_cli_command_with_policy_gate(
     )
 
 
+def execute_patch_review_control_with_policy_gate(
+    *,
+    card: dict[str, Any],
+    review: dict[str, Any],
+    patch_id: str,
+    control: str,
+    capabilities: Any,
+    policy_gate: PolicyGate,
+    executor: Callable[[ActionRef], Any],
+) -> Any:
+    selection = build_patch_review_selection(
+        card,
+        review,
+        patch_id=patch_id,
+        control=control,
+    )
+    return execute_patch_review_selection_with_policy_gate(
+        card=card,
+        review=review,
+        selection=selection,
+        patch_id=patch_id,
+        capabilities=capabilities,
+        policy_gate=policy_gate,
+        executor=executor,
+    )
+
+
 def execute_complete_patch_review_action_with_policy_gate(
     *,
     card: dict[str, Any],
