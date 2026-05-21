@@ -41,6 +41,7 @@ from src.qual.ui.a2ui import (
     resolve_patch_preview_selection,
     resolve_patch_review_contract,
     studio_materialize_card,
+    validate_action_ref,
     validate_capabilities,
     validate_stream_event,
 )
@@ -1043,6 +1044,57 @@ class A2UIContractTests(unittest.TestCase):
             )
 
         self.assertEqual(executed, [])
+
+    def test_action_metadata_must_stay_typed_for_engine_policy_gate(self) -> None:
+        with self.assertRaisesRegex(ValueError, "policy_sensitive must be a boolean"):
+            validate_action_ref(
+                {
+                    "id": "apply_patch",
+                    "label": "Apply",
+                    "payload": {"patch_id": "p1"},
+                    "policy_sensitive": "yes",
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "confirm values must be non-empty strings"):
+            validate_action_ref(
+                {
+                    "id": "apply_patch",
+                    "label": "Apply",
+                    "payload": {"patch_id": "p1"},
+                    "confirm": {"title": ""},
+                }
+            )
+
+    def test_cli_fallback_drops_actions_with_untyped_metadata(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {
+                        "id": "apply_patch",
+                        "label": "Unsafe apply",
+                        "payload": {"patch_id": "p1"},
+                        "policy_sensitive": "yes",
+                    },
+                    {
+                        "id": "reject_patch",
+                        "label": "Reject",
+                        "payload": {"patch_id": "p1"},
+                        "confirm": {"title": "Reject patch?"},
+                    },
+                ],
+            }
+        )
+
+        self.assertEqual([action["id"] for action in card["actions"]], ["reject_patch"])
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in card["action_selection"]["order"]],
+            [(1, "reject_patch")],
+        )
 
     def test_streaming_card_event_materializes_engine_card_contract(self) -> None:
         event = build_card_published_event(

@@ -443,16 +443,14 @@ def action_ref_from_selection(card: dict[str, Any], selection: dict[str, Any]) -
     action = resolve_card_selection_contract(card, selection)
     validate_action_ref(action)
     confirm = action.get("confirm")
-    if confirm is not None and not isinstance(confirm, dict):
-        raise ValueError("Action confirm must be an object")
     if isinstance(confirm, dict):
-        confirm = {str(key): str(value) for key, value in confirm.items()}
+        confirm = deepcopy(confirm)
     return ActionRef(
         id=str(action["id"]),
         label=str(action["label"]).strip(),
         payload=deepcopy(action["payload"]),
         confirm=confirm,
-        policy_sensitive=bool(action.get("policy_sensitive", False)),
+        policy_sensitive=action.get("policy_sensitive", False),
     )
 
 
@@ -664,6 +662,18 @@ def validate_action_ref(action: Any) -> None:
     if not isinstance(payload, dict):
         raise ValueError("Action payload must be an object")
     _validate_action_payload(action_id, payload)
+    confirm = action.get("confirm")
+    if confirm is not None:
+        if not isinstance(confirm, dict):
+            raise ValueError("Action confirm must be an object")
+        for key, value in confirm.items():
+            if not isinstance(key, str) or not key.strip():
+                raise ValueError("Action confirm keys must be non-empty strings")
+            if not isinstance(value, str) or not value.strip():
+                raise ValueError("Action confirm values must be non-empty strings")
+    policy_sensitive = action.get("policy_sensitive", False)
+    if not isinstance(policy_sensitive, bool):
+        raise ValueError("Action policy_sensitive must be a boolean")
 
 
 def execute_action_with_policy_gate(
