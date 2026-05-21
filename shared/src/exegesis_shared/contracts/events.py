@@ -293,6 +293,9 @@ def _validate_action_selection(selection: dict[str, Any], action_id: str) -> Non
 
     patch_decision = selection.get("patch_decision")
     if patch_decision is not None:
+        patch_id = selection.get("patch_id")
+        if not isinstance(patch_id, str) or not patch_id.strip():
+            raise ValueError("Patch review selection patch_id is required")
         if selection.get("action_authority") != PATCH_REVIEW_ACTION_AUTHORITY:
             raise ValueError("Patch review selection must be engine-authoritative")
         if selection.get("demo_path_step") != PATCH_REVIEW_DEMO_PATH_STEP:
@@ -306,6 +309,9 @@ def _validate_action_selection(selection: dict[str, Any], action_id: str) -> Non
             raise ValueError("Action id does not match patch decision selection")
 
     if "patch_preview_contract_version" in selection:
+        patch_id = selection.get("patch_id")
+        if not isinstance(patch_id, str) or not patch_id.strip():
+            raise ValueError("Patch review selection patch_id is required")
         if selection.get("action_authority") != PATCH_REVIEW_ACTION_AUTHORITY:
             raise ValueError("Patch review selection must be engine-authoritative")
         if selection.get("demo_path_step") != PATCH_REVIEW_DEMO_PATH_STEP:

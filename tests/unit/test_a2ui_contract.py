@@ -3069,6 +3069,47 @@ class A2UIContractTests(unittest.TestCase):
                 selection=preview_selection,
             )
 
+    def test_streaming_patch_review_events_require_patch_id_in_selection(self) -> None:
+        selection = {
+            "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+            "selection_model": "one_based_action_slot",
+            "slot": 1,
+            "action_identity": "apply_patch:1:p1",
+            "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+            "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+            "patch_decision_contract_version": PATCH_DECISION_CONTRACT_VERSION,
+            "patch_decision": "apply",
+        }
+
+        with self.assertRaisesRegex(ValueError, "patch_id is required"):
+            build_action_selected_event(
+                event_id="evt-4",
+                run_id="run-1",
+                sequence=4,
+                action_id="apply_patch",
+                selection=selection,
+            )
+
+        preview_selection = {
+            "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+            "selection_model": "one_based_action_slot",
+            "slot": 1,
+            "action_identity": "preview_patch:1:p1",
+            "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+            "demo_path_step": PATCH_REVIEW_DEMO_PATH_STEP,
+            "patch_preview_contract_version": PATCH_PREVIEW_CONTRACT_VERSION,
+            "patch_id": " ",
+        }
+
+        with self.assertRaisesRegex(ValueError, "patch_id is required"):
+            build_action_selected_event(
+                event_id="evt-5",
+                run_id="run-1",
+                sequence=5,
+                action_id="preview_patch",
+                selection=preview_selection,
+            )
+
     def test_complete_patch_review_action_selected_event_uses_named_control(self) -> None:
         card = materialize_terminal_card(
             {
