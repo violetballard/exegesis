@@ -25,6 +25,7 @@ PATCH_DECISION_BY_ACTION_ID: dict[str, str] = {
     "apply_patch": "apply",
     "reject_patch": "reject",
 }
+PATCH_PREVIEW_CONTRACT_VERSION = 1
 
 CANONICAL_ACTION_ORDER: tuple[str, ...] = (
     "preview_patch",
@@ -285,6 +286,66 @@ def resolve_patch_decision_action(
     selection = build_patch_decision_selection(card, patch_id=patch_id, decision=decision)
     expected_patch_id = patch_id.strip()
     return resolve_patch_decision_selection(card, selection, patch_id=expected_patch_id)
+
+
+def resolve_patch_preview_selection(
+    card: dict[str, Any],
+    selection: dict[str, Any],
+    *,
+    patch_id: str,
+) -> dict[str, Any]:
+    action = resolve_card_selection_contract(card, selection)
+    if action.get("id") != "preview_patch":
+        raise ValueError("Action selection is not a patch preview")
+    payload = action.get("payload")
+    action_patch_id = payload.get("patch_id") if isinstance(payload, dict) else None
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch preview patch_id is required")
+    if selection.get("patch_id") != expected_patch_id:
+        raise ValueError("Patch preview selection does not match the current patch")
+    if selection.get("patch_preview_contract_version") != PATCH_PREVIEW_CONTRACT_VERSION:
+        raise ValueError("Unsupported patch preview contract version")
+    if action_patch_id != expected_patch_id:
+        raise ValueError("Patch preview selection does not match the current patch")
+    return action
+
+
+def build_patch_preview_selection(card: dict[str, Any], *, patch_id: str) -> dict[str, Any]:
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch preview patch_id is required")
+
+    matching_entries = []
+    for entry in materialize_action_selection_contract(card).get("order", []):
+        if not isinstance(entry, dict):
+            continue
+        action = resolve_card_selection_by_index(card, entry.get("slot"))
+        payload = action.get("payload")
+        action_patch_id = payload.get("patch_id") if isinstance(payload, dict) else None
+        if action.get("id") == "preview_patch" and action_patch_id == expected_patch_id:
+            matching_entries.append(entry)
+
+    if len(matching_entries) != 1:
+        raise ValueError("Patch preview is not available for the current patch")
+
+    entry = matching_entries[0]
+    selection = {
+        "contract_version": ACTION_SELECTION_CONTRACT_VERSION,
+        "selection_model": "one_based_action_slot",
+        "slot": entry.get("slot"),
+        "action_identity": entry.get("action_identity"),
+        "patch_preview_contract_version": PATCH_PREVIEW_CONTRACT_VERSION,
+        "patch_id": expected_patch_id,
+    }
+    resolve_patch_preview_selection(card, selection, patch_id=expected_patch_id)
+    return selection
+
+
+def resolve_patch_preview_action(card: dict[str, Any], *, patch_id: str) -> dict[str, Any]:
+    selection = build_patch_preview_selection(card, patch_id=patch_id)
+    expected_patch_id = patch_id.strip()
+    return resolve_patch_preview_selection(card, selection, patch_id=expected_patch_id)
 
 
 def build_patch_decision_selection(
