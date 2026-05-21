@@ -1148,6 +1148,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertTrue(command_map["is_complete"])
         self.assertEqual(command_map["missing"], [])
         self.assertIsNone(command_map["next_required"])
+        self.assertEqual(command_map["next_required_command_aliases"], [])
         self.assertEqual(
             [
                 (
@@ -1289,6 +1290,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(summary["available"], ["preview", "apply"])
         self.assertEqual(summary["missing"], ["reject"])
         self.assertEqual(summary["next_required"], "reject")
+        self.assertEqual(summary["next_required_command_aliases"], ["reject", "reject_patch"])
         self.assertFalse(summary["is_complete"])
         self.assertEqual(
             [(name, control["slot"]) for name, control in summary["controls"].items()],

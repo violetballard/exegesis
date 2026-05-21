@@ -707,6 +707,12 @@ def patch_review_control_summary_from_contract(
     controls = patch_review_control_actions_from_contract(card, review, patch_id=patch_id)
     availability = patch_review_availability_from_contract(review)
     control_plan = patch_review_control_plan_from_contract(card, review, patch_id=patch_id)
+    next_required = availability["next_required"]
+    next_required_aliases = (
+        list(PATCH_REVIEW_CLI_COMMAND_ALIASES.get(next_required, ()))
+        if isinstance(next_required, str)
+        else []
+    )
     ordered_controls = [
         {"control": control, **deepcopy(controls[control])}
         for control in PATCH_REVIEW_REQUIRED_PARTS
@@ -722,7 +728,8 @@ def patch_review_control_summary_from_contract(
         "required": deepcopy(availability["required"]),
         "available": deepcopy(availability["available"]),
         "missing": deepcopy(availability["missing"]),
-        "next_required": availability["next_required"],
+        "next_required": next_required,
+        "next_required_command_aliases": next_required_aliases,
         "is_complete": availability["is_complete"],
         "controls": deepcopy(controls),
         "control_plan": control_plan,
@@ -782,6 +789,7 @@ def patch_review_cli_control_map_from_contract(
         "is_complete": summary["is_complete"],
         "missing": deepcopy(summary["missing"]),
         "next_required": summary["next_required"],
+        "next_required_command_aliases": deepcopy(summary["next_required_command_aliases"]),
         "controls": controls,
     }
 

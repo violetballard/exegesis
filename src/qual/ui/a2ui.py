@@ -211,6 +211,12 @@ def render_terminal_card(card: dict[str, Any]) -> str:
             next_required = summary.get("next_required")
             if isinstance(next_required, str) and next_required:
                 lines.append(f"Patch review next required control: {next_required}")
+                aliases = summary.get("next_required_command_aliases", [])
+                if isinstance(aliases, list) and aliases:
+                    lines.append(
+                        "Patch review next required CLI aliases: "
+                        f"{'/'.join(str(alias) for alias in aliases)}"
+                    )
     for slot, action in enumerate(materialized.get("actions", []), start=1):
         if isinstance(action, dict):
             label = str(action.get("label", action.get("id", "action")))

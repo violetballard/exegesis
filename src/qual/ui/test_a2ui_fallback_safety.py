@@ -144,6 +144,7 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
         self.assertIn("Patch review status: incomplete", text)
         self.assertIn("Patch review controls: preview=1, apply=2", text)
         self.assertIn("Patch review missing controls: reject", text)
+        self.assertIn("Patch review next required CLI aliases: reject/reject_patch", text)
 
     def test_terminal_fallback_preserves_distinct_patch_action_slots(self) -> None:
         card = {
