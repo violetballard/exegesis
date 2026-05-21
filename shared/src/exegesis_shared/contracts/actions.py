@@ -817,6 +817,7 @@ def patch_review_cli_control_map_from_contract(
                 "action_id": entry["action_id"],
                 "action_identity": entry["action_identity"],
                 "label": entry["label"],
+                "payload": deepcopy(entry["payload"]),
                 "requires_confirmation": bool(
                     isinstance(execution_policy, dict)
                     and execution_policy.get("requires_confirmation") is True
@@ -876,6 +877,7 @@ def patch_review_cli_command_lookup_from_contract(
                 "slot": entry["slot"],
                 "action_id": entry["action_id"],
                 "action_identity": entry["action_identity"],
+                "payload": deepcopy(entry["payload"]),
                 "requires_confirmation": entry["requires_confirmation"],
                 "policy_gate": entry["policy_gate"],
                 "policy_sensitive": entry["policy_sensitive"],

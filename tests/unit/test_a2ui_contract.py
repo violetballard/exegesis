@@ -1246,15 +1246,43 @@ class A2UIContractTests(unittest.TestCase):
                     entry["command_aliases"],
                     entry["slot"],
                     entry["action_id"],
+                    entry["payload"],
                     entry["policy_gate"],
                     entry["requires_confirmation"],
                 )
                 for entry in command_map["controls"]
             ],
             [
-                ("preview", "1", ["preview", "preview_patch"], 1, "preview_patch", "optional", False),
-                ("apply", "2", ["apply", "apply_patch"], 2, "apply_patch", "required", True),
-                ("reject", "3", ["reject", "reject_patch"], 3, "reject_patch", "required", True),
+                (
+                    "preview",
+                    "1",
+                    ["preview", "preview_patch"],
+                    1,
+                    "preview_patch",
+                    {"patch_id": "p1"},
+                    "optional",
+                    False,
+                ),
+                (
+                    "apply",
+                    "2",
+                    ["apply", "apply_patch"],
+                    2,
+                    "apply_patch",
+                    {"patch_id": "p1"},
+                    "required",
+                    True,
+                ),
+                (
+                    "reject",
+                    "3",
+                    ["reject", "reject_patch"],
+                    3,
+                    "reject_patch",
+                    {"patch_id": "p1"},
+                    "required",
+                    True,
+                ),
             ],
         )
         self.assertEqual(
@@ -1307,14 +1335,15 @@ class A2UIContractTests(unittest.TestCase):
                     entry["command"],
                     entry["slot"],
                     entry["action_id"],
+                    entry["payload"],
                     entry["policy_gate"],
                     entry["requires_confirmation"],
                 )
                 for entry in decisions["controls"]
             ],
             [
-                ("apply", "2", 2, "apply_patch", "required", True),
-                ("reject", "3", 3, "reject_patch", "required", True),
+                ("apply", "2", 2, "apply_patch", {"patch_id": "p1"}, "required", True),
+                ("reject", "3", 3, "reject_patch", {"patch_id": "p1"}, "required", True),
             ],
         )
         self.assertEqual(
@@ -1352,7 +1381,9 @@ class A2UIContractTests(unittest.TestCase):
             ["1", "2", "3", "apply", "apply_patch", "preview", "preview_patch", "reject", "reject_patch"],
         )
         self.assertEqual(lookup["commands"]["2"]["control"], "apply")
+        self.assertEqual(lookup["commands"]["2"]["payload"], {"patch_id": "p1"})
         self.assertEqual(lookup["commands"]["apply_patch"]["slot"], 2)
+        self.assertEqual(lookup["commands"]["apply_patch"]["payload"], {"patch_id": "p1"})
         self.assertEqual(lookup["commands"]["reject"]["action_id"], "reject_patch")
         self.assertEqual(lookup["commands"]["reject"]["selection"], review["decisions"][1]["selection"])
         self.assertEqual(
