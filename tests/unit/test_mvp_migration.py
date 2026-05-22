@@ -811,7 +811,7 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
         self.assertEqual(launched, [])
         run_cmd.assert_not_called()
 
-    def test_launch_free_lanes_skips_current_head_already_integrated(self) -> None:
+    def test_launch_free_lanes_restarts_after_current_head_integrated(self) -> None:
         from packet_garden.tools.agents_coordinator import _launch_free_lanes
 
         state_doc = {
@@ -829,15 +829,19 @@ class CoordinatorDaemonBehaviorTests(unittest.TestCase):
             patch("packet_garden.tools.agents_coordinator._lane_queue_empty", return_value=True),
             patch("packet_garden.tools.agents_coordinator._lane_has_active_feature_session", return_value=False),
             patch("packet_garden.tools.agents_coordinator._lane_has_current_head_integrated", return_value=True),
+            patch("packet_garden.tools.agents_coordinator._local_lms_feature_launch_slots", return_value=1),
+            patch("packet_garden.tools.agents_coordinator._cloud_feature_launch_slots", return_value=0),
+            patch("packet_garden.tools.agents_coordinator._has_router_priority_backlog", return_value=False),
             patch("packet_garden.tools.agents_coordinator.run_cmd") as run_cmd,
         ):
+            run_cmd.return_value = (0, "")
             launched = _launch_free_lanes(state_doc)
 
-        self.assertEqual(launched, [])
-        run_cmd.assert_not_called()
+        self.assertEqual(launched, ["feat-commands"])
+        run_cmd.assert_called_once()
         lane_state = state_doc["lane_refill"]["feat-commands"]
         self.assertTrue(lane_state["satisfied_current_head"])
-        self.assertEqual(lane_state["last_launch_reason"], "current_head_already_integrated")
+        self.assertEqual(lane_state["last_launch_reason"], "current_head_integrated_next_pass")
         self.assertNotIn("force_resume_once", lane_state)
 
     def test_lane_has_active_feature_session_handles_direct_exec_pid_state(self) -> None:
