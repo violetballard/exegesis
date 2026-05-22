@@ -220,6 +220,30 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
             ["* 1. Apply A [confirm: Apply patch?]"],
         )
 
+    def test_terminal_fallback_keeps_patch_slots_when_copy_action_is_unsupported(self) -> None:
+        caps = _capabilities(actions_supported=("apply_patch", "reject_patch"))
+        card = studio_materialize_card(
+            {
+                "type": "GenericCard",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose a patch"}],
+                "actions": [
+                    {"id": "copy_to_clipboard", "label": "Copy", "payload": {"text": "diff"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            },
+            caps,
+        )
+        text = render_terminal_card(card)
+
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in card["action_selection"]["order"]],
+            [(1, "apply_patch"), (2, "reject_patch")],
+        )
+        self.assertEqual(resolve_card_selection_by_index(card, 1)["payload"], {"patch_id": "p1"})
+        self.assertNotIn("copy_to_clipboard", text)
+
     def test_unknown_card_fallback_stays_cli_renderable_when_copy_is_unsupported(self) -> None:
         caps = _capabilities(
             cards_supported=("RunLogCard",),
