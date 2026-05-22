@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any, Callable, Protocol
 
 ALLOWED_ACTION_IDS: tuple[str, ...] = (
@@ -84,9 +84,10 @@ def execute_action_with_policy_gate(
         raise ValueError("Action not supported by client")
     _validate_action_payload(action.id, action.payload)
     policy_sensitive = action.policy_sensitive or is_policy_sensitive_action(action.id)
+    gated_action = replace(action, policy_sensitive=policy_sensitive)
     if not policy_gate.allow_action(action.id, action.payload, policy_sensitive=policy_sensitive):
         raise PermissionError("PolicyGate blocked action")
-    return executor(action)
+    return executor(gated_action)
 
 
 def is_policy_sensitive_action(action_id: str) -> bool:
