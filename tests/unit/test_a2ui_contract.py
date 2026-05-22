@@ -95,6 +95,9 @@ from src.qual.ui.a2ui import (
     render_terminal_card,
     resolve_card_selection_contract,
     resolve_card_selection_execution,
+    resolve_complete_patch_review_card_cli_command_execution,
+    resolve_complete_patch_review_card_control_execution,
+    resolve_complete_patch_review_card_decision_cli_command_execution,
     resolve_patch_decision_action,
     resolve_patch_decision_selection,
     resolve_patch_preview_action,
@@ -720,6 +723,93 @@ class A2UIContractTests(unittest.TestCase):
                     actions_supported=("preview_patch", "apply_patch"),
                 )
             )
+
+    def test_complete_patch_review_card_execution_requires_card_capability(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        with self.assertRaisesRegex(ValueError, "requires ProposedEditCard support"):
+            resolve_complete_patch_review_card_control_execution(
+                card,
+                patch_id="p1",
+                control="apply",
+                capabilities=_capabilities(cards_supported=("GenericCard",)),
+            )
+
+        execution = resolve_complete_patch_review_card_control_execution(
+            card,
+            patch_id="p1",
+            control="apply",
+            capabilities=_capabilities(cards_supported=("ProposedEditCard", "GenericCard")),
+        )
+
+        self.assertEqual(execution["action_id"], "apply_patch")
+        self.assertEqual(execution["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
+        self.assertEqual(execution["demo_path_step"], PATCH_REVIEW_DEMO_PATH_STEP)
+        self.assertIs(
+            shared_contracts.resolve_complete_patch_review_card_control_execution,
+            resolve_complete_patch_review_card_control_execution,
+        )
+
+    def test_complete_patch_review_card_cli_execution_requires_card_capability(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        with self.assertRaisesRegex(ValueError, "requires ProposedEditCard support"):
+            resolve_complete_patch_review_card_cli_command_execution(
+                card,
+                patch_id="p1",
+                command="apply",
+                capabilities=_capabilities(cards_supported=("GenericCard",)),
+            )
+
+        execution = resolve_complete_patch_review_card_cli_command_execution(
+            card,
+            patch_id="p1",
+            command="reject_patch",
+            capabilities=_capabilities(cards_supported=("ProposedEditCard", "GenericCard")),
+        )
+
+        self.assertEqual(execution["control"], "reject")
+        self.assertEqual(execution["action_id"], "reject_patch")
+        self.assertIs(
+            shared_contracts.resolve_complete_patch_review_card_cli_command_execution,
+            resolve_complete_patch_review_card_cli_command_execution,
+        )
+
+        decision = resolve_complete_patch_review_card_decision_cli_command_execution(
+            card,
+            patch_id="p1",
+            command="reject",
+            capabilities=_capabilities(cards_supported=("ProposedEditCard", "GenericCard")),
+        )
+        self.assertEqual(decision["control"], "reject")
+        self.assertIs(
+            shared_contracts.resolve_complete_patch_review_card_decision_cli_command_execution,
+            resolve_complete_patch_review_card_decision_cli_command_execution,
+        )
 
     def test_capabilities_reject_duplicate_advertised_contracts(self) -> None:
         with self.assertRaisesRegex(ValueError, "cards_supported entries must be unique: ProposedEditCard"):

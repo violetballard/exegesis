@@ -10,6 +10,9 @@ from exegesis_shared.contracts.actions import (
     materialize_action_selection_contract,
     materialize_card_actions,
     materialize_cli_fallback_card,
+    resolve_complete_patch_review_cli_command_execution,
+    resolve_complete_patch_review_control_execution,
+    resolve_complete_patch_review_decision_cli_command_execution,
     validate_action_ref,
 )
 
@@ -125,6 +128,54 @@ def validate_complete_patch_review_card_capabilities(capabilities: A2UICapabilit
     if PROPOSED_EDIT_CARD_TYPE not in set(capabilities.cards_supported):
         raise ValueError("Complete patch review requires ProposedEditCard support")
     validate_complete_patch_review_capabilities(capabilities)
+
+
+def resolve_complete_patch_review_card_control_execution(
+    card: dict[str, Any],
+    *,
+    patch_id: str,
+    control: str,
+    capabilities: A2UICapabilities,
+) -> dict[str, Any]:
+    validate_complete_patch_review_card_capabilities(capabilities)
+    return resolve_complete_patch_review_control_execution(
+        card,
+        patch_id=patch_id,
+        control=control,
+        capabilities=capabilities,
+    )
+
+
+def resolve_complete_patch_review_card_cli_command_execution(
+    card: dict[str, Any],
+    *,
+    patch_id: str,
+    command: str,
+    capabilities: A2UICapabilities,
+) -> dict[str, Any]:
+    validate_complete_patch_review_card_capabilities(capabilities)
+    return resolve_complete_patch_review_cli_command_execution(
+        card,
+        patch_id=patch_id,
+        command=command,
+        capabilities=capabilities,
+    )
+
+
+def resolve_complete_patch_review_card_decision_cli_command_execution(
+    card: dict[str, Any],
+    *,
+    patch_id: str,
+    command: str,
+    capabilities: A2UICapabilities,
+) -> dict[str, Any]:
+    validate_complete_patch_review_card_capabilities(capabilities)
+    return resolve_complete_patch_review_decision_cli_command_execution(
+        card,
+        patch_id=patch_id,
+        command=command,
+        capabilities=capabilities,
+    )
 
 
 def validate_demo_context_card_capabilities(capabilities: A2UICapabilities) -> None:
