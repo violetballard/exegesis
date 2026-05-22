@@ -7,6 +7,7 @@ from packet_garden.tools.planner import (
     _full_branch_scope_violations,
     build_packet,
     build_shared_packet,
+    compute_changed_files_for_range,
     normalize_source_commit_traceability,
     should_skip_for_active_feature,
     source_commit_token_valid,
@@ -49,6 +50,21 @@ class PacketPlannerTests(unittest.TestCase):
             self.assertTrue(source_commit_token_valid("/repo", "base..head"))
             self.assertFalse(source_commit_token_valid("/repo", "missing..head"))
             self.assertFalse(source_commit_token_valid("/repo", "base..missing"))
+
+    def test_changed_files_for_explicit_reviewed_range_ignores_moving_main(self) -> None:
+        def fake_run_git(args: list[str], **_kwargs: object):
+            class Result:
+                returncode = 0
+                stdout = "src/qual/commands/catalog.py\n"
+
+            self.assertEqual(args, ["diff", "--name-only", "base..head"])
+            return Result()
+
+        with patch("packet_garden.tools.planner.run_git", side_effect=fake_run_git):
+            self.assertEqual(
+                compute_changed_files_for_range("/repo", "base..head"),
+                ["src/qual/commands/catalog.py"],
+            )
 
     def test_stale_source_commits_are_replaced_with_merge_base_range(self) -> None:
         def fake_run_git(args: list[str], **_kwargs: object):
