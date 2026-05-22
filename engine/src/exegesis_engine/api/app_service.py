@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 from exegesis_engine.context.basket import ContextBasket
 from exegesis_engine.context.store import ContextBasketStore
@@ -29,6 +31,8 @@ from exegesis_engine.workflow.revise_service import ReviseService
 from exegesis_shared.models.selection import Selection
 from exegesis_engine.audit.event_log import AuditLog
 
+PatchDecision = Literal["accepted", "rejected"]
+
 
 @dataclass
 class EngineRuntime:
@@ -38,6 +42,32 @@ class EngineRuntime:
     metrics: MetricsRecorder
     usage_integrity: UsageIntegrityService
     metrics_exporter: MetricsExporter
+
+
+@dataclass(frozen=True)
+class PatchResolution:
+    patch_id: str
+    decision: PatchDecision
+    target_document_id: str
+    document_content: str
+    dirty: bool
+    persisted: bool
+    metadata: dict[str, object]
+
+    @property
+    def current_document_content(self) -> str:
+        return self.document_content
+
+
+@dataclass(frozen=True)
+class PatchPreview:
+    patch_id: str
+    target_document_id: str
+    target_range: tuple[int, int]
+    original_text: str
+    proposed_text: str
+    preview_text: str
+    metadata: dict[str, object]
 
 
 class EngineService:
@@ -119,9 +149,24 @@ class ExegesisAppService:
     def list_project_items(self) -> list[ProjectItem]:
         if self._project_store is None:
             return []
+        existing_session_metadata = {
+            item.id: dict(item.metadata)
+            for item in self.state.project.sessions
+            if item.metadata
+        }
         items = self._project_store.list_project_items()
         self.state.project.project_items = [item for item in items if item.item_type == "document"]
-        self.state.project.sessions = [item for item in items if item.item_type == "session"]
+        self.state.project.sessions = [
+            ProjectItem(
+                id=item.id,
+                label=item.label,
+                item_type=item.item_type,
+                path=item.path,
+                metadata=existing_session_metadata.get(item.id, item.metadata),
+            )
+            for item in items
+            if item.item_type == "session"
+        ]
         return items
 
     def open_document(self, document_id: str) -> DocumentState:
@@ -223,18 +268,128 @@ class ExegesisAppService:
         )
         return patch
 
-    def apply_patch(self, patch_id: str) -> DocumentState:
-        patch = self._pending_patches.pop(patch_id)
-        self.state.document.current_document_content = self._patch_service.apply(
-            self.state.document.current_document_content,
-            patch,
+    def preview_patch(self, patch_id: str) -> PatchPreview:
+        patch = self._pending_patches[patch_id]
+        preview_text = self._patch_preview_text(patch)
+        return PatchPreview(
+            patch_id=patch.patch_id,
+            target_document_id=patch.target_document_id,
+            target_range=patch.target_range,
+            original_text=patch.original_text,
+            proposed_text=patch.proposed_text,
+            preview_text=preview_text,
+            metadata=dict(patch.metadata),
         )
-        self.state.document.dirty = True
-        return self.state.document
 
-    def reject_patch(self, patch_id: str) -> PatchProposal:
-        patch = self._pending_patches.pop(patch_id)
-        return self._patch_service.reject(patch)
+    def apply_patch(self, patch_id: str, *, persist: bool = False) -> PatchResolution:
+        return self.resolve_patch(patch_id, decision="accepted", persist=persist)
+
+    def reject_patch(self, patch_id: str) -> PatchResolution:
+        return self.resolve_patch(patch_id, decision="rejected")
+
+    def resolve_patch(self, patch_id: str, *, decision: PatchDecision, persist: bool = False) -> PatchResolution:
+        if decision not in {"accepted", "rejected"}:
+            raise ValueError("patch decision must be accepted or rejected")
+
+        patch = self._pending_patches[patch_id]
+        persisted = False
+        if decision == "accepted":
+            self._apply_patch_to_document(patch)
+            if persist:
+                self.save_document()
+                persisted = True
+        else:
+            self._patch_service.reject(patch)
+
+        self._pending_patches.pop(patch_id)
+        resolution_metadata = self._patch_resolution_metadata(
+            patch=patch,
+            decision=decision,
+            persisted=persisted,
+        )
+        self._remember_workflow_card(
+            WorkflowCard(
+                id=f"{patch.patch_id}:resolution",
+                card_type="patch_resolution",
+                title="Patch Accepted" if decision == "accepted" else "Patch Rejected",
+                body=patch.proposed_text if decision == "accepted" else patch.original_text,
+                metadata=resolution_metadata,
+            )
+        )
+        self.state.document.current_selection = None
+
+        return PatchResolution(
+            patch_id=patch.patch_id,
+            decision=decision,
+            target_document_id=patch.target_document_id,
+            document_content=self.state.document.current_document_content,
+            dirty=self.state.document.dirty,
+            persisted=persisted,
+            metadata=resolution_metadata,
+        )
+
+    def describe_state(self) -> dict[str, object]:
+        return {
+            "project": {
+                "current_project_id_or_path": self.state.project.current_project_id_or_path,
+                "open_document_id": self.state.project.open_document_id,
+                "project_items": [self._project_item_manifest(item) for item in self.state.project.project_items],
+                "sessions": [self._project_item_manifest(item) for item in self.state.project.sessions],
+            },
+            "document": {
+                "current_document_id": self.state.document.current_document_id,
+                "current_document_content": self.state.document.current_document_content,
+                "dirty": self.state.document.dirty,
+                "current_selection": self._document_selection_manifest(self.state.document.current_selection),
+            },
+            "basket": {
+                "selected_basket_item_id": self.state.basket.selected_basket_item_id,
+                "items": [self._basket_item_manifest(item) for item in self.state.basket.items],
+            },
+            "workflow": {
+                "focused_card_id": self.state.workflow.focused_card_id,
+                "last_action_status": self.state.workflow.last_action_status,
+                "command_history": list(self.state.workflow.command_history),
+                "cards": [self._workflow_card_manifest(card) for card in self.state.workflow.cards],
+                "patch_resolutions": [
+                    self._workflow_card_manifest(card)
+                    for card in self.state.workflow.cards
+                    if card.card_type == "patch_resolution"
+                ],
+            },
+            "pending_patch_proposals": [
+                self._patch_proposal_manifest(patch)
+                for patch in sorted(self._pending_patches.values(), key=lambda item: item.patch_id)
+            ],
+        }
+
+    def save_session_snapshot(self, session_id: str = "sessions/current-session.md") -> ProjectItem:
+        if self._project_store is None:
+            raise RuntimeError("Project must be opened before saving a session snapshot")
+        manifest = self.describe_state()
+        content = "# Exegesis Session Snapshot\n\n```json\n"
+        content += json.dumps(manifest, indent=2, sort_keys=True)
+        content += "\n```\n"
+        path = self._project_store.write_document(session_id, content)
+        try:
+            item_id = str(path.relative_to(self._project_store.project_root.resolve()))
+        except ValueError:
+            item_id = str(path)
+        item = ProjectItem(
+            id=item_id,
+            label=path.name,
+            item_type="session",
+            path=str(path),
+            metadata={"snapshot_kind": "app_state"},
+        )
+        self.list_project_items()
+        for index, existing in enumerate(self.state.project.sessions):
+            if existing.id == item.id:
+                self.state.project.sessions[index] = item
+                break
+        else:
+            self.state.project.sessions.append(item)
+        return item
 
     def set_document_selection(self, *, start: int, end: int) -> DocumentSelection:
         content = self.state.document.current_document_content
@@ -242,6 +397,19 @@ class ExegesisAppService:
         selection = DocumentSelection(start=start, end=end, selected_text=selected_text)
         self.state.document.current_selection = selection
         return selection
+
+    def _apply_patch_to_document(self, patch: PatchProposal) -> None:
+        self.state.document.current_document_content = self._patch_service.apply(
+            self.state.document.current_document_content,
+            patch,
+        )
+        self.state.document.dirty = True
+
+    def _patch_preview_text(self, patch: PatchProposal) -> str:
+        for card in reversed(self.state.workflow.cards):
+            if card.id == patch.patch_id and card.card_type == "patch":
+                return card.body
+        return patch.proposed_text
 
     def _search(self, *, query_text: str, scope: str, max_results: int, doc_types: tuple[str, ...] = ()):
         if self._retrieval_service is None:
@@ -262,6 +430,76 @@ class ExegesisAppService:
         self.state.workflow.cards.append(card)
         self.state.workflow.focused_card_id = card.id
         self.state.workflow.last_action_status = card.title
+
+    def _patch_proposal_manifest(self, patch: PatchProposal) -> dict[str, object]:
+        return {
+            "patch_id": patch.patch_id,
+            "target_document_id": patch.target_document_id,
+            "target_range": list(patch.target_range),
+            "original_text": patch.original_text,
+            "proposed_text": patch.proposed_text,
+            "preview_text": self._patch_preview_text(patch),
+            "metadata": dict(patch.metadata),
+        }
+
+    def _patch_resolution_metadata(
+        self,
+        *,
+        patch: PatchProposal,
+        decision: PatchDecision,
+        persisted: bool,
+    ) -> dict[str, object]:
+        return {
+            "patch_id": patch.patch_id,
+            "decision": decision,
+            "document_id": patch.target_document_id,
+            "target_range": list(patch.target_range),
+            "original_text": patch.original_text,
+            "proposed_text": patch.proposed_text,
+            "preview_text": self._patch_preview_text(patch),
+            "persisted": persisted,
+            **dict(patch.metadata),
+        }
+
+    @staticmethod
+    def _project_item_manifest(item: ProjectItem) -> dict[str, object]:
+        return {
+            "id": item.id,
+            "label": item.label,
+            "item_type": item.item_type,
+            "path": item.path,
+            "metadata": dict(item.metadata),
+        }
+
+    @staticmethod
+    def _basket_item_manifest(item: BasketItem) -> dict[str, object]:
+        return {
+            "id": item.id,
+            "item_type": item.item_type,
+            "label": item.label,
+            "payload": dict(item.payload),
+        }
+
+    @staticmethod
+    def _workflow_card_manifest(card: WorkflowCard) -> dict[str, object]:
+        return {
+            "id": card.id,
+            "card_type": card.card_type,
+            "title": card.title,
+            "body": card.body,
+            "metadata": dict(card.metadata),
+            "actions": [dict(action) for action in card.actions],
+        }
+
+    @staticmethod
+    def _document_selection_manifest(selection: DocumentSelection | None) -> dict[str, object] | None:
+        if selection is None:
+            return None
+        return {
+            "start": selection.start,
+            "end": selection.end,
+            "selected_text": selection.selected_text,
+        }
 
     def _doc_type_for_item(self, item: ProjectItem) -> str:
         if item.item_type == "session":

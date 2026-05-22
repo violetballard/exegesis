@@ -1,4 +1,4 @@
-from exegesis_engine.api.app_service import EngineRuntime, EngineService, ExegesisAppService
+from exegesis_engine.api.app_service import EngineRuntime, EngineService, ExegesisAppService, PatchPreview, PatchResolution
 from exegesis_engine.api.bootstrap import build_runtime
 from exegesis_engine.api.cli import CLIArgs, parse_args
 from exegesis_engine.api.runtime_commands import (
@@ -13,6 +13,8 @@ __all__ = [
     "EngineRuntime",
     "EngineService",
     "ExegesisAppService",
+    "PatchPreview",
+    "PatchResolution",
     "build_runtime",
     "parse_args",
     "run_bootstrap",

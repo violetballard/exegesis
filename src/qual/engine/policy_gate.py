@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import ipaddress
 from dataclasses import dataclass
+from ipaddress import ip_address
 from urllib.parse import urlparse
 
 
@@ -30,12 +30,14 @@ class PolicyGate:
     @staticmethod
     def _is_localhost(raw: str) -> bool:
         parsed = urlparse(raw)
-        if parsed.scheme not in {"http", "https"} or parsed.hostname is None:
+        if parsed.scheme not in {"http", "https"}:
             return False
-        hostname = parsed.hostname.rstrip(".").lower()
-        if hostname == "localhost":
+        host = parsed.hostname
+        if host is None:
+            return False
+        if host.casefold() == "localhost":
             return True
         try:
-            return ipaddress.ip_address(hostname).is_loopback
+            return ip_address(host).is_loopback
         except ValueError:
             return False
