@@ -52,6 +52,7 @@ from src.qual.ui.a2ui import (
     build_patch_review_contract,
     build_patch_review_selection,
     build_unknown_card,
+    complete_patch_review_decision_action_ref_from_cli_command,
     complete_patch_review_action_ref_from_cli_command,
     complete_patch_review_action_from_card,
     complete_patch_review_actions_from_card,
@@ -4390,6 +4391,46 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(selected.id, "apply_patch")
         self.assertEqual(result, ("apply_patch", {"title": "Apply patch?"}, True))
         self.assertEqual(gate.calls, [("apply_patch", {"patch_id": "p1"}, True)])
+
+    def test_complete_patch_review_decision_action_ref_from_cli_command_is_decision_only(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        selected = complete_patch_review_decision_action_ref_from_cli_command(
+            card,
+            patch_id=" p1 ",
+            command="reject_patch",
+        )
+
+        self.assertEqual(selected.id, "reject_patch")
+        self.assertEqual(selected.payload, {"patch_id": "p1"})
+        self.assertEqual(selected.confirm, {"title": "Reject patch?"})
+        self.assertTrue(selected.policy_sensitive)
+        self.assertIs(
+            shared_contracts.complete_patch_review_decision_action_ref_from_cli_command,
+            complete_patch_review_decision_action_ref_from_cli_command,
+        )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "Unsupported patch review decision CLI command: preview",
+        ):
+            complete_patch_review_decision_action_ref_from_cli_command(
+                card,
+                patch_id="p1",
+                command="preview",
+            )
 
     def test_complete_patch_review_cli_command_execution_rejects_incomplete_demo_controls(self) -> None:
         card = materialize_terminal_card(

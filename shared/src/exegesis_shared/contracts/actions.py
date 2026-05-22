@@ -1695,6 +1695,29 @@ def complete_patch_review_action_ref_from_cli_command(
     )
 
 
+def complete_patch_review_decision_action_ref_from_cli_command(
+    card: dict[str, Any],
+    *,
+    patch_id: str,
+    command: str,
+) -> ActionRef:
+    expected_patch_id = patch_id.strip()
+    if not expected_patch_id:
+        raise ValueError("Patch review patch_id is required")
+    complete_patch_review_actions_from_card(
+        card,
+        patch_id=expected_patch_id,
+    )
+    review = build_complete_patch_review_contract(card, patch_id=expected_patch_id)
+    execution = resolve_patch_review_decision_cli_command_execution(
+        card,
+        review,
+        patch_id=expected_patch_id,
+        command=command,
+    )
+    return _action_ref_from_contract(execution["action_contract"])
+
+
 def build_patch_review_selection(
     card: dict[str, Any],
     review: dict[str, Any],

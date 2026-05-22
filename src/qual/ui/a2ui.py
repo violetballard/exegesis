@@ -28,6 +28,7 @@ from exegesis_shared.contracts.actions import (
     build_patch_review_contract,
     build_patch_review_selection,
     canonicalize_action_order,
+    complete_patch_review_decision_action_ref_from_cli_command,
     complete_patch_review_action_ref_from_cli_command,
     complete_patch_review_action_from_card,
     complete_patch_review_actions_from_contract,
