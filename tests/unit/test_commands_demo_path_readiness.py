@@ -17,7 +17,6 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
         self.assertEqual(
             readiness.missing_demo_steps,
             (
-                "promote-or-gather-context-into-basket",
                 "produce-plan-or-revision",
                 "preview-and-apply-or-reject-patch",
                 "persist-updated-document-session-state",
@@ -53,7 +52,6 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
         self.assertEqual(
             readiness.missing_demo_steps,
             (
-                "promote-or-gather-context-into-basket",
                 "produce-plan-or-revision",
                 "preview-and-apply-or-reject-patch",
                 "persist-updated-document-session-state",
@@ -141,6 +139,14 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
                 ("export-handoff", "qual-bootstrap terminal"),
             ),
         )
+        self.assertEqual(
+            summary.supplemental_canonical_step_commands,
+            (("promote-or-gather-context-into-basket", "qual-bootstrap context-basket add demo-context-item"),),
+        )
+        self.assertIn(
+            ("promote-or-gather-context-into-basket", "qual-bootstrap context-basket add demo-context-item"),
+            summary.covered_canonical_step_commands,
+        )
 
     def test_handoff_summary_carries_missing_demo_steps_for_partial_paths(self) -> None:
         summary = command_demo_path_handoff_summary(
@@ -152,7 +158,6 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
         self.assertEqual(
             summary.missing_demo_steps,
             (
-                "promote-or-gather-context-into-basket",
                 "produce-plan-or-revision",
                 "preview-and-apply-or-reject-patch",
                 "persist-updated-document-session-state",
