@@ -15,7 +15,7 @@ This file expands the canonical roadmap and lane mapping while the Textual lanes
 - keep basket/document/session persistence deterministic
 - preserve current `src/qual/context/*` and `src/qual/storage/*` flows through shims or wrappers
 - store raw notebook entries, compaction blocks, pin state, source entry IDs, validation status, and restore metadata from `docs/NOTEBOOK_CONTEXT_COMPACTION_SPEC.md`
-- after Milestone 5 stands, implement encrypted SQLite-backed MVP trust storage for durable app/project metadata, sessions, workflow artifacts, provenance, audit events, notebook compaction records, and generated A2UI promotion candidates
+- after Milestone 5 stands, implement encrypted SQLite-backed MVP trust storage for durable app/project metadata, sessions, workflow artifacts, document version/diff history, provenance, audit events, notebook compaction records, and generated A2UI promotion candidates
 - keep Markdown documents/assets portable while richer trust state lives in SQLite
 - include migration, backup/recovery, and clear failure behavior for encrypted SQLite storage
 - after Milestone 5 stands, generate redacted support/diagnostic bundles that exclude document content, basket content, transcript text, credentials, file paths, and raw prompts by default
@@ -43,7 +43,7 @@ This file expands the canonical roadmap and lane mapping while the Textual lanes
 - keep plan/draft/revise/apply/reject reachable through the engine contract
 - preserve engine-first dependency direction during the migration
 - implement request budgeting, compaction trigger policy, compaction-mode model calls, and compacted model request assembly
-- after Milestone 5 stands, record provenance for each model request, context/basket input, generated output, rewrite proposal, patch preview, apply/reject decision, and save-to-project artifact
+- after Milestone 5 stands, record provenance for each model request, context/basket input, generated output, rewrite proposal, patch preview, apply/reject decision, version history entry, restore action, and save-to-project artifact
 
 ## MVP CoP Gateway Lane
 
@@ -126,12 +126,16 @@ Implementation batches:
 ### `feat-qual-coding`
 Own later:
 - qualitative code project/database model
-- single-code selected-text highlight contract
+- document-local annotation model that does not appear in the project browser
+- single-code selected-text highlight contract using blue highlights
+- annotation selected-text highlight contract using yellow highlights
+- code/annotation overlap rendering contract using green highlights
 - project-browser `New Folder` behavior for document organization and parent codes
 - drag-and-drop behavior for folders and codes
 - inspector code details, frequencies, parent/child info, and clickable appearances
+- inspector annotation details when an annotated range is selected
 - code-focused document view with summaries and document excerpts
-- coding shortcut row and command-palette entries
+- coding/annotation shortcut row and command-palette entries
 
 Activation rule:
 - disabled until the current engine/demo loop is stable enough to expand into real coding workflows
@@ -143,8 +147,10 @@ Implementation batches:
 Own later:
 - copy, paste, undo, and redo editor contracts
 - editor history and clipboard interaction boundaries
+- user-facing document version history over human edits, generated diffs, imports, and restores
+- diff preview and restore-prior-version flow that creates a new current version without deleting newer history
 - copy/paste/undo/redo shortcut row
-- command-palette entries for editor basics
+- command-palette entries for editor basics and version history
 
 Activation rule:
 - disabled until qualitative coding and client/editor ownership are explicitly ready for implementation
@@ -237,7 +243,7 @@ Implementation batches:
 Own later:
 - project export/import through portable zip archives
 - archive manifest, schema version, content hashes, and safe path validation
-- export of documents, basket, summaries, transcripts, literature metadata, citations, codes, datasets, assets, provenance, and safe project settings
+- export of documents, basket, summaries, transcripts, literature metadata, citations, annotations, codes, document version/diff history, datasets, assets, provenance, and safe project settings
 - explicit exclusion of credentials, provider keys, local endpoints, managed Lite secrets, license refresh tokens, and machine caches
 - import preview, validation, conflict handling, and import-as-new restore behavior
 - licensing integration: licenses are per user/account, not per machine or project archive
