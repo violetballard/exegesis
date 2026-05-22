@@ -187,9 +187,12 @@ class CommandDemoPathReadinessStep:
     demo_step: str
     flow_step: str
     name: str
+    cli_token: str
     argv: tuple[str, ...]
     command: tuple[str, ...]
     route_tokens: tuple[str, ...]
+    description: str
+    lookup_tokens: tuple[str, ...]
     ready: bool
 
 
@@ -1084,9 +1087,12 @@ def _command_demo_path_readiness_steps(
             demo_step=entry.demo_step,
             flow_step=entry.flow_step,
             name=entry.name,
+            cli_token=entry.cli_token,
             argv=entry.argv,
             command=entry.command,
             route_tokens=route_tokens_by_flow_step.get(entry.flow_step, ()),
+            description=entry.description,
+            lookup_tokens=entry.lookup_tokens,
             ready=(
                 entry.command == (program, *entry.argv)
                 and bool(route_tokens_by_flow_step.get(entry.flow_step, ()))
@@ -1123,6 +1129,18 @@ def _validate_command_demo_path_readiness(
         raise ValueError("Command demo path readiness step commands are inconsistent")
     if tuple(step.name for step in readiness.steps) != tuple(entry.name for entry in contract.entries):
         raise ValueError("Command demo path readiness step names are inconsistent")
+    if tuple(step.cli_token for step in readiness.steps) != tuple(
+        entry.cli_token for entry in contract.entries
+    ):
+        raise ValueError("Command demo path readiness step CLI tokens are inconsistent")
+    if tuple(step.description for step in readiness.steps) != tuple(
+        entry.description for entry in contract.entries
+    ):
+        raise ValueError("Command demo path readiness step descriptions are inconsistent")
+    if tuple(step.lookup_tokens for step in readiness.steps) != tuple(
+        entry.lookup_tokens for entry in contract.entries
+    ):
+        raise ValueError("Command demo path readiness step lookup tokens are inconsistent")
     if readiness.ready != (bool(readiness.steps) and all(step.ready for step in readiness.steps)):
         raise ValueError("Command demo path readiness status is inconsistent")
     for step in readiness.steps:
