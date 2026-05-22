@@ -57,6 +57,14 @@ PATCH_REVIEW_EXECUTION_POLICY: dict[str, dict[str, Any]] = {
         "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
     },
 }
+PATCH_REVIEW_EXECUTION_PRECONDITIONS: dict[str, dict[str, bool]] = {
+    control: {
+        "requires_preview": bool(policy["requires_preview"]),
+        "requires_confirmation": bool(policy["requires_confirmation"]),
+        "requires_policy_gate": policy["policy_gate"] == "required",
+    }
+    for control, policy in PATCH_REVIEW_EXECUTION_POLICY.items()
+}
 PATCH_REVIEW_CONFIRMATION_TITLES: dict[str, str] = {
     "apply_patch": "Apply patch?",
     "reject_patch": "Reject patch?",
@@ -343,6 +351,13 @@ def validate_complete_patch_review_capabilities(capabilities: Any) -> None:
     ]
     if missing:
         raise ValueError(f"Complete patch review client support is missing: {', '.join(missing)}")
+
+
+def patch_review_execution_preconditions(control: str) -> dict[str, bool]:
+    normalized_control = control.strip().lower()
+    if normalized_control not in set(PATCH_REVIEW_REQUIRED_PARTS):
+        raise ValueError("Patch review control must be 'preview', 'apply', or 'reject'")
+    return deepcopy(PATCH_REVIEW_EXECUTION_PRECONDITIONS[normalized_control])
 
 
 def canonical_action_key(action: dict[str, Any]) -> str:
@@ -1008,6 +1023,7 @@ def resolve_patch_review_control_execution(
         "action_contract": deepcopy(action_contract),
         "selection": deepcopy(action_payload["selection"]),
         "execution_policy": deepcopy(execution_policy),
+        "preconditions": patch_review_execution_preconditions(normalized_control),
         "requires_confirmation": bool(execution_policy.get("requires_confirmation")),
         "requires_preview": bool(execution_policy.get("requires_preview")),
         "policy_gate": execution_policy.get("policy_gate"),
@@ -1546,6 +1562,7 @@ def patch_review_control_plan_from_contract(
             "status": "missing" if control in missing else "available",
             "command_aliases": list(PATCH_REVIEW_CLI_COMMAND_ALIASES.get(control, ())),
             "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY[control]),
+            "preconditions": patch_review_execution_preconditions(control),
         }
         control_payload = controls.get(control)
         if control_payload is not None:

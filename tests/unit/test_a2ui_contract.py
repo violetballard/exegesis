@@ -15,6 +15,7 @@ from exegesis_shared.contracts.actions import (
     PATCH_REVIEW_DECISION_GROUP,
     PATCH_REVIEW_DECISION_POLICY,
     PATCH_REVIEW_DEMO_PATH_STEP,
+    PATCH_REVIEW_EXECUTION_PRECONDITIONS,
     PATCH_REVIEW_EXECUTION_POLICY,
     PATCH_REVIEW_FLOW,
     PATCH_REVIEW_REQUIRED_PARTS,
@@ -36,6 +37,7 @@ from src.qual.ui.a2ui import (
     PatchReviewActionSelection,
     PATCH_REVIEW_CLI_COMMAND_ALIASES as UI_PATCH_REVIEW_CLI_COMMAND_ALIASES,
     PATCH_REVIEW_DECISION_GROUP as UI_PATCH_REVIEW_DECISION_GROUP,
+    PATCH_REVIEW_EXECUTION_PRECONDITIONS as UI_PATCH_REVIEW_EXECUTION_PRECONDITIONS,
     RETRIEVAL_RESULTS_CARD_TYPE,
     action_ref_from_selection,
     build_complete_patch_review_contract,
@@ -90,6 +92,7 @@ from src.qual.ui.a2ui import (
     patch_review_control_plan_from_contract,
     patch_review_control_summary_from_contract,
     patch_review_control_slots_from_contract,
+    patch_review_execution_preconditions,
     patch_review_next_control_from_contract,
     patch_review_selection_from_cli_command,
     render_terminal_card,
@@ -6108,13 +6111,73 @@ class A2UIContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Unsupported patch review execution policy"):
             resolve_patch_review_contract(card, review, patch_id="p1")
 
+    def test_patch_review_controls_carry_typed_execution_preconditions(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        review = build_complete_patch_review_contract(card, patch_id="p1")
+
+        self.assertEqual(
+            PATCH_REVIEW_EXECUTION_PRECONDITIONS["apply"],
+            {
+                "requires_preview": True,
+                "requires_confirmation": True,
+                "requires_policy_gate": True,
+            },
+        )
+        self.assertEqual(
+            patch_review_execution_preconditions("preview"),
+            {
+                "requires_preview": False,
+                "requires_confirmation": False,
+                "requires_policy_gate": False,
+            },
+        )
+        plan = patch_review_control_plan_from_contract(card, review, patch_id="p1")
+        self.assertEqual(
+            {entry["control"]: entry["preconditions"] for entry in plan},
+            PATCH_REVIEW_EXECUTION_PRECONDITIONS,
+        )
+
+        execution = resolve_patch_review_control_execution(
+            card,
+            review,
+            patch_id="p1",
+            control="apply",
+            capabilities=_capabilities(),
+        )
+
+        self.assertEqual(
+            execution["preconditions"],
+            PATCH_REVIEW_EXECUTION_PRECONDITIONS["apply"],
+        )
+        self.assertIs(
+            shared_contracts.patch_review_execution_preconditions,
+            patch_review_execution_preconditions,
+        )
+
     def test_cli_shim_exports_patch_review_contract_constants(self) -> None:
         self.assertEqual(UI_PATCH_REVIEW_DECISION_GROUP, PATCH_REVIEW_DECISION_GROUP)
         self.assertEqual(UI_PATCH_REVIEW_CLI_COMMAND_ALIASES, PATCH_REVIEW_CLI_COMMAND_ALIASES)
+        self.assertEqual(UI_PATCH_REVIEW_EXECUTION_PRECONDITIONS, PATCH_REVIEW_EXECUTION_PRECONDITIONS)
         self.assertIs(shared_contracts.PATCH_REVIEW_DECISION_GROUP, PATCH_REVIEW_DECISION_GROUP)
         self.assertIs(
             shared_contracts.PATCH_REVIEW_CLI_COMMAND_ALIASES,
             PATCH_REVIEW_CLI_COMMAND_ALIASES,
+        )
+        self.assertIs(
+            shared_contracts.PATCH_REVIEW_EXECUTION_PRECONDITIONS,
+            PATCH_REVIEW_EXECUTION_PRECONDITIONS,
         )
 
     def test_patch_review_selections_carry_engine_execution_policy(self) -> None:
