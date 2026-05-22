@@ -5,8 +5,7 @@ import sys
 from dataclasses import dataclass
 
 from exegesis_engine.config import validate_project_name
-from src.qual.commands.canonical import canonical_command
-from src.qual.commands.catalog import normalize_command_argv
+from src.qual.commands.catalog import canonical_command, normalize_command_argv
 
 
 @dataclass(frozen=True)

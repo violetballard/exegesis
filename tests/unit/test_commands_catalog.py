@@ -244,8 +244,8 @@ class CommandCatalogTests(unittest.TestCase):
             (
                 "open-project-document",
                 "retrieve-relevant-material",
-                "preview-apply-or-reject-patch",
-                "persist-and-continue",
+                "preview-patch",
+                "export-handoff",
             ),
         )
         self.assertEqual(tuple(entry.argv for entry in entries), plan.argv)
@@ -594,8 +594,8 @@ class CommandCatalogTests(unittest.TestCase):
             (
                 "open-project-document",
                 "retrieve-relevant-material",
-                "preview-apply-or-reject-patch",
-                "persist-and-continue",
+                "preview-patch",
+                "export-handoff",
             ),
         )
         self.assertEqual(
