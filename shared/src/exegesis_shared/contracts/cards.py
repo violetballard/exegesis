@@ -240,7 +240,7 @@ def materialize_patch_selection_envelope(card: dict[str, Any]) -> dict[str, Any]
         "type": "PatchActionSelection",
         "preview": {
             "command": "preview",
-            "actions": [slot["command"] for slot in slots if slot["action"].get("id") == "preview_patch"],
+            "actions": [slot["command"] for slot in slots],
         },
         "actions": slots,
     }

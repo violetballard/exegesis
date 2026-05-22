@@ -178,10 +178,29 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(envelope["type"], "PatchActionSelection")
         self.assertEqual(envelope["preview"]["command"], "preview")
-        self.assertEqual(envelope["preview"]["actions"], ["1"])
+        self.assertEqual(envelope["preview"]["actions"], ["1", "2", "3"])
         self.assertEqual(
             [slot["action"]["id"] for slot in envelope["actions"]],
             ["preview_patch", "apply_patch", "reject_patch"],
+        )
+
+    def test_patch_selection_envelope_preserves_apply_reject_only_fallback(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "diff"}],
+            "actions": [
+                {"id": "apply_patch", "label": "Apply Patch", "payload": {"patch_id": "p9"}},
+                {"id": "reject_patch", "label": "Reject Patch", "payload": {"patch_id": "p9"}},
+            ],
+        }
+
+        envelope = materialize_patch_selection_envelope(card)
+
+        self.assertEqual(envelope["preview"]["actions"], ["1", "2"])
+        self.assertEqual(
+            [slot["action"]["id"] for slot in envelope["actions"]],
+            ["apply_patch", "reject_patch"],
         )
 
     def test_engine_policy_gate_is_authoritative(self) -> None:
