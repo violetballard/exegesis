@@ -202,6 +202,7 @@ is_allowed() {
     codex/feat-commands*)
       case "$f" in
         src/qual/commands/*|src/qual/commands/*/*) return 0 ;;
+        engine/src/exegesis_engine/api/cli.py) return 0 ;;
         src/qual/cli.py) shared_file_allowed && return 0 ;;
       esac
       return 1
