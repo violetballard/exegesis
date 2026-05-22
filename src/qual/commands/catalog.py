@@ -1370,6 +1370,7 @@ def _command_demo_path_handoff_evidence_entries(
         ("ready", "true" if summary.ready else "false"),
         ("fingerprint", summary.fingerprint),
         ("patch-review-ready", "true" if patch_review_contract.ready else "false"),
+        ("patch-review-missing-outcomes", ",".join(patch_review_contract.missing_outcomes)),
         *(
             (
                 f"patch-review:{status.outcome}",
@@ -1455,8 +1456,13 @@ def _validate_command_patch_review_outcome_contract(
     contract: CommandPatchReviewOutcomeContract,
 ) -> None:
     expected_outcomes = tuple(_normalize_token(outcome) for outcome in PATCH_REVIEW_REQUIRED_OUTCOMES)
-    if tuple(status.outcome for status in contract.statuses) != expected_outcomes:
+    actual_outcomes = tuple(status.outcome for status in contract.statuses)
+    if actual_outcomes != expected_outcomes:
         raise ValueError("Command patch-review outcomes are inconsistent")
+    if len(set(actual_outcomes)) != len(actual_outcomes):
+        raise ValueError("Command patch-review outcomes must be unique")
+    if any(outcome not in expected_outcomes for outcome in contract.missing_outcomes):
+        raise ValueError("Command patch-review missing outcomes contain unknown outcomes")
     if contract.missing_outcomes != tuple(status.outcome for status in contract.statuses if not status.ready):
         raise ValueError("Command patch-review missing outcomes are inconsistent")
     if contract.ready != (not contract.missing_outcomes):
