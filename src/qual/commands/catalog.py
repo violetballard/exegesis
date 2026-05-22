@@ -243,6 +243,43 @@ def _validate_route_cli_tokens(
             raise ValueError(f"Command CLI route has unparseable tokens for {entry.name}: {joined_tokens}")
 
 
+def _validate_demo_path_steps_by_flow_step() -> None:
+    seen_flow_steps: set[str] = set()
+    seen_demo_steps: set[str] = set()
+    for flow_step, demo_step in DEMO_PATH_STEPS_BY_FLOW_STEP:
+        normalized_flow_step = _normalize_token(flow_step)
+        normalized_demo_step = _normalize_token(demo_step)
+        if not normalized_flow_step:
+            raise ValueError("Command demo path flow steps must not be empty")
+        if not normalized_demo_step:
+            raise ValueError("Command demo path labels must not be empty")
+        if normalized_flow_step in seen_flow_steps:
+            raise ValueError(f"Duplicate command demo path flow step: {flow_step}")
+        if normalized_demo_step in seen_demo_steps:
+            raise ValueError(f"Duplicate command demo path label: {demo_step}")
+        seen_flow_steps.add(normalized_flow_step)
+        seen_demo_steps.add(normalized_demo_step)
+
+    required_flow_steps = set(_normalize_flow_steps(DEMO_COMMAND_FLOW_STEPS))
+    missing_flow_steps = tuple(
+        flow_step
+        for flow_step in DEMO_COMMAND_FLOW_STEPS
+        if _normalize_token(flow_step) not in seen_flow_steps
+    )
+    if missing_flow_steps:
+        joined_steps = ", ".join(missing_flow_steps)
+        raise ValueError(f"Command demo path labels are missing for flow steps: {joined_steps}")
+
+    extra_flow_steps = tuple(
+        flow_step
+        for flow_step in seen_flow_steps
+        if flow_step not in required_flow_steps
+    )
+    if extra_flow_steps:
+        joined_steps = ", ".join(extra_flow_steps)
+        raise ValueError(f"Command demo path labels include unknown flow steps: {joined_steps}")
+
+
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         name="bootstrap",
@@ -888,6 +925,7 @@ def command_cli_smoke_plan(
 
 
 def _demo_path_labels_by_flow_step() -> dict[str, str]:
+    _validate_demo_path_steps_by_flow_step()
     return {
         _normalize_token(flow_step): _normalize_token(demo_step)
         for flow_step, demo_step in DEMO_PATH_STEPS_BY_FLOW_STEP
