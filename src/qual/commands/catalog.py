@@ -224,6 +224,9 @@ class CommandDemoPathReadiness:
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
     steps: tuple[CommandDemoPathReadinessStep, ...] = ()
     missing_demo_steps: tuple[str, ...] = ()
+    covered_canonical_step_commands: tuple[tuple[str, str], ...] = ()
+    supplemental_canonical_step_commands: tuple[tuple[str, str], ...] = ()
+    missing_canonical_step_lines: tuple[str, ...] = ()
     fingerprint: str = ""
 
 
@@ -1134,14 +1137,14 @@ def command_demo_path_readiness(
     normalized_program = _normalize_smoke_program(program)
     contract = command_demo_path_contract(normalized_program, specs, flow_steps)
     steps = _command_demo_path_readiness_steps(contract, normalized_program)
-    supplemental_demo_steps = tuple(
-        demo_step
-        for demo_step, _ in _supplemental_canonical_step_commands(
-            normalized_program,
-            specs=specs,
-            flow_steps=contract.flow_steps,
-        )
+    command_lines = tuple(" ".join(command) for command in contract.commands)
+    demo_step_commands = tuple(zip(contract.demo_steps, command_lines, strict=True))
+    supplemental_commands = _supplemental_canonical_step_commands(
+        normalized_program,
+        specs=specs,
+        flow_steps=contract.flow_steps,
     )
+    supplemental_demo_steps = tuple(demo_step for demo_step, _ in supplemental_commands)
     missing_demo_steps = _missing_demo_path_steps((*contract.demo_steps, *supplemental_demo_steps))
     readiness = CommandDemoPathReadiness(
         program=normalized_program,
@@ -1155,6 +1158,11 @@ def command_demo_path_readiness(
         command_lookup_table=contract.command_lookup_table,
         route_summary=contract.route_summary,
         steps=steps,
+        covered_canonical_step_commands=_covered_canonical_step_commands(
+            (*demo_step_commands, *supplemental_commands)
+        ),
+        supplemental_canonical_step_commands=supplemental_commands,
+        missing_canonical_step_lines=_missing_canonical_step_lines(missing_demo_steps),
         fingerprint=_command_demo_path_readiness_fingerprint(
             program=normalized_program,
             commands=contract.commands,
@@ -1383,6 +1391,17 @@ def _validate_command_demo_path_readiness(
     )
     if readiness.fingerprint != expected_fingerprint:
         raise ValueError("Command demo path readiness fingerprint is inconsistent")
+    command_lines = tuple(" ".join(command) for command in readiness.commands)
+    demo_step_commands = tuple(zip(readiness.demo_steps, command_lines, strict=True))
+    expected_covered_commands = _covered_canonical_step_commands(
+        (*demo_step_commands, *readiness.supplemental_canonical_step_commands)
+    )
+    if readiness.covered_canonical_step_commands != expected_covered_commands:
+        raise ValueError("Command demo path readiness covered canonical steps are inconsistent")
+    if readiness.missing_canonical_step_lines != _missing_canonical_step_lines(
+        readiness.missing_demo_steps
+    ):
+        raise ValueError("Command demo path readiness missing canonical steps are inconsistent")
     if tuple(step.demo_step for step in readiness.steps) != readiness.demo_steps:
         raise ValueError("Command demo path readiness step labels are inconsistent")
     if tuple(step.flow_step for step in readiness.steps) != readiness.flow_steps:
