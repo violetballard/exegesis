@@ -697,6 +697,20 @@ def compute_changed_files(cwd: str, base_ref: str, *, head_ref: str = "HEAD") ->
     raise RuntimeError(f"unable to determine changed files for {head_ref} vs {base_ref}")
 
 
+def compute_changed_files_for_range(cwd: str, commit_range: str) -> List[str]:
+    """Return changed files for an explicit reviewed implementation range."""
+    token = str(commit_range or "").strip()
+    if not token:
+        return []
+    if ".." in token:
+        result = run_git(["diff", "--name-only", token], cwd=cwd, timeout=CHANGED_FILES_DIFF_TIMEOUT)
+    else:
+        result = run_git(["show", "--pretty=", "--name-only", token], cwd=cwd, timeout=CHANGED_FILES_FALLBACK_TIMEOUT)
+    if result.returncode != 0:
+        return []
+    return _parse_changed_files(result.stdout)
+
+
 def run_scope_check(cwd: str, env: Optional[Dict[str, str]] = None) -> Tuple[int, str]:
     # Run the daemon checkout's scope policy against the lane worktree so
     # policy updates apply immediately without waiting for every lane branch
@@ -1126,12 +1140,15 @@ def main()->None:
             if carried and files:
                 if force_metadata_reemit:
                     print(f"[planner] {lane}: re-emitting after local metadata repair (reuse prior gate results)")
-                    try:
-                        current_files = compute_changed_files(repo, base_ref, head_ref=branch)
-                        if current_files:
-                            files = current_files
-                    except Exception as e:
-                        print(f"[planner] {lane}: metadata re-emit changed-files refresh failed: {e}")
+                    reviewed_range = str(meta.get("reviewed_commit_range") or "").strip()
+                    reviewed_files = compute_changed_files_for_range(repo, reviewed_range)
+                    if reviewed_files:
+                        files = reviewed_files
+                    elif reviewed_range:
+                        print(
+                            f"[planner] {lane}: metadata re-emit reviewed-range file refresh failed; "
+                            "using carried packet files"
+                        )
                 elif active_repo:
                     print(f"[planner] {lane}: fast re-emit from advanced HEAD after reviewer notes (reuse prior gate results)")
                 else:
