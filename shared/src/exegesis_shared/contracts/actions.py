@@ -75,6 +75,16 @@ PATCH_REVIEW_CLI_COMMAND_ALIASES: dict[str, tuple[str, ...]] = {
     "apply": ("apply", "apply_patch"),
     "reject": ("reject", "reject_patch"),
 }
+PATCH_REVIEW_CONTROL_KINDS: dict[str, str] = {
+    "preview": "preview",
+    "apply": "decision",
+    "reject": "decision",
+}
+PATCH_REVIEW_RESOLVED_STATUSES: dict[str, str] = {
+    "preview": "previewed",
+    "apply": "applied",
+    "reject": "rejected",
+}
 ENGINE_NORMALIZED_ACTION_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
     "preview_patch": ("patch_id",),
     "apply_patch": ("patch_id",),
@@ -368,6 +378,13 @@ def patch_review_execution_preconditions(control: str) -> dict[str, bool]:
     return deepcopy(PATCH_REVIEW_EXECUTION_PRECONDITIONS[normalized_control])
 
 
+def patch_review_resolved_status(control: str) -> str:
+    normalized_control = control.strip().lower()
+    if normalized_control not in set(PATCH_REVIEW_REQUIRED_PARTS):
+        raise ValueError("Patch review control must be 'preview', 'apply', or 'reject'")
+    return PATCH_REVIEW_RESOLVED_STATUSES[normalized_control]
+
+
 def canonical_action_key(action: dict[str, Any]) -> str:
     return json.dumps(action, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
@@ -573,6 +590,11 @@ def materialize_cli_fallback_card(card: dict[str, Any]) -> dict[str, Any]:
             if "not available" not in str(exc):
                 raise
         else:
+            materialized["patch_review_controls"] = patch_review_control_plan_from_contract(
+                materialized,
+                materialized["patch_review"],
+                patch_id=patch_id,
+            )
             try:
                 materialized["complete_patch_review_actions"] = complete_patch_review_actions_from_contract(
                     materialized,
@@ -1567,11 +1589,16 @@ def patch_review_control_plan_from_contract(
     for control in PATCH_REVIEW_REQUIRED_PARTS:
         entry: dict[str, Any] = {
             "control": control,
+            "kind": PATCH_REVIEW_CONTROL_KINDS[control],
             "status": "missing" if control in missing else "available",
             "command_aliases": list(PATCH_REVIEW_CLI_COMMAND_ALIASES.get(control, ())),
             "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY[control]),
             "preconditions": patch_review_execution_preconditions(control),
+            "resolved_status": patch_review_resolved_status(control),
         }
+        if entry["kind"] == "decision":
+            entry["decision_group"] = PATCH_REVIEW_DECISION_GROUP
+            entry["decision"] = control
         control_payload = controls.get(control)
         if control_payload is not None:
             entry.update(

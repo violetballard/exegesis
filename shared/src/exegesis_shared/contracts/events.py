@@ -16,6 +16,7 @@ from exegesis_shared.contracts.actions import (
     action_ref_from_selection,
     build_complete_patch_review_contract,
     build_patch_review_selection,
+    patch_review_resolved_status,
 )
 from exegesis_shared.contracts.cards import (
     A2UICapabilities,
@@ -176,11 +177,7 @@ def build_complete_patch_review_action_resolved_event(
         patch_id=patch_id,
         control=normalized_control,
     )
-    expected_status = {
-        "preview": "previewed",
-        "apply": "applied",
-        "reject": "rejected",
-    }[normalized_control]
+    expected_status = patch_review_resolved_status(normalized_control)
     resolved_status = status or expected_status
     if resolved_status != expected_status:
         raise ValueError("Patch review resolved status does not match the selected control")

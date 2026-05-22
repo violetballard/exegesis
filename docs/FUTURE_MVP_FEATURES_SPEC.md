@@ -232,15 +232,17 @@ Shortcut rows:
 - New feature rows should be added only when the corresponding feature lane is enabled.
 - Shortcut labels must match command-palette command names closely enough that users can discover the same action in either place.
 
-## Milestone 9: Basic Qualitative Coding
+## Milestone 9: Basic Qualitative Coding And Annotations
 
 Lane: `feat-qual-coding` (disabled)
 
 Intent:
 - Add first-class qualitative codes to project state and storage.
 - Let selected document text receive one simple code with a color highlight.
+- Add document-local annotations as a separate markup layer from codes.
 - Add project-browser organization for document folders and one-level parent codes.
 - Provide enough inspector/code-view detail that coding feels like real qualitative analysis, not a decorative highlight.
+- Keep annotations out of the project browser; they exist inside documents only and are inspected through document selection.
 
 ### Data Model
 
@@ -264,6 +266,16 @@ Add these engine-level concepts:
   - `selected_text`
   - `document_content_hash`
   - `created_at`, `updated_at`
+- `Annotation`
+  - `id`
+  - `project_id`
+  - `document_id`
+  - `document_type`: draft, memo, summary, transcript, or literature
+  - `start_offset`, `end_offset`
+  - `selected_text`
+  - `body`: optional Markdown/plain text note
+  - `document_content_hash`
+  - `created_at`, `updated_at`
 - `ProjectFolder`
   - `id`
   - `project_id`
@@ -281,7 +293,9 @@ Storage constraints:
 - A child code may have at most one parent code.
 - A parent code may not be nested under another parent code in MVP.
 - A `CodeAssignment` must reference an existing code and document.
+- An `Annotation` must reference an existing document but must not create a project-browser item.
 - Deleting a code requires either deleting its assignments or moving them to another code through a confirmation flow; default MVP behavior is confirmation plus assignment deletion.
+- Deleting an annotation removes only the annotation highlight/note and must not affect code assignments on the same range.
 
 ### Engine/API Surface
 
@@ -298,6 +312,10 @@ Add service actions:
 - `delete_code_assignment(assignment_id) -> DeleteResult`
 - `list_code_appearances(code_id) -> list[CodeAppearance]`
 - `get_code_summary(code_id) -> CodeSummary`
+- `create_annotation(document_id, selection_range, body?) -> Annotation`
+- `update_annotation(annotation_id, body?) -> Annotation`
+- `delete_annotation(annotation_id) -> DeleteResult`
+- `list_document_annotations(document_id) -> list[Annotation]`
 
 Return shape for `CodeAppearance`:
 - assignment ID
@@ -323,11 +341,16 @@ Project browser:
 - Dragging a document into a folder updates `document.folder_id`.
 - Dragging a code under another code sets `parent_code_id`, if it does not violate one-level nesting.
 - Dragging a child code back to Codes clears `parent_code_id`.
+- Annotations never appear as project-browser rows, sections, folders, or children of documents. They are document-local marks only.
 
 Document pane:
 - Selecting text and choosing `Add Code` opens a small centered modal or palette picker for existing code/new code.
-- Applying a code highlights the selected range with the code color.
+- Selecting text and choosing `Annotate` creates a document annotation with an optional note field.
+- Codes render as blue highlights by default.
+- Annotations render as yellow highlights by default.
+- When a code highlight overlaps an annotation highlight, the overlapping range renders green so the overlap is visually legible.
 - MVP supports one code per exact selected range. If the user codes overlapping text, create a separate assignment but keep rendering deterministic by nearest/smallest assignment first; fuller overlap tooling waits.
+- MVP supports multiple annotations in a document, but annotation navigation/list UI is document-local and does not create a global annotation browser.
 
 Inspector:
 - When selected text has a code assignment, show:
@@ -338,6 +361,13 @@ Inspector:
   - document count
   - document list of appearances with title/type and short excerpt
 - Appearance rows are clickable and open the relevant document at the coded range.
+- When selected text has an annotation, show:
+  - annotation note/body
+  - annotated selected text
+  - document title/type
+  - created/updated timestamp
+  - edit/delete annotation actions
+- If selected text has both a code and annotation, show both sections; the document highlight overlap remains green.
 
 Code-focused document view:
 - When a code is selected in the project browser, document pane switches to code view.
@@ -350,10 +380,12 @@ Code-focused document view:
   - click-to-open document at excerpt
 
 Shortcut row and palette:
-- Add a dedicated coding row when lane is enabled.
+- Add a dedicated coding/annotation row when lane is enabled.
 - Required commands:
   - `Add Code`
   - `Delete Code`
+  - `Annotate`
+  - `Delete Annotation`
   - `New Folder`
   - `Move Code Up`
   - `Move Code Down`
@@ -362,19 +394,22 @@ Shortcut row and palette:
 ### Implementation Batches
 
 1. Storage/model contract
-   - Add code, assignment, and folder models.
+   - Add code, assignment, annotation, and folder models.
    - Add persistence and serialization tests.
 2. Engine actions
    - Implement create/rename/delete/move code and folder actions.
    - Implement apply/delete assignment and appearance queries.
+   - Implement create/update/delete/list annotation actions.
 3. Project browser integration
    - Add folders and code hierarchy rendering.
    - Add drag/drop constraints and command-palette actions.
 4. Document highlight integration
-   - Render code highlights over document ranges.
+   - Render code and annotation highlights over document ranges.
+   - Render code/annotation overlap as green.
    - Handle stale ranges and overlapping ranges predictably.
 5. Inspector and code view
    - Add coded-selection inspector details.
+   - Add annotation-selection inspector details.
    - Add code-focused document view and clickable appearances.
 
 ### Test Plan
@@ -384,11 +419,16 @@ Shortcut row and palette:
 - Dragging a child code under a parent succeeds.
 - Dragging a parent code under another parent fails with a clear UI message.
 - Applying a code to selected text creates a `CodeAssignment` with stable offsets and selected text.
+- Creating an annotation on selected text creates an `Annotation` with stable offsets and selected text.
+- Annotations do not appear in the project browser.
+- Code highlights render blue, annotation highlights render yellow, and overlaps render green.
 - Deleting a code prompts for assignment deletion and removes highlights after confirmation.
+- Deleting an annotation removes the annotation highlight without deleting overlapping code assignments.
 - Inspector shows code name, parent/child info, frequencies, and document appearances.
+- Inspector shows annotation body and selected text when an annotation is selected.
 - Clicking a code appearance opens the target document and scrolls to the coded range.
 - Selecting a code in the project browser opens the code-focused document view.
-- Command palette contains all coding commands.
+- Command palette contains all coding and annotation commands.
 
 ## Milestone 10: Editor Basics
 
@@ -397,6 +437,7 @@ Lane: `feat-editor-basics` (disabled)
 Intent:
 - Add expected text-editor primitives after the document pane has stable selection and edit APIs.
 - Keep copy/paste/undo/redo separate from coding/project taxonomy behavior.
+- Add a user-facing version history browser so stored diff/edit history can be inspected and restored without hand-editing project state.
 
 ### Data And State
 
@@ -405,6 +446,7 @@ Document editor state additions:
 - `cursor_offset`: insertion point when no selection exists
 - `undo_stack`: bounded stack of document edit operations
 - `redo_stack`: bounded stack of reverted document edit operations
+- `version_history`: ordered document versions/checkpoints derived from human edits, generated drafts, rewrite applies, imports, restores, and other document mutations
 
 Edit operation shape:
 - `operation_id`
@@ -415,12 +457,28 @@ Edit operation shape:
 - `inserted_text`
 - `removed_text`
 - `timestamp`
-- `source`: typing, paste, draft, rewrite_apply, formatting, citation, or coding
+- `source`: typing, paste, draft, rewrite_apply, formatting, citation, annotation, coding, import, restore, or migration
+
+Version history entry shape:
+- `version_id`
+- `document_id`
+- `parent_version_id`: optional previous version
+- `document_hash`
+- `created_at`
+- `actor`: human, model, import, restore, or system
+- `source`: typing, paste, draft, rewrite_apply, formatting, citation, annotation, coding, import, restore, or migration
+- `summary`: short user-visible description, for example `Human edit`, `Draft inserted`, `Rewrite applied`, or `Restored prior version`
+- `diff_ref`: pointer to generated diff/edit operation payload
+- `snapshot_ref`: optional pointer to a full snapshot for periodic checkpoints
+- `model_request_id`: optional provenance pointer for generated text
+- `restored_from_version_id`: optional pointer when this version was created by restore
 
 MVP stack limits:
 - Keep at least 100 edit operations per open document.
 - Clear redo stack whenever a new edit happens after undo.
 - Persist undo/redo only for the active session unless later persistence is explicitly enabled.
+- Persist version history and diff records durably once Milestone 5A trust storage is active; undo/redo can remain session-bounded, but version history must survive app restart.
+- Store periodic snapshots often enough that restoring an old version does not require replaying an unbounded diff chain.
 
 ### Engine/API Surface
 
@@ -430,6 +488,10 @@ Add editor actions:
 - `undo_document_edit(document_id) -> EditResult | NoOp`
 - `redo_document_edit(document_id) -> EditResult | NoOp`
 - `record_document_edit(document_id, edit_operation) -> None`
+- `list_document_versions(document_id) -> list[DocumentVersionSummary]`
+- `get_document_version(document_id, version_id) -> DocumentVersion`
+- `get_document_version_diff(document_id, from_version_id, to_version_id) -> DocumentDiff`
+- `restore_document_version(document_id, version_id) -> RestoreResult`
 
 Clipboard payload:
 - plain text is required
@@ -445,6 +507,16 @@ Document pane:
 - `Redo` reapplies the most recent undone operation.
 - If no action is available, disable the command and show a small status message.
 
+Version history UI:
+- Add a `Version History` command for the active document.
+- Open a centered modal or side panel showing chronological versions with timestamp, actor/source, summary, and short diff stats.
+- Selecting a version shows the document text or rendered Markdown for that version.
+- Selecting two adjacent versions shows a generated diff.
+- The current version is clearly marked.
+- `Restore This Version` creates a new document version whose content matches the selected prior version; it must not delete newer history.
+- Restores must be undoable in the active session and must create provenance linking back to the restored version.
+- Human-entered text, generated drafts, rewrite applies, imports, formatting edits, citation insertions, annotation edits, and coding changes should all appear in history when they alter document text or document markup state.
+
 Shortcut row and palette:
 - Add a dedicated editor basics row when lane is enabled.
 - Required commands:
@@ -452,23 +524,32 @@ Shortcut row and palette:
   - `Paste`
   - `Undo`
   - `Redo`
+  - `Version History`
+  - `Restore Version`
 
 Behavior with generated edits:
 - Draft insertion, rewrite apply, citation insertion, and formatting changes should record undoable edit operations once those lanes exist.
 - Undo must restore the document text and cursor/selection when possible.
+- Generated diff history and human edit history must both be visible through version history.
+- Version history restore is not the same as Git checkout; it is an app-level restore that creates a new project/document version.
 
 ### Implementation Batches
 
 1. Editor operation model
    - Add edit operation representation and stack behavior.
+   - Add version history entry and document diff representation.
 2. Document pane API
    - Expose copy/paste/undo/redo through stable document pane methods.
+   - Expose list/get/diff/restore version history methods.
 3. Clipboard integration
    - Wire system clipboard where available, with mock/test clipboard fallback.
 4. Command/shortcut integration
    - Add top row and palette commands.
 5. Generated edit integration
    - Make existing draft/rewrite paths record undoable operations once lane is enabled.
+   - Ensure generated drafts and rewrite applies create version history entries with provenance links.
+6. Version history UI
+   - Add version list, diff preview, and restore confirmation flow.
 
 ### Test Plan
 
@@ -480,7 +561,11 @@ Behavior with generated edits:
 - Redo after undo restores pasted text.
 - New edit after undo clears redo stack.
 - Undo stack is per document, not global across all documents.
-- Command palette contains Copy, Paste, Undo, Redo.
+- Version History lists human-entered edits and generated draft/rewrite edits.
+- Version History can show a diff between adjacent versions.
+- Restoring a prior version creates a new current version and preserves newer history.
+- Restore Version is blocked or warns clearly if the version content cannot be reconstructed.
+- Command palette contains Copy, Paste, Undo, Redo, Version History, and Restore Version.
 
 ## Milestone 11: Zotero Import
 
@@ -1318,7 +1403,9 @@ Archive may include:
 - drafts, memos, summaries, transcripts, literature, and imported documents
 - basket entries and context sets
 - citation metadata and bibliography records
+- document-local annotations
 - qualitative codes and code assignments when coding exists
+- document version/diff history
 - datasets and analysis sequences when quantitative analysis exists
 - project-local assets such as figures, OCR outputs, generated charts, and attachments
 - project settings that are safe to move between machines

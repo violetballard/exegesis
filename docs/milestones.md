@@ -106,11 +106,12 @@ Outcome:
 Deliverables:
 - encrypted SQLite-backed storage for durable app/project metadata, sessions, workflow artifacts, provenance, audit events, notebook compaction records, and generated A2UI promotion candidates
 - portable Markdown documents and assets remain outside opaque storage where appropriate
-- provenance/tracking for retrieval hits, query/filter/ranking metadata, basket promotion, model request context assembly, generated outputs, rewrite proposals, patch apply/reject decisions, citations, imports, notebook compactions, and A2UI-generated surface candidates
+- provenance/tracking for retrieval hits, query/filter/ranking metadata, basket promotion, model request context assembly, generated outputs, rewrite proposals, patch apply/reject decisions, document version/diff records, citations, imports, notebook compactions, and A2UI-generated surface candidates
 - redacted local support/diagnostic bundle generation for CoP troubleshooting
 - first-run/onboarding and plain-language failure-state copy for launch-critical flows
 - full MVP A2UI protocol compatibility beyond the current shim: handshake, capability negotiation, primitive blocks, known cards, unknown-card fallback, typed action allowlist, payload validation, streaming event shape, and engine-side policy revalidation
 - generated A2UI drafts captured as reviewable CoP/beta promotion candidates with source prompt/context, model/provider, client capability set, allowed actions, usage outcome, user feedback, review status, and promotion status
+- durable version history for document text and document markup changes, including human edits, generated drafts, rewrite applies, imports, restores, annotations, and codes where they affect document state
 - optional hosted A2UI promotion intake through the License Gateway for opted-in CoP/beta builds, with privacy-preserving redaction rules
 - local/admin promotion candidate review through CLI-first list/show/status/export commands and a small bearer-token-protected HTML dashboard with rough previews of safe A2UI primitives
 
@@ -194,40 +195,47 @@ Status:
 - Lane state: disabled (`feat-rag-index`)
 - This milestone is spec scaffolding only until explicitly activated
 
-## Milestone 9: Basic qualitative coding
+## Milestone 9: Basic qualitative coding and annotations
 
 Outcome:
-- The project can eventually support one-code-at-a-time qualitative coding over selected document text, with simple highlights and navigable code summaries.
+- The project can eventually support one-code-at-a-time qualitative coding over selected document text, plus document-local annotations that do not become project-browser taxonomy.
 
 Deliverables:
 - code type in project state and storage/database models
-- single-code selection highlight behavior
+- annotation type in project/document state and storage/database models
+- single-code selection highlight behavior using blue highlights
+- document-local annotation behavior using yellow highlights
+- green overlap rendering where code and annotation highlights overlap
 - `New Folder` support in the project browser
 - organizational folders under document sections
 - parent-code folders under the code section
 - drag-and-drop for folders and codes
 - one level of parent/child codes
 - inspector code details for selected coded text
+- inspector annotation details for selected annotated text
 - code-focused document view with summary, frequencies, parent/child info, and document excerpts
-- coding shortcut row for add/delete code and folder-related coding actions
+- coding/annotation shortcut row for add/delete code, add/delete annotation, and folder-related coding actions
 
 Status:
 - Planned and disabled
 - Lane state: disabled (`feat-qual-coding`)
 - This milestone is spec scaffolding only until explicitly activated
+- Annotations are document-local only; they do not appear as project-browser rows or a global annotation browser.
 
 ## Milestone 10: Editor basics
 
 Outcome:
-- The document editor can eventually provide expected text-editing primitives without mixing them into coding or project taxonomy work.
+- The document editor can eventually provide expected text-editing primitives and user-facing version history without mixing them into coding or project taxonomy work.
 
 Deliverables:
 - copy selected text
 - paste clipboard text
 - undo document edits
 - redo document edits
+- browse document version history for human edits, generated diffs, imports, and restores
+- restore a prior version by creating a new current version without deleting newer history
 - shortcut row for copy, paste, undo, and redo
-- command-palette entries for editor basics
+- command-palette entries for editor basics and version history
 
 Status:
 - Planned and disabled
@@ -335,7 +343,7 @@ Outcome:
 
 Deliverables:
 - project zip archive manifest with schema version, app version, project ID, content hashes, and export timestamp
-- export coverage for documents, basket, summaries, transcripts, literature metadata, citations, codes, datasets, provenance, and project settings
+- export coverage for documents, basket, summaries, transcripts, literature metadata, citations, annotations, codes, document version/diff history, datasets, provenance, and project settings
 - explicit exclusion of credentials, provider keys, local endpoints, managed Lite secrets, license tokens, and machine caches
 - import preview with validation, conflict handling, and safe restore behavior
 - licensing boundary: licenses are per user/account, not per machine or project archive

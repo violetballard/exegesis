@@ -108,7 +108,7 @@ Status: MVP planned, disabled until Milestone 5 stands
 
 Scope:
 - add richer encrypted SQLite-backed storage for durable MVP app/project state, while keeping Markdown documents and project assets portable
-- make provenance/tracking first-class for retrieval, basket promotion, model request assembly, generated outputs, rewrite proposals, patch apply/reject decisions, citations, imports, notebook compactions, and A2UI promotion candidates
+- make provenance/tracking first-class for retrieval, basket promotion, model request assembly, generated outputs, rewrite proposals, patch apply/reject decisions, version history/diff records, citations, imports, notebook compactions, and A2UI promotion candidates
 - add redacted support/diagnostic bundle generation so CoP issues can be reported without sending research content by default
 - add first-run/onboarding and plain-language failure-state copy for the real CoP workflow
 - move beyond shim-level A2UI by implementing full MVP protocol compatibility: handshake, capability negotiation, primitive block schemas, known card schemas, unknown-card fallback, typed action allowlist, payload validation, streaming event shape, and engine-side policy revalidation
@@ -127,7 +127,8 @@ Lane mapping:
 Exit criteria:
 - encrypted SQLite-backed storage exists for durable metadata, sessions, workflow artifacts, provenance, audit events, compaction records, and A2UI promotion candidates
 - raw Markdown documents remain portable and project export/import remains possible
-- provenance records can explain the context-to-output-to-patch chain for normal writing workflows
+- provenance records can explain the context-to-output-to-patch/version chain for normal writing workflows
+- durable document version history can expose human edits, generated diffs, and restore actions without deleting newer history
 - redacted support bundles can be generated locally and exclude document content, basket content, transcript text, credentials, file paths, and raw prompts by default
 - first-run/onboarding copy and major failure states are specified for CoP use
 - A2UI protocol compatibility is complete enough that future Textual/native clients do not depend on a shim-only contract
@@ -219,25 +220,29 @@ Exit criteria:
 - FTS-plus-vector retrieval shape is specified
 - no runtime RAG behavior is active until the lane is enabled
 
-## Milestone 9: Basic qualitative coding
+## Milestone 9: Basic qualitative coding and annotations
 
 Status: planned, disabled
 
 Scope:
 - add first-class qualitative codes to project state and storage
-- apply one code to selected text with a simple color highlight
+- apply one code to selected text with a simple blue highlight
+- add document-local annotations as a separate yellow highlight layer that does not appear in the project browser
+- render overlapping code and annotation highlights as green
 - add `New Folder` in the project browser
 - make document-section folders organizational and code-section folders parent codes
 - support draggable folders and codes with one level of parent codes
 - show code details, parent/child info, frequencies, and clickable document appearances in the inspector and code view
-- add dedicated coding shortcuts for adding/deleting codes and folder-related coding actions
+- show annotation details in the inspector when an annotated range is selected
+- add dedicated coding/annotation shortcuts for adding/deleting codes, adding/deleting annotations, and folder-related coding actions
 
 Lane mapping:
 - `feat-qual-coding`: disabled until explicitly activated
 
 Exit criteria:
-- qualitative coding contract is specified
+- qualitative coding and document-local annotation contracts are specified
 - project/code folder semantics are specified
+- annotation/code overlap rendering is specified
 - no runtime coding behavior is active until the lane is enabled
 
 ## Milestone 10: Editor basics
@@ -246,6 +251,7 @@ Status: planned, disabled
 
 Scope:
 - add copy, paste, undo, and redo support
+- add user-facing document version history for human edits, generated diffs, and restore actions
 - keep editor basics separate from coding/project taxonomy behavior
 - add dedicated copy/paste/undo/redo shortcut row
 - register editor basics in the command palette
@@ -255,6 +261,7 @@ Lane mapping:
 
 Exit criteria:
 - editor basics contract is specified
+- version history/diff browsing and restore contract is specified
 - shortcut and command-palette coverage is specified
 - no runtime editor basics behavior is active until the lane is enabled
 
@@ -366,7 +373,7 @@ Status: MVP planned, disabled
 
 Scope:
 - add portable project export/import through a zip archive so users can move projects between machines
-- include project documents, basket entries, metadata, citations, codes, datasets, summaries, transcripts, literature records, provenance, and local project settings
+- include project documents, basket entries, metadata, citations, annotations, codes, document version/diff history, datasets, summaries, transcripts, literature records, provenance, and local project settings
 - exclude credentials, provider keys, local endpoints, managed Lite secrets, license refresh tokens, and machine-specific caches
 - include a manifest, schema version, content hashes, archive validation, and import preview before restore
 - support conflict handling for importing into an existing project or onto a machine that already has a project with the same identity
