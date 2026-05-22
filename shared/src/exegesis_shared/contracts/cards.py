@@ -4,7 +4,7 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
-from exegesis_shared.contracts.actions import ALLOWED_ACTION_IDS, validate_action_ref
+from exegesis_shared.contracts.actions import ALLOWED_ACTION_IDS, ActionRef, validate_action_ref
 
 A2UI_VERSION = 1
 GENERIC_CARD_TYPE = "GenericCard"
@@ -71,7 +71,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
         return card
     if card_type in set(capabilities.cards_supported):
         return card
-    return {
+    fallback = {
         "type": GENERIC_CARD_TYPE,
         "title": f"Fallback view for {card_type or 'Unknown'}",
         "blocks": [
@@ -89,6 +89,8 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
         ],
         "actions": [],
     }
+    fallback["actions"] = _valid_supported_actions(card.get("actions", []), capabilities)
+    return fallback
 
 
 def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
@@ -98,10 +100,10 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
         return _studio_filter_actions(card, capabilities)
     if card_type in set(capabilities.cards_supported):
         return _studio_filter_actions(card, capabilities)
-    return build_unknown_card(card)
+    return build_unknown_card(card, capabilities)
 
 
-def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
+def build_unknown_card(raw_card: dict[str, Any], capabilities: A2UICapabilities | None = None) -> dict[str, Any]:
     type_name = str(raw_card.get("type", "<missing>"))
     nested_blocks = raw_card.get("blocks")
     blocks: list[dict[str, Any]] = []
@@ -117,13 +119,14 @@ def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
             "collapsed": True,
         }
     )
+    actions = [{"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": json.dumps(raw_card)}}]
+    if capabilities is not None:
+        actions = _valid_supported_actions(actions, capabilities)
     return {
         "type": UNKNOWN_CARD_TYPE,
         "title": f"Unsupported card type: {type_name}",
         "blocks": blocks,
-        "actions": [
-            {"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": json.dumps(raw_card)}}
-        ],
+        "actions": actions,
     }
 
 
@@ -156,22 +159,110 @@ def validate_primitive_block(block: Any) -> None:
 
 def _studio_filter_actions(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
     filtered = dict(card)
+    actions = _valid_supported_actions(card.get("actions", []), capabilities)
+    filtered["actions"] = _canonicalize_actions(actions)
+    return filtered
+
+
+def _valid_supported_actions(raw_actions: Any, capabilities: A2UICapabilities) -> list[dict[str, Any]]:
+    if not isinstance(raw_actions, list):
+        return []
     actions = []
-    seen_actions: set[str] = set()
-    for action in card.get("actions", []):
+    supported = set(capabilities.actions_supported)
+    for action in raw_actions:
+        if not isinstance(action, dict):
+            continue
         try:
             validate_action_ref(action)
         except ValueError:
             continue
-        if action.get("id") not in set(capabilities.actions_supported):
+        if action.get("id") not in supported:
             continue
+        actions.append(action)
+    return actions
+
+
+def _canonicalize_actions(actions: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    seen_actions: set[str] = set()
+    canonical = []
+    for action in actions:
         action_key = json.dumps(action, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
         if action_key in seen_actions:
             continue
         seen_actions.add(action_key)
-        actions.append(action)
-    filtered["actions"] = sorted(
-        actions,
+        canonical.append(action)
+    return sorted(
+        canonical,
         key=lambda action: json.dumps(action, sort_keys=True, separators=(",", ":"), ensure_ascii=True),
     )
-    return filtered
+
+
+def materialize_action_slots(card: dict[str, Any]) -> tuple[dict[str, Any], ...]:
+    slots: list[dict[str, Any]] = []
+    for index, action in enumerate(_canonicalize_actions(_valid_actions(card.get("actions", []))), start=1):
+        slots.append(
+            {
+                "slot": index,
+                "command": str(index),
+                "action": action,
+                "aliases": _action_aliases(action),
+            }
+        )
+    return tuple(slots)
+
+
+def resolve_action_selection(card: dict[str, Any], selection: str | int) -> ActionRef:
+    token = str(selection).strip()
+    for slot in materialize_action_slots(card):
+        action = slot["action"]
+        aliases = {slot["command"], *slot["aliases"]}
+        if token in aliases:
+            return ActionRef(
+                id=str(action["id"]),
+                label=str(action["label"]),
+                payload=dict(action["payload"]),
+                confirm=action.get("confirm") if isinstance(action.get("confirm"), dict) else None,
+                policy_sensitive=bool(action.get("policy_sensitive", False)),
+            )
+    raise KeyError(f"Unknown action selection: {selection}")
+
+
+def materialize_patch_selection_envelope(card: dict[str, Any]) -> dict[str, Any]:
+    slots = []
+    for slot in materialize_action_slots(card):
+        action = slot["action"]
+        if action.get("id") not in {"apply_patch", "reject_patch"}:
+            continue
+        slots.append(slot)
+    if not slots:
+        raise ValueError("Patch selection requires apply_patch or reject_patch actions")
+    return {
+        "type": "PatchActionSelection",
+        "preview": {"command": "preview", "actions": [slot["command"] for slot in slots]},
+        "actions": slots,
+    }
+
+
+def _valid_actions(raw_actions: Any) -> list[dict[str, Any]]:
+    if not isinstance(raw_actions, list):
+        return []
+    actions = []
+    for action in raw_actions:
+        if not isinstance(action, dict):
+            continue
+        try:
+            validate_action_ref(action)
+        except ValueError:
+            continue
+        actions.append(action)
+    return actions
+
+
+def _action_aliases(action: dict[str, Any]) -> tuple[str, ...]:
+    action_id = str(action.get("id", ""))
+    aliases = [action_id]
+    if action_id == "apply_patch":
+        aliases.append("apply")
+    elif action_id == "reject_patch":
+        aliases.append("reject")
+    return tuple(aliases)

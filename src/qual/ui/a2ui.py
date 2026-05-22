@@ -12,6 +12,9 @@ from exegesis_shared.contracts.cards import (
     UNKNOWN_CARD_TYPE,
     build_unknown_card,
     engine_prepare_card,
+    materialize_action_slots,
+    materialize_patch_selection_envelope,
+    resolve_action_selection,
     studio_materialize_card,
     validate_capabilities,
     validate_generic_card,
@@ -58,9 +61,10 @@ def render_terminal_card(card: dict[str, Any]) -> str:
                 for row in rows:
                     if isinstance(row, list):
                         lines.append(" | ".join(str(value) for value in row))
-    for action in card.get("actions", []):
-        if isinstance(action, dict):
-            lines.append(f"* {action.get('label', action.get('id', 'action'))}")
+    for slot in materialize_action_slots(card):
+        action = slot["action"]
+        aliases = ", ".join(slot["aliases"])
+        lines.append(f"{slot['slot']}. {action.get('label', action.get('id', 'action'))} [{aliases}]")
     return "\n".join(lines)
 
 
@@ -76,7 +80,10 @@ __all__ = [
     "build_unknown_card",
     "engine_prepare_card",
     "execute_action_with_policy_gate",
+    "materialize_action_slots",
+    "materialize_patch_selection_envelope",
     "render_terminal_card",
+    "resolve_action_selection",
     "studio_materialize_card",
     "validate_action_ref",
     "validate_capabilities",
