@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from hashlib import sha256
 from dataclasses import dataclass
 from functools import lru_cache
 
@@ -223,6 +224,7 @@ class CommandDemoPathReadiness:
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
     steps: tuple[CommandDemoPathReadinessStep, ...] = ()
     missing_demo_steps: tuple[str, ...] = ()
+    fingerprint: str = ""
 
 
 @dataclass(frozen=True)
@@ -236,6 +238,7 @@ class CommandDemoPathHandoffSummary:
     flow_step_commands: tuple[tuple[str, str], ...]
     demo_step_commands: tuple[tuple[str, str], ...]
     missing_demo_steps: tuple[str, ...]
+    fingerprint: str = ""
 
 
 def _normalize_token(value: str) -> str:
@@ -1112,6 +1115,12 @@ def command_demo_path_readiness(
         command_lookup_table=contract.command_lookup_table,
         route_summary=contract.route_summary,
         steps=steps,
+        fingerprint=_command_demo_path_readiness_fingerprint(
+            program=normalized_program,
+            commands=contract.commands,
+            route_summary=contract.route_summary,
+            missing_demo_steps=missing_demo_steps,
+        ),
     )
     _validate_command_demo_path_readiness(readiness, contract)
     return readiness
@@ -1143,6 +1152,7 @@ def command_demo_path_handoff_summary(
         flow_step_commands=tuple(zip(readiness.flow_steps, command_lines, strict=True)),
         demo_step_commands=tuple(zip(readiness.demo_steps, command_lines, strict=True)),
         missing_demo_steps=readiness.missing_demo_steps,
+        fingerprint=readiness.fingerprint,
     )
     _validate_command_demo_path_handoff_summary(summary, readiness, compatibility_entries)
     return summary
@@ -1203,6 +1213,28 @@ def _validate_command_demo_path_handoff_summary(
         raise ValueError("Command demo path handoff demo steps are inconsistent")
     if summary.missing_demo_steps != readiness.missing_demo_steps:
         raise ValueError("Command demo path handoff missing steps are inconsistent")
+    if summary.fingerprint != readiness.fingerprint:
+        raise ValueError("Command demo path handoff fingerprint is inconsistent")
+
+
+def _command_demo_path_readiness_fingerprint(
+    *,
+    program: str,
+    commands: tuple[tuple[str, ...], ...],
+    route_summary: tuple[tuple[str, str, tuple[str, ...]], ...],
+    missing_demo_steps: tuple[str, ...],
+) -> str:
+    payload_parts = (
+        "v1",
+        program,
+        *("command:" + " ".join(command) for command in commands),
+        *(
+            "route:" + flow_step + ":" + name + ":" + ",".join(cli_tokens)
+            for flow_step, name, cli_tokens in route_summary
+        ),
+        *("missing:" + step for step in missing_demo_steps),
+    )
+    return sha256("\n".join(payload_parts).encode("utf-8")).hexdigest()
 
 
 def _missing_demo_path_steps(demo_steps: tuple[str, ...]) -> tuple[str, ...]:
@@ -1234,6 +1266,14 @@ def _validate_command_demo_path_readiness(
         raise ValueError("Command demo path readiness command lookup table is inconsistent")
     if readiness.route_summary != contract.route_summary:
         raise ValueError("Command demo path readiness route summary is inconsistent")
+    expected_fingerprint = _command_demo_path_readiness_fingerprint(
+        program=readiness.program,
+        commands=readiness.commands,
+        route_summary=readiness.route_summary,
+        missing_demo_steps=readiness.missing_demo_steps,
+    )
+    if readiness.fingerprint != expected_fingerprint:
+        raise ValueError("Command demo path readiness fingerprint is inconsistent")
     if tuple(step.demo_step for step in readiness.steps) != readiness.demo_steps:
         raise ValueError("Command demo path readiness step labels are inconsistent")
     if tuple(step.flow_step for step in readiness.steps) != readiness.flow_steps:
