@@ -218,6 +218,7 @@ class CommandDemoPathHandoffSummary:
     ready: bool
     command_count: int
     command_lines: tuple[str, ...]
+    flow_step_commands: tuple[tuple[str, str], ...]
     demo_step_commands: tuple[tuple[str, str], ...]
     missing_demo_steps: tuple[str, ...]
 
@@ -1104,6 +1105,7 @@ def command_demo_path_handoff_summary(
         ready=readiness.ready,
         command_count=readiness.command_count,
         command_lines=command_lines,
+        flow_step_commands=tuple(zip(readiness.flow_steps, command_lines, strict=True)),
         demo_step_commands=tuple(zip(readiness.demo_steps, command_lines, strict=True)),
         missing_demo_steps=readiness.missing_demo_steps,
     )
@@ -1151,6 +1153,8 @@ def _validate_command_demo_path_handoff_summary(
         raise ValueError("Command demo path handoff count is inconsistent")
     if summary.command_lines != tuple(" ".join(command) for command in readiness.commands):
         raise ValueError("Command demo path handoff commands are inconsistent")
+    if summary.flow_step_commands != tuple(zip(readiness.flow_steps, summary.command_lines, strict=True)):
+        raise ValueError("Command demo path handoff flow steps are inconsistent")
     if summary.demo_step_commands != tuple(zip(readiness.demo_steps, summary.command_lines, strict=True)):
         raise ValueError("Command demo path handoff demo steps are inconsistent")
     if summary.missing_demo_steps != readiness.missing_demo_steps:

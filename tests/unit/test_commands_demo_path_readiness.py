@@ -70,6 +70,15 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
             ),
         )
         self.assertEqual(
+            summary.flow_step_commands,
+            (
+                ("project-open", "qual-bootstrap bootstrap"),
+                ("retrieval", "qual-bootstrap context-basket list"),
+                ("patch-review", "qual-bootstrap diff-preview"),
+                ("export-handoff", "qual-bootstrap terminal"),
+            ),
+        )
+        self.assertEqual(
             summary.demo_step_commands,
             (
                 ("open-project-document", "qual-bootstrap bootstrap"),
