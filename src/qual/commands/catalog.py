@@ -212,6 +212,16 @@ class CommandDemoPathReadiness:
     missing_demo_steps: tuple[str, ...] = ()
 
 
+@dataclass(frozen=True)
+class CommandDemoPathHandoffSummary:
+    program: str
+    ready: bool
+    command_count: int
+    command_lines: tuple[str, ...]
+    demo_step_commands: tuple[tuple[str, str], ...]
+    missing_demo_steps: tuple[str, ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -1082,6 +1092,25 @@ def command_demo_path_readiness(
     return readiness
 
 
+def command_demo_path_handoff_summary(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> CommandDemoPathHandoffSummary:
+    readiness = command_demo_path_readiness(program, specs, flow_steps)
+    command_lines = tuple(" ".join(command) for command in readiness.commands)
+    summary = CommandDemoPathHandoffSummary(
+        program=readiness.program,
+        ready=readiness.ready,
+        command_count=readiness.command_count,
+        command_lines=command_lines,
+        demo_step_commands=tuple(zip(readiness.demo_steps, command_lines, strict=True)),
+        missing_demo_steps=readiness.missing_demo_steps,
+    )
+    _validate_command_demo_path_handoff_summary(summary, readiness)
+    return summary
+
+
 def _command_demo_path_readiness_steps(
     contract: CommandDemoPathContract,
     program: str,
@@ -1108,6 +1137,24 @@ def _command_demo_path_readiness_steps(
         )
         for entry in contract.entries
     )
+
+
+def _validate_command_demo_path_handoff_summary(
+    summary: CommandDemoPathHandoffSummary,
+    readiness: CommandDemoPathReadiness,
+) -> None:
+    if summary.program != readiness.program:
+        raise ValueError("Command demo path handoff program is inconsistent")
+    if summary.ready != readiness.ready:
+        raise ValueError("Command demo path handoff readiness is inconsistent")
+    if summary.command_count != readiness.command_count:
+        raise ValueError("Command demo path handoff count is inconsistent")
+    if summary.command_lines != tuple(" ".join(command) for command in readiness.commands):
+        raise ValueError("Command demo path handoff commands are inconsistent")
+    if summary.demo_step_commands != tuple(zip(readiness.demo_steps, summary.command_lines, strict=True)):
+        raise ValueError("Command demo path handoff demo steps are inconsistent")
+    if summary.missing_demo_steps != readiness.missing_demo_steps:
+        raise ValueError("Command demo path handoff missing steps are inconsistent")
 
 
 def _missing_demo_path_steps(demo_steps: tuple[str, ...]) -> tuple[str, ...]:

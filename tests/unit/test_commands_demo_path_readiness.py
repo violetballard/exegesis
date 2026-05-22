@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import unittest
 
-from src.qual.commands import command_demo_path_command_lookup_table, command_demo_path_readiness
+from src.qual.commands import (
+    command_demo_path_command_lookup_table,
+    command_demo_path_handoff_summary,
+    command_demo_path_readiness,
+)
 
 
 class CommandDemoPathReadinessTests(unittest.TestCase):
@@ -50,6 +54,40 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
                 (("qual-bootstrap", "terminal"), "persist-and-continue"),
             ),
         )
+
+    def test_handoff_summary_exposes_stable_smoke_command_lines(self) -> None:
+        summary = command_demo_path_handoff_summary(program="qual-bootstrap")
+
+        self.assertTrue(summary.ready)
+        self.assertEqual(summary.command_count, 4)
+        self.assertEqual(
+            summary.command_lines,
+            (
+                "qual-bootstrap bootstrap",
+                "qual-bootstrap context-basket list",
+                "qual-bootstrap diff-preview",
+                "qual-bootstrap terminal",
+            ),
+        )
+        self.assertEqual(
+            summary.demo_step_commands,
+            (
+                ("open-project-document", "qual-bootstrap bootstrap"),
+                ("retrieve-relevant-material", "qual-bootstrap context-basket list"),
+                ("preview-apply-or-reject-patch", "qual-bootstrap diff-preview"),
+                ("persist-and-continue", "qual-bootstrap terminal"),
+            ),
+        )
+
+    def test_handoff_summary_carries_missing_demo_steps_for_partial_paths(self) -> None:
+        summary = command_demo_path_handoff_summary(
+            program="qual-bootstrap",
+            flow_steps=("project-open", "retrieval", "patch-review"),
+        )
+
+        self.assertFalse(summary.ready)
+        self.assertEqual(summary.missing_demo_steps, ("persist-and-continue",))
+        self.assertEqual(summary.command_lines[-1], "qual-bootstrap diff-preview")
 
 
 if __name__ == "__main__":
