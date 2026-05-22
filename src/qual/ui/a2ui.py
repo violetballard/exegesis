@@ -15,6 +15,7 @@ from exegesis_shared.contracts.actions import (
     PATCH_REVIEW_DECISION_GROUP,
     PATCH_REVIEW_DECISION_POLICY,
     PATCH_REVIEW_DEMO_PATH_STEP,
+    PATCH_REVIEW_EXECUTION_PRECONDITIONS,
     PATCH_REVIEW_EXECUTION_POLICY,
     PATCH_REVIEW_FLOW,
     PATCH_REVIEW_REQUIRED_PARTS,
@@ -67,6 +68,7 @@ from exegesis_shared.contracts.actions import (
     patch_review_control_plan_from_contract,
     patch_review_control_summary_from_contract,
     patch_review_control_slots_from_contract,
+    patch_review_execution_preconditions,
     patch_review_selection_from_cli_command,
     resolve_card_selection,
     resolve_card_selection_contract,
@@ -343,6 +345,8 @@ def _format_patch_review_control_plan_entry(entry: dict[str, Any]) -> str:
     if isinstance(policy, dict):
         if policy.get("requires_confirmation"):
             parts.append("confirm")
+        if policy.get("requires_preview"):
+            parts.append("requires-preview")
         if policy.get("policy_gate") == "required":
             parts.append("policy-gated")
     return f"{parts[0]}({', '.join(parts[1:])})" if len(parts) > 1 else parts[0]
@@ -384,6 +388,7 @@ __all__ = [
     "PATCH_REVIEW_DECISION_GROUP",
     "PATCH_REVIEW_DECISION_POLICY",
     "PATCH_REVIEW_DEMO_PATH_STEP",
+    "PATCH_REVIEW_EXECUTION_PRECONDITIONS",
     "PATCH_REVIEW_EXECUTION_POLICY",
     "PATCH_REVIEW_FLOW",
     "PATCH_REVIEW_REQUIRED_PARTS",
@@ -451,6 +456,7 @@ __all__ = [
     "patch_review_selection_from_cli_command",
     "patch_review_control_summary_from_contract",
     "patch_review_control_slots_from_contract",
+    "patch_review_execution_preconditions",
     "materialize_card_actions",
     "materialize_terminal_card",
     "render_terminal_card",

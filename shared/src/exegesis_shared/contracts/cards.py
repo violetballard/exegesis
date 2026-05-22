@@ -420,7 +420,7 @@ def validate_proposed_edit_card(card: dict[str, Any], *, strict_actions: bool = 
         if action_id in {"preview_patch", "apply_patch", "reject_patch"}:
             payload = action.get("payload")
             action_patch_id = payload.get("patch_id") if isinstance(payload, dict) else None
-            if action_patch_id != expected_patch_id:
+            if not isinstance(action_patch_id, str) or action_patch_id.strip() != expected_patch_id:
                 raise ValueError(f"{action_id} payload patch_id must match ProposedEditCard patch_id")
         if strict_actions:
             validate_action_ref(action)
