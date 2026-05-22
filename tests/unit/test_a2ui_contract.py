@@ -4143,6 +4143,33 @@ class A2UIContractTests(unittest.TestCase):
         )
         self.assertEqual(executed, ["export_document"])
 
+    def test_engine_policy_sensitive_actions_reach_executor_with_derived_flag(self) -> None:
+        cases = [
+            ("preview_patch", {"patch_id": "p9"}, False),
+            ("apply_patch", {"patch_id": "p9"}, True),
+            ("reject_patch", {"patch_id": "p9"}, True),
+            ("run_agent", {"operation": "revise"}, True),
+            ("refresh_license", {}, True),
+            ("export_document", {"format": "md"}, True),
+        ]
+        gate = _RecordingPolicyGate(True, [])
+        executed: list[tuple[str, bool]] = []
+
+        for action_id, payload, _expected_sensitive in cases:
+            execute_action_with_policy_gate(
+                action=ActionRef(id=action_id, label=action_id, payload=payload),
+                capabilities=_capabilities(),
+                policy_gate=gate,
+                executor=lambda action: executed.append((action.id, action.policy_sensitive)),
+            )
+
+        expected = [(action_id, expected_sensitive) for action_id, _payload, expected_sensitive in cases]
+        self.assertEqual(executed, expected)
+        self.assertEqual(
+            [(action_id, policy_sensitive) for action_id, _payload, policy_sensitive in gate.calls],
+            expected,
+        )
+
     def test_patch_review_selection_execution_revalidates_policy_gate(self) -> None:
         card = materialize_terminal_card(
             {

@@ -108,6 +108,14 @@ CANONICAL_ACTION_PRIORITY: dict[str, int] = {
     action_id: index for index, action_id in enumerate(CANONICAL_ACTION_ORDER)
 }
 _ALLOWED_ACTION_SET = set(ALLOWED_ACTION_IDS)
+POLICY_SENSITIVE_ACTION_IDS: tuple[str, ...] = (
+    "apply_patch",
+    "reject_patch",
+    "run_agent",
+    "refresh_license",
+    "export_document",
+)
+_POLICY_SENSITIVE_ACTION_SET = set(POLICY_SENSITIVE_ACTION_IDS)
 if set(CANONICAL_ACTION_ORDER) != _ALLOWED_ACTION_SET:
     raise RuntimeError("A2UI canonical action order must match allowed action IDs")
 
@@ -2304,7 +2312,11 @@ def execute_action_with_policy_gate(
         raise ValueError("Unknown action id")
     if action.id not in set(capabilities.actions_supported):
         raise ValueError("Action not supported by client")
-    if not policy_gate.allow_action(action.id, action.payload, policy_sensitive=action.policy_sensitive):
+    policy_sensitive = action.policy_sensitive or is_policy_sensitive_action(action.id)
+    if policy_sensitive != action.policy_sensitive:
+        action = replace(action, policy_sensitive=policy_sensitive)
+        validate_action_ref(action.as_contract())
+    if not policy_gate.allow_action(action.id, action.payload, policy_sensitive=policy_sensitive):
         raise PermissionError("PolicyGate blocked action")
     return executor(action)
 
@@ -2354,9 +2366,17 @@ def engine_authoritative_action_ref(action: ActionRef) -> ActionRef:
         if action.confirm != confirm or not action.policy_sensitive:
             return replace(action, confirm=confirm, policy_sensitive=True)
         return action
+    if is_policy_sensitive_action(action.id):
+        if action.confirm is not None or not action.policy_sensitive:
+            return replace(action, confirm=None, policy_sensitive=True)
+        return action
     if action.confirm is not None or action.policy_sensitive:
         return replace(action, confirm=None, policy_sensitive=False)
     return action
+
+
+def is_policy_sensitive_action(action_id: str) -> bool:
+    return action_id in _POLICY_SENSITIVE_ACTION_SET
 
 
 def execute_patch_review_selection_with_policy_gate(
