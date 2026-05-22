@@ -327,7 +327,7 @@ def load_cfg() -> RouterConfig:
         max_local_fixer_jobs=int(cfg.get("max_local_fixer_jobs", 2)),
         max_cloud_feature_jobs=int(cfg.get("max_cloud_feature_jobs", 4)),
         max_cloud_reviewer_jobs=int(cfg.get("max_cloud_reviewer_jobs", 4)),
-        max_cloud_integrator_jobs=int(cfg.get("max_cloud_integrator_jobs", 4)),
+        max_cloud_integrator_jobs=int(cfg.get("max_cloud_integrator_jobs", CLOUD_INTEGRATOR_MAX_ACTIVE)),
         max_total_cloud_jobs=int(cfg.get("max_total_cloud_jobs", 4)),
         max_total_local_lms_jobs=int(cfg.get("max_total_local_lms_jobs", 4)),
         prefer_cli_fixer=bool(cfg.get("prefer_cli_fixer", True)),
@@ -1397,6 +1397,36 @@ def _tracked_integrator_pids(state: Dict[str, Any]) -> set[int]:
     return pids
 
 
+def _lane_has_active_integrator_job(
+    state: Dict[str, Any],
+    lane: str,
+    *,
+    exclude_job_key: str = "",
+) -> bool:
+    """Return True if this lane already has an active integrator.
+
+    Integrators merge into the shared main worktree, so packet-level parallelism
+    is unsafe even when packets are distinct. Keep this lane guard separate from
+    the global cloud/local caps so config changes cannot accidentally launch two
+    integrators for the same lane again.
+    """
+    for key in ("cloud_integrator_jobs", "local_integrator_jobs"):
+        jobs = state.get(key) or {}
+        if not isinstance(jobs, dict):
+            continue
+        for job_key, job in jobs.items():
+            if job_key == exclude_job_key or not isinstance(job, dict):
+                continue
+            if str(job.get("lane") or "") != lane:
+                continue
+            result_path = Path(str(job.get("result_path") or ""))
+            if result_path.exists():
+                continue
+            if _pid_alive(int(job.get("pid") or 0)):
+                return True
+    return False
+
+
 def _process_command_rows() -> List[Tuple[int, str]]:
     """Return process command rows, preferring untruncated command text."""
     commands = (
@@ -2313,6 +2343,9 @@ def _prepare_cli_integrator_result(
     retry_at = float(retry_ts.get(job_key, 0) or 0)
     if retry_at > time.time():
         state[retry_key] = retry_ts
+        return False, "", state
+    if _lane_has_active_integrator_job(state, lane, exclude_job_key=job_key):
+        state[jobs_key] = jobs
         return False, "", state
     if _count_active_local_jobs(jobs) >= max_active:
         state[jobs_key] = jobs

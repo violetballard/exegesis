@@ -453,6 +453,63 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             self.assertFalse(router._cloud_role_slot_available(cfg, state, "integrator"))
             self.assertEqual(router._count_active_cloud_jobs(state), 1)
 
+    def test_router_blocks_second_active_integrator_for_same_lane(self) -> None:
+        state = {
+            "cloud_integrator_jobs": {
+                "feat-a2ui-contract:R__APPROVED__old.md": {
+                    "lane": "feat-a2ui-contract",
+                    "packet_name": "R__APPROVED__old.md",
+                    "pid": 1111,
+                    "result_path": "/tmp/missing-a2ui-integrator-result",
+                }
+            }
+        }
+
+        with mock.patch.object(router, "_pid_alive", side_effect=lambda pid: pid == 1111):
+            self.assertTrue(router._lane_has_active_integrator_job(state, "feat-a2ui-contract"))
+            self.assertFalse(router._lane_has_active_integrator_job(state, "feat-engine-runs"))
+
+    def test_prepare_cloud_integrator_does_not_spawn_second_packet_for_same_lane(self) -> None:
+        cfg = SimpleNamespace(
+            auto_switch_to_local_on_quota=True,
+            integrator_timeout=900.0,
+            max_cloud_integrator_jobs=4,
+        )
+        state = {
+            "runtime_mode": "hybrid",
+            "cloud_available": True,
+            "cloud_integrator_jobs": {
+                "feat-a2ui-contract:R__APPROVED__old.md": {
+                    "lane": "feat-a2ui-contract",
+                    "packet_name": "R__APPROVED__old.md",
+                    "pid": 1111,
+                    "result_path": "/tmp/missing-a2ui-integrator-result",
+                }
+            },
+        }
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pkt = Path(tmpdir) / "R__APPROVED__new.md"
+            pkt.write_text("## Verdict: APPROVED\n", encoding="utf-8")
+            with (
+                mock.patch.object(router, "_pid_alive", side_effect=lambda pid: pid == 1111),
+                mock.patch.object(router, "_spawn_detached_cli_job") as spawn_mock,
+            ):
+                ready, output, next_state = router._prepare_cli_integrator_result(
+                    cfg,
+                    state,
+                    str(Path(tmpdir)),
+                    "feat-a2ui-contract",
+                    pkt,
+                    pkt.read_text(encoding="utf-8"),
+                    local=False,
+                )
+
+        self.assertFalse(ready)
+        self.assertEqual(output, "")
+        self.assertIs(next_state, state)
+        spawn_mock.assert_not_called()
+
     def test_router_process_command_rows_prefers_wide_process_listing(self) -> None:
         completed = mock.Mock(returncode=0, stdout=" 9999 codex exec You are the INTEGRATOR\n")
 
