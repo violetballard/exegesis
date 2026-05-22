@@ -52,7 +52,10 @@ CHANGED_FILES_FALLBACK_TIMEOUT = 8
 ACTIVE_ENGINE_LANES = set(ENGINE_PRIORITY_ORDER)
 
 LANE_OWNED_PATHS = {
-    "feat-commands": ["src/qual/commands/**"],
+    "feat-commands": [
+        "src/qual/commands/**",
+        "engine/src/exegesis_engine/api/cli.py",
+    ],
     "feat-context-storage": [
         "src/qual/context/**",
         "src/qual/storage/**",
