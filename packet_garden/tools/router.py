@@ -1753,19 +1753,6 @@ def _archive_shared_only_feature_packets(lane_dir: Path) -> int:
     return moved
 
 
-def _changed_files_for_range(repo_cwd: str, commit_range: str) -> List[str]:
-    token = str(commit_range or "").strip()
-    if not token:
-        return []
-    if ".." in token:
-        result = run_git(["diff", "--name-only", token], cwd=repo_cwd, timeout=120)
-    else:
-        result = run_git(["show", "--pretty=", "--name-only", token], cwd=repo_cwd, timeout=120)
-    if result.returncode != 0:
-        return []
-    return [line.strip() for line in (result.stdout or "").splitlines() if line.strip()]
-
-
 def _mark_planner_reemit_for_lane(lane: str, sha: str, *, reason: str) -> None:
     planner_state_path = Path(".codex/packet_planner/state.json")
     state = load_json(planner_state_path, {})
@@ -1819,7 +1806,6 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
     meta = load_json(meta_path, {})
     if not isinstance(meta, dict):
         meta = {}
-    reviewed_files = _changed_files_for_range(repo_cwd, source_range)
     lane_tasks_by_lane = {
         "feat-retrieval-fts": [
             "Exposed the retrieval demo-path contract so downstream payloads can name the FTS retrieval-to-basket steps.",
@@ -1872,14 +1858,6 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
             "canonical_demo_path_step": demo_step,
         }
     )
-    if reviewed_files:
-        meta["reviewed_files"] = reviewed_files
-        if "metadata_only_files" not in meta:
-            meta["metadata_only_files"] = []
-        meta["kickoff_budget_note"] = (
-            "Metadata repair re-emits the reviewed implementation range with "
-            "changed-files evidence derived directly from git."
-        )
     save_json(meta_path, meta)
 
     repair_dir = Path(".codex/metadata_repairs")

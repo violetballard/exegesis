@@ -57,7 +57,6 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "FEATURE_RUNNER_STATE_FILE", feature_state),
                 patch.object(coordinator, "ROUTER_STATE_FILE", router_state),
                 patch.object(coordinator, "_pid_alive", return_value=False),
-                patch.object(coordinator, "_lane_head_advanced_since_handoff", return_value=False),
                 patch.object(coordinator, "_lane_scope_violations", return_value=[]),
                 patch.object(coordinator, "_reconcile_lane_worktrees", return_value={
                     "gitdir_repaired": [],
