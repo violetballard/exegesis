@@ -2,7 +2,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from exegesis_shared.contracts.actions import ActionRef, PolicyGate, execute_action_with_policy_gate, validate_action_ref
+from exegesis_shared.contracts.actions import (
+    POLICY_SENSITIVE_ACTION_IDS,
+    ActionRef,
+    PolicyGate,
+    execute_action_with_policy_gate,
+    is_policy_sensitive_action,
+    validate_action_ref,
+)
 from exegesis_shared.contracts.cards import (
     A2UICapabilities,
     A2UISessionStore,
@@ -75,6 +82,7 @@ __all__ = [
     "A2UISessionStore",
     "A2UI_VERSION",
     "GENERIC_CARD_TYPE",
+    "POLICY_SENSITIVE_ACTION_IDS",
     "PolicyGate",
     "REQUIRED_PRIMITIVE_BLOCKS",
     "UNKNOWN_CARD_TYPE",
@@ -82,6 +90,7 @@ __all__ = [
     "engine_prepare_card",
     "execute_action_with_policy_gate",
     "execute_patch_review_action",
+    "is_policy_sensitive_action",
     "materialize_action_slots",
     "materialize_patch_selection_envelope",
     "render_terminal_card",

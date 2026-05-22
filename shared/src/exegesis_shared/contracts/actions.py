@@ -18,6 +18,14 @@ ALLOWED_ACTION_IDS: tuple[str, ...] = (
 )
 
 _ALLOWED_ACTION_SET = set(ALLOWED_ACTION_IDS)
+POLICY_SENSITIVE_ACTION_IDS: tuple[str, ...] = (
+    "apply_patch",
+    "reject_patch",
+    "run_agent",
+    "refresh_license",
+    "export_document",
+)
+_POLICY_SENSITIVE_ACTION_SET = set(POLICY_SENSITIVE_ACTION_IDS)
 
 _ACTION_SCHEMAS: dict[str, dict[str, type]] = {
     "preview_patch": {"patch_id": str},
@@ -75,9 +83,14 @@ def execute_action_with_policy_gate(
     if action.id not in set(capabilities.actions_supported):
         raise ValueError("Action not supported by client")
     _validate_action_payload(action.id, action.payload)
-    if not policy_gate.allow_action(action.id, action.payload, policy_sensitive=action.policy_sensitive):
+    policy_sensitive = action.policy_sensitive or is_policy_sensitive_action(action.id)
+    if not policy_gate.allow_action(action.id, action.payload, policy_sensitive=policy_sensitive):
         raise PermissionError("PolicyGate blocked action")
     return executor(action)
+
+
+def is_policy_sensitive_action(action_id: str) -> bool:
+    return action_id in _POLICY_SENSITIVE_ACTION_SET
 
 
 def _validate_action_payload(action_id: str, payload: dict[str, Any]) -> None:

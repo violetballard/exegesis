@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import unittest
 from dataclasses import dataclass
+from typing import Any
 
 from src.qual.ui.a2ui import (
     A2UICapabilities,
@@ -11,6 +12,7 @@ from src.qual.ui.a2ui import (
     engine_prepare_card,
     execute_action_with_policy_gate,
     execute_patch_review_action,
+    is_policy_sensitive_action,
     materialize_action_slots,
     materialize_patch_selection_envelope,
     render_terminal_card,
@@ -62,6 +64,15 @@ class _PolicyGateStub:
 
     def allow_action(self, *_args, **_kwargs) -> bool:
         return self.allow
+
+
+@dataclass
+class _PolicySensitivityGate:
+    seen: list[tuple[str, bool]]
+
+    def allow_action(self, action_id: str, _payload: dict[str, Any], *, policy_sensitive: bool) -> bool:
+        self.seen.append((action_id, policy_sensitive))
+        return not policy_sensitive
 
 
 class A2UIContractTests(unittest.TestCase):
@@ -257,6 +268,53 @@ class A2UIContractTests(unittest.TestCase):
             executor=lambda action: executed.append((action.id, action.payload)),
         )
         self.assertEqual(executed, [("apply_patch", {"patch_id": "p9"})])
+
+    def test_patch_decisions_are_engine_policy_sensitive_even_when_card_omits_flag(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "diff"}],
+            "actions": [
+                {"id": "preview_patch", "label": "Preview Patch", "payload": {"patch_id": "p9"}},
+                {"id": "apply_patch", "label": "Apply Patch", "payload": {"patch_id": "p9"}},
+                {"id": "reject_patch", "label": "Reject Patch", "payload": {"patch_id": "p9"}},
+            ],
+        }
+        gate = _PolicySensitivityGate([])
+        executed: list[str] = []
+
+        execute_patch_review_action(
+            card=card,
+            selection="preview",
+            capabilities=_capabilities(),
+            policy_gate=gate,
+            executor=lambda action: executed.append(action.id),
+        )
+        with self.assertRaises(PermissionError):
+            execute_patch_review_action(
+                card=card,
+                selection="apply",
+                capabilities=_capabilities(),
+                policy_gate=gate,
+                executor=lambda action: executed.append(action.id),
+            )
+        with self.assertRaises(PermissionError):
+            execute_patch_review_action(
+                card=card,
+                selection="reject",
+                capabilities=_capabilities(),
+                policy_gate=gate,
+                executor=lambda action: executed.append(action.id),
+            )
+
+        self.assertEqual(executed, ["preview_patch"])
+        self.assertEqual(
+            gate.seen,
+            [("preview_patch", False), ("apply_patch", True), ("reject_patch", True)],
+        )
+        self.assertFalse(is_policy_sensitive_action("preview_patch"))
+        self.assertTrue(is_policy_sensitive_action("apply_patch"))
+        self.assertTrue(is_policy_sensitive_action("reject_patch"))
 
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []
