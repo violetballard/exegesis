@@ -6,6 +6,8 @@ from typing import Any
 
 from exegesis_shared.contracts.actions import (
     ALLOWED_ACTION_IDS,
+    ActionRef,
+    PATCH_REVIEW_CLI_COMMAND_ALIASES,
     validate_complete_patch_review_capabilities,
     materialize_action_selection_contract,
     materialize_card_actions,
@@ -307,7 +309,10 @@ def validate_card_payload_size(card: dict[str, Any], capabilities: A2UICapabilit
         )
 
 
-def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
+def build_unknown_card(
+    raw_card: dict[str, Any],
+    capabilities: A2UICapabilities | None = None,
+) -> dict[str, Any]:
     type_name = str(raw_card.get("type", "<missing>"))
     nested_blocks = raw_card.get("blocks")
     blocks: list[dict[str, Any]] = []
@@ -329,6 +334,14 @@ def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
     )
     actions = materialize_card_actions(raw_card)
     actions.append({"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": json.dumps(raw_card)}})
+    if capabilities is not None:
+        validate_capabilities(capabilities)
+        supported_actions = set(capabilities.actions_supported)
+        actions = [
+            action
+            for action in materialize_card_actions({"actions": actions})
+            if action.get("id") in supported_actions
+        ]
     fallback = {
         "type": UNKNOWN_CARD_TYPE,
         "title": f"Unsupported card type: {type_name}",
@@ -339,6 +352,71 @@ def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
     if isinstance(patch_id, str) and patch_id.strip():
         fallback["patch_id"] = patch_id.strip()
     return fallback
+
+
+def materialize_action_slots(card: dict[str, Any]) -> tuple[dict[str, Any], ...]:
+    slots: list[dict[str, Any]] = []
+    for slot, action in enumerate(materialize_card_actions(card), start=1):
+        slots.append(
+            {
+                "slot": slot,
+                "command": str(slot),
+                "action": action,
+                "aliases": _action_selection_aliases(action),
+            }
+        )
+    return tuple(slots)
+
+
+def resolve_action_selection(card: dict[str, Any], selection: str | int) -> ActionRef:
+    token = str(selection).strip()
+    for slot in materialize_action_slots(card):
+        aliases = {slot["command"], *slot["aliases"]}
+        if token not in aliases:
+            continue
+        action = slot["action"]
+        return ActionRef(
+            id=str(action["id"]),
+            label=str(action["label"]),
+            payload=dict(action["payload"]),
+            confirm=action.get("confirm") if isinstance(action.get("confirm"), dict) else None,
+            policy_sensitive=bool(action.get("policy_sensitive", False)),
+        )
+    raise KeyError(f"Unknown action selection: {selection}")
+
+
+def materialize_patch_selection_envelope(card: dict[str, Any]) -> dict[str, Any]:
+    preview_slots = []
+    decision_slots = []
+    for slot in materialize_action_slots(card):
+        action_id = slot["action"].get("id")
+        if action_id == "preview_patch":
+            preview_slots.append(slot)
+        elif action_id in {"apply_patch", "reject_patch"}:
+            decision_slots.append(slot)
+    if not preview_slots and not decision_slots:
+        raise ValueError("Patch selection requires preview_patch, apply_patch, or reject_patch actions")
+    return {
+        "type": "PatchActionSelection",
+        "preview": {
+            "command": "preview",
+            "actions": [slot["command"] for slot in preview_slots],
+        },
+        "decision": {
+            "actions": [slot["command"] for slot in decision_slots],
+        },
+        "actions": [*preview_slots, *decision_slots],
+    }
+
+
+def _action_selection_aliases(action: dict[str, Any]) -> tuple[str, ...]:
+    action_id = str(action.get("id", ""))
+    aliases = [action_id]
+    for control, control_aliases in PATCH_REVIEW_CLI_COMMAND_ALIASES.items():
+        expected_action_id = "preview_patch" if control == "preview" else f"{control}_patch"
+        if action_id == expected_action_id:
+            aliases.extend(alias for alias in control_aliases if alias not in aliases)
+    return tuple(aliases)
 
 
 def _unknown_card_support_summary(raw_card: dict[str, Any]) -> dict[str, Any]:

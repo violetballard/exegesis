@@ -75,7 +75,9 @@ from src.qual.ui.a2ui import (
     execute_complete_patch_review_decision_cli_command_with_policy_gate,
     execute_patch_review_selection_with_policy_gate,
     engine_authoritative_action_ref,
+    materialize_action_slots,
     materialize_card_actions,
+    materialize_patch_selection_envelope,
     materialize_patch_preview_contract,
     materialize_proposed_edit_card,
     materialize_terminal_card,
@@ -98,6 +100,7 @@ from src.qual.ui.a2ui import (
     patch_review_next_control_from_contract,
     patch_review_selection_from_cli_command,
     render_terminal_card,
+    resolve_action_selection,
     resolve_card_selection_contract,
     resolve_card_selection_execution,
     resolve_complete_patch_review_card_cli_command_execution,
@@ -736,6 +739,31 @@ class A2UIContractTests(unittest.TestCase):
             [(entry["slot"], entry["action_id"]) for entry in prepared["action_selection"]["order"]],
             [(1, "promote_to_basket"), (2, "pin_to_context_set")],
         )
+
+    def test_action_slot_compatibility_helpers_resolve_patch_controls(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "diff"}],
+            "actions": [
+                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+            ],
+        }
+
+        slots = materialize_action_slots(card)
+        envelope = materialize_patch_selection_envelope(card)
+        selected = resolve_action_selection(card, "apply")
+
+        self.assertEqual([slot["command"] for slot in slots], ["1", "2", "3"])
+        self.assertEqual([slot["action"]["id"] for slot in slots], ["preview_patch", "apply_patch", "reject_patch"])
+        self.assertEqual(envelope["preview"]["actions"], ["1"])
+        self.assertEqual(envelope["decision"]["actions"], ["2", "3"])
+        self.assertEqual(selected.id, "apply_patch")
+        self.assertEqual(selected.payload, {"patch_id": "p1"})
+        self.assertIs(shared_contracts.materialize_action_slots, materialize_action_slots)
+        self.assertIs(shared_contracts.resolve_action_selection, resolve_action_selection)
 
     def test_capabilities_handshake_is_stored_per_session(self) -> None:
         store = A2UISessionStore()

@@ -5,6 +5,7 @@ import unittest
 from exegesis_shared.contracts.actions import ACTION_SELECTION_CONTRACT_VERSION
 from src.qual.ui.a2ui import (
     A2UICapabilities,
+    build_unknown_card,
     materialize_terminal_card,
     render_terminal_card,
     resolve_card_selection_by_index,
@@ -257,6 +258,16 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
         self.assertEqual(card["actions"], [])
         self.assertEqual(card["action_selection"]["order"], [])
         self.assertIn("[UnknownCard] Unsupported card type: FutureCard", text)
+
+    def test_direct_unknown_card_builder_filters_copy_action_by_capability(self) -> None:
+        card = build_unknown_card(
+            {"type": "FutureCard", "blocks": [{"type": "MarkdownBlock", "markdown": "body"}]},
+            _capabilities(actions_supported=("apply_patch",)),
+        )
+
+        self.assertEqual(card["type"], "UnknownCard")
+        self.assertEqual(card["actions"], [])
+        self.assertIn("body", render_terminal_card(card))
 
     def test_unknown_patch_card_fallback_preserves_typed_patch_actions(self) -> None:
         caps = _capabilities(
