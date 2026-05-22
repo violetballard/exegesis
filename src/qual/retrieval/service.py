@@ -11,7 +11,7 @@ from dataclasses import dataclass, field, replace
 from datetime import UTC, date, datetime
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Any, Iterator, Literal, cast
+from typing import Any, ClassVar, Iterator, Literal, cast
 
 from src.qual.audit import AuditLog
 from src.qual.docindex.service import DocIndexBuildOptions, DocIndexService
@@ -40,7 +40,9 @@ _FTS_BOUNDARY_SCAN_CHARS = 40
 _SUPPORTED_RETRIEVAL_INTENTS = {"lookup", "compare", "summarize", "quote_find", "outline_support"}
 _SUPPORTED_CONFIDENTIALITY_PROFILES = {"confidential", "standard"}
 _FTS_SOURCE_STRATEGY = "fts"
-_RETRIEVAL_DEMO_PATH_STEPS = ["retrieve_relevant_material", "promote_context_to_basket"]
+# Public retrieval-to-basket contract serialized into downstream payload metadata.
+RETRIEVAL_DEMO_PATH_STEPS: tuple[str, ...] = ("retrieve_relevant_material", "promote_context_to_basket")
+_RETRIEVAL_DEMO_PATH_STEPS = RETRIEVAL_DEMO_PATH_STEPS
 
 
 def _canonicalize_doc_types(doc_types: tuple[str, ...]) -> tuple[str, ...]:
@@ -59,6 +61,18 @@ def _optional_text(value: object) -> str | None:
     if isinstance(value, str):
         text = value.strip()
         if text:
+            return text
+    return None
+
+
+def _source_type_from_provenance(provenance: dict[str, object]) -> str | None:
+    return _optional_text(provenance.get("source_type")) or _optional_text(provenance.get("doc_type"))
+
+
+def _first_optional_text(*values: object) -> str | None:
+    for value in values:
+        text = _optional_text(value)
+        if text is not None:
             return text
     return None
 
@@ -221,6 +235,7 @@ class RetrievalHit:
             "doc_id": self.doc_id,
             "excerpt_id": self.excerpt_id,
             "excerpt_text": self.excerpt_text,
+            "snippet": self.excerpt_text,
             "span": copy.deepcopy(self.span),
             "title_hint": self.title_hint,
             "score": self.score,
@@ -262,6 +277,9 @@ class RetrievalHit:
         doc_type = self.provenance.get("doc_type")
         if isinstance(doc_type, str) and doc_type:
             payload["doc_type"] = doc_type
+        source_type = _source_type_from_provenance(self.provenance)
+        if source_type is not None:
+            payload["source_type"] = source_type
         candidate_doc_count = self.provenance.get("candidate_doc_count")
         if isinstance(candidate_doc_count, int):
             payload["candidate_doc_count"] = candidate_doc_count
@@ -385,6 +403,9 @@ class RetrievalDocHit:
         doc_type = self.provenance.get("doc_type")
         if isinstance(doc_type, str) and doc_type:
             payload["doc_type"] = doc_type
+        source_type = _source_type_from_provenance(self.provenance)
+        if source_type is not None:
+            payload["source_type"] = source_type
         doc_fingerprint = self.provenance.get("doc_fingerprint")
         if isinstance(doc_fingerprint, str) and doc_fingerprint:
             payload["doc_fingerprint"] = doc_fingerprint
@@ -662,6 +683,8 @@ class RetrievalResult:
         for hit in self.hits:
             if hit.excerpt_id is None:
                 continue
+            if not self._hit_has_complete_basket_promotion_provenance(hit):
+                continue
             basket_item_id = _basket_item_id_for_excerpt(
                 source_strategy=hit.source_strategy,
                 excerpt_id=hit.excerpt_id,
@@ -672,11 +695,13 @@ class RetrievalResult:
                 "item_type": "excerpt",
                 "doc_id": hit.doc_id,
                 "doc_type": hit.provenance.get("doc_type"),
+                "source_type": _source_type_from_provenance(hit.provenance),
                 "title_hint": hit.title_hint,
                 "source_hash": hit.provenance.get("source_hash"),
                 "doc_identity_fingerprint": hit.provenance.get("doc_identity_fingerprint"),
                 "excerpt_id": hit.excerpt_id,
                 "excerpt_text": hit.excerpt_text,
+                "snippet": _first_optional_text(hit.provenance.get("snippet"), hit.excerpt_text),
                 "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
                 "excerpt_lookup_fingerprint": hit.provenance.get("excerpt_lookup_fingerprint"),
                 "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
@@ -712,6 +737,108 @@ class RetrievalResult:
             RetrievalService._with_promotion_item_fingerprint(item)
             items.append(item)
         return items
+
+    def _hit_has_complete_basket_promotion_provenance(self, hit: RetrievalHit) -> bool:
+        provenance = hit.provenance
+        provenance_doc_id = provenance.get("doc_id")
+        if not isinstance(hit.doc_id, str) or not hit.doc_id:
+            return False
+        if not isinstance(provenance_doc_id, str) or provenance_doc_id != hit.doc_id:
+            return False
+        doc_provenance = next(
+            (doc_hit.provenance for doc_hit in self.doc_hits if doc_hit.doc_id == hit.doc_id),
+            None,
+        )
+        if doc_provenance is None:
+            return False
+        provenance_excerpt_id = provenance.get("excerpt_id")
+        if not isinstance(provenance_excerpt_id, str) or provenance_excerpt_id != hit.excerpt_id:
+            return False
+        if (
+            _basket_item_id_for_excerpt(
+                source_strategy=hit.source_strategy,
+                excerpt_id=hit.excerpt_id,
+            )
+            is None
+        ):
+            return False
+        source_strategy = provenance.get(
+            "source_strategy",
+            provenance.get("retrieval_source_strategy", hit.source_strategy),
+        )
+        if source_strategy != _FTS_SOURCE_STRATEGY:
+            return False
+        if (
+            provenance.get("retrieval_backend") != "sqlite_fts"
+            or provenance.get("retrieval_mode") != "fts_first"
+        ):
+            return False
+        required_text_fields = (
+            "source_hash",
+            "doc_identity_fingerprint",
+            "excerpt_fingerprint",
+            "excerpt_lookup_fingerprint",
+            "excerpt_text_hash",
+        )
+        if any(
+            not isinstance(provenance.get(field), str) or not provenance[field]
+            for field in required_text_fields
+        ):
+            return False
+        if not isinstance(hit.excerpt_text, str) or not hit.excerpt_text:
+            return False
+        expected_text_hash = hashlib.sha256(hit.excerpt_text.encode("utf-8")).hexdigest()
+        if provenance["excerpt_text_hash"] != expected_text_hash:
+            return False
+        if isinstance(provenance.get("hash"), str) and provenance["hash"] != expected_text_hash:
+            return False
+        source_hash = provenance["source_hash"]
+        if doc_provenance.get("source_hash") != source_hash:
+            return False
+        if doc_provenance.get("doc_identity_fingerprint") != provenance["doc_identity_fingerprint"]:
+            return False
+        doc_type = _optional_text(provenance.get("doc_type"))
+        source_type = _optional_text(provenance.get("source_type"))
+        if doc_type is None:
+            return False
+        if source_type is not None and source_type != doc_type:
+            return False
+        doc_source_type = _optional_text(doc_provenance.get("source_type"))
+        doc_provenance_type = _optional_text(doc_provenance.get("doc_type"))
+        if doc_source_type is not None and doc_source_type != (doc_provenance_type or doc_type):
+            return False
+        snippet = _optional_text(provenance.get("snippet"))
+        if snippet is not None and snippet != hit.excerpt_text:
+            return False
+        canonical_hit_span = RetrievalService._canonicalize_span(hit.span)
+        canonical_provenance_span = RetrievalService._canonicalize_span(provenance.get("span"))
+        if canonical_hit_span is None or canonical_provenance_span is None:
+            return False
+        if canonical_hit_span != canonical_provenance_span:
+            return False
+        expected_excerpt_fingerprint = RetrievalService._stable_fingerprint(
+            {
+                "doc_id": hit.doc_id,
+                "source_hash": source_hash,
+                "excerpt_id": hit.excerpt_id,
+                "span": canonical_provenance_span,
+                "excerpt_text_hash": expected_text_hash,
+            }
+        )
+        if provenance["excerpt_fingerprint"] != expected_excerpt_fingerprint:
+            return False
+        expected_lookup_fingerprint = RetrievalService._build_excerpt_lookup_fingerprint(
+            excerpt_id=hit.excerpt_id,
+            doc_id=hit.doc_id,
+            source_hash=source_hash,
+            span=canonical_provenance_span,
+            text_hash=expected_text_hash,
+            source_strategy=_FTS_SOURCE_STRATEGY,
+            retrieval_backend="sqlite_fts",
+            retrieval_mode="fts_first",
+            lookup_resolution="fts",
+        )
+        return provenance["excerpt_lookup_fingerprint"] == expected_lookup_fingerprint
 
     def _excerpt_hit_snapshots(self) -> list[dict[str, object]]:
         basket_items_by_excerpt_id = {
@@ -773,6 +900,8 @@ class RetrievalResult:
         for hit in self.hits:
             if hit.excerpt_id is None:
                 continue
+            if not self._hit_has_complete_basket_promotion_provenance(hit):
+                continue
             basket_item_id = _basket_item_id_for_excerpt(
                 source_strategy=hit.source_strategy,
                 excerpt_id=hit.excerpt_id,
@@ -810,11 +939,13 @@ class RetrievalResult:
                 "retrieval_policy": copy.deepcopy(bundle_context["retrieval_policy"]),
                 "source_hash": hit.provenance.get("source_hash"),
                 "doc_type": hit.provenance.get("doc_type"),
+                "source_type": _source_type_from_provenance(hit.provenance),
                 "doc_fingerprint": hit.provenance.get("doc_fingerprint"),
                 "doc_identity_fingerprint": hit.provenance.get("doc_identity_fingerprint"),
                 "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
                 "excerpt_lookup_fingerprint": hit.provenance.get("excerpt_lookup_fingerprint"),
                 "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
+                "snippet": _first_optional_text(hit.provenance.get("snippet"), hit.excerpt_text),
                 "matched_terms": copy.deepcopy(hit.provenance.get("matched_terms")),
                 "match_count": hit.provenance.get("match_count"),
                 "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
@@ -1224,6 +1355,8 @@ class RetrievalResult:
 
 
 class RetrievalService:
+    demo_path_steps: ClassVar[tuple[str, ...]] = RETRIEVAL_DEMO_PATH_STEPS
+
     def __init__(self, vault_root: Path, *, audit_log: AuditLog, now_fn=None) -> None:
         self._root = vault_root / _RETRIEVAL_DIR
         self._root.mkdir(parents=True, exist_ok=True)
@@ -1415,6 +1548,7 @@ class RetrievalService:
                 "excerpt_id": excerpt.get("excerpt_id"),
                 "doc_id": excerpt.get("doc_id"),
                 "doc_type": excerpt.get("doc_type"),
+                "source_type": excerpt.get("source_type"),
                 "source_strategy": excerpt.get("source_strategy"),
                 "retrieval_source_strategy": excerpt.get("retrieval_source_strategy"),
                 "lookup_entrypoint": lookup_entrypoint,
@@ -1425,6 +1559,7 @@ class RetrievalService:
                 "title_hint": excerpt.get("title_hint"),
                 "source_hash": excerpt.get("source_hash"),
                 "doc_identity_fingerprint": excerpt.get("doc_identity_fingerprint"),
+                "snippet": excerpt.get("snippet"),
                 "text_hash": excerpt.get("text_hash"),
                 "excerpt_text_hash": excerpt.get("excerpt_text_hash"),
                 "excerpt_fingerprint": excerpt.get("excerpt_fingerprint"),
@@ -1880,6 +2015,7 @@ class RetrievalService:
                         "doc_id": doc_id,
                         "source_hash": source_hash,
                         "doc_type": doc_type,
+                        "source_type": doc_type,
                         "query_fingerprint": query_fingerprint,
                         "fts_match_query_fingerprint": top_hit.provenance.get("fts_match_query_fingerprint"),
                         "excerpt_ids": [hit.excerpt_id for hit in doc_hit_list if hit.excerpt_id is not None],
@@ -2043,6 +2179,7 @@ class RetrievalService:
                 {
                     "doc_id": doc_hit.doc_id,
                     "doc_type": doc_hit.provenance.get("doc_type"),
+                    "source_type": _source_type_from_provenance(doc_hit.provenance),
                     "title_hint": doc_hit.title_hint,
                     "source_hash": doc_hit.source_hash,
                     "doc_fingerprint": doc_hit.provenance.get("doc_fingerprint"),
@@ -2093,10 +2230,12 @@ class RetrievalService:
                         excerpt_id=hit.excerpt_id,
                     ),
                     "doc_type": hit.provenance.get("doc_type"),
+                    "source_type": _source_type_from_provenance(hit.provenance),
                     "title_hint": hit.title_hint,
                     "source_hash": hit.provenance.get("source_hash"),
                     "doc_identity_fingerprint": hit.provenance.get("doc_identity_fingerprint"),
                     "excerpt_text": hit.excerpt_text,
+                    "snippet": _first_optional_text(hit.provenance.get("snippet"), hit.excerpt_text),
                     "excerpt_fingerprint": hit.provenance.get("excerpt_fingerprint"),
                     "excerpt_lookup_fingerprint": hit.provenance.get("excerpt_lookup_fingerprint"),
                     "excerpt_text_hash": hit.provenance.get("excerpt_text_hash") or hit.provenance.get("hash"),
@@ -2136,11 +2275,13 @@ class RetrievalService:
                         "item_type": "excerpt",
                         "doc_id": item["doc_id"],
                         "doc_type": item["doc_type"],
+                        "source_type": _first_optional_text(item.get("source_type"), item["doc_type"]),
                         "title_hint": item.get("title_hint"),
                         "source_hash": item["source_hash"],
                         "doc_identity_fingerprint": item.get("doc_identity_fingerprint"),
                         "excerpt_id": item["excerpt_id"],
                         "excerpt_text": item.get("excerpt_text"),
+                        "snippet": _first_optional_text(item.get("snippet"), item.get("excerpt_text")),
                         "excerpt_fingerprint": item["excerpt_fingerprint"],
                         "excerpt_lookup_fingerprint": item.get("excerpt_lookup_fingerprint"),
                         "excerpt_text_hash": item["excerpt_text_hash"],
@@ -2648,7 +2789,9 @@ class RetrievalService:
             "doc_id": doc_id,
             "source_hash": source_hash,
             "doc_type": doc_type,
+            "source_type": doc_type,
             "excerpt_id": excerpt_id,
+            "snippet": text,
             "span": {"char_range": {"start": char_start, "end": char_end}},
             "hash": text_hash,
             "excerpt_text_hash": text_hash,
@@ -2744,12 +2887,27 @@ class RetrievalService:
         doc_meta = self._load_doc_meta().get(doc_id_value, {}) if doc_id_value is not None else {}
 
         source_hash = normalized.get("source_hash")
-        if not isinstance(source_hash, str) or not source_hash:
-            provenance_source_hash = provenance.get("source_hash")
+        provenance_source_hash = provenance.get("source_hash")
+        authoritative_source_hash = self._doc_source_hash(doc_id_value, doc_meta=doc_meta) if doc_id_value is not None else ""
+        if (
+            isinstance(source_hash, str)
+            and source_hash
+            and authoritative_source_hash
+            and source_hash != authoritative_source_hash
+        ):
+            raise ValueError("stale FTS source_hash for excerpt lookup")
+        if (
+            isinstance(provenance_source_hash, str)
+            and provenance_source_hash
+            and authoritative_source_hash
+            and provenance_source_hash != authoritative_source_hash
+        ):
+            raise ValueError("stale FTS source_hash for excerpt lookup")
+        if isinstance(authoritative_source_hash, str) and authoritative_source_hash:
+            source_hash = authoritative_source_hash
+        elif not isinstance(source_hash, str) or not source_hash:
             if isinstance(provenance_source_hash, str) and provenance_source_hash:
                 source_hash = provenance_source_hash
-            elif doc_id_value is not None:
-                source_hash = self._doc_source_hash(doc_id_value, doc_meta=doc_meta)
         if isinstance(source_hash, str) and source_hash:
             normalized["source_hash"] = source_hash
         else:
@@ -2768,6 +2926,9 @@ class RetrievalService:
             normalized["doc_type"] = doc_type
         else:
             doc_type = None
+        source_type = _first_optional_text(normalized.get("source_type"), provenance.get("source_type"), doc_type)
+        if source_type is not None:
+            normalized["source_type"] = source_type
 
         title_hint = normalized.get("title_hint")
         if isinstance(title_hint, str):
@@ -2790,19 +2951,31 @@ class RetrievalService:
             provenance_doc_identity_fingerprint = provenance.get("doc_identity_fingerprint")
             if isinstance(provenance_doc_identity_fingerprint, str) and provenance_doc_identity_fingerprint:
                 doc_identity_fingerprint = provenance_doc_identity_fingerprint
+        expected_doc_identity_fingerprint = None
         if (
-            (not isinstance(doc_identity_fingerprint, str) or not doc_identity_fingerprint)
-            and doc_id_value is not None
+            doc_id_value is not None
             and isinstance(source_hash, str)
             and source_hash
             and isinstance(doc_type, str)
             and doc_type
         ):
-            doc_identity_fingerprint = self._build_doc_identity_fingerprint(
+            expected_doc_identity_fingerprint = self._build_doc_identity_fingerprint(
                 doc_id=doc_id_value,
                 source_hash=source_hash,
                 doc_type=doc_type,
             )
+        if (
+            isinstance(doc_identity_fingerprint, str)
+            and doc_identity_fingerprint
+            and expected_doc_identity_fingerprint is not None
+            and doc_identity_fingerprint != expected_doc_identity_fingerprint
+        ):
+            raise ValueError("stale FTS doc_identity_fingerprint for excerpt lookup")
+        if (
+            (not isinstance(doc_identity_fingerprint, str) or not doc_identity_fingerprint)
+            and expected_doc_identity_fingerprint is not None
+        ):
+            doc_identity_fingerprint = expected_doc_identity_fingerprint
         if isinstance(doc_identity_fingerprint, str) and doc_identity_fingerprint:
             normalized["doc_identity_fingerprint"] = doc_identity_fingerprint
 
@@ -2828,6 +3001,9 @@ class RetrievalService:
             normalized["excerpt_text"] = text_value
         elif not isinstance(text_value, str) and isinstance(excerpt_text_value, str):
             normalized["text"] = excerpt_text_value
+        snippet = _first_optional_text(normalized.get("snippet"), provenance.get("snippet"), normalized.get("excerpt_text"))
+        if snippet is not None:
+            normalized["snippet"] = snippet
         excerpt_fingerprint = normalized.get("excerpt_fingerprint")
         if not isinstance(excerpt_fingerprint, str) or not excerpt_fingerprint:
             provenance_excerpt_fingerprint = provenance.get("excerpt_fingerprint")
@@ -2893,8 +3069,12 @@ class RetrievalService:
             normalized_provenance["source_hash"] = source_hash
         if isinstance(doc_type, str) and doc_type:
             normalized_provenance["doc_type"] = doc_type
+        if source_type is not None:
+            normalized_provenance["source_type"] = source_type
         if title_hint is not None:
             normalized_provenance["title_hint"] = title_hint
+        if snippet is not None:
+            normalized_provenance["snippet"] = snippet
         if canonical_span is not None:
             normalized_provenance["span"] = canonical_span
         normalized_provenance["text_hash"] = text_hash
@@ -2958,6 +3138,18 @@ class RetrievalService:
         excerpt_id = excerpt.get("excerpt_id")
         if not isinstance(excerpt_id, str) or not excerpt_id:
             return None
+        if (
+            doc_id is None
+            or doc_type is None
+            or source_hash is None
+            or span is None
+            or not isinstance(text_hash, str)
+            or not text_hash
+            or retrieval_backend != "sqlite_fts"
+            or retrieval_mode != "fts_first"
+            or lookup_resolution != "fts"
+        ):
+            return None
         basket_item_id = _basket_item_id_for_excerpt(
             source_strategy=source_strategy,
             excerpt_id=excerpt_id,
@@ -2970,11 +3162,13 @@ class RetrievalService:
             "item_type": "excerpt",
             "doc_id": doc_id,
             "doc_type": doc_type,
+            "source_type": _first_optional_text(excerpt.get("source_type"), doc_type),
             "title_hint": title_hint,
             "source_hash": source_hash,
             "doc_identity_fingerprint": excerpt.get("doc_identity_fingerprint"),
             "excerpt_id": excerpt_id,
             "excerpt_text": excerpt.get("excerpt_text"),
+            "snippet": _first_optional_text(excerpt.get("snippet"), excerpt.get("excerpt_text")),
             "excerpt_fingerprint": excerpt.get("excerpt_fingerprint"),
             "excerpt_text_hash": text_hash,
             "span": copy.deepcopy(span),
