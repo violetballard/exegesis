@@ -1707,7 +1707,7 @@ def complete_patch_review_action_ref_from_cli_command(
         card,
         patch_id=expected_patch_id,
     )
-    review = build_complete_patch_review_contract(card, patch_id=expected_patch_id)
+    review = _complete_patch_review_contract_from_card(card, patch_id=expected_patch_id)
     return patch_review_action_ref_from_cli_command(
         card,
         review,
@@ -1729,7 +1729,7 @@ def complete_patch_review_decision_action_ref_from_cli_command(
         card,
         patch_id=expected_patch_id,
     )
-    review = build_complete_patch_review_contract(card, patch_id=expected_patch_id)
+    review = _complete_patch_review_contract_from_card(card, patch_id=expected_patch_id)
     execution = resolve_patch_review_decision_cli_command_execution(
         card,
         review,

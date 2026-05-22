@@ -3,8 +3,10 @@ from __future__ import annotations
 import unittest
 from copy import deepcopy
 from dataclasses import dataclass
+from unittest.mock import patch
 
 import exegesis_shared.contracts as shared_contracts
+import exegesis_shared.contracts.actions as action_contracts
 from exegesis_shared.contracts.actions import (
     ACTION_SELECTION_CONTRACT_VERSION,
     PATCH_DECISION_CONTRACT_VERSION,
@@ -6338,6 +6340,44 @@ class A2UIContractTests(unittest.TestCase):
                     payload={"patch_id": "p2"},
                 ),
             )
+
+    def test_complete_patch_review_cli_refs_use_embedded_engine_contract(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        with patch.object(
+            action_contracts,
+            "build_complete_patch_review_contract",
+            side_effect=AssertionError("must use embedded patch_review"),
+        ):
+            apply_ref = complete_patch_review_action_ref_from_cli_command(
+                card,
+                patch_id="p1",
+                command="apply",
+            )
+            reject_ref = complete_patch_review_decision_action_ref_from_cli_command(
+                card,
+                patch_id="p1",
+                command="reject",
+            )
+
+        self.assertEqual(apply_ref.id, "apply_patch")
+        self.assertEqual(apply_ref.payload, {"patch_id": "p1"})
+        self.assertTrue(apply_ref.policy_sensitive)
+        self.assertEqual(reject_ref.id, "reject_patch")
+        self.assertEqual(reject_ref.payload, {"patch_id": "p1"})
+        self.assertTrue(reject_ref.policy_sensitive)
 
     def test_complete_patch_review_events_revalidate_client_action_capabilities(self) -> None:
         card = materialize_terminal_card(
