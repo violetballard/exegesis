@@ -261,6 +261,7 @@ class CommandDemoPathReadiness:
     missing_canonical_step_lines: tuple[str, ...] = ()
     canonical_step_statuses: tuple[CommandCanonicalStepStatus, ...] = ()
     canonical_step_blockers: tuple[CommandCanonicalStepBlocker, ...] = ()
+    next_blocker: CommandCanonicalStepBlocker | None = None
     fingerprint: str = ""
 
 
@@ -280,6 +281,7 @@ class CommandDemoPathHandoffSummary:
     missing_canonical_step_lines: tuple[str, ...] = ()
     canonical_step_statuses: tuple[CommandCanonicalStepStatus, ...] = ()
     canonical_step_blockers: tuple[CommandCanonicalStepBlocker, ...] = ()
+    next_blocker: CommandCanonicalStepBlocker | None = None
     fingerprint: str = ""
 
 
@@ -1205,6 +1207,7 @@ def command_demo_path_readiness(
         missing_demo_steps=missing_demo_steps,
         demo_step_commands=demo_step_commands,
     )
+    next_blocker = _first_canonical_step_blocker(canonical_step_blockers)
     readiness = CommandDemoPathReadiness(
         program=normalized_program,
         ready=bool(steps) and not missing_demo_steps and all(step.ready for step in steps),
@@ -1222,6 +1225,7 @@ def command_demo_path_readiness(
         missing_canonical_step_lines=missing_canonical_step_lines,
         canonical_step_statuses=canonical_step_statuses,
         canonical_step_blockers=canonical_step_blockers,
+        next_blocker=next_blocker,
         fingerprint=_command_demo_path_readiness_fingerprint(
             program=normalized_program,
             commands=contract.commands,
@@ -1274,6 +1278,7 @@ def command_demo_path_handoff_summary(
         missing_canonical_step_lines=readiness.missing_canonical_step_lines,
         canonical_step_statuses=readiness.canonical_step_statuses,
         canonical_step_blockers=readiness.canonical_step_blockers,
+        next_blocker=readiness.next_blocker,
         fingerprint=readiness.fingerprint,
     )
     _validate_command_demo_path_handoff_summary(summary, readiness, compatibility_entries)
@@ -1329,20 +1334,26 @@ def command_demo_path_next_blocker(
     flow_steps: tuple[str, ...] | None = None,
 ) -> CommandCanonicalStepBlocker | None:
     summary = command_demo_path_handoff_summary(program, specs, flow_steps)
-    blocker = _next_canonical_step_blocker(summary)
+    blocker = summary.next_blocker
     _validate_command_demo_path_next_blocker(blocker, summary)
     return blocker
 
 
-def _next_canonical_step_blocker(
-    summary: CommandDemoPathHandoffSummary,
+def _first_canonical_step_blocker(
+    blockers: tuple[CommandCanonicalStepBlocker, ...],
 ) -> CommandCanonicalStepBlocker | None:
-    blockers_by_step = {blocker.demo_step: blocker for blocker in summary.canonical_step_blockers}
+    blockers_by_step = {blocker.demo_step: blocker for blocker in blockers}
     for demo_step in CANONICAL_DEMO_PATH_STEPS:
         blocker = blockers_by_step.get(demo_step)
         if blocker is not None:
             return blocker
     return None
+
+
+def _next_canonical_step_blocker(
+    summary: CommandDemoPathHandoffSummary,
+) -> CommandCanonicalStepBlocker | None:
+    return _first_canonical_step_blocker(summary.canonical_step_blockers)
 
 
 def _format_canonical_step_blocker(blocker: CommandCanonicalStepBlocker) -> str:
@@ -1547,6 +1558,8 @@ def _validate_command_demo_path_handoff_summary(
         raise ValueError("Command demo path handoff canonical step statuses are inconsistent")
     if summary.canonical_step_blockers != readiness.canonical_step_blockers:
         raise ValueError("Command demo path handoff blockers are inconsistent")
+    if summary.next_blocker != readiness.next_blocker:
+        raise ValueError("Command demo path handoff next blocker is inconsistent")
     if summary.fingerprint != readiness.fingerprint:
         raise ValueError("Command demo path handoff fingerprint is inconsistent")
 
@@ -1782,6 +1795,8 @@ def _validate_command_demo_path_readiness(
         demo_step_commands=demo_step_commands,
     ):
         raise ValueError("Command demo path readiness blockers are inconsistent")
+    if readiness.next_blocker != _first_canonical_step_blocker(readiness.canonical_step_blockers):
+        raise ValueError("Command demo path readiness next blocker is inconsistent")
     if tuple(step.demo_step for step in readiness.steps) != readiness.demo_steps:
         raise ValueError("Command demo path readiness step labels are inconsistent")
     if tuple(step.flow_step for step in readiness.steps) != readiness.flow_steps:
