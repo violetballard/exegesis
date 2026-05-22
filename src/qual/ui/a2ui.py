@@ -343,6 +343,8 @@ def _format_patch_review_control_plan_entry(entry: dict[str, Any]) -> str:
     if isinstance(policy, dict):
         if policy.get("requires_confirmation"):
             parts.append("confirm")
+        if policy.get("requires_preview"):
+            parts.append("requires-preview")
         if policy.get("policy_gate") == "required":
             parts.append("policy-gated")
     return f"{parts[0]}({', '.join(parts[1:])})" if len(parts) > 1 else parts[0]

@@ -2131,7 +2131,9 @@ class A2UIContractTests(unittest.TestCase):
             [["preview", "preview_patch"], ["apply", "apply_patch"], ["reject", "reject_patch"]],
         )
         self.assertFalse(plan[0]["execution_policy"]["requires_confirmation"])
+        self.assertFalse(plan[0]["execution_policy"]["requires_preview"])
         self.assertTrue(plan[1]["execution_policy"]["requires_confirmation"])
+        self.assertTrue(plan[1]["execution_policy"]["requires_preview"])
         self.assertEqual(
             shared_contracts.patch_review_control_plan_from_contract(card, review, patch_id="p1"),
             plan,
@@ -2663,6 +2665,7 @@ class A2UIContractTests(unittest.TestCase):
             {
                 "policy_gate": "optional",
                 "requires_confirmation": False,
+                "requires_preview": False,
                 "mutates_patch": False,
                 "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
             },
@@ -2672,6 +2675,7 @@ class A2UIContractTests(unittest.TestCase):
             {
                 "policy_gate": "required",
                 "requires_confirmation": True,
+                "requires_preview": True,
                 "mutates_patch": True,
                 "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
             },
@@ -2681,6 +2685,7 @@ class A2UIContractTests(unittest.TestCase):
             {
                 "policy_gate": "required",
                 "requires_confirmation": True,
+                "requires_preview": True,
                 "mutates_patch": True,
                 "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
             },
@@ -2712,8 +2717,8 @@ class A2UIContractTests(unittest.TestCase):
         self.assertIn(
             "Patch review control plan: "
             "preview=available(slot 1, aliases preview/preview_patch), "
-            "apply=available(slot 2, aliases apply/apply_patch, confirm, policy-gated), "
-            "reject=available(slot 3, aliases reject/reject_patch, confirm, policy-gated)",
+            "apply=available(slot 2, aliases apply/apply_patch, confirm, requires-preview, policy-gated), "
+            "reject=available(slot 3, aliases reject/reject_patch, confirm, requires-preview, policy-gated)",
             text,
         )
 
@@ -5762,6 +5767,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertTrue(execution["action_contract"]["policy_sensitive"])
         self.assertEqual(execution["execution_policy"], PATCH_REVIEW_EXECUTION_POLICY["apply"])
         self.assertTrue(execution["requires_confirmation"])
+        self.assertTrue(execution["requires_preview"])
         self.assertEqual(execution["policy_gate"], "required")
         self.assertEqual(execution["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
         self.assertEqual(execution["demo_path_step"], PATCH_REVIEW_DEMO_PATH_STEP)
