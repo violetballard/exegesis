@@ -75,6 +75,11 @@ PATCH_REVIEW_CLI_COMMAND_ALIASES: dict[str, tuple[str, ...]] = {
     "apply": ("apply", "apply_patch"),
     "reject": ("reject", "reject_patch"),
 }
+PATCH_REVIEW_CONTROL_KINDS: dict[str, str] = {
+    "preview": "preview",
+    "apply": "decision",
+    "reject": "decision",
+}
 ENGINE_NORMALIZED_ACTION_PAYLOAD_FIELDS: dict[str, tuple[str, ...]] = {
     "preview_patch": ("patch_id",),
     "apply_patch": ("patch_id",),
@@ -1572,11 +1577,15 @@ def patch_review_control_plan_from_contract(
     for control in PATCH_REVIEW_REQUIRED_PARTS:
         entry: dict[str, Any] = {
             "control": control,
+            "kind": PATCH_REVIEW_CONTROL_KINDS[control],
             "status": "missing" if control in missing else "available",
             "command_aliases": list(PATCH_REVIEW_CLI_COMMAND_ALIASES.get(control, ())),
             "execution_policy": deepcopy(PATCH_REVIEW_EXECUTION_POLICY[control]),
             "preconditions": patch_review_execution_preconditions(control),
         }
+        if entry["kind"] == "decision":
+            entry["decision_group"] = PATCH_REVIEW_DECISION_GROUP
+            entry["decision"] = control
         control_payload = controls.get(control)
         if control_payload is not None:
             entry.update(
