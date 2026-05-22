@@ -173,6 +173,19 @@ class CommandDemoPathCommand:
 
 
 @dataclass(frozen=True)
+class CommandDemoPathCompatibilityCommand:
+    demo_step: str
+    flow_step: str
+    token: str
+    canonical_name: str
+    argv: tuple[str, ...]
+    normalized_argv: tuple[str, ...]
+    command: tuple[str, ...]
+    normalized_command: tuple[str, ...]
+    description: str
+
+
+@dataclass(frozen=True)
 class CommandDemoPathContract:
     demo_steps: tuple[str, ...]
     flow_steps: tuple[str, ...]
@@ -1280,6 +1293,86 @@ def _validate_command_demo_path_command_entries(
             raise ValueError("Command demo path command tuple is inconsistent")
 
 
+def command_demo_path_compatibility_command_entries(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandDemoPathCompatibilityCommand, ...]:
+    normalized_program = _normalize_smoke_program(program)
+    entries: list[CommandDemoPathCompatibilityCommand] = []
+    for route in command_flow_route_catalog(flow_steps=flow_steps, specs=specs):
+        if not route.demo_step:
+            continue
+        smoke_args = _smoke_args_for_command(specs, route.name)
+        for token in route.surface_tokens:
+            argv = (token, *smoke_args)
+            normalized_argv = normalize_command_argv(argv, specs)
+            entries.append(
+                CommandDemoPathCompatibilityCommand(
+                    demo_step=route.demo_step,
+                    flow_step=route.flow_step,
+                    token=token,
+                    canonical_name=route.name,
+                    argv=argv,
+                    normalized_argv=normalized_argv,
+                    command=(normalized_program, *argv),
+                    normalized_command=(normalized_program, *normalized_argv),
+                    description=route.description,
+                )
+            )
+    compatibility_entries = tuple(entries)
+    _validate_command_demo_path_compatibility_command_entries(compatibility_entries)
+    return compatibility_entries
+
+
+def command_demo_path_compatibility_commands(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, ...], ...]:
+    return tuple(
+        entry.command
+        for entry in command_demo_path_compatibility_command_entries(program, specs, flow_steps)
+    )
+
+
+def command_demo_path_compatibility_argv(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, ...], ...]:
+    return tuple(
+        entry.argv
+        for entry in command_demo_path_compatibility_command_entries(
+            specs=specs,
+            flow_steps=flow_steps,
+        )
+    )
+
+
+def _validate_command_demo_path_compatibility_command_entries(
+    entries: tuple[CommandDemoPathCompatibilityCommand, ...],
+) -> None:
+    seen_argv: set[tuple[str, ...]] = set()
+    for entry in entries:
+        if not entry.demo_step:
+            raise ValueError("Command demo path compatibility label is missing")
+        if not entry.flow_step:
+            raise ValueError("Command demo path compatibility flow step is missing")
+        if not entry.token:
+            raise ValueError("Command demo path compatibility token is missing")
+        if entry.argv in seen_argv:
+            raise ValueError(f"Duplicate command demo path compatibility argv: {entry.argv}")
+        seen_argv.add(entry.argv)
+        if entry.argv[0] != entry.token:
+            raise ValueError("Command demo path compatibility token is inconsistent")
+        if entry.normalized_argv[0] != entry.canonical_name:
+            raise ValueError("Command demo path compatibility canonical command is inconsistent")
+        if entry.command != (entry.command[0], *entry.argv):
+            raise ValueError("Command demo path compatibility command tuple is inconsistent")
+        if entry.normalized_command != (entry.command[0], *entry.normalized_argv):
+            raise ValueError("Command demo path compatibility normalized command tuple is inconsistent")
+
+
 def command_demo_cli_smoke_steps() -> tuple[CommandCliSmokeStep, ...]:
     return command_cli_smoke_steps(flow_steps=command_demo_flow_steps())
 
@@ -1338,6 +1431,28 @@ def command_mvp_demo_path_commands(program: str = "qual-bootstrap") -> tuple[tup
 
 def command_mvp_demo_path_command_entries(program: str = "qual-bootstrap") -> tuple[CommandDemoPathCommand, ...]:
     return command_demo_path_command_entries(program=program, flow_steps=command_mvp_flow_steps())
+
+
+def command_mvp_demo_path_compatibility_command_entries(
+    program: str = "qual-bootstrap",
+) -> tuple[CommandDemoPathCompatibilityCommand, ...]:
+    return command_demo_path_compatibility_command_entries(
+        program=program,
+        flow_steps=command_mvp_flow_steps(),
+    )
+
+
+def command_mvp_demo_path_compatibility_commands(
+    program: str = "qual-bootstrap",
+) -> tuple[tuple[str, ...], ...]:
+    return command_demo_path_compatibility_commands(
+        program=program,
+        flow_steps=command_mvp_flow_steps(),
+    )
+
+
+def command_mvp_demo_path_compatibility_argv() -> tuple[tuple[str, ...], ...]:
+    return command_demo_path_compatibility_argv(flow_steps=command_mvp_flow_steps())
 
 
 def command_mvp_demo_path_contract(program: str = "qual-bootstrap") -> CommandDemoPathContract:
