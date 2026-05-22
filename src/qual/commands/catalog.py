@@ -159,6 +159,17 @@ class CommandDemoPathStep:
     description: str
 
 
+@dataclass(frozen=True)
+class CommandDemoPathCommand:
+    demo_step: str
+    flow_step: str
+    name: str
+    cli_token: str
+    argv: tuple[str, ...]
+    command: tuple[str, ...]
+    description: str
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -950,6 +961,58 @@ def command_demo_path_argv(
     return tuple(step.argv for step in command_demo_path_steps(specs, flow_steps))
 
 
+def command_demo_path_commands(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, ...], ...]:
+    return tuple(entry.command for entry in command_demo_path_command_entries(program, specs, flow_steps))
+
+
+def command_demo_path_command_entries(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandDemoPathCommand, ...]:
+    normalized_program = _normalize_smoke_program(program)
+    demo_steps = command_demo_path_steps(specs, flow_steps)
+    entries = tuple(
+        CommandDemoPathCommand(
+            demo_step=step.demo_step,
+            flow_step=step.flow_step,
+            name=step.name,
+            cli_token=step.cli_token,
+            argv=step.argv,
+            command=(normalized_program, *step.argv),
+            description=step.description,
+        )
+        for step in demo_steps
+    )
+    _validate_command_demo_path_command_entries(entries, demo_steps)
+    return entries
+
+
+def _validate_command_demo_path_command_entries(
+    entries: tuple[CommandDemoPathCommand, ...],
+    demo_steps: tuple[CommandDemoPathStep, ...],
+) -> None:
+    if tuple(entry.demo_step for entry in entries) != tuple(step.demo_step for step in demo_steps):
+        raise ValueError("Command demo path command labels are inconsistent")
+    if tuple(entry.flow_step for entry in entries) != tuple(step.flow_step for step in demo_steps):
+        raise ValueError("Command demo path command flow steps are inconsistent")
+    if tuple(entry.name for entry in entries) != tuple(step.name for step in demo_steps):
+        raise ValueError("Command demo path command names are inconsistent")
+    if tuple(entry.cli_token for entry in entries) != tuple(step.cli_token for step in demo_steps):
+        raise ValueError("Command demo path command tokens are inconsistent")
+    if tuple(entry.argv for entry in entries) != tuple(step.argv for step in demo_steps):
+        raise ValueError("Command demo path command argv is inconsistent")
+    if tuple(entry.description for entry in entries) != tuple(step.description for step in demo_steps):
+        raise ValueError("Command demo path command descriptions are inconsistent")
+    for entry in entries:
+        if entry.command != (entry.command[0], *entry.argv):
+            raise ValueError("Command demo path command tuple is inconsistent")
+
+
 def command_demo_cli_smoke_steps() -> tuple[CommandCliSmokeStep, ...]:
     return command_cli_smoke_steps(flow_steps=command_demo_flow_steps())
 
@@ -1000,6 +1063,14 @@ def command_mvp_demo_path_steps() -> tuple[CommandDemoPathStep, ...]:
 
 def command_mvp_demo_path_argv() -> tuple[tuple[str, ...], ...]:
     return command_demo_path_argv(flow_steps=command_mvp_flow_steps())
+
+
+def command_mvp_demo_path_commands(program: str = "qual-bootstrap") -> tuple[tuple[str, ...], ...]:
+    return command_demo_path_commands(program=program, flow_steps=command_mvp_flow_steps())
+
+
+def command_mvp_demo_path_command_entries(program: str = "qual-bootstrap") -> tuple[CommandDemoPathCommand, ...]:
+    return command_demo_path_command_entries(program=program, flow_steps=command_mvp_flow_steps())
 
 
 @lru_cache(maxsize=None)
