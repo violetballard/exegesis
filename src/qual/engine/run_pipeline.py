@@ -5,9 +5,9 @@ import json
 import uuid
 from os import PathLike, fspath
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from src.qual.audit import AuditLog
 from src.qual.drafting.service import DraftingService
@@ -16,6 +16,7 @@ from src.qual.engine.vault_store import VaultStore
 from src.qual.exporting.service import ExportArtifactRef, ExportOptions, ExportService, PreviewArtifactRef
 from src.qual.retrieval.service import RetrievalResult, RetrievalService
 
+UTC = timezone.utc
 _RUN_NAMESPACE = ".engine_runs"
 _RUNS_FILE = "runs_v1.enc.json"
 _RUNS_KEY_FILE = "engine_runs_v1.key"
@@ -23,6 +24,7 @@ _RUNS_KEY_FILE = "engine_runs_v1.key"
 RunStatus = Literal["running", "completed", "failed", "cancelled"]
 TerminalRunStatus = Literal["completed", "failed", "cancelled"]
 PatchDecision = Literal["accepted", "rejected"]
+# Terminal statuses are the persistence boundary for preview/apply-or-reject runs.
 _TERMINAL_RUN_STATUSES: tuple[TerminalRunStatus, ...] = ("completed", "failed", "cancelled")
 _RETRIEVAL_INTENT_ALIASES = {"outline": "outline_support"}
 
@@ -551,6 +553,7 @@ class EngineRunService:
         self._export = export_service
         self._drafting = drafting_service
         self._now_fn = now_fn or (lambda: datetime.now(UTC))
+        self._vault_root = Path(vault_root)
 
     def start_run(
         self,
@@ -691,7 +694,10 @@ class EngineRunService:
             confidentiality_profile=normalized_confidentiality_profile,
         )
         query_hash = self._fingerprint_text(normalized_query_text)
-        strategies = tuple(result.diagnostics.get("strategies_used", []))
+        strategies = self._normalize_retrieval_strategies_used(
+            result.diagnostics.get("strategies_used", []),
+            field_name="retrieval diagnostics",
+        )
         retrieved_at = self._timestamp()
         artifact = self._append_artifact(
             run_id,
@@ -704,7 +710,16 @@ class EngineRunService:
                 "retrieval_query_hash": query_hash,
                 "retrieval_constraints": normalized_constraints,
                 "hit_count": len(result.hits),
-                "strategies_used": list(strategies),
+                "strategies_used": strategies,
+            },
+            audit_metadata={
+                "audit_ref": result.audit_ref,
+                "query_scope": result.query.scope,
+                "query_intent": result.query.intent,
+                "retrieval_query_hash": query_hash,
+                "retrieval_constraints": normalized_constraints,
+                "hit_count": len(result.hits),
+                "strategies_used": strategies,
             },
         )
         self._record_event(
@@ -713,9 +728,13 @@ class EngineRunService:
             created_at=retrieved_at,
             payload={
                 "artifact_id": artifact.artifact_id,
+                "audit_ref": result.audit_ref,
+                "query_scope": result.query.scope,
+                "query_intent": result.query.intent,
                 "hit_count": len(result.hits),
                 "retrieval_query_hash": query_hash,
                 "retrieval_constraints": normalized_constraints,
+                "strategies_used": strategies,
             },
             metadata={
                 "artifact_id": artifact.artifact_id,
@@ -725,7 +744,7 @@ class EngineRunService:
                 "retrieval_query_hash": query_hash,
                 "retrieval_constraints": normalized_constraints,
                 "hit_count": len(result.hits),
-                "strategies_used": list(strategies),
+                "strategies_used": strategies,
             },
         )
         return result
@@ -784,15 +803,16 @@ class EngineRunService:
         target_path: str,
         reason: str | None = None,
     ) -> RunEvent:
-        self._validate_patch_decision(decision)
+        normalized_decision = self._normalize_patch_decision(decision)
         record = self._require_running(run_id)
         normalized_target_path = self._require_non_empty_text(target_path, field_name="target_path")
         proposal = self._require_patch_proposal(record, target_path=normalized_target_path)
         self._ensure_patch_decision_not_recorded(record, proposal_artifact_id=proposal.artifact_id)
         proposal_summary = self._patch_proposal_summary(proposal)
-        decision_reason = reason.strip() if isinstance(reason, str) and reason.strip() else None
+        self._validate_patch_decision_matches_proposal(normalized_decision, proposal_summary)
+        decision_reason = self._normalize_patch_decision_reason(reason)
         decision_at = self._timestamp()
-        event_name = "patch_applied" if decision == "accepted" else "patch_rejected"
+        event_name = "patch_applied" if normalized_decision == "accepted" else "patch_rejected"
         decision_event_id = f"{run_id}:{len(record.events) + 1:04d}:{event_name}"
         decision_artifact = self._append_artifact(
             run_id,
@@ -801,19 +821,22 @@ class EngineRunService:
             payload={
                 "proposal_artifact_id": proposal.artifact_id,
                 "target_path": normalized_target_path,
-                "decision": decision,
+                "decision": normalized_decision,
                 "reason": decision_reason,
                 "decision_event_id": decision_event_id,
                 "proposal_patch_hash": proposal_summary["patch_hash"],
                 "proposal_line_count": proposal_summary["line_count"],
+                "proposal_is_empty": proposal_summary["is_empty"],
             },
             audit_metadata={
                 "proposal_artifact_id": proposal.artifact_id,
                 "target_path": normalized_target_path,
-                "decision": decision,
+                "decision": normalized_decision,
                 "decision_event_id": decision_event_id,
+                "reason": decision_reason,
                 "proposal_patch_hash": proposal_summary["patch_hash"],
                 "proposal_line_count": proposal_summary["line_count"],
+                "proposal_is_empty": proposal_summary["is_empty"],
             },
         )
         return self._record_event(
@@ -825,20 +848,22 @@ class EngineRunService:
                 "decision_artifact_id": decision_artifact.artifact_id,
                 "decision_event_id": decision_event_id,
                 "target_path": normalized_target_path,
-                "decision": decision,
+                "decision": normalized_decision,
                 "reason": decision_reason,
                 "proposal_patch_hash": proposal_summary["patch_hash"],
                 "proposal_line_count": proposal_summary["line_count"],
+                "proposal_is_empty": proposal_summary["is_empty"],
             },
             metadata={
                 "proposal_artifact_id": proposal.artifact_id,
                 "decision_artifact_id": decision_artifact.artifact_id,
                 "target_path": normalized_target_path,
-                "decision": decision,
+                "decision": normalized_decision,
                 "decision_event_id": decision_event_id,
                 "reason": decision_reason,
                 "proposal_patch_hash": proposal_summary["patch_hash"],
                 "proposal_line_count": proposal_summary["line_count"],
+                "proposal_is_empty": proposal_summary["is_empty"],
             },
         )
 
@@ -1036,6 +1061,13 @@ class EngineRunService:
                     proposed=patch_proposed_value,
                     target_path=patch_target_path_value,
                 )
+                if patch_decision_value == "accepted":
+                    # Persist first so patch_applied is never recorded without a document mutation.
+                    self._persist_accepted_patch(
+                        target_path=patch_target_path_value,
+                        original=patch_original_value,
+                        proposed=patch_proposed_value,
+                    )
                 patch_decision_event = self.record_patch_decision(
                     run.run_id,
                     decision=patch_decision_value,
@@ -1244,6 +1276,8 @@ class EngineRunService:
         if normalized_max_results < 1:
             raise ValueError("max_results must be >= 1")
 
+        normalized: dict[str, object] = {"max_results": normalized_max_results}
+
         section_hint = constraints.get("section_hint")
         if section_hint is None:
             normalized_section_hint = None
@@ -1251,6 +1285,7 @@ class EngineRunService:
             normalized_section_hint = section_hint.strip() or None
         else:
             raise TypeError("section_hint must be a string")
+        normalized["section_hint"] = normalized_section_hint
 
         prefer_exact_matches = constraints.get("prefer_exact_matches")
         if prefer_exact_matches is None:
@@ -1267,12 +1302,96 @@ class EngineRunService:
                 raise TypeError("prefer_exact_matches must be a boolean")
         else:
             raise TypeError("prefer_exact_matches must be a boolean")
+        normalized["prefer_exact_matches"] = normalized_prefer_exact_matches
 
-        return {
-            "max_results": normalized_max_results,
-            "section_hint": normalized_section_hint,
-            "prefer_exact_matches": normalized_prefer_exact_matches,
-        }
+        doc_types = constraints.get("doc_types")
+        if doc_types is not None:
+            normalized["doc_types"] = EngineRunService._normalize_retrieval_doc_types(doc_types)
+
+        date_range = constraints.get("date_range")
+        if date_range is not None:
+            normalized["date_range"] = EngineRunService._normalize_retrieval_date_range(date_range)
+
+        require_citations = constraints.get("require_citations")
+        if require_citations is not None:
+            normalized["require_citations"] = EngineRunService._parse_bool_constraint(
+                require_citations,
+                field_name="require_citations",
+            )
+
+        return normalized
+
+    @staticmethod
+    def _normalize_retrieval_strategies_used(value: object, *, field_name: str) -> list[str]:
+        if not isinstance(value, (list, tuple)):
+            raise ValueError(f"invalid {field_name} for strategies_used")
+        normalized: list[str] = []
+        for item in value:
+            if not isinstance(item, str):
+                raise ValueError(f"invalid {field_name} for strategies_used")
+            strategy = item.strip()
+            if not strategy:
+                raise ValueError(f"invalid {field_name} for strategies_used")
+            normalized.append(strategy)
+        if normalized != ["fts"]:
+            raise ValueError(f"invalid {field_name} for strategies_used")
+        return normalized
+
+    @staticmethod
+    def _normalize_retrieval_doc_types(value: object) -> tuple[str, ...]:
+        if isinstance(value, str):
+            raw_values: object = (value,)
+        else:
+            raw_values = value
+        if not isinstance(raw_values, (list, tuple)):
+            raise TypeError("doc_types must be a string or sequence of strings")
+        seen: set[str] = set()
+        normalized: list[str] = []
+        for item in raw_values:
+            if not isinstance(item, str):
+                raise TypeError("doc_types must be a string or sequence of strings")
+            doc_type = item.strip().casefold()
+            if doc_type and doc_type not in seen:
+                seen.add(doc_type)
+                normalized.append(doc_type)
+        return tuple(sorted(normalized))
+
+    @staticmethod
+    def _normalize_retrieval_date_range(value: object) -> tuple[str, str]:
+        if not isinstance(value, (list, tuple)) or len(value) != 2:
+            raise TypeError("date_range must be a two-item sequence of strings")
+        normalized: list[str] = []
+        for item in value:
+            if not isinstance(item, str):
+                raise TypeError("date_range must be a two-item sequence of strings")
+            date_value = item.strip()
+            if not date_value:
+                raise ValueError("date_range values are required")
+            normalized.append(date_value)
+        start_date = EngineRunService._parse_retrieval_date_constraint_value(normalized[0])
+        end_date = EngineRunService._parse_retrieval_date_constraint_value(normalized[1])
+        if start_date > end_date:
+            raise ValueError("date_range start must be on or before end")
+        return (normalized[0], normalized[1])
+
+    @staticmethod
+    def _parse_retrieval_date_constraint_value(value: str) -> date:
+        try:
+            return datetime.fromisoformat(value).date()
+        except ValueError as exc:
+            raise ValueError("date_range must contain ISO date values") from exc
+
+    @staticmethod
+    def _parse_bool_constraint(value: object, *, field_name: str) -> bool:
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, str):
+            lowered = value.strip().lower()
+            if lowered in {"1", "true", "yes", "on"}:
+                return True
+            if lowered in {"0", "false", "no", "off", ""}:
+                return False
+        raise TypeError(f"{field_name} must be a boolean")
 
     def complete_run(self, run_id: str, *, status: RunStatus = "completed") -> EngineRunRecord:
         self._validate_terminal_status(status)
@@ -1287,8 +1406,8 @@ class EngineRunService:
         if status == "completed":
             self._require_run_plan(record, operation="run completion")
             self._require_retrieval_evidence(record, operation="run completion")
-        if status == "completed":
             self._require_no_pending_patch_proposals(record, operation="run completion")
+            self._require_planned_export_completed(record, operation="run completion")
         completion_at = self._timestamp()
         terminalization = self._build_terminalization(record, captured_at=completion_at, terminal_status=status)
         updated = EngineRunRecord(
@@ -1745,6 +1864,30 @@ class EngineRunService:
             raise ValueError("patch decision must be one of: accepted, rejected")
 
     @staticmethod
+    def _normalize_patch_decision(decision: PatchDecision) -> PatchDecision:
+        if not isinstance(decision, str):
+            raise TypeError("patch decision must be a string")
+        normalized = decision.strip()
+        EngineRunService._validate_patch_decision(cast(PatchDecision, normalized))
+        return cast(PatchDecision, normalized)
+
+    @staticmethod
+    def _normalize_patch_decision_reason(reason: str | None) -> str | None:
+        if reason is None:
+            return None
+        if not isinstance(reason, str):
+            raise TypeError("patch decision reason must be a string")
+        return reason.strip() or None
+
+    @staticmethod
+    def _validate_patch_decision_matches_proposal(
+        decision: PatchDecision,
+        proposal_summary: dict[str, Any],
+    ) -> None:
+        if decision == "accepted" and proposal_summary.get("is_empty") is True:
+            raise ValueError("accepted patch decision requires a non-empty patch proposal")
+
+    @staticmethod
     def _validate_retrieval_confidentiality_profile(profile: str) -> str:
         if not isinstance(profile, str):
             raise TypeError("retrieval_confidentiality_profile must be a string")
@@ -1835,7 +1978,32 @@ class EngineRunService:
             patch_target_path,
             field_name="patch_target_path",
         )
-        return patch_original, patch_proposed, normalized_target_path, patch_decision
+        normalized_decision = EngineRunService._normalize_patch_decision(patch_decision)
+        if normalized_decision == "accepted" and patch_original == patch_proposed:
+            raise ValueError("accepted patch decision requires a non-empty patch proposal")
+        return patch_original, patch_proposed, normalized_target_path, normalized_decision
+
+    def _persist_accepted_patch(self, *, target_path: str, original: str, proposed: str) -> Path:
+        """Apply the accepted run-flow patch to the target document on disk."""
+        document_path = self._resolve_document_target_path(target_path)
+        current_content = document_path.read_text(encoding="utf-8") if document_path.exists() else original
+        if current_content != original:
+            raise ValueError("patch original text does not match current document content")
+        document_path.parent.mkdir(parents=True, exist_ok=True)
+        document_path.write_text(proposed, encoding="utf-8")
+        return document_path
+
+    def _resolve_document_target_path(self, target_path: str) -> Path:
+        candidate = Path(target_path)
+        if not candidate.is_absolute():
+            candidate = self._vault_root / candidate
+        resolved = candidate.resolve()
+        root = self._vault_root.resolve()
+        try:
+            resolved.relative_to(root)
+        except ValueError as exc:
+            raise ValueError("patch target_path must resolve inside the run vault root") from exc
+        return resolved
 
     @classmethod
     def _require_run_plan(cls, record: EngineRunRecord, *, operation: str) -> RunArtifact:
@@ -1881,6 +2049,15 @@ class EngineRunService:
             for artifact in pending
         ]
         raise ValueError(f"{operation} requires resolved patch proposals before proceeding: {pending_targets}")
+
+    @classmethod
+    def _require_planned_export_completed(cls, record: EngineRunRecord, *, operation: str) -> None:
+        run_plan = cls._run_plan_payload(record)
+        if run_plan is None or not bool(run_plan.get("export_requested")):
+            return
+        if cls._latest_artifact(record, kind="export_final") is not None:
+            return
+        raise ValueError(f"{operation} requires final export before proceeding")
 
     @staticmethod
     def _build_terminalization(
@@ -1961,6 +2138,10 @@ class EngineRunService:
                 "scope": record.scope,
                 "intent": record.intent,
                 "request_fingerprint": record.request_fingerprint,
+                "run_provenance_artifact_id": provenance_artifact.artifact_id,
+                "run_provenance_event_id": provenance_event.event_id,
+                "run_lifecycle_digest": provenance_artifact.payload.get("run_lifecycle_digest"),
+                "flow_digest": provenance_artifact.payload.get("flow_digest"),
             },
         )
         completion_event = RunEvent(
@@ -2111,9 +2292,14 @@ class EngineRunService:
 
     @staticmethod
     def _retrieval_evidence_payload(record: EngineRunRecord) -> dict[str, Any] | None:
+        retrieval_artifact_ids = EngineRunService._artifact_ids(record, kind="retrieval_result")
+        retrieval_event_ids = EngineRunService._event_ids(record, name="retrieval_attached")
         for artifact in reversed(record.artifacts):
             if artifact.kind != "retrieval_result":
                 continue
+            strategies_used = artifact.payload.get("strategies_used")
+            if not isinstance(strategies_used, list):
+                strategies_used = []
             return EngineRunService._clone_jsonable({
                 "artifact_id": artifact.artifact_id,
                 "audit_ref": artifact.payload.get("audit_ref"),
@@ -2122,7 +2308,9 @@ class EngineRunService:
                 "retrieval_query_hash": artifact.payload.get("retrieval_query_hash"),
                 "retrieval_constraints": artifact.payload.get("retrieval_constraints"),
                 "hit_count": artifact.payload.get("hit_count"),
-                "strategies_used": list(artifact.payload.get("strategies_used", [])),
+                "strategies_used": strategies_used,
+                "retrieval_artifact_ids": retrieval_artifact_ids,
+                "retrieval_event_ids": retrieval_event_ids,
             })
         return None
 
@@ -2244,6 +2432,7 @@ class EngineRunService:
             "proposal_artifact_id": artifact.payload.get("proposal_artifact_id"),
             "proposal_patch_hash": artifact.payload.get("proposal_patch_hash"),
             "proposal_line_count": artifact.payload.get("proposal_line_count"),
+            "proposal_is_empty": artifact.payload.get("proposal_is_empty"),
         }
 
     @staticmethod
@@ -2660,6 +2849,7 @@ class EngineRunService:
             raise ValueError(f"run {record.run_id} is terminal but missing completed_at")
         EngineRunService._validate_append_only_sequence(record)
         EngineRunService._validate_patch_proposal_state(record)
+        EngineRunService._validate_retrieval_result_state(record)
         if record.status != "running":
             if len(record.artifacts) != len(record.events):
                 raise ValueError(
@@ -2731,24 +2921,113 @@ class EngineRunService:
             )
 
     @staticmethod
+    def _validate_retrieval_result_state(record: EngineRunRecord) -> None:
+        for sequence, (artifact, event) in enumerate(zip(record.artifacts, record.events), start=1):
+            if artifact.kind == "retrieval_result":
+                required_text_payload = {
+                    "audit_ref": artifact.payload.get("audit_ref"),
+                    "query_scope": artifact.payload.get("query_scope"),
+                    "query_intent": artifact.payload.get("query_intent"),
+                    "retrieval_query_hash": artifact.payload.get("retrieval_query_hash"),
+                }
+                for key, value in required_text_payload.items():
+                    if not isinstance(value, str) or not value.strip():
+                        raise ValueError(
+                            f"run {record.run_id} has incomplete retrieval artifact payload for {key}"
+                        )
+                required_artifact_payload = {
+                    **required_text_payload,
+                    "retrieval_constraints": artifact.payload.get("retrieval_constraints"),
+                    "hit_count": artifact.payload.get("hit_count"),
+                }
+                for key, value in required_artifact_payload.items():
+                    if value is None or value == "":
+                        raise ValueError(
+                            f"run {record.run_id} has incomplete retrieval artifact payload for {key}"
+                        )
+                if not EngineRunService._is_canonical_retrieval_constraints_snapshot(
+                    artifact.payload.get("retrieval_constraints")
+                ):
+                    raise ValueError(
+                        f"run {record.run_id} has invalid retrieval artifact payload for retrieval_constraints"
+                    )
+                if not EngineRunService._is_sha256_digest(artifact.payload.get("retrieval_query_hash")):
+                    raise ValueError(
+                        f"run {record.run_id} has invalid retrieval artifact payload for retrieval_query_hash"
+                    )
+                hit_count = artifact.payload.get("hit_count")
+                if not isinstance(hit_count, int) or hit_count < 0:
+                    raise ValueError(f"run {record.run_id} has invalid retrieval artifact payload for hit_count")
+                strategies_used = EngineRunService._normalize_retrieval_strategies_used(
+                    artifact.payload.get("strategies_used"),
+                    field_name="retrieval artifact payload",
+                )
+                if event.name != "retrieval_attached":
+                    raise ValueError(
+                        f"run {record.run_id} has inconsistent retrieval event at position {sequence}: "
+                        f"{event.event_id}"
+                    )
+                if event.created_at != artifact.created_at:
+                    raise ValueError(
+                        f"run {record.run_id} has inconsistent retrieval event timestamp at position {sequence}"
+                    )
+                expected_payload = {
+                    "artifact_id": artifact.artifact_id,
+                    "audit_ref": artifact.payload.get("audit_ref"),
+                    "query_scope": artifact.payload.get("query_scope"),
+                    "query_intent": artifact.payload.get("query_intent"),
+                    "retrieval_query_hash": artifact.payload.get("retrieval_query_hash"),
+                    "retrieval_constraints": artifact.payload.get("retrieval_constraints"),
+                    "hit_count": artifact.payload.get("hit_count"),
+                    "strategies_used": strategies_used,
+                }
+                if set(event.payload) != set(expected_payload):
+                    raise ValueError(
+                        f"run {record.run_id} has inconsistent retrieval event payload keys"
+                    )
+                for key, expected_value in expected_payload.items():
+                    if event.payload.get(key) != expected_value:
+                        raise ValueError(
+                            f"run {record.run_id} has inconsistent retrieval event payload for {key}"
+                        )
+            elif event.name == "retrieval_attached":
+                raise ValueError(
+                    f"run {record.run_id} has inconsistent retrieval artifact at position {sequence}: "
+                    f"{artifact.artifact_id}"
+                )
+
+    @staticmethod
+    def _is_canonical_retrieval_constraints_snapshot(value: object) -> bool:
+        if not isinstance(value, dict):
+            return False
+        try:
+            return EngineRunService._normalize_retrieval_constraints(value) == value
+        except (TypeError, ValueError):
+            return False
+
+    @staticmethod
     def _validate_terminal_record_payloads(record: EngineRunRecord) -> None:
+        terminal_artifact_sequence = ("run_provenance", "run_completed")
+        terminal_event_sequence = ("run_provenance_captured", "run_completed")
+        terminal_artifact_kinds = set(terminal_artifact_sequence)
+        terminal_event_names = set(terminal_event_sequence)
         terminal_artifacts = [
             artifact
             for artifact in record.artifacts
-            if artifact.kind in {"run_provenance", "run_completed"}
+            if artifact.kind in terminal_artifact_kinds
         ]
         terminal_events = [
             event
             for event in record.events
-            if event.name in {"run_provenance_captured", "run_completed"}
+            if event.name in terminal_event_names
         ]
         if len(terminal_artifacts) != 2:
             raise ValueError(f"run {record.run_id} has inconsistent terminal artifact count")
         if len(terminal_events) != 2:
             raise ValueError(f"run {record.run_id} has inconsistent terminal event count")
-        if terminal_artifacts[-2].kind != "run_provenance" or terminal_artifacts[-1].kind != "run_completed":
+        if tuple(artifact.kind for artifact in terminal_artifacts[-2:]) != terminal_artifact_sequence:
             raise ValueError(f"run {record.run_id} has inconsistent terminal artifact sequence")
-        if terminal_events[-2].name != "run_provenance_captured" or terminal_events[-1].name != "run_completed":
+        if tuple(event.name for event in terminal_events[-2:]) != terminal_event_sequence:
             raise ValueError(f"run {record.run_id} has inconsistent terminal event sequence")
         preterminal_artifacts = list(record.artifacts[:-2])
         preterminal_events = list(record.events[:-2])
@@ -2956,6 +3235,14 @@ class EngineRunService:
             raise ValueError(f"run {record.run_id} has inconsistent completion intent")
         if completion_payload.get("request_fingerprint") != record.request_fingerprint:
             raise ValueError(f"run {record.run_id} has inconsistent completion request_fingerprint")
+        if completion_payload.get("run_provenance_artifact_id") != provenance_artifact.artifact_id:
+            raise ValueError(f"run {record.run_id} has inconsistent completion run_provenance_artifact_id")
+        if completion_payload.get("run_provenance_event_id") != provenance_event.event_id:
+            raise ValueError(f"run {record.run_id} has inconsistent completion run_provenance_event_id")
+        if completion_payload.get("run_lifecycle_digest") != provenance_payload.get("run_lifecycle_digest"):
+            raise ValueError(f"run {record.run_id} has inconsistent completion run_lifecycle_digest")
+        if completion_payload.get("flow_digest") != provenance_payload.get("flow_digest"):
+            raise ValueError(f"run {record.run_id} has inconsistent completion flow_digest")
         if completion_event_payload.get("artifact_id") != completion_artifact.artifact_id:
             raise ValueError(f"run {record.run_id} has inconsistent completion event artifact_id")
         if completion_event_payload.get("status") != record.status:
@@ -3003,6 +3290,14 @@ class EngineRunService:
         import hashlib
 
         return hashlib.sha256(value.encode("utf-8")).hexdigest()
+
+    @staticmethod
+    def _is_sha256_digest(value: object) -> bool:
+        return (
+            isinstance(value, str)
+            and len(value) == 64
+            and all(char in "0123456789abcdef" for char in value)
+        )
 
     @staticmethod
     def _fingerprint_payload(payload: dict[str, Any]) -> str:

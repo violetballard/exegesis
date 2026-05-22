@@ -277,6 +277,7 @@ def runtime_launch_config(lane: str | None = None, *, provider: str = "auto") ->
 def _bounded_kickoff_text(lane: str) -> str:
     kickoff_path = KICKOFF_DIR / f"{lane}.md"
     kickoff = kickoff_path.read_text()
+    _validate_kickoff_text(lane, kickoff_path, kickoff)
     if len(kickoff) <= MAX_INLINE_KICKOFF_CHARS:
         return kickoff
     head = kickoff[:MAX_INLINE_KICKOFF_CHARS]
@@ -285,6 +286,25 @@ def _bounded_kickoff_text(lane: str) -> str:
         "[KICKOFF PACKET TRUNCATED FOR CONTEXT SAFETY]\n"
         f"The full packet is available at `{kickoff_path}`. Read only targeted sections from it if needed.\n"
     )
+
+
+def _validate_kickoff_text(lane: str, kickoff_path: Path, kickoff: str) -> None:
+    """Fail closed if stale handoff metadata would be used as a feature brief."""
+    head = kickoff[:6000].lower()
+    stale_markers = (
+        "handoff metadata",
+        "metadata-only handoff",
+        "reviewed implementation range",
+        "reviewed source range",
+        "packet head role",
+        "required fixes addressed",
+        "handoff alignment",
+    )
+    if any(marker in head for marker in stale_markers):
+        raise RuntimeError(
+            f"Refusing to launch {lane}: {kickoff_path} appears to contain stale "
+            "handoff/review metadata instead of a lane kickoff brief."
+        )
 
 
 def _lane_branch_ref(lane: str, launch_cfg: Dict[str, object]) -> str:
@@ -553,6 +573,7 @@ def _set_lane_state(
             current_state = {}
         lanes_state = current_state.setdefault("lanes", {})
         lanes_state[lane] = {
+            "lane": lane,
             "status": status,
             "thread_id": thread_id,
             "mode": mode,

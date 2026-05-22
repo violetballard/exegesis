@@ -24,7 +24,8 @@ try:
     from lane_profiles import ENGINE_PRIORITY_ORDER, lane_priority_order
     from git_ops import run_git
     from git_hygiene import run_hygiene
-    from planner import LANE_OWNED_PATHS
+    from planner import _owned_patterns_for_lane
+    from packet_progress import infer_last_submitted_sha
     from local_exec_sweeper import (
         find_context_exhausted_repo_local_exec_pids,
         find_repo_owned_local_exec_pids,
@@ -37,7 +38,8 @@ except ImportError:  # pragma: no cover - package execution fallback
     from .lane_profiles import ENGINE_PRIORITY_ORDER, lane_priority_order
     from .git_ops import run_git
     from .git_hygiene import run_hygiene
-    from .planner import LANE_OWNED_PATHS
+    from .planner import _owned_patterns_for_lane
+    from .packet_progress import infer_last_submitted_sha
     from .local_exec_sweeper import (
         find_context_exhausted_repo_local_exec_pids,
         find_repo_owned_local_exec_pids,
@@ -96,7 +98,8 @@ FEATURE_LOOP_RECONNECT_THRESHOLD = 4
 FEATURE_NO_TOOL_ACTIVITY_MIN_RUNTIME_SECONDS = float(
     os.environ.get("FEATURE_NO_TOOL_ACTIVITY_MIN_RUNTIME_SECONDS", "2700")
 )
-FEATURE_MAX_RUNTIME_SECONDS = float(os.environ.get("FEATURE_MAX_RUNTIME_SECONDS", "5400"))
+FEATURE_MAX_RUNTIME_SECONDS = float(os.environ.get("FEATURE_MAX_RUNTIME_SECONDS", "2700"))
+FEATURE_ADVANCED_HEAD_REVIEW_SECONDS = float(os.environ.get("FEATURE_ADVANCED_HEAD_REVIEW_SECONDS", "900"))
 ROUTER_JOB_LOOP_MIN_RUNTIME_SECONDS = 300.0
 ROUTER_FIXER_NO_TOOL_MIN_RUNTIME_SECONDS = float(os.environ.get("ROUTER_FIXER_NO_TOOL_MIN_RUNTIME_SECONDS", "90"))
 FEATURE_LOOP_PARSE_ERROR_THRESHOLD = 2
@@ -579,7 +582,7 @@ def _feature_runner_resource_reason(lane_state: Dict[str, object]) -> Optional[s
     return None
 
 
-def _feature_runner_loop_reason(lane_state: Dict[str, object]) -> Optional[str]:
+def _feature_runner_loop_reason(lane_state: Dict[str, object], *, lane: str = "") -> Optional[str]:
     pid = int(lane_state.get("pid") or 0)
     if pid <= 0 or not _pid_alive(pid):
         return None
@@ -589,8 +592,17 @@ def _feature_runner_loop_reason(lane_state: Dict[str, object]) -> Optional[str]:
     launched_at = _parse_feature_runner_ts(str(lane_state.get("last_launch_at") or ""))
     elapsed = time.time() - launched_at if launched_at else 0
     over_autonomy_window = bool(launched_at and FEATURE_MAX_RUNTIME_SECONDS > 0 and elapsed >= FEATURE_MAX_RUNTIME_SECONDS)
+    advanced_head_review_due = bool(
+        lane
+        and launched_at
+        and FEATURE_ADVANCED_HEAD_REVIEW_SECONDS > 0
+        and elapsed >= FEATURE_ADVANCED_HEAD_REVIEW_SECONDS
+        and _lane_head_advanced_since_handoff(lane)
+    )
     if launched_at and (time.time() - launched_at) < FEATURE_LOOP_MIN_RUNTIME_SECONDS:
         return None
+    if advanced_head_review_due:
+        return f"branch advanced past last handoff; review grace elapsed after {int(elapsed)}s"
     log_path = Path(str(lane_state.get("log_path") or ""))
     if not log_path.exists():
         if over_autonomy_window:
@@ -773,7 +785,7 @@ def _reconcile_feature_runner_state() -> Dict[str, object]:
                 scope_invalid[str(lane)] = len(violations)
             continue
         if _pid_alive(pid):
-            loop_reason = _feature_runner_loop_reason(lane_state)
+            loop_reason = _feature_runner_loop_reason(lane_state, lane=str(lane))
             if loop_reason:
                 _terminate_pid_tree(pid)
                 lanes.pop(lane, None)
@@ -967,6 +979,8 @@ def _tracked_local_exec_log_paths() -> Dict[int, str]:
         for lane_state in lanes.values():
             if not isinstance(lane_state, dict):
                 continue
+            if str(lane_state.get("mode") or "") != "local_fallback":
+                continue
             pid = int(lane_state.get("pid") or 0)
             log_path = str(lane_state.get("log_path") or "")
             if pid > 0 and log_path:
@@ -979,6 +993,10 @@ def _tracked_local_exec_log_paths() -> Dict[int, str]:
                 continue
             for job in jobs.values():
                 if not isinstance(job, dict):
+                    continue
+                if key == "fixer_fallback_jobs" and not bool(job.get("local", True)):
+                    continue
+                if key in {"cloud_reviewer_jobs", "cloud_integrator_jobs", "metadata_repair_jobs"}:
                     continue
                 pid = int(job.get("pid") or 0)
                 log_path = str(job.get("output_path") or "")
@@ -1054,10 +1072,18 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
         lane_state = lane_refill.get(lane)
         if not isinstance(lane_state, dict):
             lane_state = {}
-        lane_state["force_resume_once"] = True
+        branch_advanced = _lane_head_advanced_since_handoff(str(lane))
+        lane_state["feature_head_advanced_for_review"] = branch_advanced
+        lane_state["feature_head_advanced_checked_at"] = utc_now()
+        # If a worker has already advanced the lane branch, do not immediately
+        # refill it. Leave the lane inactive for the planner pass that follows
+        # this reconcile cycle so the new branch head becomes a review packet.
+        lane_state["force_resume_once"] = not branch_advanced
         if lane in feature_runner_terminated:
             termination_reason = str(feature_runner_terminated[lane])
-            if termination_reason.startswith("feature autonomy window exceeded"):
+            if branch_advanced:
+                lane_state["force_resume_reason"] = "branch_advanced_ready_for_review"
+            elif termination_reason.startswith("feature autonomy window exceeded"):
                 lane_state["force_resume_reason"] = "feature_time_budget_exceeded"
             else:
                 lane_state["force_resume_reason"] = "feature_tool_loop_detected"
@@ -1072,7 +1098,9 @@ def _reconcile_control_plane_state(coordinator_state: Dict[str, object]) -> Dict
                 lane_state["force_resume_detail"] = feature_runner_scope_auto_reverted[lane]
                 lane_state.pop("scope_violation_count", None)
         else:
-            lane_state["force_resume_reason"] = "stale_direct_exec_pruned"
+            lane_state["force_resume_reason"] = (
+                "branch_advanced_ready_for_review" if branch_advanced else "stale_direct_exec_pruned"
+            )
             lane_state.pop("force_resume_detail", None)
         lane_state["force_resume_marked_at"] = utc_now()
         lane_refill[lane] = lane_state
@@ -1206,7 +1234,7 @@ def _lane_worktree_changed_files(lane: str) -> List[str]:
 
 
 def _lane_scope_violations(lane: str) -> List[str]:
-    patterns = list(LANE_OWNED_PATHS.get(lane, []))
+    patterns = _owned_patterns_for_lane(lane)
     if not patterns:
         return []
     branch = _lane_branch_map().get(lane, f"codex/{lane}")
@@ -1923,6 +1951,71 @@ def _lane_queue_empty(lane: str) -> bool:
     )
 
 
+def _lane_branch(lane: str) -> str:
+    cfg = load_json(ROUTER_CONFIG_FILE, {})
+    lanes = cfg.get("lanes") if isinstance(cfg, dict) else {}
+    lane_cfg = lanes.get(lane) if isinstance(lanes, dict) else {}
+    if isinstance(lane_cfg, dict):
+        branch = str(lane_cfg.get("branch") or "").strip()
+        if branch:
+            return branch
+    return f"codex/{lane}"
+
+
+def _lane_current_head(lane: str) -> str:
+    return _git_rev(_lane_branch(lane))
+
+
+def _lane_last_submitted_head(lane: str) -> str:
+    planner_state = load_json(REPO_ROOT / ".codex/packet_planner/state.json", {})
+    lanes = planner_state.get("lanes") if isinstance(planner_state, dict) else {}
+    lane_state = lanes.get(lane) if isinstance(lanes, dict) else {}
+    if not isinstance(lane_state, dict):
+        lane_state = {}
+    return str(infer_last_submitted_sha(PACKETS_ROOT / lane, lane_state) or "").strip()
+
+
+def _lane_head_advanced_since_handoff(lane: str) -> bool:
+    head = _lane_current_head(lane)
+    if not head:
+        return False
+    last_submitted = _lane_last_submitted_head(lane)
+    return not last_submitted or head != last_submitted
+
+
+def _lane_has_current_head_integrated(lane: str) -> bool:
+    """Return True when a queue-empty lane has no remaining branch-tip diff.
+
+    Free-lane refill is intentionally aggressive so every enabled lane keeps
+    moving. The counterweight is this satisfied-state check: if the current
+    branch head already has an integrator archive record *and* the branch tip
+    matches main, relaunching the lane just burns context and redoes completed
+    work.
+
+    Integrators often consume narrow reviewed slices without merging the whole
+    feature branch. In that case an archive can exist for the branch head while
+    lane-owned changes still remain on the branch. Those lanes must keep
+    running instead of being marked satisfied.
+    """
+    branch = _lane_branch(lane)
+    head = _lane_current_head(lane)
+    if not head:
+        return False
+    diff = run_git(["diff", "--name-only", f"main..{branch}"], cwd=REPO_ROOT, timeout=30)
+    if diff.returncode != 0:
+        return False
+    if any(line.strip() for line in (diff.stdout or "").splitlines()):
+        return False
+    archive_dir = PACKETS_ROOT / lane / "archive"
+    if not archive_dir.exists():
+        return False
+    return any(
+        path.name.startswith("INTEGRATOR__")
+        and f"__{head}__" in path.name
+        for path in archive_dir.glob("INTEGRATOR__*.md")
+    )
+
+
 def _feature_thread_state() -> Dict[str, Dict[str, object]]:
     state = load_json(FEATURE_RUNNER_STATE_FILE, {})
     lanes = state.get("lanes") if isinstance(state, dict) else {}
@@ -2087,6 +2180,15 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
         lane_state.pop("scope_violation_count", None)
         last_launch_attempt_ts = float(lane_state.get("last_launch_attempt_ts", 0) or 0)
         force_resume_once = bool(lane_state.get("force_resume_once"))
+        current_head_integrated = queue_empty and not feature_active and _lane_has_current_head_integrated(lane)
+        if current_head_integrated:
+            # An integrated branch tip means the previous slice is done, not
+            # that the active MVP lane is finished. Treat it as a fresh-pass
+            # launch candidate after the normal cooldown so active lanes keep
+            # moving without relaunching in a tight loop.
+            lane_state["satisfied_current_head"] = True
+        else:
+            lane_state.pop("satisfied_current_head", None)
         if (
             queue_empty
             and not feature_active
@@ -2097,7 +2199,9 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
         ):
             to_launch.append(lane)
             lane_state["last_launch_attempt_ts"] = now
-            if force_resume_once and str(lane_state.get("force_resume_reason") or "") == "feature_tool_loop_detected":
+            if current_head_integrated:
+                lane_state["last_launch_reason"] = "current_head_integrated_next_pass"
+            elif force_resume_once and str(lane_state.get("force_resume_reason") or "") == "feature_tool_loop_detected":
                 lane_state["last_launch_reason"] = "feature_tool_loop_resume"
             elif force_resume_once:
                 lane_state["last_launch_reason"] = "stale_direct_exec_resume"
@@ -2142,6 +2246,7 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
             print(f"[coordinator] local feature lane launch failed for {local_lanes}: rc={rc}")
             if out:
                 print(out, end="" if out.endswith("\n") else "\n")
+            _mark_feature_launch_failed(lane_refill, local_lanes, out)
         else:
             launched.extend(local_lanes)
     if cloud_lanes:
@@ -2150,11 +2255,30 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
             print(f"[coordinator] cloud feature lane launch failed for {cloud_lanes}: rc={rc}")
             if out:
                 print(out, end="" if out.endswith("\n") else "\n")
+            _mark_feature_launch_failed(lane_refill, cloud_lanes, out)
         else:
             launched.extend(cloud_lanes)
     if launched:
         print(f"[coordinator] launched free lanes: {', '.join(launched)}")
     return launched
+
+
+def _mark_feature_launch_failed(lane_refill: Dict[str, object], lanes: List[str], output: str) -> None:
+    detail = (output or "").strip()
+    if len(detail) > 2000:
+        detail = detail[-2000:]
+    for lane in lanes:
+        lane_state = lane_refill.get(lane)
+        if not isinstance(lane_state, dict):
+            lane_state = {}
+        lane_state["force_resume_once"] = True
+        lane_state["force_resume_reason"] = "feature_launch_failed"
+        if detail:
+            lane_state["force_resume_detail"] = detail
+        lane_state["last_launch_attempt_ts"] = 0
+        lane_state["last_launch_reason"] = "feature_launch_failed"
+        lane_state["last_seen_at"] = utc_now()
+        lane_refill[lane] = lane_state
 
 
 def _has_lane_backlog() -> bool:

@@ -48,6 +48,12 @@ class _ResidentStub:
         return True
 
 
+class _LoadFailResidentStub(_ResidentStub):
+    def load_model(self, model_id: str, *, max_ctx: int | None = None) -> None:
+        super().load_model(model_id, max_ctx=max_ctx)
+        raise RuntimeError("load failed")
+
+
 class BulkDraftRoutingTests(unittest.TestCase):
     def test_unified_memory_maps_to_expected_behavior_tiers(self) -> None:
         self.assertEqual(map_unified_memory_to_behavior_tier(32), 32)
@@ -223,6 +229,30 @@ class BulkDraftRoutingTests(unittest.TestCase):
                 resident_models=resident,
                 run_fast=lambda *_: DraftPassOutput("fast"),
                 run_best=run_best,
+                run_editor=lambda _, out: out,
+            )
+
+        self.assertEqual(
+            resident.events,
+            [
+                "snapshot",
+                "unload_all",
+                "load:gpt-oss-120b:12000",
+                "unload_all",
+                "restore:snap-1",
+            ],
+        )
+
+    def test_drafting_mode_restores_resident_state_after_load_failure(self) -> None:
+        resident = _LoadFailResidentStub()
+
+        with self.assertRaisesRegex(RuntimeError, "load failed"):
+            execute_bulk_draft(
+                request=_request(section_type="discussion", target_word_count=3000),
+                capabilities=BulkDraftCapabilities(True, False, True),
+                resident_models=resident,
+                run_fast=lambda *_: DraftPassOutput("fast"),
+                run_best=lambda *_: DraftPassOutput("best"),
                 run_editor=lambda _, out: out,
             )
 

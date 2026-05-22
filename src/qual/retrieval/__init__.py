@@ -4,6 +4,7 @@ from typing import TypeAlias
 
 from src.qual.engine.retrieval import build_retrieval_query as engine_build_retrieval_query
 from src.qual.retrieval.service import (
+    RETRIEVAL_DEMO_PATH_STEPS,
     RetrievalConstraints,
     RetrievalDocHit,
     RetrievalHit,
@@ -497,6 +498,7 @@ def retrieve_auto_payload(
     )
 
 __all__ = [
+    "RETRIEVAL_DEMO_PATH_STEPS",
     "RetrievalConstraints",
     "RetrievalDocHit",
     "RetrievalHit",

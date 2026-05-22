@@ -181,7 +181,7 @@ def write_example_config():
         "max_parallel_feature_lanes_local": 4,
         "max_cloud_feature_jobs": 4,
         "max_cloud_reviewer_jobs": 4,
-        "max_cloud_integrator_jobs": 4,
+        "max_cloud_integrator_jobs": 1,
         "max_cloud_fixer_jobs": 4,
         "max_total_cloud_jobs": 4,
         "max_total_local_lms_jobs": 4,

@@ -22,7 +22,7 @@ try:
     from log_maintenance import prune_log_dir
     from local_codex_runtime import agent_ripgrep_config_path, agent_runtime_env, isolated_codex_env
     from packet_progress import infer_last_submitted_sha
-    from planner import LANE_OWNED_PATHS
+    from planner import _owned_patterns_for_lane
 except ImportError:  # pragma: no cover - test/import fallback for package execution
     from .codex_mcp_client import ApprovalPolicy, CodexMcpClient
     from .git_ops import run_git
@@ -31,7 +31,7 @@ except ImportError:  # pragma: no cover - test/import fallback for package execu
     from .log_maintenance import prune_log_dir
     from .local_codex_runtime import agent_ripgrep_config_path, agent_runtime_env, isolated_codex_env
     from .packet_progress import infer_last_submitted_sha
-    from .planner import LANE_OWNED_PATHS
+    from .planner import _owned_patterns_for_lane
 
 PACKETS_ROOT = Path(".codex/packets/lanes")
 ROUTER_ROOT = Path(".codex/packet_router")
@@ -81,7 +81,8 @@ SUCCESSFUL_INTEGRATOR_SUMMARY_RE = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 BLOCKED_INTEGRATOR_OUTPUT_RE = re.compile(
-    r"blocked before merge|no integration was performed|no integration performed",
+    r"\bBlocked\.\s|blocked before merge|no integration was performed|no integration performed|"
+    r"approved slice is not fully integrated|slice is not fully integrated",
     re.IGNORECASE,
 )
 RETRY_LIMIT_WRAPPER_RE = re.compile(
@@ -131,7 +132,9 @@ CONTROL_PLANE_REVIEW_PATH_NAMES = {
 CONTROL_PLANE_METADATA_REPAIR_RE = re.compile(
     r"handoff metadata|packet metadata|lane metadata|THREAD_PACKET\.md|\.codex/|"
     r"implementation range|source commit|roadmap mapping|canonical demo-path|"
-    r"locally resolvable implementation|reissue the packet|handoff artifacts",
+    r"locally resolvable implementation|reissue the packet|handoff artifacts|"
+    r"handoff packet does not provide concrete completed tasks|missing handoff fields|"
+    r"placeholder task list|concrete numbered tasks completed",
     re.IGNORECASE,
 )
 
@@ -324,7 +327,7 @@ def load_cfg() -> RouterConfig:
         max_local_fixer_jobs=int(cfg.get("max_local_fixer_jobs", 2)),
         max_cloud_feature_jobs=int(cfg.get("max_cloud_feature_jobs", 4)),
         max_cloud_reviewer_jobs=int(cfg.get("max_cloud_reviewer_jobs", 4)),
-        max_cloud_integrator_jobs=int(cfg.get("max_cloud_integrator_jobs", 4)),
+        max_cloud_integrator_jobs=int(cfg.get("max_cloud_integrator_jobs", CLOUD_INTEGRATOR_MAX_ACTIVE)),
         max_total_cloud_jobs=int(cfg.get("max_total_cloud_jobs", 4)),
         max_total_local_lms_jobs=int(cfg.get("max_total_local_lms_jobs", 4)),
         prefer_cli_fixer=bool(cfg.get("prefer_cli_fixer", True)),
@@ -443,6 +446,33 @@ def _branch_changed_files(repo_cwd: str, branch: str) -> List[str]:
     return [line.strip() for line in (proc.stdout or "").splitlines() if line.strip()]
 
 
+def _branch_files_differing_from_head(repo_cwd: str, branch: str) -> List[str]:
+    """Return files whose branch tip content still differs from current HEAD."""
+    try:
+        proc = subprocess.run(
+            ["git", "diff", "--name-only", f"HEAD..{branch}"],
+            cwd=repo_cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            check=False,
+        )
+    except Exception:
+        return []
+    if proc.returncode != 0:
+        return []
+    return [line.strip() for line in (proc.stdout or "").splitlines() if line.strip()]
+
+
+def _branch_unmerged_authored_files(repo_cwd: str, branch: str) -> List[str]:
+    """Return branch-authored files that are not already represented in HEAD."""
+    authored = set(_branch_changed_files(repo_cwd, branch))
+    head_diff = set(_branch_files_differing_from_head(repo_cwd, branch))
+    if not authored:
+        return sorted(head_diff)
+    return sorted(authored & head_diff)
+
+
 def _branch_scope_violations(
     cfg: RouterConfig,
     repo_cwd: str,
@@ -450,7 +480,7 @@ def _branch_scope_violations(
     files: Optional[List[str]] = None,
 ) -> List[str]:
     """Return full-branch files outside THREAD_OWNERSHIP lane ownership."""
-    patterns = list(LANE_OWNED_PATHS.get(lane, []))
+    patterns = _owned_patterns_for_lane(lane)
     if not patterns:
         return []
     if files is None:
@@ -459,7 +489,9 @@ def _branch_scope_violations(
         files = _branch_changed_files(repo_cwd, branch) if branch else []
     violations: List[str] = []
     for file_name in files:
-        normalized = str(file_name).strip().lstrip("./")
+        normalized = str(file_name).strip()
+        while normalized.startswith("./"):
+            normalized = normalized[2:]
         if not normalized:
             continue
         if any(fnmatchcase(normalized, pattern) for pattern in patterns):
@@ -535,7 +567,9 @@ def _metadata_only_review_files(files: List[str]) -> bool:
     if not files:
         return False
     for file_name in files:
-        normalized = file_name.strip().lstrip("./")
+        normalized = file_name.strip()
+        while normalized.startswith("./"):
+            normalized = normalized[2:]
         if not normalized:
             continue
         if normalized in CONTROL_PLANE_REVIEW_PATH_NAMES:
@@ -550,7 +584,9 @@ def _merge_relevant_review_files(files: List[str]) -> List[str]:
     """Drop control-plane metadata paths from merge dependency comparisons."""
     relevant: List[str] = []
     for file_name in files:
-        normalized = str(file_name).strip().lstrip("./")
+        normalized = str(file_name).strip()
+        while normalized.startswith("./"):
+            normalized = normalized[2:]
         if not normalized:
             continue
         if normalized in CONTROL_PLANE_REVIEW_PATH_NAMES:
@@ -613,10 +649,16 @@ def _integration_dependency_blockers(
         if not branch or _branch_merged_to_head(repo_cwd, branch):
             continue
         if reviewed_set:
-            prior_files = set(_latest_reviewed_files_for_lane(prior_lane))
-            if not prior_files:
-                prior_files = set(_branch_changed_files(repo_cwd, branch))
-            prior_files = set(_merge_relevant_review_files(list(prior_files)))
+            branch_files = set(_merge_relevant_review_files(_branch_unmerged_authored_files(repo_cwd, branch)))
+            prior_files = set(_merge_relevant_review_files(_latest_reviewed_files_for_lane(prior_lane)))
+            if prior_files:
+                # Reviewed-file metadata can outlive a narrow/squash integration.
+                # Only block later approved packets on prior reviewed files that
+                # still differ from main; otherwise a stale active branch can pin
+                # the integrator behind work that has already landed.
+                prior_files &= branch_files
+            else:
+                prior_files = branch_files
             if reviewed_set.isdisjoint(prior_files):
                 continue
         if branch:
@@ -1355,6 +1397,36 @@ def _tracked_integrator_pids(state: Dict[str, Any]) -> set[int]:
     return pids
 
 
+def _lane_has_active_integrator_job(
+    state: Dict[str, Any],
+    lane: str,
+    *,
+    exclude_job_key: str = "",
+) -> bool:
+    """Return True if this lane already has an active integrator.
+
+    Integrators merge into the shared main worktree, so packet-level parallelism
+    is unsafe even when packets are distinct. Keep this lane guard separate from
+    the global cloud/local caps so config changes cannot accidentally launch two
+    integrators for the same lane again.
+    """
+    for key in ("cloud_integrator_jobs", "local_integrator_jobs"):
+        jobs = state.get(key) or {}
+        if not isinstance(jobs, dict):
+            continue
+        for job_key, job in jobs.items():
+            if job_key == exclude_job_key or not isinstance(job, dict):
+                continue
+            if str(job.get("lane") or "") != lane:
+                continue
+            result_path = Path(str(job.get("result_path") or ""))
+            if result_path.exists():
+                continue
+            if _pid_alive(int(job.get("pid") or 0)):
+                return True
+    return False
+
+
 def _process_command_rows() -> List[Tuple[int, str]]:
     """Return process command rows, preferring untruncated command text."""
     commands = (
@@ -1634,8 +1706,8 @@ def metadata_repair_prompt(lane: str, branch: str, reviewer_packet: str) -> str:
         "This is not feature implementation work.\n"
         "Operate from the main repo root only. Do not edit feature source files.\n"
         "Allowed edit surface:\n"
-        f"- `.codex/kickoff_packets/{lane}.md`\n"
-        f"- `.codex/kickoff_packets/{lane}.shared.md`\n"
+        f"- `.codex/metadata_repairs/{lane}.md`\n"
+        f"- `.codex/metadata_repairs/{lane}.shared.md`\n"
         f"- `.codex/lane_meta/{lane}.json`\n"
         f"- `.codex/packets/lanes/{lane}/**` packet metadata files\n"
         "- `THREAD_PACKET.md` only if it is clean and belongs to this lane; if it is dirty for another lane, leave it alone and state that.\n\n"
@@ -1681,15 +1753,37 @@ def _archive_shared_only_feature_packets(lane_dir: Path) -> int:
     return moved
 
 
-def _clear_planner_submission_for_lane(lane: str) -> None:
+def _changed_files_for_range(repo_cwd: str, commit_range: str) -> List[str]:
+    token = str(commit_range or "").strip()
+    if not token:
+        return []
+    if ".." in token:
+        result = run_git(["diff", "--name-only", token], cwd=repo_cwd, timeout=120)
+    else:
+        result = run_git(["show", "--pretty=", "--name-only", token], cwd=repo_cwd, timeout=120)
+    if result.returncode != 0:
+        return []
+    return [line.strip() for line in (result.stdout or "").splitlines() if line.strip()]
+
+
+def _mark_planner_reemit_for_lane(lane: str, sha: str, *, reason: str) -> None:
     planner_state_path = Path(".codex/packet_planner/state.json")
     state = load_json(planner_state_path, {})
-    lanes = state.get("lanes") if isinstance(state, dict) else None
-    lane_state = lanes.get(lane) if isinstance(lanes, dict) else None
+    if not isinstance(state, dict):
+        state = {}
+    lanes = state.setdefault("lanes", {})
+    if not isinstance(lanes, dict):
+        lanes = {}
+        state["lanes"] = lanes
+    lane_state = lanes.get(lane)
     if not isinstance(lane_state, dict):
-        return
+        lane_state = {}
+        lanes[lane] = lane_state
     lane_state.pop("last_submitted_sha", None)
     lane_state.pop("last_emitted_packet", None)
+    if sha:
+        lane_state["force_reemit_sha"] = sha
+        lane_state["force_reemit_reason"] = reason
     save_json(planner_state_path, state)
 
 
@@ -1703,6 +1797,10 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
         "feat-a2ui-contract": (
             "preview and apply or reject a patch through stable shared card/action contracts "
             "and CLI fallback rendering"
+        ),
+        "feat-retrieval-fts": (
+            "retrieve relevant material and promote or gather context into the basket with "
+            "deterministic FTS provenance"
         ),
         "feat-engine-runs": (
             "plan or revise from gathered context, produce a patch proposal, apply or reject it, "
@@ -1721,6 +1819,36 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
     meta = load_json(meta_path, {})
     if not isinstance(meta, dict):
         meta = {}
+    reviewed_files = _changed_files_for_range(repo_cwd, source_range)
+    lane_tasks_by_lane = {
+        "feat-retrieval-fts": [
+            "Exposed the retrieval demo-path contract so downstream payloads can name the FTS retrieval-to-basket steps.",
+            "Allowed FTS excerpt promotion to derive source strategy from an explicit sqlite_fts/fts_first retrieval envelope.",
+            "Rejected incomplete excerpt promotion records that lack required document, span, hash, or FTS lookup provenance.",
+            "Kept the implementation diff lane-scoped to retrieval payload/service exports while advancing retrieve relevant material and basket promotion.",
+        ],
+        "feat-a2ui-contract": [
+            "Repaired handoff evidence for stable shared card/action contracts and CLI fallback rendering.",
+            "Named the canonical preview/apply/reject demo-path step advanced by the A2UI contract lane.",
+            "Kept the repair limited to control-plane handoff metadata, leaving feature implementation files untouched.",
+            "Archived stale shared-only feature packet debris so the lane queue reflects real reviewable packets.",
+        ],
+        "feat-engine-runs": [
+            "Repaired handoff evidence for the engine plan/revise/patch/apply loop.",
+            "Named the canonical plan/revise and persist demo-path step advanced by the engine-runs lane.",
+            "Kept the repair limited to control-plane handoff metadata, leaving feature implementation files untouched.",
+            "Archived stale shared-only feature packet debris so the lane queue reflects real reviewable packets.",
+        ],
+    }
+    tasks_completed = lane_tasks_by_lane.get(
+        lane,
+        [
+            f"Replaced stale source commit metadata with locally resolvable range `{source_range}`.",
+            "Replaced stale roadmap labels with canonical active MVP lane profile mappings.",
+            f"Named the canonical demo-path step advanced: {demo_step}.",
+            "Archived stale shared-only feature packet debris so the lane queue reflects real reviewable packets.",
+        ],
+    )
     meta.update(
         {
             "risk": str(profile.get("risk") or meta.get("risk") or "MEDIUM"),
@@ -1734,12 +1862,7 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
                 "Control-plane metadata repair: replaced stale unreachable source range and stale roadmap labels "
                 f"with locally resolvable branch evidence `{source_range}` and canonical active MVP roadmap items."
             ),
-            "tasks_completed": [
-                f"Replaced stale source commit metadata with locally resolvable range `{source_range}`.",
-                "Replaced stale roadmap labels with canonical active MVP lane profile mappings.",
-                f"Named the canonical demo-path step advanced: {demo_step}.",
-                "Archived stale shared-only feature packet debris so the lane queue reflects real reviewable packets.",
-            ],
+            "tasks_completed": tasks_completed,
             "vision_capabilities": vision_capabilities,
             "shared_file_exception": True,
             "approved_exception_note": (
@@ -1749,12 +1872,21 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
             "canonical_demo_path_step": demo_step,
         }
     )
+    if reviewed_files:
+        meta["reviewed_files"] = reviewed_files
+        if "metadata_only_files" not in meta:
+            meta["metadata_only_files"] = []
+        meta["kickoff_budget_note"] = (
+            "Metadata repair re-emits the reviewed implementation range with "
+            "changed-files evidence derived directly from git."
+        )
     save_json(meta_path, meta)
 
-    kickoff = Path(".codex/kickoff_packets") / f"{lane}.md"
-    shared = Path(".codex/kickoff_packets") / f"{lane}.shared.md"
+    repair_dir = Path(".codex/metadata_repairs")
+    handoff = repair_dir / f"{lane}.md"
+    shared = repair_dir / f"{lane}.shared.md"
     write_text(
-        kickoff,
+        handoff,
         "\n".join(
             [
                 f"# {lane} Handoff Metadata",
@@ -1768,8 +1900,11 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
                 "- Vision capability affected:",
                 *[f"  - {item}" for item in vision_capabilities],
                 f"- Canonical demo-path step advanced: {demo_step}",
+                "- Concrete tasks completed:",
+                *[f"  {idx}. {task}" for idx, task in enumerate(tasks_completed, start=1)],
                 "",
                 "This file is control-plane metadata. The feature implementation remains on the lane branch.",
+                "This file is intentionally separate from `.codex/kickoff_packets/`; do not use it as a feature-worker kickoff brief.",
                 "",
             ]
         ),
@@ -1791,7 +1926,11 @@ def _repair_control_plane_metadata_locally(repo_cwd: str, lane: str, branch: str
 
     shared_only_archived = _archive_shared_only_feature_packets(lane_dir)
     archive(note_path, lane_dir)
-    _clear_planner_submission_for_lane(lane)
+    _mark_planner_reemit_for_lane(
+        lane,
+        reviewed_commit,
+        reason="control_plane_metadata_repair",
+    )
     return {
         "source_range": source_range,
         "reviewed_commit": reviewed_commit,
@@ -2226,6 +2365,9 @@ def _prepare_cli_integrator_result(
     retry_at = float(retry_ts.get(job_key, 0) or 0)
     if retry_at > time.time():
         state[retry_key] = retry_ts
+        return False, "", state
+    if _lane_has_active_integrator_job(state, lane, exclude_job_key=job_key):
+        state[jobs_key] = jobs
         return False, "", state
     if _count_active_local_jobs(jobs) >= max_active:
         state[jobs_key] = jobs

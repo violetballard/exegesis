@@ -210,6 +210,21 @@ def _normalize_fts_basket_item_id(value: object) -> str | None:
     return f"retrieval:fts:{excerpt_id}"
 
 
+def _excerpt_id_from_fts_basket_item_id(value: object) -> str | None:
+    item_id = _normalize_fts_basket_item_id(value)
+    if item_id is None:
+        return None
+    return item_id[len("retrieval:fts:"):]
+
+
+def _sparse_promotion_excerpt_id(item: dict[str, object]) -> str | None:
+    return _first_text_value(
+        _excerpt_id_from_fts_basket_item_id(item.get("basket_item_id")),
+        _excerpt_id_from_fts_basket_item_id(item.get("item_id")),
+        item.get("excerpt_id"),
+    )
+
+
 def _stable_fts_basket_item_ids(values: object) -> list[str]:
     normalized: list[str] = []
     seen: set[str] = set()
@@ -328,8 +343,111 @@ def _has_explicit_basket_promotion_item_snapshot(snapshot: dict[str, object]) ->
     return False
 
 
+def _has_sparse_excerpt_promotion_source(snapshot: dict[str, object]) -> bool:
+    return bool(
+        _normalize_list_like(snapshot.get("excerpt_hits"))
+        or _normalize_list_like(snapshot.get("excerpt_citations"))
+    )
+
+
 def _basket_promotion_ready_from_count(count: object) -> bool:
     return isinstance(count, int) and count > 0
+
+
+def _requires_complete_sparse_promotion_provenance(snapshot: dict[str, object]) -> bool:
+    return any(
+        key in snapshot
+        for key in (
+            "basket_item_ids",
+            "basket_item_fingerprints",
+            "basket_promotion_items",
+            "basket_promotion_count",
+            "basket_promotion_ready",
+            "promotion_items",
+            "retrieval_basket_promotion_bundle",
+        )
+    )
+
+
+def _is_sparse_fts_promotion_record(item: dict[str, object]) -> bool:
+    source_strategy = _normalize_optional_text(
+        item.get("source_strategy", item.get("retrieval_source_strategy"))
+    )
+    return (
+        source_strategy == "fts"
+        or _normalize_fts_basket_item_id(item.get("item_id")) is not None
+        or _normalize_fts_basket_item_id(item.get("basket_item_id")) is not None
+    )
+
+
+def _has_sparse_fts_promotion_records(snapshot: dict[str, object]) -> bool:
+    for list_key in ("promotion_items", "basket_promotion_items"):
+        for item in _normalize_list_like(snapshot.get(list_key)):
+            if isinstance(item, dict) and _is_sparse_fts_promotion_record(item):
+                return True
+    return False
+
+
+def _without_incomplete_sparse_fts_promotion_records(items: list[object]) -> list[object]:
+    filtered_items: list[object] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        source_strategy = item.get("source_strategy", item.get("retrieval_source_strategy"))
+        if _is_sparse_fts_promotion_record(item) and not _has_complete_sparse_promotion_provenance(
+            doc_id=item.get("doc_id"),
+            excerpt_id=_sparse_promotion_excerpt_id(item),
+            source_hash=item.get("source_hash"),
+            doc_identity_fingerprint=item.get("doc_identity_fingerprint"),
+            excerpt_fingerprint=item.get("excerpt_fingerprint"),
+            excerpt_lookup_fingerprint=item.get("excerpt_lookup_fingerprint"),
+            excerpt_text_hash=item.get("excerpt_text_hash"),
+            hash_alias=item.get("hash"),
+            span=item.get("span"),
+            source_strategy=source_strategy,
+            retrieval_backend=item.get("retrieval_backend"),
+            retrieval_mode=item.get("retrieval_mode"),
+            doc_type=item.get("doc_type"),
+            source_type=item.get("source_type"),
+            excerpt_text=item.get("excerpt_text"),
+            snippet=item.get("snippet"),
+        ):
+            continue
+        filtered_items.append(item)
+    return filtered_items
+
+
+def _clear_basket_promotion_identity_surfaces(snapshot: dict[str, object]) -> None:
+    snapshot["basket_promotion_items"] = []
+    snapshot["promotion_items"] = []
+    snapshot["promotion_item_count"] = 0
+    snapshot["basket_item_ids"] = []
+    snapshot["basket_item_fingerprints"] = []
+    snapshot["basket_promotion_count"] = 0
+    snapshot["basket_promotion_ready"] = False
+
+
+def _clear_nested_basket_promotion_identity_surfaces(snapshot: dict[str, object]) -> None:
+    _clear_basket_promotion_identity_surfaces(snapshot)
+    for bundle_key in (
+        "retrieval_evidence",
+        "retrieval_summary",
+        "retrieval_manifest",
+        "retrieval_downstream_payload",
+        "retrieval_source_bundle",
+        "source_bundle",
+        "retrieval_excerpt_bundle",
+        "retrieval_basket_promotion_bundle",
+    ):
+        bundle = snapshot.get(bundle_key)
+        if isinstance(bundle, dict):
+            _clear_basket_promotion_identity_surfaces(bundle)
+            nested_excerpt_bundle = bundle.get("retrieval_excerpt_bundle")
+            if isinstance(nested_excerpt_bundle, dict):
+                _clear_basket_promotion_identity_surfaces(nested_excerpt_bundle)
+            nested_promotion_bundle = bundle.get("retrieval_basket_promotion_bundle")
+            if isinstance(nested_promotion_bundle, dict):
+                _clear_basket_promotion_identity_surfaces(nested_promotion_bundle)
 
 
 def _basket_promotion_count_from_snapshot(
@@ -340,6 +458,8 @@ def _basket_promotion_count_from_snapshot(
     item_count = _basket_promotion_count_from_items(basket_promotion_items)
     if item_count:
         return item_count
+    if _has_sparse_excerpt_promotion_source(snapshot):
+        return 0
 
     for candidate_ids, _candidate_fingerprints in _basket_item_ref_snapshot_candidates(snapshot):
         basket_item_ids = _stable_fts_basket_item_ids(candidate_ids)
@@ -352,8 +472,6 @@ def _basket_promotion_count_from_snapshot(
     ):
         return 0
 
-    if "basket_item_ids" in snapshot or "basket_item_fingerprints" in snapshot:
-        return 0
     if _has_explicit_basket_promotion_item_snapshot(snapshot):
         return 0
 
@@ -421,6 +539,178 @@ def _fts_source_strategy_from_values(*values: object, context: str) -> str:
     return "fts"
 
 
+def _explicit_fts_source_strategy_from_values(*values: object, context: str) -> str | None:
+    matched = False
+    for value in values:
+        source_strategy = _normalize_optional_text(value)
+        if source_strategy is None:
+            continue
+        if source_strategy.casefold() != "fts":
+            raise ValueError(f"{context} must use fts source_strategy for the MVP")
+        matched = True
+    if not matched:
+        return None
+    return "fts"
+
+
+def _fts_source_strategy_from_retrieval_envelope(
+    *,
+    retrieval_backend: object,
+    retrieval_mode: object,
+    retrieval_policy: object,
+) -> str | None:
+    if _normalize_optional_text(retrieval_backend) != "sqlite_fts":
+        return None
+    if _normalize_optional_text(retrieval_mode) != "fts_first":
+        return None
+    if isinstance(retrieval_policy, dict):
+        active_strategy_ids = _normalize_active_strategy_ids(
+            retrieval_policy.get("active_strategy_ids"),
+            field_name="retrieval envelope",
+        )
+        if active_strategy_ids != ["fts"]:
+            return None
+    return "fts"
+
+
+def _fts_source_strategy_from_sparse_hit_envelope(
+    *,
+    hit: dict[str, object],
+    provenance: dict[str, object],
+    retrieval_backend: object,
+    retrieval_mode: object,
+    retrieval_policy: object,
+) -> str | None:
+    hit_retrieval_policy = hit.get("retrieval_policy", provenance.get("retrieval_policy"))
+    if not isinstance(hit_retrieval_policy, dict):
+        hit_retrieval_policy = retrieval_policy
+    return _fts_source_strategy_from_retrieval_envelope(
+        retrieval_backend=_first_text_value(
+            hit.get("retrieval_backend"),
+            provenance.get("retrieval_backend"),
+            retrieval_backend,
+        ),
+        retrieval_mode=_first_text_value(
+            hit.get("retrieval_mode"),
+            provenance.get("retrieval_mode"),
+            retrieval_mode,
+        ),
+        retrieval_policy=hit_retrieval_policy,
+    )
+
+
+def _has_complete_sparse_promotion_provenance(
+    *,
+    doc_id: object,
+    source_hash: object,
+    doc_identity_fingerprint: object,
+    excerpt_fingerprint: object,
+    excerpt_lookup_fingerprint: object,
+    excerpt_text_hash: object,
+    span: object,
+    source_strategy: object,
+    excerpt_id: object = None,
+    hash_alias: object = None,
+    retrieval_backend: object = None,
+    retrieval_mode: object = None,
+    validate_fingerprints: bool = True,
+    doc_type: object = None,
+    source_type: object = None,
+    excerpt_text: object = None,
+    snippet: object = None,
+) -> bool:
+    """Return whether a sparse excerpt can become an auditable promotion item."""
+
+    normalized_doc_id = _normalize_optional_text(doc_id)
+    normalized_excerpt_id = _normalize_optional_text(excerpt_id)
+    normalized_source_hash = _normalize_optional_text(source_hash)
+    normalized_doc_identity_fingerprint = _normalize_optional_text(doc_identity_fingerprint)
+    normalized_excerpt_fingerprint = _normalize_optional_text(excerpt_fingerprint)
+    normalized_excerpt_lookup_fingerprint = _normalize_optional_text(excerpt_lookup_fingerprint)
+    normalized_excerpt_text_hash = _normalize_optional_text(excerpt_text_hash)
+    normalized_hash_alias = _normalize_optional_text(hash_alias)
+    normalized_source_strategy = _normalize_optional_text(source_strategy)
+    normalized_retrieval_backend = _normalize_optional_text(retrieval_backend)
+    normalized_retrieval_mode = _normalize_optional_text(retrieval_mode)
+    normalized_doc_type = _normalize_optional_text(doc_type)
+    normalized_source_type = _normalize_optional_text(source_type)
+    if normalized_retrieval_backend != "sqlite_fts" or normalized_retrieval_mode != "fts_first":
+        return False
+    if normalized_doc_type is None or normalized_source_type is None:
+        return False
+    if normalized_source_type != normalized_doc_type:
+        return False
+    normalized_excerpt_text = _normalize_optional_text(excerpt_text)
+    normalized_snippet = _normalize_optional_text(snippet)
+    if (
+        normalized_excerpt_text is not None
+        and normalized_snippet is not None
+        and normalized_snippet != normalized_excerpt_text
+    ):
+        return False
+    if (
+        normalized_doc_id is None
+        or normalized_source_hash is None
+        or normalized_doc_identity_fingerprint is None
+        or normalized_excerpt_fingerprint is None
+        or normalized_excerpt_lookup_fingerprint is None
+        or normalized_excerpt_text_hash is None
+        or normalized_source_strategy != "fts"
+        or not _is_valid_sparse_promotion_span(span)
+    ):
+        return False
+    if normalized_excerpt_text is not None:
+        expected_text_hash = hashlib.sha256(normalized_excerpt_text.encode("utf-8")).hexdigest()
+        if normalized_excerpt_text_hash != expected_text_hash:
+            return False
+        if normalized_hash_alias is not None and normalized_hash_alias != expected_text_hash:
+            return False
+    elif normalized_hash_alias is not None and normalized_hash_alias != normalized_excerpt_text_hash:
+        return False
+    if normalized_excerpt_id is None:
+        return False
+    if not validate_fingerprints:
+        return True
+    expected_excerpt_fingerprint = _stable_fingerprint(
+        {
+            "doc_id": normalized_doc_id,
+            "source_hash": normalized_source_hash,
+            "excerpt_id": normalized_excerpt_id,
+            "span": span,
+            "excerpt_text_hash": normalized_excerpt_text_hash,
+        }
+    )
+    if normalized_excerpt_fingerprint != expected_excerpt_fingerprint:
+        return False
+    expected_lookup_fingerprint = _stable_fingerprint(
+        {
+            "excerpt_id": normalized_excerpt_id,
+            "doc_id": normalized_doc_id,
+            "source_hash": normalized_source_hash,
+            "span": span,
+            "text_hash": normalized_excerpt_text_hash,
+            "source_strategy": "fts",
+            "retrieval_backend": normalized_retrieval_backend,
+            "retrieval_mode": normalized_retrieval_mode,
+            "lookup_resolution": "fts",
+        }
+    )
+    return normalized_excerpt_lookup_fingerprint == expected_lookup_fingerprint
+
+
+def _is_valid_sparse_promotion_span(span: object) -> bool:
+    if not isinstance(span, dict):
+        return False
+    char_range = span.get("char_range")
+    if not isinstance(char_range, dict):
+        return False
+    start = char_range.get("start")
+    end = char_range.get("end")
+    if not isinstance(start, int) or not isinstance(end, int):
+        return False
+    return end >= start
+
+
 def _with_basket_item_fingerprint(item: dict[str, object]) -> dict[str, object]:
     if _normalize_optional_text(item.get("basket_item_fingerprint")) is None:
         item["basket_item_fingerprint"] = _basket_item_fingerprint(item)
@@ -460,6 +750,10 @@ def _normalize_basket_promotion_items(items: list[object]) -> list[object]:
                 context="basket promotion item",
             )
             item_snapshot["retrieval_source_strategy"] = item_snapshot["source_strategy"]
+            if _is_missing_snapshot_value(item_snapshot.get("snippet")):
+                snippet = _first_text_value(item_snapshot.get("excerpt_text"))
+                if snippet is not None:
+                    item_snapshot["snippet"] = snippet
             item_snapshot["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
             query_constraints = item_snapshot.get("query_constraints")
             if isinstance(query_constraints, dict):
@@ -497,9 +791,19 @@ def _normalize_basket_promotion_item_strategy_labels(item: dict[str, object]) ->
 def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[object]:
     """Return basket promotion refs from a sparse retrieval snapshot."""
 
+    requires_complete_sparse_promotion = bool(
+        snapshot.get("_requires_complete_sparse_promotion_provenance")
+    )
+
+    def normalize_promotion_items(items: list[object]) -> list[object]:
+        normalized_items = _normalize_basket_promotion_items(items)
+        if requires_complete_sparse_promotion and _has_sparse_excerpt_promotion_source(snapshot):
+            return _without_sparse_strategy_only_promotion_markers(normalized_items)
+        return normalized_items
+
     basket_promotion_items = _normalize_list_like(snapshot.get("basket_promotion_items", []))
     if basket_promotion_items:
-        return _normalize_basket_promotion_items(basket_promotion_items)
+        return normalize_promotion_items(basket_promotion_items)
 
     retrieval_evidence = snapshot.get("retrieval_evidence")
     if isinstance(retrieval_evidence, dict):
@@ -507,7 +811,7 @@ def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[o
             retrieval_evidence.get("basket_promotion_items", [])
         )
         if basket_promotion_items:
-            return _normalize_basket_promotion_items(basket_promotion_items)
+            return normalize_promotion_items(basket_promotion_items)
 
     for bundle_key in ("retrieval_source_bundle", "source_bundle"):
         source_bundle = snapshot.get(bundle_key)
@@ -516,11 +820,11 @@ def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[o
                 source_bundle.get("basket_promotion_items", [])
             )
             if basket_promotion_items:
-                return _normalize_basket_promotion_items(basket_promotion_items)
+                return normalize_promotion_items(basket_promotion_items)
 
     promotion_items = _normalize_list_like(snapshot.get("promotion_items", []))
     if promotion_items:
-        return _normalize_basket_promotion_items(promotion_items)
+        return normalize_promotion_items(promotion_items)
 
     excerpt_hits = _normalize_list_like(snapshot.get("excerpt_hits", []))
     if not excerpt_hits:
@@ -535,6 +839,134 @@ def _basket_promotion_items_from_snapshot(snapshot: dict[str, object]) -> list[o
         return _basket_promotion_items_from_excerpt_hits(snapshot, excerpt_citations)
 
     return []
+
+
+def _without_sparse_strategy_only_promotion_markers(items: list[object]) -> list[object]:
+    """Drop sparse marker refs that are not auditable promotion items."""
+
+    filtered_items: list[object] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        source_strategy = item.get("source_strategy", item.get("retrieval_source_strategy"))
+        if not _has_complete_sparse_promotion_provenance(
+            doc_id=item.get("doc_id"),
+            excerpt_id=_sparse_promotion_excerpt_id(item),
+            source_hash=item.get("source_hash"),
+            doc_identity_fingerprint=item.get("doc_identity_fingerprint"),
+            excerpt_fingerprint=item.get("excerpt_fingerprint"),
+            excerpt_lookup_fingerprint=item.get("excerpt_lookup_fingerprint"),
+            excerpt_text_hash=item.get("excerpt_text_hash"),
+            hash_alias=item.get("hash"),
+            span=item.get("span"),
+            source_strategy=source_strategy,
+            retrieval_backend=item.get("retrieval_backend"),
+            retrieval_mode=item.get("retrieval_mode"),
+            doc_type=item.get("doc_type"),
+            source_type=item.get("source_type"),
+            excerpt_text=item.get("excerpt_text"),
+            snippet=item.get("snippet"),
+        ):
+            continue
+        filtered_items.append(item)
+    return filtered_items
+
+
+def _sparse_promotion_provenance_candidates(snapshot: dict[str, object]) -> list[dict[str, object]]:
+    candidates: list[dict[str, object]] = []
+    for source_key in ("basket_promotion_items", "excerpt_hits", "excerpt_citations"):
+        for candidate in _normalize_list_like(snapshot.get(source_key)):
+            if isinstance(candidate, dict):
+                candidates.append(candidate)
+                provenance = candidate.get("provenance")
+                if isinstance(provenance, dict):
+                    candidates.append(provenance)
+                for nested_key in ("basket_promotion_items", "promotion_items"):
+                    for nested_candidate in _normalize_list_like(candidate.get(nested_key)):
+                        if isinstance(nested_candidate, dict):
+                            candidates.append(nested_candidate)
+    return candidates
+
+
+def _promotion_item_matches_sparse_candidate(
+    item: dict[str, object],
+    candidate: dict[str, object],
+) -> bool:
+    for key in ("item_id", "basket_item_id", "excerpt_id", "excerpt_lookup_fingerprint"):
+        item_value = _normalize_optional_text(item.get(key))
+        candidate_value = _normalize_optional_text(candidate.get(key))
+        if item_value is not None and candidate_value is not None and item_value == candidate_value:
+            return True
+
+    item_identity = _canonical_basket_item_id_for_promotion_item(item)
+    candidate_identity = _canonical_basket_item_id_for_promotion_item(candidate)
+    return item_identity is not None and item_identity == candidate_identity
+
+
+def _with_sparse_promotion_provenance_from_payload(
+    item: dict[str, object],
+    payload: dict[str, object],
+) -> dict[str, object]:
+    enriched_item = copy.deepcopy(item)
+    _normalize_basket_promotion_item_strategy_labels(enriched_item)
+    _canonical_basket_item_id_for_promotion_item(enriched_item)
+
+    for candidate in _sparse_promotion_provenance_candidates(payload):
+        if not _promotion_item_matches_sparse_candidate(enriched_item, candidate):
+            continue
+        candidate_provenance = candidate.get("provenance")
+        if not isinstance(candidate_provenance, dict):
+            candidate_provenance = {}
+        for key in (
+            "doc_id",
+            "source_hash",
+            "doc_identity_fingerprint",
+            "excerpt_fingerprint",
+            "excerpt_lookup_fingerprint",
+            "excerpt_text_hash",
+            "span",
+            "retrieval_backend",
+            "retrieval_mode",
+            "doc_type",
+            "source_type",
+            "excerpt_text",
+            "snippet",
+        ):
+            fallback_value = candidate.get(key, candidate_provenance.get(key))
+            if key == "excerpt_text_hash" and _is_missing_snapshot_value(fallback_value):
+                fallback_value = candidate_provenance.get("hash")
+            if not _is_missing_snapshot_value(fallback_value):
+                enriched_item[key] = copy.deepcopy(fallback_value)
+        if _is_missing_snapshot_value(enriched_item.get("source_strategy")):
+            source_strategy = _first_text_value(
+                candidate.get("source_strategy"),
+                candidate.get("retrieval_source_strategy"),
+                candidate_provenance.get("source_strategy"),
+                candidate_provenance.get("retrieval_source_strategy"),
+            )
+            if source_strategy is not None:
+                enriched_item["source_strategy"] = source_strategy
+        _normalize_basket_promotion_item_strategy_labels(enriched_item)
+        if _has_complete_sparse_promotion_provenance(
+            doc_id=enriched_item.get("doc_id"),
+            excerpt_id=_sparse_promotion_excerpt_id(enriched_item),
+            source_hash=enriched_item.get("source_hash"),
+            doc_identity_fingerprint=enriched_item.get("doc_identity_fingerprint"),
+            excerpt_fingerprint=enriched_item.get("excerpt_fingerprint"),
+            excerpt_lookup_fingerprint=enriched_item.get("excerpt_lookup_fingerprint"),
+            excerpt_text_hash=enriched_item.get("excerpt_text_hash"),
+            hash_alias=enriched_item.get("hash"),
+            span=enriched_item.get("span"),
+            source_strategy=enriched_item.get("source_strategy", enriched_item.get("retrieval_source_strategy")),
+            retrieval_backend=enriched_item.get("retrieval_backend"),
+            retrieval_mode=enriched_item.get("retrieval_mode"),
+            doc_type=enriched_item.get("doc_type"),
+            source_type=enriched_item.get("source_type"),
+            excerpt_text=enriched_item.get("excerpt_text"),
+            snippet=enriched_item.get("snippet"),
+        ):
+            return enriched_item
+    return enriched_item
 
 
 def _basket_promotion_items_from_excerpt_hits(
@@ -670,7 +1102,9 @@ def _basket_promotion_items_from_excerpt_hits(
     )
     doc_rank_by_id = _doc_rank_by_id_from_snapshot(snapshot)
     fts_rank_by_excerpt_id = _fts_rank_by_excerpt_id_from_snapshot(snapshot)
-
+    requires_complete_sparse_promotion = bool(
+        snapshot.get("_requires_complete_sparse_promotion_provenance")
+    )
     items: list[object] = []
     seen: set[str] = set()
     for hit in excerpt_hits:
@@ -684,7 +1118,7 @@ def _basket_promotion_items_from_excerpt_hits(
         provenance = hit.get("provenance")
         if not isinstance(provenance, dict):
             provenance = {}
-        source_strategy = _fts_source_strategy_from_values(
+        source_strategy = _explicit_fts_source_strategy_from_values(
             hit.get("source_strategy"),
             hit.get("retrieval_source_strategy"),
             provenance.get("source_strategy"),
@@ -694,7 +1128,53 @@ def _basket_promotion_items_from_excerpt_hits(
         hit_retrieval_policy = hit.get("retrieval_policy", provenance.get("retrieval_policy"))
         if not isinstance(hit_retrieval_policy, dict):
             hit_retrieval_policy = normalized_retrieval_policy
+        if source_strategy is None:
+            source_strategy = _fts_source_strategy_from_sparse_hit_envelope(
+                hit=hit,
+                provenance=provenance,
+                retrieval_backend=retrieval_backend,
+                retrieval_mode=retrieval_mode,
+                retrieval_policy=normalized_retrieval_policy,
+            )
+            if source_strategy is None:
+                continue
         doc_id = _first_text_value(hit.get("doc_id"), provenance.get("doc_id"))
+        source_hash = _first_text_value(hit.get("source_hash"), provenance.get("source_hash"))
+        excerpt_lookup_fingerprint = _first_text_value(
+            hit.get("excerpt_lookup_fingerprint"),
+            provenance.get("excerpt_lookup_fingerprint"),
+        )
+        excerpt_text_hash = _first_text_value(
+            hit.get("excerpt_text_hash"),
+            provenance.get("excerpt_text_hash"),
+            provenance.get("hash"),
+        )
+        span = copy.deepcopy(hit.get("span", provenance.get("span")))
+        if requires_complete_sparse_promotion and not _has_complete_sparse_promotion_provenance(
+            doc_id=doc_id,
+            excerpt_id=excerpt_id,
+            source_hash=source_hash,
+            doc_identity_fingerprint=_first_text_value(
+                hit.get("doc_identity_fingerprint"),
+                provenance.get("doc_identity_fingerprint"),
+            ),
+            doc_type=_first_text_value(hit.get("doc_type"), provenance.get("doc_type")),
+            source_type=_first_text_value(hit.get("source_type"), provenance.get("source_type")),
+            excerpt_fingerprint=_first_text_value(
+                hit.get("excerpt_fingerprint"),
+                provenance.get("excerpt_fingerprint"),
+            ),
+            excerpt_lookup_fingerprint=excerpt_lookup_fingerprint,
+            excerpt_text=_first_text_value(hit.get("excerpt_text"), provenance.get("excerpt_text")),
+            excerpt_text_hash=excerpt_text_hash,
+            hash_alias=_first_text_value(hit.get("hash"), provenance.get("hash")),
+            snippet=_first_text_value(hit.get("snippet"), provenance.get("snippet")),
+            span=span,
+            source_strategy=source_strategy,
+            retrieval_backend=_first_text_value(hit.get("retrieval_backend"), provenance.get("retrieval_backend")),
+            retrieval_mode=_first_text_value(hit.get("retrieval_mode"), provenance.get("retrieval_mode")),
+        ):
+            continue
         basket_item_id = _basket_item_id_for_excerpt(
             source_strategy=source_strategy,
             excerpt_id=excerpt_id,
@@ -708,31 +1188,36 @@ def _basket_promotion_items_from_excerpt_hits(
                         "item_type": "excerpt",
                         "doc_id": doc_id,
                         "doc_type": _first_text_value(hit.get("doc_type"), provenance.get("doc_type")),
+                        "source_type": _first_text_value(
+                            hit.get("source_type"),
+                            provenance.get("source_type"),
+                            hit.get("doc_type"),
+                            provenance.get("doc_type"),
+                        ),
                         "title_hint": _first_text_value(
                             hit.get("title_hint"),
                             provenance.get("title_hint"),
                         ),
-                        "source_hash": _first_text_value(hit.get("source_hash"), provenance.get("source_hash")),
+                        "source_hash": source_hash,
                         "doc_identity_fingerprint": _first_text_value(
                             hit.get("doc_identity_fingerprint"),
                             provenance.get("doc_identity_fingerprint"),
                         ),
                         "excerpt_id": excerpt_id,
                         "excerpt_text": hit.get("excerpt_text"),
+                        "snippet": _first_text_value(
+                            hit.get("snippet"),
+                            provenance.get("snippet"),
+                            hit.get("excerpt_text"),
+                            provenance.get("excerpt_text"),
+                        ),
                         "excerpt_fingerprint": _first_text_value(
                             hit.get("excerpt_fingerprint"),
                             provenance.get("excerpt_fingerprint"),
                         ),
-                        "excerpt_lookup_fingerprint": _first_text_value(
-                            hit.get("excerpt_lookup_fingerprint"),
-                            provenance.get("excerpt_lookup_fingerprint"),
-                        ),
-                        "excerpt_text_hash": _first_text_value(
-                            hit.get("excerpt_text_hash"),
-                            provenance.get("excerpt_text_hash"),
-                            provenance.get("hash"),
-                        ),
-                        "span": copy.deepcopy(hit.get("span", provenance.get("span"))),
+                        "excerpt_lookup_fingerprint": excerpt_lookup_fingerprint,
+                        "excerpt_text_hash": excerpt_text_hash,
+                        "span": span,
                         "doc_rank": hit.get(
                             "doc_rank",
                             provenance.get("doc_rank", doc_rank_by_id.get(doc_id)),
@@ -834,6 +1319,78 @@ def _doc_rank_by_id_from_snapshot(snapshot: dict[str, object]) -> dict[str, obje
     return doc_rank_by_id
 
 
+def _doc_source_records_by_id_from_snapshot(snapshot: dict[str, object]) -> dict[str, dict[str, object]]:
+    """Return source identity hints from sparse doc-hit and doc-citation snapshots."""
+
+    records_by_id: dict[str, dict[str, object]] = {}
+
+    def record_doc_source(item: object) -> None:
+        if not isinstance(item, dict):
+            return
+        doc_id = _first_text_value(item.get("doc_id"))
+        if doc_id is None:
+            return
+        provenance = item.get("provenance")
+        if not isinstance(provenance, dict):
+            provenance = {}
+        record = records_by_id.setdefault(doc_id, {})
+        for key in ("source_hash", "doc_identity_fingerprint", "doc_type", "source_type"):
+            if not _is_missing_snapshot_value(record.get(key)):
+                continue
+            value = _first_text_value(item.get(key), provenance.get(key))
+            if value is not None:
+                record[key] = value
+
+    for item in _normalize_list_like(snapshot.get("doc_hits", [])):
+        record_doc_source(item)
+    for item in _normalize_list_like(snapshot.get("doc_citations", [])):
+        record_doc_source(item)
+
+    for bundle_key in ("retrieval_doc_bundle", "retrieval_citation_bundle", "retrieval_provenance"):
+        bundle = snapshot.get(bundle_key)
+        if not isinstance(bundle, dict):
+            continue
+        for item in _normalize_list_like(bundle.get("doc_hits", [])):
+            record_doc_source(item)
+        for item in _normalize_list_like(bundle.get("doc_citations", [])):
+            record_doc_source(item)
+
+    for bundle_key in ("retrieval_source_bundle", "source_bundle", "retrieval_downstream_payload"):
+        bundle = snapshot.get(bundle_key)
+        if not isinstance(bundle, dict):
+            continue
+        for doc_id, record in _doc_source_records_by_id_from_snapshot(bundle).items():
+            current = records_by_id.setdefault(doc_id, {})
+            for key, value in record.items():
+                if _is_missing_snapshot_value(current.get(key)):
+                    current[key] = value
+
+    return records_by_id
+
+
+def _matches_sparse_doc_source_record(
+    item: dict[str, object],
+    records_by_id: dict[str, dict[str, object]],
+) -> bool:
+    """Return whether a sparse promotion record agrees with authoritative doc source identity."""
+
+    provenance = item.get("provenance")
+    if not isinstance(provenance, dict):
+        provenance = {}
+    doc_id = _first_text_value(item.get("doc_id"), provenance.get("doc_id"))
+    if doc_id is None:
+        return True
+    source_record = records_by_id.get(doc_id)
+    if not isinstance(source_record, dict):
+        return True
+    for key in ("source_hash", "doc_identity_fingerprint", "doc_type", "source_type"):
+        expected_value = _first_text_value(source_record.get(key))
+        actual_value = _first_text_value(item.get(key), provenance.get(key))
+        if expected_value is not None and actual_value is not None and actual_value != expected_value:
+            return False
+    return True
+
+
 def _fts_rank_by_excerpt_id_from_snapshot(snapshot: dict[str, object]) -> dict[str, object]:
     """Return FTS-rank hints from sparse excerpt and basket-promotion snapshots."""
 
@@ -887,6 +1444,9 @@ def _basket_item_ids_from_snapshot(
     if item_ids:
         return item_ids
 
+    if _has_sparse_excerpt_promotion_source(snapshot):
+        return []
+
     for candidate_ids, _candidate_fingerprints in _basket_item_ref_snapshot_candidates(snapshot):
         basket_item_ids = _stable_fts_basket_item_ids(candidate_ids)
         if basket_item_ids:
@@ -903,6 +1463,9 @@ def _basket_item_fingerprints_from_snapshot(
     item_fingerprints = _basket_item_fingerprints_from_items(basket_promotion_items)
     if item_fingerprints:
         return item_fingerprints
+
+    if _has_sparse_excerpt_promotion_source(snapshot):
+        return []
 
     for candidate_ids, candidate_fingerprints in _basket_item_ref_snapshot_candidates(snapshot):
         basket_item_ids = _stable_fts_basket_item_ids(candidate_ids)
@@ -1264,6 +1827,7 @@ def _normalize_citation_bundle_snapshot(citation_bundle: dict[str, object]) -> d
     normalized["basket_promotion_ready"] = _basket_promotion_ready_from_count(
         normalized["basket_promotion_count"]
     )
+    normalized.pop("_requires_complete_sparse_promotion_provenance", None)
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -1352,6 +1916,9 @@ def _normalize_doc_bundle_snapshot(doc_bundle: dict[str, object]) -> dict[str, o
 
 def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dict[str, object]:
     normalized = copy.deepcopy(excerpt_bundle)
+    requires_complete_sparse_promotion = bool(
+        normalized.get("_requires_complete_sparse_promotion_provenance")
+    )
     normalized["query_date_range"] = _normalize_optional_list_like(normalized.get("query_date_range"))
     normalized["active_strategy_ids"] = _normalize_active_strategy_ids(
         normalized.get("active_strategy_ids"),
@@ -1368,6 +1935,10 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
     if "caches_used" in normalized:
         normalized["caches_used"] = _normalize_bool_map(normalized.get("caches_used"))
     normalized["basket_promotion_items"] = _basket_promotion_items_from_snapshot(normalized)
+    if requires_complete_sparse_promotion:
+        normalized["basket_promotion_items"] = _without_sparse_strategy_only_promotion_markers(
+            normalized["basket_promotion_items"]
+        )
     normalized["basket_item_ids"] = _basket_item_ids_from_snapshot(
         normalized,
         basket_promotion_items=normalized["basket_promotion_items"],
@@ -1383,6 +1954,9 @@ def _normalize_excerpt_bundle_snapshot(excerpt_bundle: dict[str, object]) -> dic
     normalized["basket_promotion_ready"] = _basket_promotion_ready_from_count(
         normalized["basket_promotion_count"]
     )
+    if requires_complete_sparse_promotion and normalized["basket_promotion_count"] == 0:
+        _clear_basket_promotion_identity_surfaces(normalized)
+    normalized.pop("_requires_complete_sparse_promotion_provenance", None)
     retrieval_policy = normalized.get("retrieval_policy")
     if isinstance(retrieval_policy, dict):
         normalized["retrieval_policy"] = _normalize_policy_snapshot(retrieval_policy)
@@ -1609,6 +2183,7 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
         normalized["retrieval_evidence_fingerprint"] = retrieval_evidence_fingerprint
     normalized["promotion_target"] = _first_text_value(normalized.get("promotion_target")) or "context_basket"
     normalized["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
+    requires_complete_sparse_promotion = _has_sparse_fts_promotion_records(normalized)
     promotion_items: list[object] = []
     for item in _normalize_list_like(normalized.get("promotion_items")):
         if not isinstance(item, dict):
@@ -1665,9 +2240,36 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
                 normalized_item["query_constraints"]
             )
         _normalize_basket_promotion_item_strategy_labels(normalized_item)
+        if requires_complete_sparse_promotion and _is_sparse_fts_promotion_record(
+            normalized_item
+        ) and not _has_complete_sparse_promotion_provenance(
+            doc_id=normalized_item.get("doc_id"),
+            excerpt_id=_sparse_promotion_excerpt_id(normalized_item),
+            source_hash=normalized_item.get("source_hash"),
+            doc_identity_fingerprint=normalized_item.get("doc_identity_fingerprint"),
+            excerpt_fingerprint=normalized_item.get("excerpt_fingerprint"),
+            excerpt_lookup_fingerprint=normalized_item.get("excerpt_lookup_fingerprint"),
+            excerpt_text_hash=normalized_item.get("excerpt_text_hash"),
+            hash_alias=normalized_item.get("hash"),
+            span=normalized_item.get("span"),
+            source_strategy=normalized_item.get(
+                "source_strategy", normalized_item.get("retrieval_source_strategy")
+            ),
+            retrieval_backend=normalized_item.get("retrieval_backend"),
+            retrieval_mode=normalized_item.get("retrieval_mode"),
+            doc_type=normalized_item.get("doc_type"),
+            source_type=normalized_item.get("source_type"),
+            excerpt_text=normalized_item.get("excerpt_text"),
+            snippet=normalized_item.get("snippet"),
+        ):
+            continue
         _with_promotion_item_fingerprint(normalized_item)
         promotion_items.append(normalized_item)
     normalized["promotion_items"] = promotion_items
+    if requires_complete_sparse_promotion:
+        normalized["basket_promotion_items"] = _without_incomplete_sparse_fts_promotion_records(
+            _normalize_list_like(normalized.get("basket_promotion_items"))
+        )
     normalized["promotion_item_count"] = len(normalized["promotion_items"])
     basket_promotion_items = _basket_promotion_items_from_snapshot(normalized)
     basket_item_by_id: dict[str, dict[str, object]] = {}
@@ -1709,6 +2311,9 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
         ):
             _with_promotion_item_fingerprint(item)
     normalized["basket_promotion_items"] = basket_promotion_items
+    if requires_complete_sparse_promotion and not promotion_items and not basket_promotion_items:
+        _clear_basket_promotion_identity_surfaces(normalized)
+        basket_promotion_items = normalized["basket_promotion_items"]
     normalized["basket_item_ids"] = _basket_item_ids_from_snapshot(
         normalized,
         basket_promotion_items=basket_promotion_items,
@@ -1724,6 +2329,8 @@ def _normalize_basket_promotion_bundle_snapshot(bundle: dict[str, object]) -> di
     normalized["basket_promotion_ready"] = _basket_promotion_ready_from_count(
         normalized["basket_promotion_count"]
     )
+    if _has_sparse_excerpt_promotion_source(normalized) and normalized["basket_promotion_count"] == 0:
+        _clear_basket_promotion_identity_surfaces(normalized)
     normalized["promotion_bundle_fingerprint"] = _stable_fingerprint(
         {
             "promotion_target": normalized.get("promotion_target"),
@@ -1829,7 +2436,13 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
         raw_basket_item_ids,
         raw_basket_item_fingerprints,
     )
-    if raw_basket_item_ids is not None or raw_basket_item_fingerprints is not None:
+    clears_sparse_promotion_identity = (
+        _has_sparse_excerpt_promotion_source(normalized)
+        and not normalized["basket_promotion_items"]
+    )
+    if not clears_sparse_promotion_identity and (
+        raw_basket_item_ids is not None or raw_basket_item_fingerprints is not None
+    ):
         normalized["basket_item_fingerprints"] = paired_basket_item_fingerprints
     elif len(paired_basket_item_fingerprints) == len(normalized["basket_item_ids"]):
         normalized["basket_item_fingerprints"] = paired_basket_item_fingerprints
@@ -1840,6 +2453,8 @@ def _normalize_retrieval_source_bundle_snapshot(source_bundle: dict[str, object]
     normalized["basket_promotion_ready"] = _basket_promotion_ready_from_count(
         normalized["basket_promotion_count"]
     )
+    if clears_sparse_promotion_identity and normalized["basket_promotion_count"] == 0:
+        _clear_nested_basket_promotion_identity_surfaces(normalized)
     retrieval_summary = normalized.get("retrieval_summary", {})
     if not isinstance(retrieval_summary, dict):
         retrieval_summary = {}
@@ -2161,7 +2776,16 @@ def _build_retrieval_source_bundle_from_payload(payload: dict[str, object]) -> d
         retrieval_excerpt_bundle = _build_retrieval_excerpt_bundle_from_payload(payload)
     query_snapshot = _normalize_query_snapshot(payload.get("query", {}))
     policy_snapshot = _normalize_policy_snapshot(payload.get("policy", payload.get("retrieval_policy", {})))
-    basket_promotion_items = _basket_promotion_items_from_snapshot(payload)
+    requires_complete_sparse_promotion = bool(
+        payload.get("_requires_complete_sparse_promotion_provenance")
+    ) or _requires_complete_sparse_promotion_provenance(payload)
+    promotion_snapshot = payload
+    if requires_complete_sparse_promotion:
+        promotion_snapshot = {
+            **payload,
+            "_requires_complete_sparse_promotion_provenance": True,
+        }
+    basket_promotion_items = _basket_promotion_items_from_snapshot(promotion_snapshot)
     basket_item_ids = _basket_item_ids_from_snapshot(
         payload,
         basket_promotion_items=basket_promotion_items,
@@ -2243,6 +2867,15 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
     """Return the deterministic retrieval context bundle from a source-bundle snapshot."""
 
     source_bundle = _normalize_retrieval_source_bundle_snapshot(source_bundle)
+    requires_complete_sparse_promotion = bool(
+        source_bundle.get("_requires_complete_sparse_promotion_provenance")
+    ) or _requires_complete_sparse_promotion_provenance(source_bundle)
+    source_bundle_for_promotion = source_bundle
+    if requires_complete_sparse_promotion:
+        source_bundle_for_promotion = {
+            **source_bundle,
+            "_requires_complete_sparse_promotion_provenance": True,
+        }
     downstream_payload = _build_retrieval_downstream_payload_from_source_bundle(source_bundle)
     retrieval_citation_bundle = source_bundle.get("retrieval_citation_bundle", {})
     if not isinstance(retrieval_citation_bundle, dict):
@@ -2256,18 +2889,29 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
     retrieval_provenance = source_bundle.get("retrieval_provenance", {})
     if not isinstance(retrieval_provenance, dict):
         retrieval_provenance = _build_retrieval_provenance_from_payload(source_bundle)
-    basket_promotion_items = _basket_promotion_items_from_snapshot(source_bundle)
+    basket_promotion_items = _basket_promotion_items_from_snapshot(source_bundle_for_promotion)
     basket_item_fingerprints = _basket_item_fingerprints_from_snapshot(
-        source_bundle,
+        source_bundle_for_promotion,
         basket_promotion_items=basket_promotion_items,
     )
     basket_promotion_count = _basket_promotion_count_from_snapshot(
-        source_bundle,
+        source_bundle_for_promotion,
         basket_promotion_items=basket_promotion_items,
     )
+    clears_sparse_promotion_identity = (
+        _has_sparse_excerpt_promotion_source(source_bundle_for_promotion)
+        and basket_promotion_count == 0
+    )
+    if clears_sparse_promotion_identity:
+        basket_promotion_items = []
+        basket_item_fingerprints = []
+        _clear_nested_basket_promotion_identity_surfaces(source_bundle)
+        _clear_nested_basket_promotion_identity_surfaces(downstream_payload)
     retrieval_basket_promotion_bundle = source_bundle.get("retrieval_basket_promotion_bundle", {})
     if not isinstance(retrieval_basket_promotion_bundle, dict):
         retrieval_basket_promotion_bundle = _build_retrieval_basket_promotion_bundle_from_payload(source_bundle)
+    if clears_sparse_promotion_identity:
+        _clear_nested_basket_promotion_identity_surfaces(retrieval_basket_promotion_bundle)
     bundle = {
         # Source-bundle-only reconstruction keeps the top-level context auditless.
         "audit_ref": None,
@@ -2299,11 +2943,13 @@ def _build_retrieval_context_bundle_from_source_bundle(source_bundle: dict[str, 
         "basket_promotion_count": basket_promotion_count,
         "basket_promotion_ready": _basket_promotion_ready_from_count(basket_promotion_count),
         "basket_item_ids": _basket_item_ids_from_snapshot(
-            source_bundle,
+            source_bundle_for_promotion,
             basket_promotion_items=basket_promotion_items,
         ),
         "basket_item_fingerprints": basket_item_fingerprints,
     }
+    if clears_sparse_promotion_identity:
+        _clear_nested_basket_promotion_identity_surfaces(bundle)
     bundle["context_bundle_fingerprint"] = _context_bundle_fingerprint(bundle)
     return bundle
 
@@ -2441,9 +3087,15 @@ def _build_retrieval_doc_bundle_from_payload(payload: dict[str, object]) -> dict
 def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
     """Return the deterministic excerpt-focused bundle from a downstream payload snapshot."""
 
+    requires_complete_sparse_promotion = bool(
+        payload.get("_requires_complete_sparse_promotion_provenance")
+    ) or _requires_complete_sparse_promotion_provenance(payload)
     excerpt_bundle = payload.get("retrieval_excerpt_bundle")
     if isinstance(excerpt_bundle, dict):
-        return copy.deepcopy(excerpt_bundle)
+        normalized_excerpt_bundle = copy.deepcopy(excerpt_bundle)
+        if requires_complete_sparse_promotion:
+            normalized_excerpt_bundle["_requires_complete_sparse_promotion_provenance"] = True
+        return _normalize_excerpt_bundle_snapshot(normalized_excerpt_bundle)
     bundle_context = _build_retrieval_bundle_context_from_payload(payload)
     provenance = bundle_context["retrieval_provenance"]
     citation_bundle = bundle_context["retrieval_citation_bundle"]
@@ -2453,14 +3105,25 @@ def _build_retrieval_excerpt_bundle_from_payload(payload: dict[str, object]) -> 
         excerpt_citations = _normalize_list_like(provenance.get("excerpt_citations", []))
     if not excerpt_citations and isinstance(citation_bundle, dict):
         excerpt_citations = _normalize_list_like(citation_bundle.get("excerpt_citations", []))
-    return _normalize_excerpt_bundle_snapshot({
+    promotion_snapshot = payload
+    if requires_complete_sparse_promotion:
+        promotion_snapshot = {
+            **payload,
+            "_requires_complete_sparse_promotion_provenance": True,
+        }
+    basket_promotion_items = _basket_promotion_items_from_snapshot(promotion_snapshot)
+    if requires_complete_sparse_promotion:
+        basket_promotion_items = _without_sparse_strategy_only_promotion_markers(basket_promotion_items)
+    normalized = _normalize_excerpt_bundle_snapshot({
         **bundle_context,
         "doc_count": len(_normalize_list_like(payload.get("doc_hits", []))),
         "excerpt_count": len(excerpt_hits) if excerpt_hits else len(excerpt_citations),
         "excerpt_hits": excerpt_hits,
         "excerpt_citations": excerpt_citations,
-        "basket_promotion_items": _basket_promotion_items_from_snapshot(payload),
+        "basket_promotion_items": basket_promotion_items,
+        "_requires_complete_sparse_promotion_provenance": requires_complete_sparse_promotion,
     })
+    return normalized
 
 
 def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
@@ -2468,11 +3131,40 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
 
     basket_bundle = payload.get("retrieval_basket_promotion_bundle")
     if isinstance(basket_bundle, dict):
-        return _normalize_basket_promotion_bundle_snapshot(basket_bundle)
+        normalized_basket_bundle = copy.deepcopy(basket_bundle)
+        if _has_sparse_excerpt_promotion_source(payload):
+            doc_source_records_by_id = _doc_source_records_by_id_from_snapshot(payload)
+            normalized_basket_bundle["promotion_items"] = _without_sparse_strategy_only_promotion_markers(
+                [
+                    enriched_item
+                    for item in _normalize_list_like(normalized_basket_bundle.get("promotion_items"))
+                    if isinstance(item, dict)
+                    for enriched_item in [_with_sparse_promotion_provenance_from_payload(item, payload)]
+                    if _matches_sparse_doc_source_record(enriched_item, doc_source_records_by_id)
+                ]
+            )
+            normalized_basket_bundle["basket_promotion_items"] = _without_sparse_strategy_only_promotion_markers(
+                [
+                    enriched_item
+                    for item in _normalize_list_like(
+                        normalized_basket_bundle.get("basket_promotion_items")
+                    )
+                    if isinstance(item, dict)
+                    for enriched_item in [_with_sparse_promotion_provenance_from_payload(item, payload)]
+                    if _matches_sparse_doc_source_record(enriched_item, doc_source_records_by_id)
+                ]
+            )
+            if not normalized_basket_bundle["promotion_items"] and not normalized_basket_bundle[
+                "basket_promotion_items"
+            ]:
+                _clear_nested_basket_promotion_identity_surfaces(normalized_basket_bundle)
+        return _normalize_basket_promotion_bundle_snapshot(normalized_basket_bundle)
     bundle_context = _build_retrieval_bundle_context_from_payload(payload)
     promotion_items: list[dict[str, object]] = []
     doc_rank_by_id = _doc_rank_by_id_from_snapshot(payload)
+    doc_source_records_by_id = _doc_source_records_by_id_from_snapshot(payload)
     fts_rank_by_excerpt_id = _fts_rank_by_excerpt_id_from_snapshot(payload)
+    retrieval_policy = bundle_context["retrieval_policy"]
     for hit in _normalize_list_like(payload.get("excerpt_hits", [])):
         if not isinstance(hit, dict):
             continue
@@ -2482,14 +3174,74 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
         provenance = hit.get("provenance", {})
         if not isinstance(provenance, dict):
             provenance = {}
-        source_strategy = _fts_source_strategy_from_values(
+        source_strategy = _explicit_fts_source_strategy_from_values(
             hit.get("source_strategy"),
             hit.get("retrieval_source_strategy"),
             provenance.get("source_strategy"),
             provenance.get("retrieval_source_strategy"),
             context="sparse promotion item",
         )
+        if source_strategy is None:
+            source_strategy = _fts_source_strategy_from_sparse_hit_envelope(
+                hit=hit,
+                provenance=provenance,
+                retrieval_backend=bundle_context["retrieval_backend"],
+                retrieval_mode=bundle_context["retrieval_mode"],
+                retrieval_policy=retrieval_policy,
+            )
+            if source_strategy is None:
+                continue
         doc_id = _first_text_value(hit.get("doc_id"), provenance.get("doc_id"))
+        source_hash = _first_text_value(hit.get("source_hash"), provenance.get("source_hash"))
+        excerpt_lookup_fingerprint = _first_text_value(
+            hit.get("excerpt_lookup_fingerprint"),
+            provenance.get("excerpt_lookup_fingerprint"),
+        )
+        excerpt_text_hash = _first_text_value(
+            hit.get("excerpt_text_hash"),
+            provenance.get("excerpt_text_hash"),
+            provenance.get("hash"),
+        )
+        span = copy.deepcopy(hit.get("span", provenance.get("span")))
+        if not _has_complete_sparse_promotion_provenance(
+            doc_id=doc_id,
+            excerpt_id=excerpt_id,
+            source_hash=source_hash,
+            doc_identity_fingerprint=_first_text_value(
+                hit.get("doc_identity_fingerprint"),
+                provenance.get("doc_identity_fingerprint"),
+            ),
+            doc_type=_first_text_value(hit.get("doc_type"), provenance.get("doc_type")),
+            source_type=_first_text_value(hit.get("source_type"), provenance.get("source_type")),
+            excerpt_fingerprint=_first_text_value(
+                hit.get("excerpt_fingerprint"),
+                provenance.get("excerpt_fingerprint"),
+            ),
+            excerpt_lookup_fingerprint=excerpt_lookup_fingerprint,
+            excerpt_text=_first_text_value(hit.get("excerpt_text"), provenance.get("excerpt_text")),
+            excerpt_text_hash=excerpt_text_hash,
+            hash_alias=_first_text_value(hit.get("hash"), provenance.get("hash")),
+            snippet=_first_text_value(hit.get("snippet"), provenance.get("snippet")),
+            span=span,
+            source_strategy=source_strategy,
+            retrieval_backend=_first_text_value(hit.get("retrieval_backend"), provenance.get("retrieval_backend")),
+            retrieval_mode=_first_text_value(hit.get("retrieval_mode"), provenance.get("retrieval_mode")),
+        ):
+            continue
+        if not _matches_sparse_doc_source_record(
+            {
+                "doc_id": doc_id,
+                "source_hash": source_hash,
+                "doc_identity_fingerprint": _first_text_value(
+                    hit.get("doc_identity_fingerprint"),
+                    provenance.get("doc_identity_fingerprint"),
+                ),
+                "doc_type": _first_text_value(hit.get("doc_type"), provenance.get("doc_type")),
+                "source_type": _first_text_value(hit.get("source_type"), provenance.get("source_type")),
+            },
+            doc_source_records_by_id,
+        ):
+            continue
         basket_item_id = _basket_item_id_for_excerpt(
             source_strategy=source_strategy,
             excerpt_id=excerpt_id,
@@ -2501,7 +3253,13 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
             "excerpt_id": excerpt_id,
             "title_hint": _first_text_value(hit.get("title_hint"), provenance.get("title_hint")),
             "excerpt_text": hit.get("excerpt_text"),
-            "span": copy.deepcopy(hit.get("span", provenance.get("span", {}))),
+            "snippet": _first_text_value(
+                hit.get("snippet"),
+                provenance.get("snippet"),
+                hit.get("excerpt_text"),
+                provenance.get("excerpt_text"),
+            ),
+            "span": span,
             "score": hit.get("score"),
             "doc_rank": hit.get(
                 "doc_rank",
@@ -2563,45 +3321,90 @@ def _build_retrieval_basket_promotion_bundle_from_payload(payload: dict[str, obj
                     bundle_context["retrieval_evidence_fingerprint"],
                 ),
             ),
-            "retrieval_backend": hit.get("retrieval_backend", provenance.get("retrieval_backend")),
-            "retrieval_mode": hit.get("retrieval_mode", provenance.get("retrieval_mode")),
-            "source_hash": hit.get("source_hash", provenance.get("source_hash")),
+            "retrieval_backend": _first_text_value(
+                hit.get("retrieval_backend"),
+                provenance.get("retrieval_backend"),
+                bundle_context["retrieval_backend"],
+            ),
+            "retrieval_mode": _first_text_value(
+                hit.get("retrieval_mode"),
+                provenance.get("retrieval_mode"),
+                bundle_context["retrieval_mode"],
+            ),
+            "source_hash": source_hash,
             "doc_type": hit.get("doc_type", provenance.get("doc_type")),
+            "source_type": _first_text_value(
+                hit.get("source_type"),
+                provenance.get("source_type"),
+                hit.get("doc_type"),
+                provenance.get("doc_type"),
+            ),
             "doc_fingerprint": hit.get("doc_fingerprint", provenance.get("doc_fingerprint")),
             "doc_identity_fingerprint": hit.get(
                 "doc_identity_fingerprint",
                 provenance.get("doc_identity_fingerprint"),
             ),
             "excerpt_fingerprint": hit.get("excerpt_fingerprint", provenance.get("excerpt_fingerprint")),
-            "excerpt_lookup_fingerprint": hit.get(
-                "excerpt_lookup_fingerprint",
-                provenance.get("excerpt_lookup_fingerprint"),
-            ),
-            "excerpt_text_hash": hit.get(
-                "excerpt_text_hash",
-                provenance.get("excerpt_text_hash", provenance.get("hash")),
-            ),
+            "excerpt_lookup_fingerprint": excerpt_lookup_fingerprint,
+            "excerpt_text_hash": excerpt_text_hash,
             "matched_terms": copy.deepcopy(hit.get("matched_terms", provenance.get("matched_terms"))),
             "match_count": hit.get("match_count", provenance.get("match_count")),
             "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
         }
         _with_promotion_item_fingerprint(promotion_item)
         promotion_items.append(promotion_item)
-    return _normalize_basket_promotion_bundle_snapshot(
-        {
-            **bundle_context,
-            "promotion_target": "context_basket",
-            "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
-            "promotion_item_count": len(promotion_items),
-            "promotion_items": promotion_items,
-        }
-    )
+    bundle_snapshot = {
+        **bundle_context,
+        "promotion_target": "context_basket",
+        "canonical_demo_path_steps": list(_RETRIEVAL_DEMO_PATH_STEPS),
+        "promotion_item_count": len(promotion_items),
+        "promotion_items": promotion_items,
+    }
+    if not promotion_items:
+        bundle_snapshot["basket_promotion_items"] = []
+        bundle_snapshot["basket_item_ids"] = []
+        bundle_snapshot["basket_item_fingerprints"] = []
+        bundle_snapshot["basket_promotion_count"] = 0
+        bundle_snapshot["basket_promotion_ready"] = False
+    normalized_bundle = _normalize_basket_promotion_bundle_snapshot(bundle_snapshot)
+    if promotion_items:
+        basket_promotion_items = _basket_promotion_items_from_snapshot(payload)
+        if basket_promotion_items:
+            normalized_bundle["basket_promotion_items"] = copy.deepcopy(basket_promotion_items)
+            normalized_bundle["basket_item_ids"] = [
+                item.get("basket_item_id", item.get("item_id"))
+                for item in basket_promotion_items
+                if isinstance(item, dict)
+            ]
+            normalized_bundle["basket_item_fingerprints"] = [
+                item["basket_item_fingerprint"]
+                for item in basket_promotion_items
+                if isinstance(item, dict) and item.get("basket_item_fingerprint") is not None
+            ]
+            normalized_bundle["basket_promotion_count"] = len(basket_promotion_items)
+            normalized_bundle["basket_promotion_ready"] = _basket_promotion_ready_from_count(
+                len(basket_promotion_items)
+            )
+    if not promotion_items and _has_sparse_excerpt_promotion_source(payload):
+        _clear_basket_promotion_identity_surfaces(normalized_bundle)
+    return normalized_bundle
 
 
 def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> dict[str, object]:
     """Return the deterministic retrieval context bundle from a downstream payload snapshot."""
 
-    basket_promotion_items = _basket_promotion_items_from_snapshot(payload)
+    requires_complete_sparse_promotion = bool(
+        payload.get("_requires_complete_sparse_promotion_provenance")
+    ) or _requires_complete_sparse_promotion_provenance(payload)
+    promotion_snapshot = payload
+    if requires_complete_sparse_promotion:
+        promotion_snapshot = {
+            **payload,
+            "_requires_complete_sparse_promotion_provenance": True,
+        }
+    basket_promotion_items = _basket_promotion_items_from_snapshot(promotion_snapshot)
+    if requires_complete_sparse_promotion:
+        basket_promotion_items = _without_sparse_strategy_only_promotion_markers(basket_promotion_items)
     basket_item_ids = _basket_item_ids_from_snapshot(
         payload,
         basket_promotion_items=basket_promotion_items,
@@ -2614,6 +3417,13 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         payload,
         basket_promotion_items=basket_promotion_items,
     )
+    clears_sparse_promotion_identity = (
+        _has_sparse_excerpt_promotion_source(payload) and basket_promotion_count == 0
+    )
+    if clears_sparse_promotion_identity:
+        basket_promotion_items = []
+        basket_item_ids = []
+        basket_item_fingerprints = []
     normalized_payload = copy.deepcopy(payload)
     retrieval_summary = normalized_payload.get("retrieval_summary")
     if isinstance(retrieval_summary, dict):
@@ -2625,15 +3435,25 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
     normalized_payload["basket_promotion_ready"] = _basket_promotion_ready_from_count(
         basket_promotion_count
     )
+    if clears_sparse_promotion_identity:
+        _clear_basket_promotion_identity_surfaces(normalized_payload)
     normalized_payload["canonical_demo_path_steps"] = list(_RETRIEVAL_DEMO_PATH_STEPS)
     source_bundle = _build_retrieval_source_bundle_from_payload(normalized_payload)
     normalized_payload = _backfill_sparse_snapshot(
         normalized_payload,
         _build_retrieval_downstream_payload_from_source_bundle(source_bundle),
     )
+    if clears_sparse_promotion_identity:
+        _clear_nested_basket_promotion_identity_surfaces(normalized_payload)
+        _clear_nested_basket_promotion_identity_surfaces(source_bundle)
     retrieval_basket_promotion_bundle = normalized_payload.get("retrieval_basket_promotion_bundle", {})
     if not isinstance(retrieval_basket_promotion_bundle, dict):
         retrieval_basket_promotion_bundle = _build_retrieval_basket_promotion_bundle_from_payload(normalized_payload)
+    if clears_sparse_promotion_identity:
+        _clear_nested_basket_promotion_identity_surfaces(retrieval_basket_promotion_bundle)
+    excerpt_bundle_payload = copy.deepcopy(normalized_payload)
+    if requires_complete_sparse_promotion:
+        excerpt_bundle_payload["_requires_complete_sparse_promotion_provenance"] = True
     bundle = {
         "audit_ref": normalized_payload.get("audit_ref"),
         "result_fingerprint": normalized_payload.get("result_fingerprint"),
@@ -2646,7 +3466,7 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "retrieval_downstream_payload": normalized_payload,
         "retrieval_citation_bundle": _build_retrieval_citation_bundle_from_payload(normalized_payload),
         "retrieval_doc_bundle": _build_retrieval_doc_bundle_from_payload(normalized_payload),
-        "retrieval_excerpt_bundle": _build_retrieval_excerpt_bundle_from_payload(normalized_payload),
+        "retrieval_excerpt_bundle": _build_retrieval_excerpt_bundle_from_payload(excerpt_bundle_payload),
         "retrieval_provenance": _build_retrieval_provenance_from_payload(normalized_payload),
         "retrieval_basket_promotion_bundle": copy.deepcopy(retrieval_basket_promotion_bundle),
         "retrieval_source_bundle": source_bundle,
@@ -2658,6 +3478,8 @@ def _build_retrieval_context_bundle_from_payload(payload: dict[str, object]) -> 
         "basket_item_ids": basket_item_ids,
         "basket_item_fingerprints": basket_item_fingerprints,
     }
+    if clears_sparse_promotion_identity:
+        _clear_nested_basket_promotion_identity_surfaces(bundle)
     bundle["context_bundle_fingerprint"] = _context_bundle_fingerprint(bundle)
     return bundle
 

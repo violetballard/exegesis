@@ -27,6 +27,7 @@ PACKETS_ROOT = Path(".codex/packets/lanes")
 PLANNER_ROOT = Path(".codex/packet_planner")
 STATE_FILE = PLANNER_ROOT / "state.json"
 COORDINATOR_STATE_FILE = Path(".codex/packet_coordinator/state.json")
+FEATURE_RUNNER_STATE_FILE = Path(".codex/feature_runner/state.json")
 CONFIG_FILE = Path(".codex/packet_router/config.json")
 SCOPE_CHECK_SCRIPT = REPO_ROOT / "scripts/scope-check.sh"
 FORMAT_CHECK_SCRIPT = REPO_ROOT / "quality-format.sh"
@@ -51,7 +52,10 @@ CHANGED_FILES_FALLBACK_TIMEOUT = 8
 ACTIVE_ENGINE_LANES = set(ENGINE_PRIORITY_ORDER)
 
 LANE_OWNED_PATHS = {
-    "feat-commands": ["src/qual/commands/**"],
+    "feat-commands": [
+        "src/qual/commands/**",
+        "engine/src/exegesis_engine/api/cli.py",
+    ],
     "feat-context-storage": [
         "src/qual/context/**",
         "src/qual/storage/**",
@@ -240,6 +244,52 @@ LANE_OWNED_PATHS = {
     ],
 }
 
+LANE_OWNED_UNIT_TEST_PATTERNS = {
+    "feat-commands": ["tests/unit/test_commands*.py"],
+    "feat-context-storage": [
+        "tests/unit/test_context*.py",
+        "tests/unit/test_storage*.py",
+        "tests/unit/test_state*.py",
+    ],
+    "feat-retrieval-fts": [
+        "tests/unit/test_retrieval*.py",
+        "tests/unit/test_fts*.py",
+    ],
+    "feat-a2ui-contract": ["tests/unit/test_a2ui*.py"],
+    "feat-engine-runs": [
+        "tests/unit/test_engine*.py",
+        "tests/unit/test_draft*.py",
+        "tests/unit/test_workflow*.py",
+        "tests/unit/test_patch*.py",
+        "tests/unit/test_audit*.py",
+    ],
+    "feat-ocr-import": [
+        "tests/unit/test_import*.py",
+        "tests/unit/test_ocr*.py",
+    ],
+    "feat-literature-import": ["tests/unit/test_literature*.py"],
+    "feat-rag-index": ["tests/unit/test_rag*.py"],
+    "feat-qual-coding": [
+        "tests/unit/test_coding*.py",
+        "tests/unit/test_project_folder*.py",
+    ],
+    "feat-editor-basics": ["tests/unit/test_editor*.py"],
+    "feat-citations": ["tests/unit/test_citation*.py"],
+    "feat-export": ["tests/unit/test_export*.py"],
+    "feat-zotero-import": ["tests/unit/test_zotero*.py"],
+    "feat-formatting-bar": ["tests/unit/test_format*.py"],
+    "feat-developer-provider-config": [
+        "tests/unit/test_provider*.py",
+        "tests/unit/test_credential*.py",
+    ],
+    "feat-project-transfer": ["tests/unit/test_project_transfer*.py"],
+    "feat-cop-lite-licensing": [
+        "tests/unit/test_license*.py",
+        "tests/unit/test_lite*.py",
+        "tests/unit/test_nanonets_usage*.py",
+    ],
+}
+
 Json = Dict[str, Any]
 
 
@@ -279,12 +329,36 @@ def load_coordinator_state() -> Dict[str, Any]:
         return {}
     return data if isinstance(data, dict) else {}
 
+def _pid_alive(pid: int) -> bool:
+    if pid <= 0:
+        return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+def lane_feature_process_active(lane: str) -> bool:
+    state = load_json(FEATURE_RUNNER_STATE_FILE, {})
+    lanes = state.get("lanes") if isinstance(state, dict) else {}
+    lane_state = lanes.get(lane) if isinstance(lanes, dict) else None
+    if not isinstance(lane_state, dict):
+        return False
+    status = str(lane_state.get("status") or "")
+    if status in {"managed_thread", "launching"}:
+        return True
+    if status == "direct_exec_running":
+        return _pid_alive(int(lane_state.get("pid") or 0))
+    return False
+
 def lane_feature_active(coordinator_state: Dict[str, Any], lane: str) -> bool:
     lane_refill = coordinator_state.get("lane_refill")
     if not isinstance(lane_refill, dict):
         return False
     lane_state = lane_refill.get(lane)
-    return isinstance(lane_state, dict) and lane_state.get("feature_active") is True
+    if not isinstance(lane_state, dict) or lane_state.get("feature_active") is not True:
+        return False
+    return lane_feature_process_active(lane)
 
 def should_skip_for_active_feature(coordinator_state: Dict[str, Any], lane: str, *, fast_reemit: bool) -> bool:
     return lane_feature_active(coordinator_state, lane) and not fast_reemit
@@ -626,6 +700,20 @@ def compute_changed_files(cwd: str, base_ref: str, *, head_ref: str = "HEAD") ->
     raise RuntimeError(f"unable to determine changed files for {head_ref} vs {base_ref}")
 
 
+def compute_changed_files_for_range(cwd: str, commit_range: str) -> List[str]:
+    """Return changed files for an explicit reviewed implementation range."""
+    token = str(commit_range or "").strip()
+    if not token:
+        return []
+    if ".." in token:
+        result = run_git(["diff", "--name-only", token], cwd=cwd, timeout=CHANGED_FILES_DIFF_TIMEOUT)
+    else:
+        result = run_git(["show", "--pretty=", "--name-only", token], cwd=cwd, timeout=CHANGED_FILES_FALLBACK_TIMEOUT)
+    if result.returncode != 0:
+        return []
+    return _parse_changed_files(result.stdout)
+
+
 def run_scope_check(cwd: str, env: Optional[Dict[str, str]] = None) -> Tuple[int, str]:
     # Run the daemon checkout's scope policy against the lane worktree so
     # policy updates apply immediately without waiting for every lane branch
@@ -648,7 +736,40 @@ def run_repo_gate(
     return run(cmd, cwd=str(REPO_ROOT), env=run_env, timeout=timeout)
 
 
+def _lane_unit_test_files(lane: str, cwd: str) -> List[str]:
+    root = Path(cwd)
+    files: List[str] = []
+    for pattern in _owned_patterns_for_lane(lane):
+        normalized = pattern.strip()
+        if not normalized.startswith("tests/"):
+            continue
+        if any(ch in normalized for ch in "*?[]"):
+            matches = sorted(root.glob(normalized))
+        else:
+            matches = [root / normalized]
+        for path in matches:
+            if path.is_file() and path.name.startswith("test_") and path.suffix == ".py":
+                rel = path.relative_to(root).as_posix()
+                files.append(rel)
+    return sorted(set(files))
+
+
+def run_lane_quality_tests(lane: str, cwd: str, env: Optional[Dict[str, str]] = None) -> Tuple[int, str]:
+    files = _lane_unit_test_files(lane, cwd)
+    if not files:
+        return 0, f"[planner] no lane-owned unit tests found for {lane}; skipping lane-focused test gate"
+    modules = [Path(path).with_suffix("").as_posix().replace("/", ".") for path in files]
+    quoted = " ".join(shlex.quote(module) for module in modules)
+    return run(
+        f"python3 -m unittest -v {quoted}",
+        cwd=cwd,
+        env=env,
+        timeout=PLANNER_TEST_GATE_TIMEOUT_SECONDS,
+    )
+
+
 def run_required_gate(cmd: str, cwd: str, env: Optional[Dict[str, str]] = None) -> Tuple[int, str]:
+    lane = str((env or {}).get("QUAL_GATE_LANE") or "").strip()
     if cmd == "./quality-format.sh --check":
         return run_repo_gate(
             str(FORMAT_CHECK_SCRIPT),
@@ -665,6 +786,8 @@ def run_required_gate(cmd: str, cwd: str, env: Optional[Dict[str, str]] = None) 
             timeout=PLANNER_DEFAULT_GATE_TIMEOUT_SECONDS,
         )
     if cmd == "./quality-test.sh":
+        if lane:
+            return run_lane_quality_tests(lane, cwd, env=env)
         return run_repo_gate(
             str(TEST_CHECK_SCRIPT),
             cwd,
@@ -690,7 +813,10 @@ def run_required_gate(cmd: str, cwd: str, env: Optional[Dict[str, str]] = None) 
         ]
         chunks: List[str] = []
         for label, script_path, gate_args in steps:
-            rc, out = run_repo_gate(script_path, cwd, args=gate_args, env=env)
+            if label == "test" and lane:
+                rc, out = run_lane_quality_tests(lane, cwd, env=env)
+            else:
+                rc, out = run_repo_gate(script_path, cwd, args=gate_args, env=env)
             if out:
                 chunks.append(out.rstrip())
             if rc != 0:
@@ -700,8 +826,13 @@ def run_required_gate(cmd: str, cwd: str, env: Optional[Dict[str, str]] = None) 
         return 0, "\n".join(chunks)
     return run(cmd, cwd=cwd, env=env, timeout=3600)
 
+
+def _owned_patterns_for_lane(lane: str) -> List[str]:
+    return LANE_OWNED_PATHS.get(lane, []) + LANE_OWNED_UNIT_TEST_PATTERNS.get(lane, [])
+
+
 def _split_files(lane: str, files: List[str]) -> Tuple[List[str], List[str]]:
-    owned_patterns = LANE_OWNED_PATHS.get(lane, [])
+    owned_patterns = _owned_patterns_for_lane(lane)
     owned_files = [f for f in files if any(fnmatchcase(f, pattern) for pattern in owned_patterns)]
     shared_files = [f for f in files if f not in owned_files]
     return owned_files, shared_files
@@ -709,12 +840,14 @@ def _split_files(lane: str, files: List[str]) -> Tuple[List[str], List[str]]:
 
 def _full_branch_scope_violations(lane: str, files: List[str]) -> List[str]:
     """Return files outside the lane ownership map for the full branch diff."""
-    owned_patterns = LANE_OWNED_PATHS.get(lane, [])
+    owned_patterns = _owned_patterns_for_lane(lane)
     if not owned_patterns:
         return []
     violations: List[str] = []
     for file_name in files:
-        normalized = str(file_name).strip().lstrip("./")
+        normalized = str(file_name).strip()
+        while normalized.startswith("./"):
+            normalized = normalized[2:]
         if not normalized:
             continue
         if any(fnmatchcase(normalized, pattern) for pattern in owned_patterns):
@@ -724,7 +857,7 @@ def _full_branch_scope_violations(lane: str, files: List[str]) -> List[str]:
 
 
 def _owned_path_note(lane: str) -> str:
-    patterns = LANE_OWNED_PATHS.get(lane, [])
+    patterns = _owned_patterns_for_lane(lane)
     if not patterns:
         return "(no lane-owned paths configured)"
     return ", ".join(f"`{pattern}`" for pattern in patterns)
@@ -787,7 +920,7 @@ def build_packet(
     do_not_spend_time_on = [str(item).strip() for item in (meta.get("do_not_spend_time_on") or []) if str(item).strip()]
     if do_not_spend_time_on:
         lines += ["## Do not spend time on"] + [f"- {item}" for item in do_not_spend_time_on] + [""]
-    lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in LANE_OWNED_PATHS.get(lane,[])] + [""]
+    lines += ["## Lane/owned paths"] + [f"- `{p}`" for p in _owned_patterns_for_lane(lane)] + [""]
     scope_completed = str_list(meta.get("scope_completed"))
     if scope_completed:
         lines += ["## Scope completed"] + [f"- {item}" for item in scope_completed] + [""]
@@ -802,6 +935,15 @@ def build_packet(
     reviewed_files = str_list(meta.get("reviewed_files"))
     metadata_only_files = str_list(meta.get("metadata_only_files"))
     if reviewed_files or metadata_only_files:
+        # Metadata repair packets may carry a stale reviewed_files list from a
+        # prior handoff. The current branch/range diff is the stronger source
+        # for lane-owned files, so never let stale metadata hide owned tests or
+        # source files from reviewer accounting.
+        reviewed_set = set(reviewed_files)
+        for file_name in owned_files:
+            if file_name not in reviewed_set:
+                reviewed_files.append(file_name)
+                reviewed_set.add(file_name)
         if reviewed_files:
             lines += ["### Reviewed implementation files"] + [f"- `{f}`" for f in reviewed_files]
         if metadata_only_files:
@@ -947,13 +1089,24 @@ def main()->None:
             continue
         prev_lane_state = lane_state.get(lane) or {}
         last_submitted_sha = infer_last_submitted_sha(PACKETS_ROOT / lane, prev_lane_state)
-        # Reviewer notes should block new packets until lane HEAD advances.
-        # This allows one-at-a-time re-review submissions from the feature lane.
-        if has_reviewer_notes and (not last_submitted_sha or last_submitted_sha == sha):
+        force_reemit_sha = str(prev_lane_state.get("force_reemit_sha") or "").strip()
+        force_metadata_reemit = bool(force_reemit_sha and force_reemit_sha == sha)
+        if last_submitted_sha == sha and not force_metadata_reemit:
             continue
-        if last_submitted_sha == sha:
+        # Reviewer notes should block new packets until lane HEAD advances,
+        # except for explicit control-plane metadata repairs. Those repairs
+        # intentionally re-emit the same feature head with corrected packet
+        # evidence, so the reviewer-note guard must not swallow them first.
+        if (
+            has_reviewer_notes
+            and (not last_submitted_sha or last_submitted_sha == sha)
+            and not force_metadata_reemit
+        ):
             continue
-        fast_reemit = bool(has_reviewer_notes and last_submitted_sha and last_submitted_sha != sha)
+        fast_reemit = bool(
+            (has_reviewer_notes and last_submitted_sha and last_submitted_sha != sha)
+            or force_metadata_reemit
+        )
         if should_skip_for_active_feature(coordinator_state, lane, fast_reemit=fast_reemit):
             print(f"[planner] {lane}: feature worker active; skipping gate run until handoff")
             continue
@@ -972,21 +1125,34 @@ def main()->None:
         if traceability_note:
             print(f"[planner] {traceability_note}")
         env=os.environ.copy()
+        env["QUAL_GATE_LANE"] = lane
         if bool(meta.get("shared_file_exception")):
             env["SCOPE_ALLOW_SHARED"]="1"
         if fast_reemit:
+            carry_sha = last_submitted_sha or sha
             files = infer_last_changed_files(
                 PACKETS_ROOT / lane,
                 prev_lane_state,
-                sha=last_submitted_sha,
+                sha=carry_sha,
             )
             carried = infer_last_gate_results(
                 PACKETS_ROOT / lane,
                 prev_lane_state,
-                sha=last_submitted_sha,
+                sha=carry_sha,
             )
             if carried and files:
-                if active_repo:
+                if force_metadata_reemit:
+                    print(f"[planner] {lane}: re-emitting after local metadata repair (reuse prior gate results)")
+                    reviewed_range = str(meta.get("reviewed_commit_range") or "").strip()
+                    reviewed_files = compute_changed_files_for_range(repo, reviewed_range)
+                    if reviewed_files:
+                        files = reviewed_files
+                    elif reviewed_range:
+                        print(
+                            f"[planner] {lane}: metadata re-emit reviewed-range file refresh failed; "
+                            "using carried packet files"
+                        )
+                elif active_repo:
                     print(f"[planner] {lane}: fast re-emit from advanced HEAD after reviewer notes (reuse prior gate results)")
                 else:
                     print(
@@ -1037,9 +1203,10 @@ def main()->None:
                 continue
         ts=datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         if fast_reemit:
-            moved = archive_lane_reviewer_notes(lane)
-            if moved:
-                print(f"[planner] {lane}: archived {moved} stale reviewer note(s) on re-emit")
+            if has_reviewer_notes:
+                moved = archive_lane_reviewer_notes(lane)
+                if moved:
+                    print(f"[planner] {lane}: archived {moved} stale reviewer note(s) on re-emit")
         fn=f"F__{branch.replace('/','-')}__{sha}__{ts}.md"
         outp=PACKETS_ROOT/lane/"inbox/feature"/fn
         _owned_files, shared_files = _split_files(lane, files)

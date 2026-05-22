@@ -1,43 +1,33 @@
 # Lane Kickoff: feat-retrieval-fts
 
 - Branch: `codex/feat-retrieval-fts`
-- Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`
-- Scope goal: Continue hardening the authoritative FTS-first retrieval path that feeds the engine-side demo loop: open document, retrieve relevant material, promote or gather context, plan/revise, preview/apply patch, persist state, and continue without losing provenance.
+- Lane/owned paths: `src/qual/retrieval/**`, `src/qual/engine/retrieval/**`, `engine/src/exegesis_engine/retrieval/**`, `tests/unit/test_retrieval*.py`, `tests/unit/test_unified_retrieval.py`
+- Scope goal: Keep FTS-first retrieval authoritative for the engine-first MVP and return structured, provenance-rich results that can be promoted into the basket.
 
 ### Priority outcomes
-1. Keep SQLite FTS as the authoritative MVP retrieval path.
-2. Preserve deterministic retrieval payloads, provenance snapshots, source refs, and context bundles for downstream engine runs.
-3. Make excerpt lookup and basket promotion fail closed when an excerpt is not backed by the canonical FTS source path.
-4. Keep PageIndex and embedding surfaces as compatibility/future shims only unless a task explicitly activates them.
+1. Preserve literal FTS search as the default retrieval path.
+2. Return stable retrieval payloads with document identity, source type, snippets, spans, hashes, and basket-promotion provenance.
+3. Keep retrieval usable by engine runs without requiring vector/RAG infrastructure.
+
+### Definition of done
+- Search/retrieval calls are deterministic and test-covered.
+- Results are structured enough for basket promotion and A2UI/retrieval cards.
+- Sparse/FTS provenance rejects incomplete or stale source records.
+- The canonical demo path can retrieve relevant material and gather/promote context.
+
+### Milestone 3 closure focus
+- Canonical demo-path step advanced:
+  - retrieve relevant material
+  - promote or gather context into the basket with deterministic FTS provenance
+- Prefer closing one reliable retrieval-to-basket path over adding alternate retrieval modes.
+
+### Do not spend time on
+- Embeddings/vector search.
+- RAG indexing.
+- UI card polish beyond payload contracts.
+- Literature/OCR import.
 
 ### Guardrails
-- Do not touch Textual UI implementation work.
-- Do not edit control-plane files from this feature branch.
-- Keep retrieval behavior deterministic and auditable; source IDs, document IDs, offsets, and provenance metadata should survive round trips.
-- Any shared-by-approval test edits must be narrow and called out in the handoff.
-- If a retrieval change requires packet garden, router, planner, or lane ownership changes, stop and report that blocker.
-
-### Current reviewed baseline
-- The lane has already shipped an FTS-first retrieval MVP: canonical query construction, deterministic retrieval payloads, provenance snapshots, sparse source/context bundle rehydration, and FTS-only excerpt lookup behavior.
-- Approved shared regression coverage has previously existed in `tests/unit/test_unified_retrieval.py`; treat any further shared edits as high-risk and keep them minimal.
-- Continue advancing Milestone 3 and Milestone 4 only where retrieval directly supports the canonical engine demo path.
-
-### Planned Tasks
-1. Identify the next smallest retrieval blocker on the canonical demo path.
-2. Add or tighten one focused retrieval behavior with tests.
-3. Verify provenance/source metadata stays deterministic through the retrieval-to-context handoff.
-4. Run the required gates or the narrowest available focused tests before handoff.
-
-### Stop Triggers
-- Integrator-locked or control-plane files need editing.
-- Scope check fails and cannot be resolved cleanly within two focused attempts.
-- Test/lint/typecheck failures remain unresolved after two focused attempts.
-- The change no longer directly strengthens the canonical engine demo path.
-
-### Handoff Packet
-- Branch name
-- Tasks completed, numbered
-- Files changed
-- Commands run and outcomes
-- Risks/blockers
-- Which canonical demo-path step the work now makes more real
+- Stay lane-owned.
+- Feature-lane unit tests for retrieval are allowed.
+- Do not edit control-plane metadata, packet files, or ownership policy.

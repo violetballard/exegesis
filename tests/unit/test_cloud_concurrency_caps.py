@@ -453,6 +453,63 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             self.assertFalse(router._cloud_role_slot_available(cfg, state, "integrator"))
             self.assertEqual(router._count_active_cloud_jobs(state), 1)
 
+    def test_router_blocks_second_active_integrator_for_same_lane(self) -> None:
+        state = {
+            "cloud_integrator_jobs": {
+                "feat-a2ui-contract:R__APPROVED__old.md": {
+                    "lane": "feat-a2ui-contract",
+                    "packet_name": "R__APPROVED__old.md",
+                    "pid": 1111,
+                    "result_path": "/tmp/missing-a2ui-integrator-result",
+                }
+            }
+        }
+
+        with mock.patch.object(router, "_pid_alive", side_effect=lambda pid: pid == 1111):
+            self.assertTrue(router._lane_has_active_integrator_job(state, "feat-a2ui-contract"))
+            self.assertFalse(router._lane_has_active_integrator_job(state, "feat-engine-runs"))
+
+    def test_prepare_cloud_integrator_does_not_spawn_second_packet_for_same_lane(self) -> None:
+        cfg = SimpleNamespace(
+            auto_switch_to_local_on_quota=True,
+            integrator_timeout=900.0,
+            max_cloud_integrator_jobs=4,
+        )
+        state = {
+            "runtime_mode": "hybrid",
+            "cloud_available": True,
+            "cloud_integrator_jobs": {
+                "feat-a2ui-contract:R__APPROVED__old.md": {
+                    "lane": "feat-a2ui-contract",
+                    "packet_name": "R__APPROVED__old.md",
+                    "pid": 1111,
+                    "result_path": "/tmp/missing-a2ui-integrator-result",
+                }
+            },
+        }
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            pkt = Path(tmpdir) / "R__APPROVED__new.md"
+            pkt.write_text("## Verdict: APPROVED\n", encoding="utf-8")
+            with (
+                mock.patch.object(router, "_pid_alive", side_effect=lambda pid: pid == 1111),
+                mock.patch.object(router, "_spawn_detached_cli_job") as spawn_mock,
+            ):
+                ready, output, next_state = router._prepare_cli_integrator_result(
+                    cfg,
+                    state,
+                    str(Path(tmpdir)),
+                    "feat-a2ui-contract",
+                    pkt,
+                    pkt.read_text(encoding="utf-8"),
+                    local=False,
+                )
+
+        self.assertFalse(ready)
+        self.assertEqual(output, "")
+        self.assertIs(next_state, state)
+        spawn_mock.assert_not_called()
+
     def test_router_process_command_rows_prefers_wide_process_listing(self) -> None:
         completed = mock.Mock(returncode=0, stdout=" 9999 codex exec You are the INTEGRATOR\n")
 
@@ -1261,6 +1318,19 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
         run_fixer_mock.assert_not_called()
         self.assertEqual(updated.get("reviewer_fixer_cursor"), {})
 
+    def test_missing_concrete_handoff_tasks_routes_to_metadata_repair(self) -> None:
+        note_text = (
+            "## Verdict: `CHANGES_REQUESTED`\n\n"
+            "## Findings\n"
+            "The handoff packet does not provide concrete completed tasks.\n\n"
+            "## Required fixes before re-review\n"
+            "1. Replace the placeholder task list with concrete numbered tasks completed.\n"
+            "2. Add the canonical demo-path step advanced by the feature implementation.\n"
+            "3. Correct the missing handoff fields in `.codex/lane_meta/feat-retrieval-fts.json`.\n"
+        )
+
+        self.assertTrue(router._requires_control_plane_metadata_repair(note_text))
+
     def test_metadata_repair_sandbox_block_falls_back_to_local_control_plane_repair(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             root = Path(tmpdir)
@@ -1303,6 +1373,8 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
                 result = Result()
                 if args[:2] == ["merge-base", "HEAD"]:
                     result.stdout = "basesha\n"
+                if args == ["diff", "--name-only", "basesha..headsha"]:
+                    result.stdout = "engine/src/exegesis_engine/api/app_service.py\n"
                 return result
 
             old_cwd = os.getcwd()
@@ -1324,11 +1396,133 @@ class CloudConcurrencyCapsTests(unittest.TestCase):
             repaired_meta = json.loads(lane_meta.read_text(encoding="utf-8"))
             repaired_planner_state = json.loads(planner_state.read_text(encoding="utf-8"))
             self.assertEqual(repaired_meta["source_commits"], ["basesha..headsha"])
+            self.assertEqual(
+                repaired_meta["reviewed_files"],
+                ["engine/src/exegesis_engine/api/app_service.py"],
+            )
             self.assertIn("Milestone 3: Real workflow loop", " ".join(repaired_meta["roadmap_items"]))
             self.assertNotIn("Retrieval Layer", " ".join(repaired_meta["roadmap_items"]))
             self.assertFalse(note.exists())
             self.assertEqual(repair["shared_only_archived"], 1)
             self.assertNotIn("last_submitted_sha", repaired_planner_state["lanes"][lane])
+            self.assertEqual(repaired_planner_state["lanes"][lane]["force_reemit_sha"], "headsha")
+            self.assertEqual(
+                repaired_planner_state["lanes"][lane]["force_reemit_reason"],
+                "control_plane_metadata_repair",
+            )
+
+    def test_metadata_repair_replaces_stale_reviewed_files_from_git_range(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            packet_root = root / ".codex" / "packets" / "lanes"
+            lane = "feat-commands"
+            lane_root = packet_root / lane
+            reviewer_dir = lane_root / "inbox" / "reviewer"
+            reviewer_dir.mkdir(parents=True, exist_ok=True)
+            note = reviewer_dir / "R__CHANGES__codex-feat-commands__abc123__20260522T000000Z.md"
+            note.write_text("## Verdict: `CHANGES_REQUESTED`\n\nmetadata repair required\n", encoding="utf-8")
+            lane_meta = root / ".codex" / "lane_meta" / f"{lane}.json"
+            lane_meta.parent.mkdir(parents=True, exist_ok=True)
+            lane_meta.write_text(
+                json.dumps(
+                    {
+                        "reviewed_files": ["tests/unit/test_commands_catalog.py"],
+                        "kickoff_budget_note": "one focused non-owned test file",
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            def fake_run_git(args: list[str], **_kwargs: object):
+                class Result:
+                    returncode = 0
+                    stdout = "commandhead\n"
+
+                result = Result()
+                if args[:2] == ["merge-base", "HEAD"]:
+                    result.stdout = "commandbase\n"
+                if args == ["diff", "--name-only", "commandbase..commandhead"]:
+                    result.stdout = (
+                        "src/qual/commands/canonical.py\n"
+                        "src/qual/commands/catalog.py\n"
+                        "src/qual/commands/diff_preview.py\n"
+                    )
+                return result
+
+            old_cwd = os.getcwd()
+            os.chdir(root)
+            try:
+                with (
+                    mock.patch.object(router, "PACKETS_ROOT", packet_root),
+                    mock.patch.object(router, "run_git", side_effect=fake_run_git),
+                ):
+                    router._repair_control_plane_metadata_locally(
+                        str(root),
+                        lane,
+                        "codex/feat-commands",
+                        note,
+                    )
+            finally:
+                os.chdir(old_cwd)
+
+            repaired_meta = json.loads(lane_meta.read_text(encoding="utf-8"))
+            self.assertEqual(
+                repaired_meta["reviewed_files"],
+                [
+                    "src/qual/commands/canonical.py",
+                    "src/qual/commands/catalog.py",
+                    "src/qual/commands/diff_preview.py",
+                ],
+            )
+            self.assertNotIn("tests/unit/test_commands_catalog.py", repaired_meta["reviewed_files"])
+            self.assertNotIn("non-owned test", repaired_meta["kickoff_budget_note"])
+
+    def test_metadata_repair_writes_retrieval_specific_handoff_tasks(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            packet_root = root / ".codex" / "packets" / "lanes"
+            lane = "feat-retrieval-fts"
+            lane_root = packet_root / lane
+            reviewer_dir = lane_root / "inbox" / "reviewer"
+            reviewer_dir.mkdir(parents=True, exist_ok=True)
+            note = reviewer_dir / "R__CHANGES__codex-feat-retrieval-fts__abc123__20260520T000000Z.md"
+            note.write_text("## Verdict: `CHANGES_REQUESTED`\n\nmissing handoff fields\n", encoding="utf-8")
+            lane_meta = root / ".codex" / "lane_meta" / f"{lane}.json"
+            lane_meta.parent.mkdir(parents=True, exist_ok=True)
+            lane_meta.write_text("{}", encoding="utf-8")
+
+            def fake_run_git(args: list[str], **_kwargs: object):
+                class Result:
+                    returncode = 0
+                    stdout = "retrievalhead\n"
+
+                result = Result()
+                if args[:2] == ["merge-base", "HEAD"]:
+                    result.stdout = "retrievalbase\n"
+                return result
+
+            old_cwd = os.getcwd()
+            os.chdir(root)
+            try:
+                with (
+                    mock.patch.object(router, "PACKETS_ROOT", packet_root),
+                    mock.patch.object(router, "run_git", side_effect=fake_run_git),
+                ):
+                    router._repair_control_plane_metadata_locally(
+                        str(root),
+                        lane,
+                        "codex/feat-retrieval-fts",
+                        note,
+                    )
+            finally:
+                os.chdir(old_cwd)
+
+            repaired_meta = json.loads(lane_meta.read_text(encoding="utf-8"))
+            repair_text = (root / ".codex" / "metadata_repairs" / f"{lane}.md").read_text(encoding="utf-8")
+            self.assertIn("deterministic FTS provenance", repaired_meta["canonical_demo_path_step"])
+            self.assertIn("retrieval demo-path contract", " ".join(repaired_meta["tasks_completed"]))
+            self.assertIn("Concrete tasks completed", repair_text)
+            self.assertFalse((root / ".codex" / "kickoff_packets" / f"{lane}.md").exists())
 
     def test_metadata_repair_jobs_count_against_cloud_total_cap(self) -> None:
         state = {

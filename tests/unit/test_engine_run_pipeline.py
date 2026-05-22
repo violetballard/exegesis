@@ -167,6 +167,8 @@ class EngineRunPipelineTests(unittest.TestCase):
                 },
                 "hit_count": len(retrieval.hits),
                 "strategies_used": retrieval.diagnostics["strategies_used"],
+                "retrieval_artifact_ids": [f"{run.run_id}:0003:retrieval_result"],
+                "retrieval_event_ids": [f"{run.run_id}:0003:retrieval_attached"],
             },
         )
         self.assertRegex(stored.artifacts[5].payload["options_fingerprint"], r"^[0-9a-f]{64}$")
@@ -185,6 +187,8 @@ class EngineRunPipelineTests(unittest.TestCase):
                 },
                 "hit_count": len(retrieval.hits),
                 "strategies_used": retrieval.diagnostics["strategies_used"],
+                "retrieval_artifact_ids": [f"{run.run_id}:0003:retrieval_result"],
+                "retrieval_event_ids": [f"{run.run_id}:0003:retrieval_attached"],
             },
         )
         self.assertEqual(stored.artifacts[6].payload["destination_path"], str(self.root / "exports" / "draft.docx"))
@@ -198,6 +202,10 @@ class EngineRunPipelineTests(unittest.TestCase):
                 "scope": "doc:doc-1",
                 "intent": "outline",
                 "request_fingerprint": "fp-1",
+                "run_provenance_artifact_id": f"{run.run_id}:0008:run_provenance",
+                "run_provenance_event_id": f"{run.run_id}:0008:run_provenance_captured",
+                "run_lifecycle_digest": stored.artifacts[7].payload["run_lifecycle_digest"],
+                "flow_digest": stored.artifacts[7].payload["flow_digest"],
             },
         )
         self.assertEqual(stored.artifacts[7].payload["planned_terminal_status"], "completed")
@@ -226,6 +234,8 @@ class EngineRunPipelineTests(unittest.TestCase):
                 },
                 "hit_count": len(retrieval.hits),
                 "strategies_used": retrieval.diagnostics["strategies_used"],
+                "retrieval_artifact_ids": [f"{run.run_id}:0003:retrieval_result"],
+                "retrieval_event_ids": [f"{run.run_id}:0003:retrieval_attached"],
             },
         )
         self.assertEqual(
@@ -266,6 +276,7 @@ class EngineRunPipelineTests(unittest.TestCase):
                     "proposal_artifact_id": f"{run.run_id}:0004:patch_proposal",
                     "proposal_patch_hash": stored.artifacts[3].payload["patch_hash"],
                     "proposal_line_count": stored.artifacts[3].payload["line_count"],
+                    "proposal_is_empty": stored.artifacts[3].payload["is_empty"],
                 }
             ],
         )
@@ -329,6 +340,32 @@ class EngineRunPipelineTests(unittest.TestCase):
         self.assertIn("engine_patch_applied", audit_names)
         self.assertIn("engine_run_provenance_captured_summary", audit_names)
         self.assertIn("engine_run_completed_summary", audit_names)
+        retrieval_artifact_event = next(
+            item
+            for item in lines
+            if item["name"] == "engine_run_artifact_attached"
+            and item["metadata"]["kind"] == "retrieval_result"
+        )
+        self.assertEqual(retrieval_artifact_event["metadata"]["audit_ref"], retrieval.audit_ref)
+        self.assertEqual(retrieval_artifact_event["metadata"]["query_scope"], "doc:doc-1")
+        self.assertEqual(retrieval_artifact_event["metadata"]["query_intent"], "lookup")
+        self.assertEqual(
+            retrieval_artifact_event["metadata"]["retrieval_query_hash"],
+            self.service._fingerprint_text("alpha summary"),
+        )
+        self.assertEqual(
+            retrieval_artifact_event["metadata"]["retrieval_constraints"],
+            {
+                "max_results": 10,
+                "section_hint": None,
+                "prefer_exact_matches": False,
+            },
+        )
+        self.assertEqual(retrieval_artifact_event["metadata"]["hit_count"], len(retrieval.hits))
+        self.assertEqual(
+            retrieval_artifact_event["metadata"]["strategies_used"],
+            retrieval.diagnostics["strategies_used"],
+        )
         completed_event = next(item for item in lines if item["name"] == "engine_run_completed_summary")
         provenance_event = next(item for item in lines if item["name"] == "engine_run_provenance_captured_summary")
         self.assertEqual(completed_event["metadata"]["planned_terminal_status"], "completed")
@@ -382,6 +419,7 @@ class EngineRunPipelineTests(unittest.TestCase):
         self.assertTrue(result.retrieval_result.hits)
         self.assertIn("@@", result.patch_proposal)
         self.assertEqual(result.patch_decision_event.name, "patch_applied")
+        self.assertEqual((self.root / "notes.md").read_text(encoding="utf-8"), "line one\nline two\n")
         self.assertEqual(result.preview_export.output_format, "pdf")
         self.assertEqual(result.final_export.output_format, "docx")
         self.assertRegex(result.preview_export.options_fingerprint, r"^[0-9a-f]{64}$")
@@ -643,6 +681,7 @@ class EngineRunPipelineTests(unittest.TestCase):
                     "proposal_artifact_id": f"{result.run.run_id}:0004:patch_proposal",
                     "proposal_patch_hash": result.flow_snapshot.run.artifacts[3].payload["patch_hash"],
                     "proposal_line_count": result.flow_snapshot.run.artifacts[3].payload["line_count"],
+                    "proposal_is_empty": result.flow_snapshot.run.artifacts[3].payload["is_empty"],
                 }
             ],
         )
@@ -669,6 +708,10 @@ class EngineRunPipelineTests(unittest.TestCase):
         self.assertEqual(flow_event["metadata"]["flow_digest"], result.flow_digest)
         self.assertEqual(flow_event["metadata"]["run_lifecycle_digest"], result.to_manifest()["run_lifecycle_digest"])
         self.assertEqual(flow_event["metadata"]["run_lifecycle"], result.to_manifest()["run_lifecycle"])
+        self.assertEqual(
+            flow_event["metadata"]["run_flow_manifest"]["run_lifecycle"],
+            result.to_manifest()["run_lifecycle"],
+        )
         self.assertEqual(
             flow_event["metadata"]["terminal_artifact_refs"],
             {
@@ -787,6 +830,44 @@ class EngineRunPipelineTests(unittest.TestCase):
             },
         )
         self.assertRegex(stored.artifacts[7].payload["flow_digest"], r"^[0-9a-f]{64}$")
+
+    def test_run_flow_accepted_patch_requires_matching_document_state(self) -> None:
+        document_path = self.root / "notes.md"
+        document_path.write_text("stale content\n", encoding="utf-8")
+
+        with self.assertRaisesRegex(ValueError, "patch original text does not match current document content"):
+            self.service.run_flow(
+                operation="draft",
+                scope="doc:doc-1",
+                intent="outline",
+                request_fingerprint="fp-flow-mismatch",
+                retrieval_query_text="alpha summary",
+                patch_original="line one\n",
+                patch_proposed="line one\nline two\n",
+                patch_target_path="notes.md",
+                patch_decision="accepted",
+            )
+
+        self.assertEqual(document_path.read_text(encoding="utf-8"), "stale content\n")
+
+    def test_run_flow_rejected_patch_leaves_document_state_unchanged(self) -> None:
+        document_path = self.root / "notes.md"
+        document_path.write_text("line one\n", encoding="utf-8")
+
+        result = self.service.run_flow(
+            operation="draft",
+            scope="doc:doc-1",
+            intent="outline",
+            request_fingerprint="fp-flow-rejected",
+            retrieval_query_text="alpha summary",
+            patch_original="line one\n",
+            patch_proposed="line one\nline two\n",
+            patch_target_path="notes.md",
+            patch_decision="rejected",
+        )
+
+        self.assertEqual(result.patch_decision_event.name, "patch_rejected")
+        self.assertEqual(document_path.read_text(encoding="utf-8"), "line one\n")
 
     def test_run_flow_result_to_manifest_uses_run_flow_manifest_when_snapshot_is_missing(self) -> None:
         result = self.service.run_flow(
@@ -1380,6 +1461,40 @@ class EngineRunPipelineTests(unittest.TestCase):
 
         self.assertEqual(self.service._load_records(), {})
 
+    def test_run_flow_rejects_invalid_patch_decision_before_writing_state(self) -> None:
+        with self.assertRaisesRegex(ValueError, "patch decision must be one of: accepted, rejected"):
+            self.service.run_flow(
+                operation="draft",
+                scope="doc:doc-1",
+                intent="outline",
+                request_fingerprint="fp-invalid-patch-decision",
+                retrieval_query_text="alpha summary",
+                patch_original="line one\n",
+                patch_proposed="line one\nline two\n",
+                patch_target_path="notes.md",
+                patch_decision="maybe",  # type: ignore[arg-type]
+                patch_reason="invalid decision",
+            )
+
+        self.assertEqual(self.service._load_records(), {})
+
+    def test_run_flow_rejects_accepted_empty_patch_before_writing_state(self) -> None:
+        with self.assertRaisesRegex(ValueError, "accepted patch decision requires a non-empty patch proposal"):
+            self.service.run_flow(
+                operation="draft",
+                scope="doc:doc-1",
+                intent="outline",
+                request_fingerprint="fp-empty-patch-accepted",
+                retrieval_query_text="alpha summary",
+                patch_original="line one\n",
+                patch_proposed="line one\n",
+                patch_target_path="notes.md",
+                patch_decision="accepted",
+                patch_reason="no-op should not apply",
+            )
+
+        self.assertEqual(self.service._load_records(), {})
+
     def test_patch_flow_normalizes_target_path_before_persisting_artifacts(self) -> None:
         run = self.service.start_run(
             operation="draft",
@@ -1482,8 +1597,305 @@ class EngineRunPipelineTests(unittest.TestCase):
                 },
                 "hit_count": len(retrieval.hits),
                 "strategies_used": retrieval.diagnostics["strategies_used"],
+                "retrieval_artifact_ids": [f"{run.run_id}:0002:retrieval_result"],
+                "retrieval_event_ids": [f"{run.run_id}:0002:retrieval_attached"],
             },
         )
+
+    def test_retrieval_evidence_preserves_full_retrieval_chain(self) -> None:
+        run = self.service.start_run(
+            operation="draft",
+            scope="doc:doc-1",
+            intent="outline",
+            request_fingerprint="fp-retrieval-chain",
+        )
+        self.service.plan_run(
+            run.run_id,
+            retrieval_query_text="alpha summary",
+        )
+
+        first = self.service.retrieve(
+            run.run_id,
+            query_text="alpha summary",
+            scope="doc:doc-1",
+            intent="lookup",
+        )
+        second = self.service.retrieve(
+            run.run_id,
+            query_text="beta detail",
+            scope="doc:doc-1",
+            intent="lookup",
+        )
+        completed = self.service.complete_run(run.run_id)
+
+        evidence = completed.artifacts[-2].payload["retrieval_evidence"]
+        described_evidence = self.service.describe_run_flow(run.run_id).retrieval_evidence
+        self.assertEqual(evidence["artifact_id"], f"{run.run_id}:0004:retrieval_result")
+        self.assertEqual(described_evidence, evidence)
+        self.assertEqual(self.service.get_run_provenance(run.run_id)["retrieval_evidence"], evidence)
+        self.assertEqual(evidence["audit_ref"], second.audit_ref)
+        self.assertEqual(evidence["retrieval_query_hash"], self.service._fingerprint_text("beta detail"))
+        self.assertEqual(
+            evidence["retrieval_artifact_ids"],
+            [
+                f"{run.run_id}:0003:retrieval_result",
+                f"{run.run_id}:0004:retrieval_result",
+            ],
+        )
+        self.assertEqual(
+            evidence["retrieval_event_ids"],
+            [
+                f"{run.run_id}:0003:retrieval_attached",
+                f"{run.run_id}:0004:retrieval_attached",
+            ],
+        )
+        self.assertEqual(first.audit_ref, self.service.get_run(run.run_id).artifacts[2].payload["audit_ref"])
+
+    def test_retrieval_result_validation_rejects_tampered_provenance_payload(self) -> None:
+        run = self.service.start_run(
+            operation="draft",
+            scope="doc:doc-1",
+            intent="outline",
+            request_fingerprint="fp-tampered-retrieval-provenance",
+        )
+        self.service.plan_run(
+            run.run_id,
+            retrieval_query_text="alpha summary",
+        )
+        self.service.retrieve(
+            run.run_id,
+            query_text="alpha summary",
+            scope="doc:doc-1",
+            intent="lookup",
+        )
+        self.service.complete_run(run.run_id)
+
+        records = self.service._load_records()
+        payload = records[run.run_id]
+        payload["artifacts"][2]["payload"]["query_scope"] = ""
+        self.service._store.write_json("runs_v1.enc.json", records)
+
+        with self.assertRaisesRegex(ValueError, "incomplete retrieval artifact payload for query_scope"):
+            self.service.describe_run_flow(run.run_id)
+
+    def test_retrieval_result_validation_rejects_tampered_query_hash_shape(self) -> None:
+        run = self.service.start_run(
+            operation="draft",
+            scope="doc:doc-1",
+            intent="outline",
+            request_fingerprint="fp-tampered-retrieval-query-hash",
+        )
+        self.service.plan_run(
+            run.run_id,
+            retrieval_query_text="alpha summary",
+        )
+        self.service.retrieve(
+            run.run_id,
+            query_text="alpha summary",
+            scope="doc:doc-1",
+            intent="lookup",
+        )
+        self.service.complete_run(run.run_id)
+
+        records = self.service._load_records()
+        payload = records[run.run_id]
+        payload["artifacts"][2]["payload"]["retrieval_query_hash"] = "not-a-sha256-digest"
+        payload["events"][2]["payload"]["retrieval_query_hash"] = "not-a-sha256-digest"
+        self.service._store.write_json("runs_v1.enc.json", records)
+
+        with self.assertRaisesRegex(ValueError, "invalid retrieval artifact payload for retrieval_query_hash"):
+            self.service.describe_run_flow(run.run_id)
+
+    def test_retrieval_result_validation_rejects_tampered_strategy_payload(self) -> None:
+        run = self.service.start_run(
+            operation="draft",
+            scope="doc:doc-1",
+            intent="outline",
+            request_fingerprint="fp-tampered-retrieval-strategy",
+        )
+        self.service.plan_run(
+            run.run_id,
+            retrieval_query_text="alpha summary",
+        )
+        self.service.retrieve(
+            run.run_id,
+            query_text="alpha summary",
+            scope="doc:doc-1",
+            intent="lookup",
+        )
+        self.service.complete_run(run.run_id)
+
+        records = self.service._load_records()
+        payload = records[run.run_id]
+        payload["artifacts"][2]["payload"]["strategies_used"] = [""]
+        self.service._store.write_json("runs_v1.enc.json", records)
+
+        with self.assertRaisesRegex(ValueError, "invalid retrieval artifact payload for strategies_used"):
+            self.service.describe_run_flow(run.run_id)
+
+    def test_retrieval_result_validation_rejects_non_fts_strategy_payload(self) -> None:
+        run = self.service.start_run(
+            operation="draft",
+            scope="doc:doc-1",
+            intent="outline",
+            request_fingerprint="fp-tampered-retrieval-non-fts-strategy",
+        )
+        self.service.plan_run(
+            run.run_id,
+            retrieval_query_text="alpha summary",
+        )
+        self.service.retrieve(
+            run.run_id,
+            query_text="alpha summary",
+            scope="doc:doc-1",
+            intent="lookup",
+        )
+        self.service.complete_run(run.run_id)
+
+        records = self.service._load_records()
+        payload = records[run.run_id]
+        payload["artifacts"][2]["payload"]["strategies_used"] = ["semantic"]
+        payload["events"][2]["payload"]["strategies_used"] = ["semantic"]
+        self.service._store.write_json("runs_v1.enc.json", records)
+
+        with self.assertRaisesRegex(ValueError, "invalid retrieval artifact payload for strategies_used"):
+            self.service.describe_run_flow(run.run_id)
+
+    def test_retrieval_result_validation_rejects_tampered_negative_hit_count(self) -> None:
+        run = self.service.start_run(
+            operation="draft",
+            scope="doc:doc-1",
+            intent="outline",
+            request_fingerprint="fp-tampered-retrieval-hit-count",
+        )
+        self.service.plan_run(
+            run.run_id,
+            retrieval_query_text="alpha summary",
+        )
+        self.service.retrieve(
+            run.run_id,
+            query_text="alpha summary",
+            scope="doc:doc-1",
+            intent="lookup",
+        )
+        self.service.complete_run(run.run_id)
+
+        records = self.service._load_records()
+        payload = records[run.run_id]
+        payload["artifacts"][2]["payload"]["hit_count"] = -1
+        self.service._store.write_json("runs_v1.enc.json", records)
+
+        with self.assertRaisesRegex(ValueError, "invalid retrieval artifact payload for hit_count"):
+            self.service.describe_run_flow(run.run_id)
+
+    def test_retrieval_result_validation_rejects_tampered_constraint_payload(self) -> None:
+        run = self.service.start_run(
+            operation="draft",
+            scope="doc:doc-1",
+            intent="outline",
+            request_fingerprint="fp-tampered-retrieval-constraints",
+        )
+        self.service.plan_run(
+            run.run_id,
+            retrieval_query_text="alpha summary",
+        )
+        self.service.retrieve(
+            run.run_id,
+            query_text="alpha summary",
+            scope="doc:doc-1",
+            intent="lookup",
+        )
+        self.service.complete_run(run.run_id)
+
+        records = self.service._load_records()
+        payload = records[run.run_id]
+        payload["artifacts"][2]["payload"]["retrieval_constraints"]["max_results"] = "10"
+        payload["events"][2]["payload"]["retrieval_constraints"]["max_results"] = "10"
+        self.service._store.write_json("runs_v1.enc.json", records)
+
+        with self.assertRaisesRegex(ValueError, "invalid retrieval artifact payload for retrieval_constraints"):
+            self.service.describe_run_flow(run.run_id)
+
+    def test_retrieval_result_validation_rejects_tampered_event_provenance_payload(self) -> None:
+        run = self.service.start_run(
+            operation="draft",
+            scope="doc:doc-1",
+            intent="outline",
+            request_fingerprint="fp-tampered-retrieval-event-provenance",
+        )
+        self.service.plan_run(
+            run.run_id,
+            retrieval_query_text="alpha summary",
+        )
+        self.service.retrieve(
+            run.run_id,
+            query_text="alpha summary",
+            scope="doc:doc-1",
+            intent="lookup",
+        )
+        self.service.complete_run(run.run_id)
+
+        records = self.service._load_records()
+        payload = records[run.run_id]
+        payload["events"][2]["payload"]["audit_ref"] = "audit-tampered"
+        self.service._store.write_json("runs_v1.enc.json", records)
+
+        with self.assertRaisesRegex(ValueError, "inconsistent retrieval event payload for audit_ref"):
+            self.service.describe_run_flow(run.run_id)
+
+    def test_retrieval_result_validation_rejects_tampered_event_payload_shape(self) -> None:
+        run = self.service.start_run(
+            operation="draft",
+            scope="doc:doc-1",
+            intent="outline",
+            request_fingerprint="fp-tampered-retrieval-event-shape",
+        )
+        self.service.plan_run(
+            run.run_id,
+            retrieval_query_text="alpha summary",
+        )
+        self.service.retrieve(
+            run.run_id,
+            query_text="alpha summary",
+            scope="doc:doc-1",
+            intent="lookup",
+        )
+        self.service.complete_run(run.run_id)
+
+        records = self.service._load_records()
+        payload = records[run.run_id]
+        payload["events"][2]["payload"]["unvalidated_claim"] = "accepted"
+        self.service._store.write_json("runs_v1.enc.json", records)
+
+        with self.assertRaisesRegex(ValueError, "inconsistent retrieval event payload keys"):
+            self.service.describe_run_flow(run.run_id)
+
+    def test_retrieval_result_validation_rejects_tampered_event_timestamp(self) -> None:
+        run = self.service.start_run(
+            operation="draft",
+            scope="doc:doc-1",
+            intent="outline",
+            request_fingerprint="fp-tampered-retrieval-event-timestamp",
+        )
+        self.service.plan_run(
+            run.run_id,
+            retrieval_query_text="alpha summary",
+        )
+        self.service.retrieve(
+            run.run_id,
+            query_text="alpha summary",
+            scope="doc:doc-1",
+            intent="lookup",
+        )
+        self.service.complete_run(run.run_id)
+
+        records = self.service._load_records()
+        payload = records[run.run_id]
+        payload["events"][2]["created_at"] = "2026-01-01T00:00:00+00:00"
+        self.service._store.write_json("runs_v1.enc.json", records)
+
+        with self.assertRaisesRegex(ValueError, "inconsistent retrieval event timestamp"):
+            self.service.describe_run_flow(run.run_id)
 
     def test_retrieve_rejects_scope_mismatches_before_querying(self) -> None:
         run = self.service.start_run(
@@ -1716,7 +2128,6 @@ class EngineRunPipelineTests(unittest.TestCase):
             for line in (self.root / "audit_events.jsonl").read_text(encoding="utf-8").splitlines()
         ]
         audit_names = [item["name"] for item in lines]
-        self.assertIn("engine_run_failed", audit_names)
         self.assertIn("engine_run_failed_summary", audit_names)
         self.assertIn("engine_run_flow_failed_summary", audit_names)
         failed_event = next(item for item in lines if item["name"] == "engine_run_failed_summary")
@@ -2175,7 +2586,19 @@ class EngineRunPipelineTests(unittest.TestCase):
                     artifact_id="run-duplicate-terminal:0003:retrieval_result",
                     kind="retrieval_result",
                     created_at="2026-01-01T00:00:02+00:00",
-                    payload={"audit_ref": "audit-duplicate-terminal"},
+                    payload={
+                        "audit_ref": "audit-duplicate-terminal",
+                        "query_scope": "doc:doc-1",
+                        "query_intent": "lookup",
+                        "retrieval_query_hash": "a" * 64,
+                        "retrieval_constraints": {
+                            "max_results": 10,
+                            "section_hint": None,
+                            "prefer_exact_matches": False,
+                        },
+                        "hit_count": 1,
+                        "strategies_used": ["fts"],
+                    },
                 ),
                 RunArtifact(
                     artifact_id="run-duplicate-terminal:0004:run_provenance",
@@ -2219,7 +2642,20 @@ class EngineRunPipelineTests(unittest.TestCase):
                     event_id="run-duplicate-terminal:0003:retrieval_attached",
                     name="retrieval_attached",
                     created_at="2026-01-01T00:00:02+00:00",
-                    payload={"artifact_id": "run-duplicate-terminal:0003:retrieval_result"},
+                    payload={
+                        "artifact_id": "run-duplicate-terminal:0003:retrieval_result",
+                        "audit_ref": "audit-duplicate-terminal",
+                        "query_scope": "doc:doc-1",
+                        "query_intent": "lookup",
+                        "retrieval_query_hash": "a" * 64,
+                        "retrieval_constraints": {
+                            "max_results": 10,
+                            "section_hint": None,
+                            "prefer_exact_matches": False,
+                        },
+                        "hit_count": 1,
+                        "strategies_used": ["fts"],
+                    },
                 ),
                 RunEvent(
                     event_id="run-duplicate-terminal:0004:run_provenance_captured",
@@ -2276,6 +2712,33 @@ class EngineRunPipelineTests(unittest.TestCase):
         self.service._store.write_json("runs_v1.enc.json", records)
 
         with self.assertRaisesRegex(ValueError, "inconsistent terminal provenance run_lifecycle"):
+            self.service.describe_run_flow(run.run_id)
+
+    def test_terminal_snapshots_reject_tampered_completion_digest(self) -> None:
+        run = self.service.start_run(
+            operation="draft",
+            scope="doc:doc-1",
+            intent="outline",
+            request_fingerprint="fp-tampered-completion-digest",
+        )
+        self.service.plan_run(
+            run.run_id,
+            retrieval_query_text="alpha summary",
+        )
+        self.service.retrieve(
+            run.run_id,
+            query_text="alpha summary",
+            scope="doc:doc-1",
+            intent="lookup",
+        )
+        self.service.complete_run(run.run_id)
+
+        records = self.service._load_records()
+        payload = records[run.run_id]
+        payload["artifacts"][-1]["payload"]["run_lifecycle_digest"] = "not-the-provenance-digest"
+        self.service._store.write_json("runs_v1.enc.json", records)
+
+        with self.assertRaisesRegex(ValueError, "inconsistent completion run_lifecycle_digest"):
             self.service.describe_run_flow(run.run_id)
 
     def test_running_record_rejects_corrupted_append_only_sequence(self) -> None:
@@ -2467,6 +2930,51 @@ class EngineRunPipelineTests(unittest.TestCase):
                 target_path="notes.md",
             )
 
+    def test_patch_decision_rejects_accepted_empty_patch_proposal(self) -> None:
+        run = self.service.start_run(
+            operation="draft",
+            scope="doc:doc-1",
+            intent="outline",
+            request_fingerprint="fp-empty-patch",
+        )
+
+        patch = self.service.propose_patch(
+            run.run_id,
+            original="before\n",
+            proposed="before\n",
+            target_path="notes.md",
+        )
+
+        self.assertEqual(patch, "")
+        with self.assertRaisesRegex(ValueError, "accepted patch decision requires a non-empty patch proposal"):
+            self.service.record_patch_decision(
+                run.run_id,
+                decision="accepted",
+                target_path="notes.md",
+            )
+
+        stored_after_failed_decision = self.service.get_run(run.run_id)
+        self.assertNotIn("patch_decision", [artifact.kind for artifact in stored_after_failed_decision.artifacts])
+        self.assertNotIn("patch_applied", [event.name for event in stored_after_failed_decision.events])
+
+        event = self.service.record_patch_decision(
+            run.run_id,
+            decision="rejected",
+            target_path="notes.md",
+            reason="no changes to apply",
+        )
+
+        self.assertEqual(event.name, "patch_rejected")
+        self.assertEqual(event.payload["reason"], "no changes to apply")
+        self.assertEqual(event.payload["proposal_line_count"], 0)
+        self.assertTrue(event.payload["proposal_is_empty"])
+        stored = self.service.get_run(run.run_id)
+        self.assertEqual(stored.artifacts[-1].kind, "patch_decision")
+        self.assertEqual(stored.artifacts[-1].payload["decision"], "rejected")
+        self.assertEqual(stored.artifacts[-1].payload["reason"], "no changes to apply")
+        self.assertEqual(stored.artifacts[-1].payload["proposal_line_count"], 0)
+        self.assertTrue(stored.artifacts[-1].payload["proposal_is_empty"])
+
     def test_patch_proposals_require_resolution_before_reproposal_on_same_path(self) -> None:
         run = self.service.start_run(
             operation="draft",
@@ -2607,6 +3115,10 @@ class EngineRunPipelineTests(unittest.TestCase):
                 "scope": "doc:doc-1",
                 "intent": "outline",
                 "request_fingerprint": "fp-5",
+                "run_provenance_artifact_id": completed.artifacts[-2].artifact_id,
+                "run_provenance_event_id": completed.events[-2].event_id,
+                "run_lifecycle_digest": completed.artifacts[-2].payload["run_lifecycle_digest"],
+                "flow_digest": completed.artifacts[-2].payload["flow_digest"],
             },
         )
 

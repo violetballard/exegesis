@@ -245,6 +245,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
             patch.object(coordinator, "_enabled_lanes", return_value=["feat-commands"]),
             patch.object(coordinator, "_lane_queue_empty", return_value=True),
             patch.object(coordinator, "_lane_has_active_feature_session", return_value=False),
+            patch.object(coordinator, "_lane_has_current_head_integrated", return_value=False),
             patch.object(coordinator, "_lane_scope_violations", return_value=[]),
             patch.object(coordinator, "_local_lms_feature_launch_slots", return_value=1),
             patch.object(coordinator, "_has_router_priority_backlog", return_value=False),
@@ -397,6 +398,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
                 patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
                 patch.object(coordinator, "_lane_scope_violations", return_value=[]),
+                patch.object(coordinator, "_lane_head_advanced_since_handoff", return_value=False),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0
@@ -461,6 +463,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
                 patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
                 patch.object(coordinator, "_lane_scope_violations", return_value=[]),
+                patch.object(coordinator, "_lane_head_advanced_since_handoff", return_value=False),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_779_170_600.0
@@ -541,6 +544,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
                 patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
                 patch.object(coordinator, "_lane_scope_violations", return_value=[]),
+                patch.object(coordinator, "_lane_head_advanced_since_handoff", return_value=False),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0
@@ -611,6 +615,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
                 patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
                 patch.object(coordinator, "_lane_scope_violations", return_value=[]),
+                patch.object(coordinator, "_lane_head_advanced_since_handoff", return_value=False),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0
@@ -753,6 +758,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
                 patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
                 patch.object(coordinator, "_lane_scope_violations", return_value=[]),
+                patch.object(coordinator, "_lane_head_advanced_since_handoff", return_value=False),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0

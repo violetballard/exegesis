@@ -114,7 +114,7 @@ class RouterQuotaFallbackTests(unittest.TestCase):
             mock.patch("packet_garden.tools.router._branch_merged_to_head", side_effect=merged),
             mock.patch("packet_garden.tools.router._latest_reviewed_files_for_lane", return_value=[]),
             mock.patch(
-                "packet_garden.tools.router._branch_changed_files",
+                "packet_garden.tools.router._branch_unmerged_authored_files",
                 return_value=["src/qual/commands/catalog.py"],
             ),
             mock.patch("packet_garden.tools.router._branch_scope_violations", return_value=[]),
@@ -216,6 +216,43 @@ class RouterQuotaFallbackTests(unittest.TestCase):
             )
 
         self.assertEqual(files, ["shared/src/exegesis_shared/contracts/actions.py"])
+
+    def test_integration_dependency_blockers_ignore_already_integrated_prior_reviewed_files(self) -> None:
+        cfg = _router_cfg()
+        cfg.lanes = {
+            "feat-context-storage": {"branch": "codex/feat-context-storage", "enabled": True},
+            "feat-commands": {"branch": "codex/feat-commands", "enabled": True},
+            "feat-retrieval-fts": {"branch": "codex/feat-retrieval-fts", "enabled": True},
+            "feat-engine-runs": {"branch": "codex/feat-engine-runs", "enabled": True},
+        }
+
+        def reviewed_files(lane: str) -> list[str]:
+            if lane == "feat-retrieval-fts":
+                return ["src/qual/engine/retrieval/payload.py"]
+            return []
+
+        def changed_files(_repo_cwd: str, branch: str) -> list[str]:
+            if branch == "codex/feat-retrieval-fts":
+                return ["shared/src/exegesis_shared/contracts/actions.py"]
+            if branch == "codex/feat-engine-runs":
+                return ["src/qual/engine/retrieval/payload.py"]
+            return []
+
+        with (
+            tempfile.TemporaryDirectory() as repo,
+            mock.patch("packet_garden.tools.router._branch_merged_to_head", return_value=False),
+            mock.patch("packet_garden.tools.router._latest_reviewed_files_for_lane", side_effect=reviewed_files),
+            mock.patch("packet_garden.tools.router._branch_unmerged_authored_files", side_effect=changed_files),
+            mock.patch("packet_garden.tools.router._branch_scope_violations", return_value=[]),
+        ):
+            blockers = _integration_dependency_blockers(
+                cfg,
+                repo,
+                "feat-engine-runs",
+                reviewed_files=["src/qual/engine/retrieval/payload.py"],
+            )
+
+        self.assertEqual(blockers, [])
 
     def test_integration_dependency_blockers_ignore_control_plane_only_overlap(self) -> None:
         cfg = _router_cfg()

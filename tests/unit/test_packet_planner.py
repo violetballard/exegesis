@@ -7,6 +7,7 @@ from packet_garden.tools.planner import (
     _full_branch_scope_violations,
     build_packet,
     build_shared_packet,
+    compute_changed_files_for_range,
     normalize_source_commit_traceability,
     should_skip_for_active_feature,
     source_commit_token_valid,
@@ -31,8 +32,15 @@ class PacketPlannerTests(unittest.TestCase):
     def test_active_feature_does_not_block_reemit_after_review_notes(self) -> None:
         state = {"lane_refill": {"feat-engine-runs": {"feature_active": True}}}
 
-        self.assertTrue(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=False))
-        self.assertFalse(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=True))
+        with patch("packet_garden.tools.planner.lane_feature_process_active", return_value=True):
+            self.assertTrue(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=False))
+            self.assertFalse(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=True))
+
+    def test_stale_feature_active_flag_does_not_block_planner(self) -> None:
+        state = {"lane_refill": {"feat-engine-runs": {"feature_active": True}}}
+
+        with patch("packet_garden.tools.planner.lane_feature_process_active", return_value=False):
+            self.assertFalse(should_skip_for_active_feature(state, "feat-engine-runs", fast_reemit=False))
 
     def test_source_commit_token_valid_checks_both_ends_of_range(self) -> None:
         with patch(
@@ -42,6 +50,21 @@ class PacketPlannerTests(unittest.TestCase):
             self.assertTrue(source_commit_token_valid("/repo", "base..head"))
             self.assertFalse(source_commit_token_valid("/repo", "missing..head"))
             self.assertFalse(source_commit_token_valid("/repo", "base..missing"))
+
+    def test_changed_files_for_explicit_reviewed_range_ignores_moving_main(self) -> None:
+        def fake_run_git(args: list[str], **_kwargs: object):
+            class Result:
+                returncode = 0
+                stdout = "src/qual/commands/catalog.py\n"
+
+            self.assertEqual(args, ["diff", "--name-only", "base..head"])
+            return Result()
+
+        with patch("packet_garden.tools.planner.run_git", side_effect=fake_run_git):
+            self.assertEqual(
+                compute_changed_files_for_range("/repo", "base..head"),
+                ["src/qual/commands/catalog.py"],
+            )
 
     def test_stale_source_commits_are_replaced_with_merge_base_range(self) -> None:
         def fake_run_git(args: list[str], **_kwargs: object):
@@ -222,7 +245,8 @@ class PacketPlannerTests(unittest.TestCase):
         self.assertIn("- Scope completed: shared handoff-maintenance edits are recorded separately from the lane-only", packet)
         self.assertIn("`src/qual/engine/**`", packet)
         self.assertIn("`tests/unit/test_engine_run_pipeline.py`", packet)
-        self.assertIn("`tests/unit/test_retrieval_payload_basket.py` feature packet.", packet)
+        self.assertIn("`tests/unit/test_retrieval_payload_basket.py`", packet)
+        self.assertIn("feature packet.", packet)
         self.assertIn("- Shared/integrator-locked edits: `YES`", packet)
         self.assertIn(
             "- Approval note: Approved shared/integrator-locked handoff maintenance is recorded in the companion shared packet.",
