@@ -207,6 +207,7 @@ class CommandDemoPathReadiness:
     commands: tuple[tuple[str, ...], ...]
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
     steps: tuple[CommandDemoPathReadinessStep, ...] = ()
+    missing_demo_steps: tuple[str, ...] = ()
 
 
 def _normalize_token(value: str) -> str:
@@ -1060,12 +1061,14 @@ def command_demo_path_readiness(
     normalized_program = _normalize_smoke_program(program)
     contract = command_demo_path_contract(normalized_program, specs, flow_steps)
     steps = _command_demo_path_readiness_steps(contract, normalized_program)
+    missing_demo_steps = _missing_demo_path_steps(contract.demo_steps)
     readiness = CommandDemoPathReadiness(
         program=normalized_program,
-        ready=bool(steps) and all(step.ready for step in steps),
+        ready=bool(steps) and not missing_demo_steps and all(step.ready for step in steps),
         command_count=len(contract.entries),
         demo_steps=contract.demo_steps,
         flow_steps=contract.flow_steps,
+        missing_demo_steps=missing_demo_steps,
         argv=contract.argv,
         commands=contract.commands,
         route_summary=contract.route_summary,
@@ -1103,6 +1106,15 @@ def _command_demo_path_readiness_steps(
     )
 
 
+def _missing_demo_path_steps(demo_steps: tuple[str, ...]) -> tuple[str, ...]:
+    present_demo_steps = set(demo_steps)
+    return tuple(
+        demo_step
+        for _, demo_step in DEMO_PATH_STEPS_BY_FLOW_STEP
+        if demo_step not in present_demo_steps
+    )
+
+
 def _validate_command_demo_path_readiness(
     readiness: CommandDemoPathReadiness,
     contract: CommandDemoPathContract,
@@ -1113,6 +1125,8 @@ def _validate_command_demo_path_readiness(
         raise ValueError("Command demo path readiness labels are inconsistent")
     if readiness.flow_steps != contract.flow_steps:
         raise ValueError("Command demo path readiness flow steps are inconsistent")
+    if readiness.missing_demo_steps != _missing_demo_path_steps(contract.demo_steps):
+        raise ValueError("Command demo path readiness missing labels are inconsistent")
     if readiness.argv != contract.argv:
         raise ValueError("Command demo path readiness argv is inconsistent")
     if readiness.commands != contract.commands:
@@ -1141,7 +1155,11 @@ def _validate_command_demo_path_readiness(
         entry.lookup_tokens for entry in contract.entries
     ):
         raise ValueError("Command demo path readiness step lookup tokens are inconsistent")
-    if readiness.ready != (bool(readiness.steps) and all(step.ready for step in readiness.steps)):
+    if readiness.ready != (
+        bool(readiness.steps)
+        and not readiness.missing_demo_steps
+        and all(step.ready for step in readiness.steps)
+    ):
         raise ValueError("Command demo path readiness status is inconsistent")
     for step in readiness.steps:
         if not step.command or step.command[0] != readiness.program:
