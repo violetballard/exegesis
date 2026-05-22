@@ -1475,10 +1475,15 @@ def _covered_canonical_step_commands(
     demo_step_commands: tuple[tuple[str, str], ...],
 ) -> tuple[tuple[str, str], ...]:
     canonical_steps = {_normalize_token(step) for step in CANONICAL_DEMO_PATH_STEPS}
+    commands_by_step: dict[str, tuple[str, str]] = {}
+    for demo_step, command in demo_step_commands:
+        normalized_step = _normalize_token(demo_step)
+        if normalized_step in canonical_steps and normalized_step not in commands_by_step:
+            commands_by_step[normalized_step] = (demo_step, command)
     return tuple(
-        (demo_step, command)
-        for demo_step, command in demo_step_commands
-        if _normalize_token(demo_step) in canonical_steps
+        commands_by_step[normalized_step]
+        for step in CANONICAL_DEMO_PATH_STEPS
+        if (normalized_step := _normalize_token(step)) in commands_by_step
     )
 
 

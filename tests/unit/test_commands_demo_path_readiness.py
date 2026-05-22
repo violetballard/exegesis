@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import unittest
+from unittest.mock import patch
 
+import src.qual.commands.catalog as command_catalog
 from src.qual.commands import (
     command_demo_path_command_lookup_table,
     command_demo_path_compatibility_lookup_table,
@@ -167,6 +169,35 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
         self.assertIn(
             ("promote-or-gather-context-into-basket", "qual-bootstrap context-basket add demo-context-item"),
             summary.covered_canonical_step_commands,
+        )
+
+    def test_handoff_summary_orders_covered_commands_by_canonical_demo_path(self) -> None:
+        command_catalog.command_flow_route_catalog.cache_clear()
+        command_catalog.command_cli_smoke_steps.cache_clear()
+        command_catalog.command_cli_smoke_plan.cache_clear()
+        with patch.object(
+            command_catalog,
+            "DEMO_PATH_STEPS_BY_FLOW_STEP",
+            (
+                ("project-open", "open-project-document"),
+                ("retrieval", "retrieve-relevant-material"),
+                ("patch-review", "preview-patch"),
+                ("export-handoff", "continue-without-losing-context"),
+            ),
+        ):
+            summary = command_demo_path_handoff_summary(program="qual-bootstrap")
+        command_catalog.command_flow_route_catalog.cache_clear()
+        command_catalog.command_cli_smoke_steps.cache_clear()
+        command_catalog.command_cli_smoke_plan.cache_clear()
+
+        self.assertEqual(
+            summary.covered_canonical_step_commands,
+            (
+                ("open-project-document", "qual-bootstrap bootstrap"),
+                ("retrieve-relevant-material", "qual-bootstrap context-basket list"),
+                ("promote-or-gather-context-into-basket", "qual-bootstrap context-basket add demo-context-item"),
+                ("continue-without-losing-context", "qual-bootstrap terminal"),
+            ),
         )
 
     def test_handoff_summary_carries_missing_demo_steps_for_partial_paths(self) -> None:
