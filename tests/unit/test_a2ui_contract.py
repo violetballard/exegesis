@@ -759,6 +759,8 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual([slot["command"] for slot in slots], ["1", "2", "3"])
         self.assertEqual([slot["action"]["id"] for slot in slots], ["preview_patch", "apply_patch", "reject_patch"])
+        self.assertEqual(envelope["type"], "PatchActionSelection")
+        self.assertEqual(envelope["patch_id"], "p1")
         self.assertEqual(envelope["preview"]["actions"], ["1"])
         self.assertEqual(envelope["decision"]["actions"], ["2", "3"])
         self.assertEqual(selected.id, "apply_patch")
