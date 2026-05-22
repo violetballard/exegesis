@@ -71,6 +71,7 @@ from src.qual.ui.a2ui import (
     execute_complete_patch_review_selection_with_policy_gate,
     execute_action_with_policy_gate,
     execute_card_selection_with_policy_gate,
+    execute_patch_review_action,
     execute_patch_review_decision_cli_command_with_policy_gate,
     execute_complete_patch_review_decision_cli_command_with_policy_gate,
     execute_patch_review_selection_with_policy_gate,
@@ -4061,6 +4062,57 @@ class A2UIContractTests(unittest.TestCase):
             patch_decision_action_ref_from_selection(card, preview_selection, patch_id="p1")
         with self.assertRaisesRegex(ValueError, "not a patch preview"):
             patch_preview_action_ref_from_selection(card, apply_selection, patch_id="p1")
+
+    def test_patch_selection_envelope_rejects_mixed_patch_ids(self) -> None:
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "diff"}],
+            "actions": [
+                {"id": "preview_patch", "label": "Preview Patch", "payload": {"patch_id": "p9"}},
+                {"id": "apply_patch", "label": "Apply Patch", "payload": {"patch_id": "p10"}},
+            ],
+        }
+
+        with self.assertRaises(ValueError):
+            materialize_patch_selection_envelope(card)
+
+    def test_patch_review_action_resolves_through_policy_gate(self) -> None:
+        executed: list[tuple[str, dict[str, str]]] = []
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "diff"}],
+            "actions": [
+                {"id": "preview_patch", "label": "Preview Patch", "payload": {"patch_id": "p9"}},
+                {
+                    "id": "apply_patch",
+                    "label": "Apply Patch",
+                    "payload": {"patch_id": "p9"},
+                    "policy_sensitive": True,
+                },
+                {"id": "reject_patch", "label": "Reject Patch", "payload": {"patch_id": "p9"}},
+            ],
+        }
+
+        with self.assertRaises(PermissionError):
+            execute_patch_review_action(
+                card=card,
+                selection="apply",
+                capabilities=_capabilities(),
+                policy_gate=_PolicyGateStub(False),
+                executor=lambda action: executed.append((action.id, action.payload)),
+            )
+        self.assertEqual(executed, [])
+
+        execute_patch_review_action(
+            card=card,
+            selection="apply",
+            capabilities=_capabilities(),
+            policy_gate=_PolicyGateStub(True),
+            executor=lambda action: executed.append((action.id, action.payload)),
+        )
+        self.assertEqual(executed, [("apply_patch", {"patch_id": "p9"})])
 
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []

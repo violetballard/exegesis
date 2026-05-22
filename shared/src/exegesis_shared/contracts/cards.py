@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 from exegesis_shared.contracts.actions import (
     ALLOWED_ACTION_IDS,
     ActionRef,
     PATCH_REVIEW_CLI_COMMAND_ALIASES,
+    PolicyGate,
+    execute_action_with_policy_gate,
     validate_complete_patch_review_capabilities,
     materialize_action_selection_contract,
     materialize_card_actions,
@@ -388,16 +390,26 @@ def resolve_action_selection(card: dict[str, Any], selection: str | int) -> Acti
 def materialize_patch_selection_envelope(card: dict[str, Any]) -> dict[str, Any]:
     preview_slots = []
     decision_slots = []
+    patch_ids: set[str] = set()
     for slot in materialize_action_slots(card):
-        action_id = slot["action"].get("id")
+        action = slot["action"]
+        action_id = action.get("id")
         if action_id == "preview_patch":
             preview_slots.append(slot)
         elif action_id in {"apply_patch", "reject_patch"}:
             decision_slots.append(slot)
+        else:
+            continue
+        patch_id = action.get("payload", {}).get("patch_id")
+        if isinstance(patch_id, str):
+            patch_ids.add(patch_id)
     if not preview_slots and not decision_slots:
         raise ValueError("Patch selection requires preview_patch, apply_patch, or reject_patch actions")
+    if len(patch_ids) != 1:
+        raise ValueError("Patch selection requires actions for exactly one patch_id")
     return {
         "type": "PatchActionSelection",
+        "patch_id": next(iter(patch_ids)),
         "preview": {
             "command": "preview",
             "actions": [slot["command"] for slot in preview_slots],
@@ -407,6 +419,28 @@ def materialize_patch_selection_envelope(card: dict[str, Any]) -> dict[str, Any]
         },
         "actions": [*preview_slots, *decision_slots],
     }
+
+
+def execute_patch_review_action(
+    *,
+    card: dict[str, Any],
+    selection: str | int,
+    capabilities: A2UICapabilities,
+    policy_gate: PolicyGate,
+    executor: Callable[[ActionRef], Any],
+) -> Any:
+    envelope = materialize_patch_selection_envelope(card)
+    action = resolve_action_selection(card, selection)
+    if action.id not in {"preview_patch", "apply_patch", "reject_patch"}:
+        raise ValueError("Patch review selection must resolve to a patch action")
+    if action.payload.get("patch_id") != envelope["patch_id"]:
+        raise ValueError("Patch review action does not match envelope patch_id")
+    return execute_action_with_policy_gate(
+        action=action,
+        capabilities=capabilities,
+        policy_gate=policy_gate,
+        executor=executor,
+    )
 
 
 def _action_selection_aliases(action: dict[str, Any]) -> tuple[str, ...]:
