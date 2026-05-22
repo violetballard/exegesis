@@ -162,7 +162,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(selected.id, "apply_patch")
         self.assertEqual(selected.payload, {"patch_id": "p1"})
 
-    def test_patch_selection_envelope_exposes_preview_apply_reject_controls(self) -> None:
+    def test_patch_selection_envelope_separates_preview_and_decision_controls(self) -> None:
         card = {
             "type": "GenericCard",
             "title": "Patch",
@@ -178,7 +178,8 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(envelope["type"], "PatchActionSelection")
         self.assertEqual(envelope["preview"]["command"], "preview")
-        self.assertEqual(envelope["preview"]["actions"], ["1", "2", "3"])
+        self.assertEqual(envelope["preview"]["actions"], ["1"])
+        self.assertEqual(envelope["decision"]["actions"], ["2", "3"])
         self.assertEqual(
             [slot["action"]["id"] for slot in envelope["actions"]],
             ["preview_patch", "apply_patch", "reject_patch"],
@@ -197,7 +198,8 @@ class A2UIContractTests(unittest.TestCase):
 
         envelope = materialize_patch_selection_envelope(card)
 
-        self.assertEqual(envelope["preview"]["actions"], ["1", "2"])
+        self.assertEqual(envelope["preview"]["actions"], [])
+        self.assertEqual(envelope["decision"]["actions"], ["1", "2"])
         self.assertEqual(
             [slot["action"]["id"] for slot in envelope["actions"]],
             ["apply_patch", "reject_patch"],

@@ -228,21 +228,27 @@ def resolve_action_selection(card: dict[str, Any], selection: str | int) -> Acti
 
 
 def materialize_patch_selection_envelope(card: dict[str, Any]) -> dict[str, Any]:
-    slots = []
+    preview_slots = []
+    decision_slots = []
     for slot in materialize_action_slots(card):
         action = slot["action"]
-        if action.get("id") not in {"preview_patch", "apply_patch", "reject_patch"}:
-            continue
-        slots.append(slot)
-    if not slots:
+        action_id = action.get("id")
+        if action_id == "preview_patch":
+            preview_slots.append(slot)
+        elif action_id in {"apply_patch", "reject_patch"}:
+            decision_slots.append(slot)
+    if not preview_slots and not decision_slots:
         raise ValueError("Patch selection requires preview_patch, apply_patch, or reject_patch actions")
     return {
         "type": "PatchActionSelection",
         "preview": {
             "command": "preview",
-            "actions": [slot["command"] for slot in slots],
+            "actions": [slot["command"] for slot in preview_slots],
         },
-        "actions": slots,
+        "decision": {
+            "actions": [slot["command"] for slot in decision_slots],
+        },
+        "actions": [*preview_slots, *decision_slots],
     }
 
 
