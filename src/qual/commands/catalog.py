@@ -179,6 +179,7 @@ class CommandDemoPathContract:
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
     argv: tuple[tuple[str, ...], ...]
     commands: tuple[tuple[str, ...], ...]
+    command_lookup_table: tuple[tuple[tuple[str, ...], str], ...]
     entries: tuple[CommandDemoPathCommand, ...]
 
 
@@ -205,6 +206,7 @@ class CommandDemoPathReadiness:
     flow_steps: tuple[str, ...]
     argv: tuple[tuple[str, ...], ...]
     commands: tuple[tuple[str, ...], ...]
+    command_lookup_table: tuple[tuple[tuple[str, ...], str], ...]
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
     steps: tuple[CommandDemoPathReadinessStep, ...] = ()
     missing_demo_steps: tuple[str, ...] = ()
@@ -1047,6 +1049,7 @@ def command_demo_path_contract(
         route_summary=smoke_plan.route_summary,
         argv=tuple(entry.argv for entry in entries),
         commands=tuple(entry.command for entry in entries),
+        command_lookup_table=tuple((entry.command, entry.demo_step) for entry in entries),
         entries=entries,
     )
     _validate_command_demo_path_contract(contract, smoke_plan)
@@ -1071,6 +1074,7 @@ def command_demo_path_readiness(
         missing_demo_steps=missing_demo_steps,
         argv=contract.argv,
         commands=contract.commands,
+        command_lookup_table=contract.command_lookup_table,
         route_summary=contract.route_summary,
         steps=steps,
     )
@@ -1131,6 +1135,8 @@ def _validate_command_demo_path_readiness(
         raise ValueError("Command demo path readiness argv is inconsistent")
     if readiness.commands != contract.commands:
         raise ValueError("Command demo path readiness commands are inconsistent")
+    if readiness.command_lookup_table != contract.command_lookup_table:
+        raise ValueError("Command demo path readiness command lookup table is inconsistent")
     if readiness.route_summary != contract.route_summary:
         raise ValueError("Command demo path readiness route summary is inconsistent")
     if tuple(step.demo_step for step in readiness.steps) != readiness.demo_steps:
@@ -1186,6 +1192,16 @@ def _validate_command_demo_path_contract(
         raise ValueError("Command demo path contract entry argv is inconsistent")
     if tuple(entry.command for entry in contract.entries) != contract.commands:
         raise ValueError("Command demo path contract commands are inconsistent")
+    if tuple((entry.command, entry.demo_step) for entry in contract.entries) != contract.command_lookup_table:
+        raise ValueError("Command demo path contract command lookup table is inconsistent")
+
+
+def command_demo_path_command_lookup_table(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[tuple[str, ...], str], ...]:
+    return command_demo_path_contract(program, specs, flow_steps).command_lookup_table
 
 
 def _validate_command_demo_path_command_entries(
@@ -1275,6 +1291,12 @@ def command_mvp_demo_path_command_entries(program: str = "qual-bootstrap") -> tu
 
 def command_mvp_demo_path_contract(program: str = "qual-bootstrap") -> CommandDemoPathContract:
     return command_demo_path_contract(program=program, flow_steps=command_mvp_flow_steps())
+
+
+def command_mvp_demo_path_command_lookup_table(
+    program: str = "qual-bootstrap",
+) -> tuple[tuple[tuple[str, ...], str], ...]:
+    return command_demo_path_command_lookup_table(program=program, flow_steps=command_mvp_flow_steps())
 
 
 def command_mvp_demo_path_readiness(program: str = "qual-bootstrap") -> CommandDemoPathReadiness:
