@@ -23,6 +23,7 @@ def _capabilities(
     *,
     cards_supported: tuple[str, ...] = ("ProposedEditCard",),
     actions_supported: tuple[str, ...] = (
+        "preview_patch",
         "apply_patch",
         "reject_patch",
         "open_section",
@@ -76,6 +77,7 @@ class A2UIContractTests(unittest.TestCase):
             "type": "ProposedEditCard",
             "title": "Patch",
             "actions": [
+                {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
                 {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
                 {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
             ],
@@ -83,7 +85,7 @@ class A2UIContractTests(unittest.TestCase):
         card = engine_prepare_card(payload, caps)
         self.assertEqual(card["type"], "GenericCard")
         self.assertEqual(card["blocks"][0]["type"], "AlertBlock")
-        self.assertEqual([action["id"] for action in card["actions"]], ["apply_patch", "reject_patch"])
+        self.assertEqual([action["id"] for action in card["actions"]], ["preview_patch", "apply_patch", "reject_patch"])
 
     def test_studio_renders_unknown_card_for_unsupported_type(self) -> None:
         caps = _capabilities(cards_supported=("RunLogCard",))
@@ -134,7 +136,7 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(
             [action["id"] for action in filtered["actions"]],
-            ["apply_patch", "copy_to_clipboard", "reject_patch"],
+            ["apply_patch", "reject_patch", "copy_to_clipboard"],
         )
 
     def test_action_slots_are_one_based_and_resolve_cli_selection(self) -> None:
@@ -143,16 +145,20 @@ class A2UIContractTests(unittest.TestCase):
             "title": "Patch",
             "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
             "actions": [
+                {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
                 {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
                 {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
             ],
         }
         slots = materialize_action_slots(card)
-        self.assertEqual([slot["slot"] for slot in slots], [1, 2])
-        self.assertEqual([slot["command"] for slot in slots], ["1", "2"])
+        self.assertEqual([slot["slot"] for slot in slots], [1, 2, 3])
+        self.assertEqual([slot["command"] for slot in slots], ["1", "2", "3"])
 
+        preview = resolve_action_selection(card, "preview")
         selected = resolve_action_selection(card, "apply")
 
+        self.assertEqual(preview.id, "preview_patch")
+        self.assertEqual(preview.payload, {"patch_id": "p1"})
         self.assertEqual(selected.id, "apply_patch")
         self.assertEqual(selected.payload, {"patch_id": "p1"})
 
@@ -162,6 +168,7 @@ class A2UIContractTests(unittest.TestCase):
             "title": "Patch",
             "blocks": [{"type": "MarkdownBlock", "markdown": "diff"}],
             "actions": [
+                {"id": "preview_patch", "label": "Preview Patch", "payload": {"patch_id": "p9"}},
                 {"id": "apply_patch", "label": "Apply Patch", "payload": {"patch_id": "p9"}},
                 {"id": "reject_patch", "label": "Reject Patch", "payload": {"patch_id": "p9"}},
             ],
@@ -171,7 +178,11 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(envelope["type"], "PatchActionSelection")
         self.assertEqual(envelope["preview"]["command"], "preview")
-        self.assertEqual([slot["action"]["id"] for slot in envelope["actions"]], ["apply_patch", "reject_patch"])
+        self.assertEqual(envelope["preview"]["actions"], ["1"])
+        self.assertEqual(
+            [slot["action"]["id"] for slot in envelope["actions"]],
+            ["preview_patch", "apply_patch", "reject_patch"],
+        )
 
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []
@@ -220,6 +231,7 @@ class A2UIContractTests(unittest.TestCase):
             "title": "Patch",
             "blocks": [{"type": "MarkdownBlock", "markdown": "diff"}],
             "actions": [
+                {"id": "preview_patch", "label": "Preview Patch", "payload": {"patch_id": "p1"}},
                 {"id": "apply_patch", "label": "Apply Patch", "payload": {"patch_id": "p1"}},
                 {"id": "reject_patch", "label": "Reject Patch", "payload": {"patch_id": "p1"}},
             ],
@@ -227,8 +239,9 @@ class A2UIContractTests(unittest.TestCase):
 
         text = render_terminal_card(card)
 
-        self.assertIn("1. Apply Patch [apply_patch, apply]", text)
-        self.assertIn("2. Reject Patch [reject_patch, reject]", text)
+        self.assertIn("1. Preview Patch [preview_patch, preview]", text)
+        self.assertIn("2. Apply Patch [apply_patch, apply]", text)
+        self.assertIn("3. Reject Patch [reject_patch, reject]", text)
 
 
 if __name__ == "__main__":

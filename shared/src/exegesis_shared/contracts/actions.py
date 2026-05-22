@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any, Callable, Protocol
 
 ALLOWED_ACTION_IDS: tuple[str, ...] = (
+    "preview_patch",
     "apply_patch",
     "reject_patch",
     "open_section",
@@ -19,6 +20,7 @@ ALLOWED_ACTION_IDS: tuple[str, ...] = (
 _ALLOWED_ACTION_SET = set(ALLOWED_ACTION_IDS)
 
 _ACTION_SCHEMAS: dict[str, dict[str, type]] = {
+    "preview_patch": {"patch_id": str},
     "apply_patch": {"patch_id": str},
     "reject_patch": {"patch_id": str},
     "open_section": {"section_id": str},

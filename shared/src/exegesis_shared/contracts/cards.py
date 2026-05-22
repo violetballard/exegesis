@@ -89,7 +89,7 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
         ],
         "actions": [],
     }
-    fallback["actions"] = _valid_supported_actions(card.get("actions", []), capabilities)
+    fallback["actions"] = _canonicalize_actions(_valid_supported_actions(card.get("actions", []), capabilities))
     return fallback
 
 
@@ -193,7 +193,7 @@ def _canonicalize_actions(actions: list[dict[str, Any]]) -> list[dict[str, Any]]
         canonical.append(action)
     return sorted(
         canonical,
-        key=lambda action: json.dumps(action, sort_keys=True, separators=(",", ":"), ensure_ascii=True),
+        key=_action_sort_key,
     )
 
 
@@ -231,14 +231,17 @@ def materialize_patch_selection_envelope(card: dict[str, Any]) -> dict[str, Any]
     slots = []
     for slot in materialize_action_slots(card):
         action = slot["action"]
-        if action.get("id") not in {"apply_patch", "reject_patch"}:
+        if action.get("id") not in {"preview_patch", "apply_patch", "reject_patch"}:
             continue
         slots.append(slot)
     if not slots:
-        raise ValueError("Patch selection requires apply_patch or reject_patch actions")
+        raise ValueError("Patch selection requires preview_patch, apply_patch, or reject_patch actions")
     return {
         "type": "PatchActionSelection",
-        "preview": {"command": "preview", "actions": [slot["command"] for slot in slots]},
+        "preview": {
+            "command": "preview",
+            "actions": [slot["command"] for slot in slots if slot["action"].get("id") == "preview_patch"],
+        },
         "actions": slots,
     }
 
@@ -261,8 +264,22 @@ def _valid_actions(raw_actions: Any) -> list[dict[str, Any]]:
 def _action_aliases(action: dict[str, Any]) -> tuple[str, ...]:
     action_id = str(action.get("id", ""))
     aliases = [action_id]
-    if action_id == "apply_patch":
+    if action_id == "preview_patch":
+        aliases.append("preview")
+    elif action_id == "apply_patch":
         aliases.append("apply")
     elif action_id == "reject_patch":
         aliases.append("reject")
     return tuple(aliases)
+
+
+def _action_sort_key(action: dict[str, Any]) -> tuple[int, str]:
+    patch_order = {
+        "preview_patch": 0,
+        "apply_patch": 1,
+        "reject_patch": 2,
+    }
+    action_id = str(action.get("id", ""))
+    if action_id in patch_order:
+        return (patch_order[action_id], "")
+    return (10, json.dumps(action, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
