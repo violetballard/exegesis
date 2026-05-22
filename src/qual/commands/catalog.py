@@ -231,6 +231,8 @@ class CommandDemoPathHandoffSummary:
     ready: bool
     command_count: int
     command_lines: tuple[str, ...]
+    compatibility_command_lines: tuple[str, ...]
+    compatibility_normalized_command_lines: tuple[str, ...]
     flow_step_commands: tuple[tuple[str, str], ...]
     demo_step_commands: tuple[tuple[str, str], ...]
     missing_demo_steps: tuple[str, ...]
@@ -400,11 +402,20 @@ DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "export-handoff",
 )
 MVP_COMMAND_FLOW_STEPS: tuple[str, ...] = DEMO_COMMAND_FLOW_STEPS
+CANONICAL_DEMO_PATH_STEPS: tuple[str, ...] = (
+    "open-project-document",
+    "retrieve-relevant-material",
+    "promote-or-gather-context-into-basket",
+    "produce-plan-or-revision",
+    "preview-and-apply-or-reject-patch",
+    "persist-updated-document-session-state",
+    "continue-without-losing-context",
+)
 DEMO_PATH_STEPS_BY_FLOW_STEP: tuple[tuple[str, str], ...] = (
     ("project-open", "open-project-document"),
     ("retrieval", "retrieve-relevant-material"),
-    ("patch-review", "preview-apply-or-reject-patch"),
-    ("export-handoff", "persist-and-continue"),
+    ("patch-review", "preview-patch"),
+    ("export-handoff", "export-handoff"),
 )
 
 
@@ -1113,16 +1124,27 @@ def command_demo_path_handoff_summary(
 ) -> CommandDemoPathHandoffSummary:
     readiness = command_demo_path_readiness(program, specs, flow_steps)
     command_lines = tuple(" ".join(command) for command in readiness.commands)
+    compatibility_entries = command_demo_path_compatibility_command_entries(
+        program=readiness.program,
+        specs=specs,
+        flow_steps=flow_steps,
+    )
     summary = CommandDemoPathHandoffSummary(
         program=readiness.program,
         ready=readiness.ready,
         command_count=readiness.command_count,
         command_lines=command_lines,
+        compatibility_command_lines=tuple(
+            " ".join(entry.command) for entry in compatibility_entries
+        ),
+        compatibility_normalized_command_lines=tuple(
+            " ".join(entry.normalized_command) for entry in compatibility_entries
+        ),
         flow_step_commands=tuple(zip(readiness.flow_steps, command_lines, strict=True)),
         demo_step_commands=tuple(zip(readiness.demo_steps, command_lines, strict=True)),
         missing_demo_steps=readiness.missing_demo_steps,
     )
-    _validate_command_demo_path_handoff_summary(summary, readiness)
+    _validate_command_demo_path_handoff_summary(summary, readiness, compatibility_entries)
     return summary
 
 
@@ -1157,6 +1179,7 @@ def _command_demo_path_readiness_steps(
 def _validate_command_demo_path_handoff_summary(
     summary: CommandDemoPathHandoffSummary,
     readiness: CommandDemoPathReadiness,
+    compatibility_entries: tuple[CommandDemoPathCompatibilityCommand, ...],
 ) -> None:
     if summary.program != readiness.program:
         raise ValueError("Command demo path handoff program is inconsistent")
@@ -1166,6 +1189,14 @@ def _validate_command_demo_path_handoff_summary(
         raise ValueError("Command demo path handoff count is inconsistent")
     if summary.command_lines != tuple(" ".join(command) for command in readiness.commands):
         raise ValueError("Command demo path handoff commands are inconsistent")
+    if summary.compatibility_command_lines != tuple(
+        " ".join(entry.command) for entry in compatibility_entries
+    ):
+        raise ValueError("Command demo path handoff compatibility commands are inconsistent")
+    if summary.compatibility_normalized_command_lines != tuple(
+        " ".join(entry.normalized_command) for entry in compatibility_entries
+    ):
+        raise ValueError("Command demo path handoff normalized compatibility commands are inconsistent")
     if summary.flow_step_commands != tuple(zip(readiness.flow_steps, summary.command_lines, strict=True)):
         raise ValueError("Command demo path handoff flow steps are inconsistent")
     if summary.demo_step_commands != tuple(zip(readiness.demo_steps, summary.command_lines, strict=True)):
@@ -1175,11 +1206,11 @@ def _validate_command_demo_path_handoff_summary(
 
 
 def _missing_demo_path_steps(demo_steps: tuple[str, ...]) -> tuple[str, ...]:
-    present_demo_steps = set(demo_steps)
+    present_demo_steps = {_normalize_token(step) for step in demo_steps}
     return tuple(
         demo_step
-        for _, demo_step in DEMO_PATH_STEPS_BY_FLOW_STEP
-        if demo_step not in present_demo_steps
+        for demo_step in CANONICAL_DEMO_PATH_STEPS
+        if _normalize_token(demo_step) not in present_demo_steps
     )
 
 

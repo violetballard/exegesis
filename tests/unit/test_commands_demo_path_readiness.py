@@ -10,18 +10,27 @@ from src.qual.commands import (
 
 
 class CommandDemoPathReadinessTests(unittest.TestCase):
-    def test_readiness_requires_the_full_mvp_loop(self) -> None:
+    def test_readiness_requires_the_actual_canonical_demo_path(self) -> None:
         readiness = command_demo_path_readiness(program="qual-bootstrap")
 
-        self.assertTrue(readiness.ready)
-        self.assertEqual(readiness.missing_demo_steps, ())
+        self.assertFalse(readiness.ready)
+        self.assertEqual(
+            readiness.missing_demo_steps,
+            (
+                "promote-or-gather-context-into-basket",
+                "produce-plan-or-revision",
+                "preview-and-apply-or-reject-patch",
+                "persist-updated-document-session-state",
+                "continue-without-losing-context",
+            ),
+        )
         self.assertEqual(
             readiness.command_lookup_table,
             (
                 (("qual-bootstrap", "bootstrap"), "open-project-document"),
                 (("qual-bootstrap", "context-basket", "list"), "retrieve-relevant-material"),
-                (("qual-bootstrap", "diff-preview"), "preview-apply-or-reject-patch"),
-                (("qual-bootstrap", "terminal"), "persist-and-continue"),
+                (("qual-bootstrap", "diff-preview"), "preview-patch"),
+                (("qual-bootstrap", "terminal"), "export-handoff"),
             ),
         )
         self.assertEqual(
@@ -29,8 +38,8 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
             (
                 "open-project-document",
                 "retrieve-relevant-material",
-                "preview-apply-or-reject-patch",
-                "persist-and-continue",
+                "preview-patch",
+                "export-handoff",
             ),
         )
 
@@ -41,8 +50,17 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
         )
 
         self.assertFalse(readiness.ready)
-        self.assertEqual(readiness.missing_demo_steps, ("persist-and-continue",))
-        self.assertEqual(readiness.demo_steps[-1], "preview-apply-or-reject-patch")
+        self.assertEqual(
+            readiness.missing_demo_steps,
+            (
+                "promote-or-gather-context-into-basket",
+                "produce-plan-or-revision",
+                "preview-and-apply-or-reject-patch",
+                "persist-updated-document-session-state",
+                "continue-without-losing-context",
+            ),
+        )
+        self.assertEqual(readiness.demo_steps[-1], "preview-patch")
 
     def test_command_lookup_table_maps_smoke_commands_to_demo_steps(self) -> None:
         self.assertEqual(
@@ -50,15 +68,15 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
             (
                 (("qual-bootstrap", "bootstrap"), "open-project-document"),
                 (("qual-bootstrap", "context-basket", "list"), "retrieve-relevant-material"),
-                (("qual-bootstrap", "diff-preview"), "preview-apply-or-reject-patch"),
-                (("qual-bootstrap", "terminal"), "persist-and-continue"),
+                (("qual-bootstrap", "diff-preview"), "preview-patch"),
+                (("qual-bootstrap", "terminal"), "export-handoff"),
             ),
         )
 
     def test_handoff_summary_exposes_stable_smoke_command_lines(self) -> None:
         summary = command_demo_path_handoff_summary(program="qual-bootstrap")
 
-        self.assertTrue(summary.ready)
+        self.assertFalse(summary.ready)
         self.assertEqual(summary.command_count, 4)
         self.assertEqual(
             summary.command_lines,
@@ -66,6 +84,42 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
                 "qual-bootstrap bootstrap",
                 "qual-bootstrap context-basket list",
                 "qual-bootstrap diff-preview",
+                "qual-bootstrap terminal",
+            ),
+        )
+        self.assertEqual(
+            summary.compatibility_command_lines,
+            (
+                "qual-bootstrap bootstrap",
+                "qual-bootstrap open",
+                "qual-bootstrap project-open",
+                "qual-bootstrap project",
+                "qual-bootstrap context-basket list",
+                "qual-bootstrap context list",
+                "qual-bootstrap basket list",
+                "qual-bootstrap retrieval list",
+                "qual-bootstrap diff-preview",
+                "qual-bootstrap diff",
+                "qual-bootstrap patch-review",
+                "qual-bootstrap terminal",
+                "qual-bootstrap export-handoff",
+            ),
+        )
+        self.assertEqual(
+            summary.compatibility_normalized_command_lines,
+            (
+                "qual-bootstrap bootstrap",
+                "qual-bootstrap bootstrap",
+                "qual-bootstrap bootstrap",
+                "qual-bootstrap bootstrap",
+                "qual-bootstrap context-basket list",
+                "qual-bootstrap context-basket list",
+                "qual-bootstrap context-basket list",
+                "qual-bootstrap context-basket list",
+                "qual-bootstrap diff-preview",
+                "qual-bootstrap diff-preview",
+                "qual-bootstrap diff-preview",
+                "qual-bootstrap terminal",
                 "qual-bootstrap terminal",
             ),
         )
@@ -83,8 +137,8 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
             (
                 ("open-project-document", "qual-bootstrap bootstrap"),
                 ("retrieve-relevant-material", "qual-bootstrap context-basket list"),
-                ("preview-apply-or-reject-patch", "qual-bootstrap diff-preview"),
-                ("persist-and-continue", "qual-bootstrap terminal"),
+                ("preview-patch", "qual-bootstrap diff-preview"),
+                ("export-handoff", "qual-bootstrap terminal"),
             ),
         )
 
@@ -95,8 +149,18 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
         )
 
         self.assertFalse(summary.ready)
-        self.assertEqual(summary.missing_demo_steps, ("persist-and-continue",))
+        self.assertEqual(
+            summary.missing_demo_steps,
+            (
+                "promote-or-gather-context-into-basket",
+                "produce-plan-or-revision",
+                "preview-and-apply-or-reject-patch",
+                "persist-updated-document-session-state",
+                "continue-without-losing-context",
+            ),
+        )
         self.assertEqual(summary.command_lines[-1], "qual-bootstrap diff-preview")
+        self.assertNotIn("qual-bootstrap terminal", summary.compatibility_command_lines)
 
 
 if __name__ == "__main__":
