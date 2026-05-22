@@ -398,6 +398,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
                 patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
                 patch.object(coordinator, "_lane_scope_violations", return_value=[]),
+                patch.object(coordinator, "_lane_head_advanced_since_handoff", return_value=False),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0
@@ -542,6 +543,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
                 patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
                 patch.object(coordinator, "_lane_scope_violations", return_value=[]),
+                patch.object(coordinator, "_lane_head_advanced_since_handoff", return_value=False),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0
@@ -612,6 +614,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
                 patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
                 patch.object(coordinator, "_lane_scope_violations", return_value=[]),
+                patch.object(coordinator, "_lane_head_advanced_since_handoff", return_value=False),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0
@@ -754,6 +757,7 @@ class CoordinatorRebootResumeTests(unittest.TestCase):
                 patch.object(coordinator, "find_stale_repo_test_runner_pids", return_value=[]),
                 patch.object(coordinator, "_reconcile_duplicate_feature_exec_processes", return_value={}),
                 patch.object(coordinator, "_lane_scope_violations", return_value=[]),
+                patch.object(coordinator, "_lane_head_advanced_since_handoff", return_value=False),
                 patch.object(coordinator, "time") as time_mod,
             ):
                 time_mod.time.return_value = 1_776_272_400.0
