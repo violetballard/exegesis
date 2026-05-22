@@ -21,6 +21,7 @@ require control-plane changes still require integrator approval.
 - `codex/feat-commands*`
   - Owned paths:
     - `src/qual/commands/**`
+    - `engine/src/exegesis_engine/api/cli.py`
   - Shared by approval only:
     - `src/main.py`
     - `src/qual/cli.py`
