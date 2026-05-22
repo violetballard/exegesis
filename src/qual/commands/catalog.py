@@ -183,6 +183,17 @@ class CommandDemoPathContract:
 
 
 @dataclass(frozen=True)
+class CommandDemoPathReadinessStep:
+    demo_step: str
+    flow_step: str
+    name: str
+    argv: tuple[str, ...]
+    command: tuple[str, ...]
+    route_tokens: tuple[str, ...]
+    ready: bool
+
+
+@dataclass(frozen=True)
 class CommandDemoPathReadiness:
     program: str
     ready: bool
@@ -192,6 +203,7 @@ class CommandDemoPathReadiness:
     argv: tuple[tuple[str, ...], ...]
     commands: tuple[tuple[str, ...], ...]
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
+    steps: tuple[CommandDemoPathReadinessStep, ...] = ()
 
 
 def _normalize_token(value: str) -> str:
@@ -1044,18 +1056,45 @@ def command_demo_path_readiness(
 ) -> CommandDemoPathReadiness:
     normalized_program = _normalize_smoke_program(program)
     contract = command_demo_path_contract(normalized_program, specs, flow_steps)
+    steps = _command_demo_path_readiness_steps(contract, normalized_program)
     readiness = CommandDemoPathReadiness(
         program=normalized_program,
-        ready=bool(contract.entries),
+        ready=bool(steps) and all(step.ready for step in steps),
         command_count=len(contract.entries),
         demo_steps=contract.demo_steps,
         flow_steps=contract.flow_steps,
         argv=contract.argv,
         commands=contract.commands,
         route_summary=contract.route_summary,
+        steps=steps,
     )
     _validate_command_demo_path_readiness(readiness, contract)
     return readiness
+
+
+def _command_demo_path_readiness_steps(
+    contract: CommandDemoPathContract,
+    program: str,
+) -> tuple[CommandDemoPathReadinessStep, ...]:
+    route_tokens_by_flow_step = {
+        flow_step: cli_tokens for flow_step, _, cli_tokens in contract.route_summary
+    }
+    return tuple(
+        CommandDemoPathReadinessStep(
+            demo_step=entry.demo_step,
+            flow_step=entry.flow_step,
+            name=entry.name,
+            argv=entry.argv,
+            command=entry.command,
+            route_tokens=route_tokens_by_flow_step.get(entry.flow_step, ()),
+            ready=(
+                entry.command == (program, *entry.argv)
+                and bool(route_tokens_by_flow_step.get(entry.flow_step, ()))
+                and entry.cli_token in route_tokens_by_flow_step.get(entry.flow_step, ())
+            ),
+        )
+        for entry in contract.entries
+    )
 
 
 def _validate_command_demo_path_readiness(
@@ -1074,11 +1113,23 @@ def _validate_command_demo_path_readiness(
         raise ValueError("Command demo path readiness commands are inconsistent")
     if readiness.route_summary != contract.route_summary:
         raise ValueError("Command demo path readiness route summary is inconsistent")
-    if readiness.ready != bool(contract.entries):
+    if tuple(step.demo_step for step in readiness.steps) != readiness.demo_steps:
+        raise ValueError("Command demo path readiness step labels are inconsistent")
+    if tuple(step.flow_step for step in readiness.steps) != readiness.flow_steps:
+        raise ValueError("Command demo path readiness step flow steps are inconsistent")
+    if tuple(step.argv for step in readiness.steps) != readiness.argv:
+        raise ValueError("Command demo path readiness step argv is inconsistent")
+    if tuple(step.command for step in readiness.steps) != readiness.commands:
+        raise ValueError("Command demo path readiness step commands are inconsistent")
+    if tuple(step.name for step in readiness.steps) != tuple(entry.name for entry in contract.entries):
+        raise ValueError("Command demo path readiness step names are inconsistent")
+    if readiness.ready != (bool(readiness.steps) and all(step.ready for step in readiness.steps)):
         raise ValueError("Command demo path readiness status is inconsistent")
-    for command in readiness.commands:
-        if not command or command[0] != readiness.program:
+    for step in readiness.steps:
+        if not step.command or step.command[0] != readiness.program:
             raise ValueError("Command demo path readiness program is inconsistent")
+        if not step.route_tokens:
+            raise ValueError("Command demo path readiness route tokens are missing")
 
 
 def _validate_command_demo_path_contract(
@@ -1192,6 +1243,12 @@ def command_mvp_demo_path_contract(program: str = "qual-bootstrap") -> CommandDe
 
 def command_mvp_demo_path_readiness(program: str = "qual-bootstrap") -> CommandDemoPathReadiness:
     return command_demo_path_readiness(program=program, flow_steps=command_mvp_flow_steps())
+
+
+def command_mvp_demo_path_readiness_steps(
+    program: str = "qual-bootstrap",
+) -> tuple[CommandDemoPathReadinessStep, ...]:
+    return command_mvp_demo_path_readiness(program=program).steps
 
 
 @lru_cache(maxsize=None)
