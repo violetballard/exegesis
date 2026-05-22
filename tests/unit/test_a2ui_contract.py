@@ -1315,6 +1315,41 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual([action["payload"]["patch_id"] for action in card["actions"]], ["patch-1", "patch-1"])
         self.assertEqual(card["patch_review"]["decisions"][0]["selection"]["patch_id"], "patch-1")
 
+    def test_proposed_edit_patch_actions_match_normalized_patch_id(self) -> None:
+        card = studio_materialize_card(
+            {
+                "type": "ProposedEditCard",
+                "title": "Patch",
+                "patch_id": " patch-1 ",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
+                "actions": [
+                    {
+                        "id": "apply_patch",
+                        "label": " Apply patch ",
+                        "payload": {"patch_id": " patch-1 "},
+                    },
+                    {
+                        "id": "reject_patch",
+                        "label": " Reject patch ",
+                        "payload": {"patch_id": " patch-1 "},
+                    },
+                ],
+            },
+            _capabilities(cards_supported=("ProposedEditCard",)),
+        )
+
+        self.assertEqual(card["patch_id"], "patch-1")
+        self.assertEqual(
+            [action["id"] for action in card["actions"]],
+            ["preview_patch", "apply_patch", "reject_patch"],
+        )
+        self.assertEqual([action["payload"]["patch_id"] for action in card["actions"]], ["patch-1"] * 3)
+        self.assertEqual(card["patch_review"]["preview"]["patch_id"], "patch-1")
+        self.assertEqual(
+            [entry["selection"]["patch_id"] for entry in card["patch_review"]["decisions"]],
+            ["patch-1", "patch-1"],
+        )
+
     def test_cli_fallback_materialization_enforces_negotiated_payload_limit(self) -> None:
         card = {
             "type": "ProposedEditCard",
