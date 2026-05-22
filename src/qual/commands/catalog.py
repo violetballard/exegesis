@@ -1251,6 +1251,10 @@ def command_demo_path_handoff_evidence(
             for flow_step, command in summary.flow_step_commands
         ),
         *(
+            (f"gap:{index}", gap_line)
+            for index, gap_line in enumerate(summary.missing_canonical_step_lines, start=1)
+        ),
+        *(
             (
                 f"canonical:{status.demo_step}",
                 status.command if status.covered else f"missing: {status.gap_reason}",
@@ -1273,6 +1277,10 @@ def _validate_command_demo_path_handoff_evidence(
         *(
             (f"flow:{flow_step}", command)
             for flow_step, command in summary.flow_step_commands
+        ),
+        *(
+            (f"gap:{index}", gap_line)
+            for index, gap_line in enumerate(summary.missing_canonical_step_lines, start=1)
         ),
         *(
             (
@@ -1819,6 +1827,12 @@ def command_mvp_demo_path_handoff_summary(
     program: str = "qual-bootstrap",
 ) -> CommandDemoPathHandoffSummary:
     return command_demo_path_handoff_summary(program=program, flow_steps=command_mvp_flow_steps())
+
+
+def command_mvp_demo_path_handoff_evidence(
+    program: str = "qual-bootstrap",
+) -> tuple[tuple[str, str], ...]:
+    return command_demo_path_handoff_evidence(program=program, flow_steps=command_mvp_flow_steps())
 
 
 def command_mvp_demo_path_readiness_steps(

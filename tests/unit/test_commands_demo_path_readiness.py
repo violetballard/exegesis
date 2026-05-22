@@ -9,6 +9,7 @@ from src.qual.commands import (
     command_demo_path_handoff_summary,
     command_demo_path_readiness,
     command_mvp_demo_path_compatibility_lookup_table,
+    command_mvp_demo_path_handoff_evidence,
 )
 
 
@@ -192,10 +193,23 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
         )
         self.assertIn(
             (
+                "gap:1",
+                "produce-plan-or-revision: no stable command route produces a plan or revision through the engine loop",
+            ),
+            evidence,
+        )
+        self.assertIn(
+            (
                 "canonical:preview-and-apply-or-reject-patch",
                 "missing: the current patch-review route previews diffs but does not apply or reject patches",
             ),
             evidence,
+        )
+
+    def test_mvp_handoff_evidence_matches_demo_path_evidence(self) -> None:
+        self.assertEqual(
+            command_mvp_demo_path_handoff_evidence(program="qual-bootstrap"),
+            command_demo_path_handoff_evidence(program="qual-bootstrap"),
         )
 
     def test_handoff_evidence_carries_reviewer_replay_identity(self) -> None:
