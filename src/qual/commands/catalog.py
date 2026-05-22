@@ -238,6 +238,8 @@ class CommandDemoPathHandoffSummary:
     flow_step_commands: tuple[tuple[str, str], ...]
     demo_step_commands: tuple[tuple[str, str], ...]
     missing_demo_steps: tuple[str, ...]
+    covered_canonical_step_commands: tuple[tuple[str, str], ...] = ()
+    missing_canonical_step_lines: tuple[str, ...] = ()
     fingerprint: str = ""
 
 
@@ -413,6 +415,28 @@ CANONICAL_DEMO_PATH_STEPS: tuple[str, ...] = (
     "preview-and-apply-or-reject-patch",
     "persist-updated-document-session-state",
     "continue-without-losing-context",
+)
+CANONICAL_DEMO_PATH_GAP_REASONS: tuple[tuple[str, str], ...] = (
+    (
+        "promote-or-gather-context-into-basket",
+        "no stable command route promotes or gathers retrieved context into the basket",
+    ),
+    (
+        "produce-plan-or-revision",
+        "no stable command route produces a plan or revision through the engine loop",
+    ),
+    (
+        "preview-and-apply-or-reject-patch",
+        "the current patch-review route previews diffs but does not apply or reject patches",
+    ),
+    (
+        "persist-updated-document-session-state",
+        "no stable command route persists the updated document and session state",
+    ),
+    (
+        "continue-without-losing-context",
+        "no stable command route resumes the workflow without losing context",
+    ),
 )
 DEMO_PATH_STEPS_BY_FLOW_STEP: tuple[tuple[str, str], ...] = (
     ("project-open", "open-project-document"),
@@ -1133,6 +1157,7 @@ def command_demo_path_handoff_summary(
 ) -> CommandDemoPathHandoffSummary:
     readiness = command_demo_path_readiness(program, specs, flow_steps)
     command_lines = tuple(" ".join(command) for command in readiness.commands)
+    demo_step_commands = tuple(zip(readiness.demo_steps, command_lines, strict=True))
     compatibility_entries = command_demo_path_compatibility_command_entries(
         program=readiness.program,
         specs=specs,
@@ -1150,8 +1175,10 @@ def command_demo_path_handoff_summary(
             " ".join(entry.normalized_command) for entry in compatibility_entries
         ),
         flow_step_commands=tuple(zip(readiness.flow_steps, command_lines, strict=True)),
-        demo_step_commands=tuple(zip(readiness.demo_steps, command_lines, strict=True)),
+        demo_step_commands=demo_step_commands,
         missing_demo_steps=readiness.missing_demo_steps,
+        covered_canonical_step_commands=_covered_canonical_step_commands(demo_step_commands),
+        missing_canonical_step_lines=_missing_canonical_step_lines(readiness.missing_demo_steps),
         fingerprint=readiness.fingerprint,
     )
     _validate_command_demo_path_handoff_summary(summary, readiness, compatibility_entries)
@@ -1213,6 +1240,10 @@ def _validate_command_demo_path_handoff_summary(
         raise ValueError("Command demo path handoff demo steps are inconsistent")
     if summary.missing_demo_steps != readiness.missing_demo_steps:
         raise ValueError("Command demo path handoff missing steps are inconsistent")
+    if summary.covered_canonical_step_commands != _covered_canonical_step_commands(summary.demo_step_commands):
+        raise ValueError("Command demo path handoff covered canonical steps are inconsistent")
+    if summary.missing_canonical_step_lines != _missing_canonical_step_lines(readiness.missing_demo_steps):
+        raise ValueError("Command demo path handoff missing canonical steps are inconsistent")
     if summary.fingerprint != readiness.fingerprint:
         raise ValueError("Command demo path handoff fingerprint is inconsistent")
 
@@ -1243,6 +1274,32 @@ def _missing_demo_path_steps(demo_steps: tuple[str, ...]) -> tuple[str, ...]:
         demo_step
         for demo_step in CANONICAL_DEMO_PATH_STEPS
         if _normalize_token(demo_step) not in present_demo_steps
+    )
+
+
+def _covered_canonical_step_commands(
+    demo_step_commands: tuple[tuple[str, str], ...],
+) -> tuple[tuple[str, str], ...]:
+    canonical_steps = {_normalize_token(step) for step in CANONICAL_DEMO_PATH_STEPS}
+    return tuple(
+        (demo_step, command)
+        for demo_step, command in demo_step_commands
+        if _normalize_token(demo_step) in canonical_steps
+    )
+
+
+def _canonical_demo_path_gap_reasons() -> dict[str, str]:
+    return {
+        _normalize_token(step): reason
+        for step, reason in CANONICAL_DEMO_PATH_GAP_REASONS
+    }
+
+
+def _missing_canonical_step_lines(missing_demo_steps: tuple[str, ...]) -> tuple[str, ...]:
+    gap_reasons = _canonical_demo_path_gap_reasons()
+    return tuple(
+        f"{step}: {gap_reasons.get(_normalize_token(step), 'no stable command route is available')}"
+        for step in missing_demo_steps
     )
 
 
