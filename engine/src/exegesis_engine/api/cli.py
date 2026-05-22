@@ -39,6 +39,9 @@ def _normalize_argv(argv: list[str] | None) -> list[str]:
         return ["bootstrap", *raw]
     if first in known:
         return raw
+    canonical = canonical_command(first)
+    if canonical in known:
+        return [canonical, *raw[1:]]
     return raw
 
 
