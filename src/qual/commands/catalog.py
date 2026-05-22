@@ -157,6 +157,7 @@ class CommandDemoPathStep:
     cli_token: str
     argv: tuple[str, ...]
     description: str
+    lookup_tokens: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -168,6 +169,7 @@ class CommandDemoPathCommand:
     argv: tuple[str, ...]
     command: tuple[str, ...]
     description: str
+    lookup_tokens: tuple[str, ...] = ()
 
 
 def _normalize_token(value: str) -> str:
@@ -905,6 +907,7 @@ def _command_demo_path_steps_for_smoke_steps(
             cli_token=step.cli_token,
             argv=step.argv,
             description=step.description,
+            lookup_tokens=step.lookup_tokens,
         )
         for step in smoke_steps
     )
@@ -985,6 +988,7 @@ def command_demo_path_command_entries(
             argv=step.argv,
             command=(normalized_program, *step.argv),
             description=step.description,
+            lookup_tokens=step.lookup_tokens,
         )
         for step in demo_steps
     )
@@ -1008,6 +1012,10 @@ def _validate_command_demo_path_command_entries(
         raise ValueError("Command demo path command argv is inconsistent")
     if tuple(entry.description for entry in entries) != tuple(step.description for step in demo_steps):
         raise ValueError("Command demo path command descriptions are inconsistent")
+    if tuple(entry.lookup_tokens for entry in entries) != tuple(
+        step.lookup_tokens for step in demo_steps
+    ):
+        raise ValueError("Command demo path command lookup tokens are inconsistent")
     for entry in entries:
         if entry.command != (entry.command[0], *entry.argv):
             raise ValueError("Command demo path command tuple is inconsistent")
