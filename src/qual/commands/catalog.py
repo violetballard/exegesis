@@ -172,6 +172,16 @@ class CommandDemoPathCommand:
     lookup_tokens: tuple[str, ...] = ()
 
 
+@dataclass(frozen=True)
+class CommandDemoPathContract:
+    demo_steps: tuple[str, ...]
+    flow_steps: tuple[str, ...]
+    route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
+    argv: tuple[tuple[str, ...], ...]
+    commands: tuple[tuple[str, ...], ...]
+    entries: tuple[CommandDemoPathCommand, ...]
+
+
 def _normalize_token(value: str) -> str:
     normalized = re.sub(r"[-_\s]+", "-", value.strip().casefold())
     return normalized.strip("-")
@@ -996,6 +1006,45 @@ def command_demo_path_command_entries(
     return entries
 
 
+def command_demo_path_contract(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> CommandDemoPathContract:
+    smoke_plan = command_cli_smoke_plan(specs, flow_steps)
+    entries = command_demo_path_command_entries(program, specs, flow_steps)
+    contract = CommandDemoPathContract(
+        demo_steps=tuple(entry.demo_step for entry in entries),
+        flow_steps=tuple(entry.flow_step for entry in entries),
+        route_summary=smoke_plan.route_summary,
+        argv=tuple(entry.argv for entry in entries),
+        commands=tuple(entry.command for entry in entries),
+        entries=entries,
+    )
+    _validate_command_demo_path_contract(contract, smoke_plan)
+    return contract
+
+
+def _validate_command_demo_path_contract(
+    contract: CommandDemoPathContract,
+    smoke_plan: CommandCliSmokePlan,
+) -> None:
+    if contract.flow_steps != smoke_plan.flow_steps:
+        raise ValueError("Command demo path contract flow steps are inconsistent")
+    if contract.route_summary != smoke_plan.route_summary:
+        raise ValueError("Command demo path contract route summary is inconsistent")
+    if contract.argv != smoke_plan.argv:
+        raise ValueError("Command demo path contract argv is inconsistent")
+    if tuple(entry.demo_step for entry in contract.entries) != contract.demo_steps:
+        raise ValueError("Command demo path contract labels are inconsistent")
+    if tuple(entry.flow_step for entry in contract.entries) != contract.flow_steps:
+        raise ValueError("Command demo path contract entries are inconsistent")
+    if tuple(entry.argv for entry in contract.entries) != contract.argv:
+        raise ValueError("Command demo path contract entry argv is inconsistent")
+    if tuple(entry.command for entry in contract.entries) != contract.commands:
+        raise ValueError("Command demo path contract commands are inconsistent")
+
+
 def _validate_command_demo_path_command_entries(
     entries: tuple[CommandDemoPathCommand, ...],
     demo_steps: tuple[CommandDemoPathStep, ...],
@@ -1079,6 +1128,10 @@ def command_mvp_demo_path_commands(program: str = "qual-bootstrap") -> tuple[tup
 
 def command_mvp_demo_path_command_entries(program: str = "qual-bootstrap") -> tuple[CommandDemoPathCommand, ...]:
     return command_demo_path_command_entries(program=program, flow_steps=command_mvp_flow_steps())
+
+
+def command_mvp_demo_path_contract(program: str = "qual-bootstrap") -> CommandDemoPathContract:
+    return command_demo_path_contract(program=program, flow_steps=command_mvp_flow_steps())
 
 
 @lru_cache(maxsize=None)
