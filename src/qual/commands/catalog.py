@@ -1267,9 +1267,47 @@ def command_demo_path_handoff_evidence(
     return evidence
 
 
+def command_demo_path_next_blocker(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> CommandCanonicalStepBlocker | None:
+    summary = command_demo_path_handoff_summary(program, specs, flow_steps)
+    blocker = _next_canonical_step_blocker(summary)
+    _validate_command_demo_path_next_blocker(blocker, summary)
+    return blocker
+
+
+def _next_canonical_step_blocker(
+    summary: CommandDemoPathHandoffSummary,
+) -> CommandCanonicalStepBlocker | None:
+    blockers_by_step = {blocker.demo_step: blocker for blocker in summary.canonical_step_blockers}
+    for demo_step in CANONICAL_DEMO_PATH_STEPS:
+        blocker = blockers_by_step.get(demo_step)
+        if blocker is not None:
+            return blocker
+    return None
+
+
+def _format_canonical_step_blocker(blocker: CommandCanonicalStepBlocker) -> str:
+    if blocker.partial_command:
+        return f"{blocker.demo_step}: {blocker.blocker_type}: {blocker.partial_command}; {blocker.reason}"
+    return f"{blocker.demo_step}: {blocker.blocker_type}: {blocker.reason}"
+
+
+def _validate_command_demo_path_next_blocker(
+    blocker: CommandCanonicalStepBlocker | None,
+    summary: CommandDemoPathHandoffSummary,
+) -> None:
+    expected = _next_canonical_step_blocker(summary)
+    if blocker != expected:
+        raise ValueError("Command demo path next blocker is inconsistent")
+
+
 def _command_demo_path_handoff_evidence_entries(
     summary: CommandDemoPathHandoffSummary,
 ) -> tuple[tuple[str, str], ...]:
+    next_blocker = _next_canonical_step_blocker(summary)
     evidence = (
         ("ready", "true" if summary.ready else "false"),
         ("fingerprint", summary.fingerprint),
@@ -1307,6 +1345,11 @@ def _command_demo_path_handoff_evidence_entries(
                 ),
             )
             for blocker in summary.canonical_step_blockers
+        ),
+        *(
+            (("next-blocker", _format_canonical_step_blocker(next_blocker)),)
+            if next_blocker is not None
+            else ()
         ),
     )
     return evidence
@@ -1917,6 +1960,12 @@ def command_mvp_demo_path_handoff_evidence(
     program: str = "qual-bootstrap",
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_path_handoff_evidence(program=program, flow_steps=command_mvp_flow_steps())
+
+
+def command_mvp_demo_path_next_blocker(
+    program: str = "qual-bootstrap",
+) -> CommandCanonicalStepBlocker | None:
+    return command_demo_path_next_blocker(program=program, flow_steps=command_mvp_flow_steps())
 
 
 def command_mvp_demo_path_readiness_steps(
