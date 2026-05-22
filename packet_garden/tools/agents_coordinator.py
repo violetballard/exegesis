@@ -2180,16 +2180,15 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
         lane_state.pop("scope_violation_count", None)
         last_launch_attempt_ts = float(lane_state.get("last_launch_attempt_ts", 0) or 0)
         force_resume_once = bool(lane_state.get("force_resume_once"))
-        if queue_empty and not feature_active and _lane_has_current_head_integrated(lane):
-            lane_state["queue_empty"] = queue_empty
-            lane_state["feature_active"] = feature_active
+        current_head_integrated = queue_empty and not feature_active and _lane_has_current_head_integrated(lane)
+        if current_head_integrated:
+            # An integrated branch tip means the previous slice is done, not
+            # that the active MVP lane is finished. Treat it as a fresh-pass
+            # launch candidate after the normal cooldown so active lanes keep
+            # moving without relaunching in a tight loop.
             lane_state["satisfied_current_head"] = True
-            lane_state["last_launch_reason"] = "current_head_already_integrated"
-            lane_state.pop("force_resume_once", None)
-            lane_state["last_seen_at"] = utc_now()
-            lane_refill[lane] = lane_state
-            continue
-        lane_state.pop("satisfied_current_head", None)
+        else:
+            lane_state.pop("satisfied_current_head", None)
         if (
             queue_empty
             and not feature_active
@@ -2200,7 +2199,9 @@ def _launch_free_lanes(state_doc: Dict[str, object]) -> List[str]:
         ):
             to_launch.append(lane)
             lane_state["last_launch_attempt_ts"] = now
-            if force_resume_once and str(lane_state.get("force_resume_reason") or "") == "feature_tool_loop_detected":
+            if current_head_integrated:
+                lane_state["last_launch_reason"] = "current_head_integrated_next_pass"
+            elif force_resume_once and str(lane_state.get("force_resume_reason") or "") == "feature_tool_loop_detected":
                 lane_state["last_launch_reason"] = "feature_tool_loop_resume"
             elif force_resume_once:
                 lane_state["last_launch_reason"] = "stale_direct_exec_resume"
