@@ -458,6 +458,7 @@ def validate_retrieval_results_card(card: dict[str, Any], *, strict_actions: boo
 def validate_basket_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
     _validate_card_fields(card, BASKET_CARD_TYPE, _BASKET_CARD_FIELDS)
     _validate_card_title(card, BASKET_CARD_TYPE)
+    _validate_optional_card_identifier(card, "basket_id", BASKET_CARD_TYPE)
     items = card.get("items")
     if not isinstance(items, list):
         raise ValueError("BasketCard items must be a list")
@@ -479,6 +480,7 @@ def validate_context_set_card(card: dict[str, Any], *, strict_actions: bool = Tr
     context_set_id = card.get("context_set_id")
     if not isinstance(context_set_id, str) or not context_set_id.strip():
         raise ValueError("ContextSetCard context_set_id is required")
+    _validate_card_identifier(context_set_id, "context_set_id", CONTEXT_SET_CARD_TYPE)
     items = card.get("items")
     if not isinstance(items, list):
         raise ValueError("ContextSetCard items must be a list")
@@ -528,6 +530,20 @@ def _validate_card_fields(card: dict[str, Any], card_type: str, allowed_fields: 
     if unexpected_fields:
         field_list = ", ".join(sorted(unexpected_fields))
         raise ValueError(f"Unsupported {card_type} field(s): {field_list}")
+
+
+def _validate_optional_card_identifier(card: dict[str, Any], field_name: str, card_type: str) -> None:
+    if field_name not in card:
+        return
+    value = card[field_name]
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{card_type} {field_name} is required")
+    _validate_card_identifier(value, field_name, card_type)
+
+
+def _validate_card_identifier(value: str, field_name: str, card_type: str) -> None:
+    if value != value.strip():
+        raise ValueError(f"{card_type} {field_name} must be normalized")
 
 
 def _validate_typed_mapping(

@@ -500,6 +500,23 @@ class A2UIContractTests(unittest.TestCase):
                 }
             )
 
+        with self.assertRaisesRegex(ValueError, "BasketCard basket_id must be normalized"):
+            validate_basket_card(
+                {
+                    "type": BASKET_CARD_TYPE,
+                    "title": "Basket",
+                    "basket_id": " basket-1 ",
+                    "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
+                    "actions": [
+                        {
+                            "id": "gather_context",
+                            "label": "Gather context",
+                            "payload": {"basket_id": "basket-1", "context_set_id": "ctx-1"},
+                        }
+                    ],
+                }
+            )
+
         with self.assertRaisesRegex(ValueError, "BasketCard item item_id entries must be unique: doc-1"):
             validate_basket_card(
                 {
@@ -570,6 +587,23 @@ class A2UIContractTests(unittest.TestCase):
                             "id": "pin_to_context_set",
                             "label": "Pin",
                             "payload": {"item_id": "doc-1", "context_set_id": "ctx-2"},
+                        }
+                    ],
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "ContextSetCard context_set_id must be normalized"):
+            validate_context_set_card(
+                {
+                    "type": CONTEXT_SET_CARD_TYPE,
+                    "title": "Context",
+                    "context_set_id": " ctx-1 ",
+                    "items": [{"item_id": "doc-1", "title": "Chapter 5"}],
+                    "actions": [
+                        {
+                            "id": "pin_to_context_set",
+                            "label": "Pin",
+                            "payload": {"item_id": "doc-1", "context_set_id": "ctx-1"},
                         }
                     ],
                 }
