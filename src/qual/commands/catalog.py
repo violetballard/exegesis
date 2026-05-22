@@ -1242,10 +1242,26 @@ def command_demo_path_handoff_evidence(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[tuple[str, str], ...]:
     summary = command_demo_path_handoff_summary(program, specs, flow_steps)
+    evidence = _command_demo_path_handoff_evidence_entries(summary)
+    _validate_command_demo_path_handoff_evidence(evidence, summary)
+    return evidence
+
+
+def _command_demo_path_handoff_evidence_entries(
+    summary: CommandDemoPathHandoffSummary,
+) -> tuple[tuple[str, str], ...]:
     evidence = (
         ("ready", "true" if summary.ready else "false"),
         ("fingerprint", summary.fingerprint),
         *((f"command:{index}", command) for index, command in enumerate(summary.command_lines, start=1)),
+        *(
+            (f"compatibility-command:{index}", command)
+            for index, command in enumerate(summary.compatibility_command_lines, start=1)
+        ),
+        *(
+            (f"compatibility-normalized:{index}", command)
+            for index, command in enumerate(summary.compatibility_normalized_command_lines, start=1)
+        ),
         *(
             (f"flow:{flow_step}", command)
             for flow_step, command in summary.flow_step_commands
@@ -1262,7 +1278,6 @@ def command_demo_path_handoff_evidence(
             for status in summary.canonical_step_statuses
         ),
     )
-    _validate_command_demo_path_handoff_evidence(evidence, summary)
     return evidence
 
 
@@ -1270,27 +1285,7 @@ def _validate_command_demo_path_handoff_evidence(
     evidence: tuple[tuple[str, str], ...],
     summary: CommandDemoPathHandoffSummary,
 ) -> None:
-    expected = (
-        ("ready", "true" if summary.ready else "false"),
-        ("fingerprint", summary.fingerprint),
-        *((f"command:{index}", command) for index, command in enumerate(summary.command_lines, start=1)),
-        *(
-            (f"flow:{flow_step}", command)
-            for flow_step, command in summary.flow_step_commands
-        ),
-        *(
-            (f"gap:{index}", gap_line)
-            for index, gap_line in enumerate(summary.missing_canonical_step_lines, start=1)
-        ),
-        *(
-            (
-                f"canonical:{status.demo_step}",
-                status.command if status.covered else f"missing: {status.gap_reason}",
-            )
-            for status in summary.canonical_step_statuses
-        ),
-    )
-    if evidence != expected:
+    if evidence != _command_demo_path_handoff_evidence_entries(summary):
         raise ValueError("Command demo path handoff evidence is inconsistent")
 
 
