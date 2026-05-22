@@ -1612,6 +1612,17 @@ def command_demo_path_compatibility_commands(
     )
 
 
+def command_demo_path_compatibility_lookup_table(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[tuple[str, ...], tuple[str, ...], str], ...]:
+    return tuple(
+        (entry.command, entry.normalized_command, entry.demo_step)
+        for entry in command_demo_path_compatibility_command_entries(program, specs, flow_steps)
+    )
+
+
 def command_demo_path_compatibility_argv(
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
     flow_steps: tuple[str, ...] | None = None,
@@ -1722,6 +1733,15 @@ def command_mvp_demo_path_compatibility_commands(
     program: str = "qual-bootstrap",
 ) -> tuple[tuple[str, ...], ...]:
     return command_demo_path_compatibility_commands(
+        program=program,
+        flow_steps=command_mvp_flow_steps(),
+    )
+
+
+def command_mvp_demo_path_compatibility_lookup_table(
+    program: str = "qual-bootstrap",
+) -> tuple[tuple[tuple[str, ...], tuple[str, ...], str], ...]:
+    return command_demo_path_compatibility_lookup_table(
         program=program,
         flow_steps=command_mvp_flow_steps(),
     )

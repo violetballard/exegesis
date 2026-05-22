@@ -4,8 +4,10 @@ import unittest
 
 from src.qual.commands import (
     command_demo_path_command_lookup_table,
+    command_demo_path_compatibility_lookup_table,
     command_demo_path_handoff_summary,
     command_demo_path_readiness,
+    command_mvp_demo_path_compatibility_lookup_table,
 )
 
 
@@ -166,6 +168,43 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
         )
         self.assertEqual(summary.command_lines[-1], "qual-bootstrap diff-preview")
         self.assertNotIn("qual-bootstrap terminal", summary.compatibility_command_lines)
+
+    def test_compatibility_lookup_table_maps_alias_commands_to_canonical_smoke_commands(self) -> None:
+        lookup_table = command_demo_path_compatibility_lookup_table(program="qual-bootstrap")
+
+        self.assertEqual(lookup_table, command_mvp_demo_path_compatibility_lookup_table(program="qual-bootstrap"))
+        self.assertIn(
+            (
+                ("qual-bootstrap", "project-open"),
+                ("qual-bootstrap", "bootstrap"),
+                "open-project-document",
+            ),
+            lookup_table,
+        )
+        self.assertIn(
+            (
+                ("qual-bootstrap", "retrieval", "list"),
+                ("qual-bootstrap", "context-basket", "list"),
+                "retrieve-relevant-material",
+            ),
+            lookup_table,
+        )
+        self.assertIn(
+            (
+                ("qual-bootstrap", "patch-review"),
+                ("qual-bootstrap", "diff-preview"),
+                "preview-patch",
+            ),
+            lookup_table,
+        )
+        self.assertIn(
+            (
+                ("qual-bootstrap", "export-handoff"),
+                ("qual-bootstrap", "terminal"),
+                "export-handoff",
+            ),
+            lookup_table,
+        )
 
 
 if __name__ == "__main__":
