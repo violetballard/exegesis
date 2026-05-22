@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from exegesis_engine.config import validate_project_name
 from src.qual.commands.canonical import canonical_command
+from src.qual.commands.catalog import normalize_command_argv
 
 
 @dataclass(frozen=True)
@@ -30,16 +31,7 @@ class CLIArgs:
 
 def _normalize_argv(argv: list[str] | None) -> list[str]:
     raw = list(sys.argv[1:] if argv is None else argv)
-    if not raw:
-        return ["bootstrap"]
-
-    known = {"bootstrap", "diff-preview", "diff", "context-basket", "terminal"}
-    first = raw[0]
-    if first.startswith("-"):
-        return ["bootstrap", *raw]
-    if first in known:
-        return raw
-    return raw
+    return list(normalize_command_argv(raw))
 
 
 def parse_args(argv: list[str] | None = None) -> CLIArgs:
