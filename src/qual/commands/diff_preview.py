@@ -47,7 +47,7 @@ def _normalize_trailing_whitespace(value: str) -> str:
     normalized: list[str] = []
     for line in lines:
         if line.endswith("\n"):
-            normalized.append(f"{line[:-1].rstrip(' \t')}\n")
+            normalized.append(line[:-1].rstrip(" \t") + "\n")
         else:
             normalized.append(line.rstrip(" \t"))
     return "".join(normalized)

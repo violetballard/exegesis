@@ -11,6 +11,7 @@ class CommandSpec:
     aliases: tuple[str, ...] = ()
     description: str = ""
     flow_step: str = "general"
+    smoke_args: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -63,6 +64,7 @@ class CommandSurfaceContract:
     flow_surface_tokens: tuple[tuple[str, ...], ...] = ()
     route_catalog: tuple[CommandFlowRouteEntry, ...] = ()
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...] = ()
+    demo_path_steps: tuple[CommandDemoPathStep, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -107,11 +109,54 @@ class CommandFlowRouteEntry:
     lookup_tokens: tuple[str, ...]
     surface_tokens: tuple[str, ...]
     description: str
+    demo_step: str = ""
 
 
 @dataclass(frozen=True)
 class CommandFlowRouteContract:
     entries: tuple[CommandFlowRouteEntry, ...]
+
+
+@dataclass(frozen=True)
+class CommandCliSmokeStep:
+    flow_step: str
+    name: str
+    cli_token: str
+    argv: tuple[str, ...]
+    lookup_tokens: tuple[str, ...]
+    description: str
+    demo_step: str = ""
+
+
+@dataclass(frozen=True)
+class CommandCliSmokePlan:
+    flow_steps: tuple[str, ...]
+    route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
+    steps: tuple[CommandCliSmokeStep, ...]
+    argv: tuple[tuple[str, ...], ...]
+    demo_path_steps: tuple[CommandDemoPathStep, ...] = ()
+
+
+@dataclass(frozen=True)
+class CommandCliSmokeCommand:
+    flow_step: str
+    name: str
+    cli_token: str
+    argv: tuple[str, ...]
+    command: tuple[str, ...]
+    lookup_tokens: tuple[str, ...]
+    description: str
+    demo_step: str = ""
+
+
+@dataclass(frozen=True)
+class CommandDemoPathStep:
+    demo_step: str
+    flow_step: str
+    name: str
+    cli_token: str
+    argv: tuple[str, ...]
+    description: str
 
 
 def _normalize_token(value: str) -> str:
@@ -184,6 +229,57 @@ def _route_cli_tokens_by_name(specs: tuple[CommandSpec, ...]) -> dict[str, tuple
     return {spec.name: _lookup_tokens(spec) for spec in specs}
 
 
+def _validate_route_cli_tokens(
+    route_catalog: tuple[CommandFlowRouteEntry, ...],
+    cli_tokens: tuple[str, ...],
+) -> None:
+    parseable_tokens = set(cli_tokens)
+    for entry in route_catalog:
+        missing_tokens = tuple(
+            token for token in entry.cli_tokens if token not in parseable_tokens
+        )
+        if missing_tokens:
+            joined_tokens = ", ".join(missing_tokens)
+            raise ValueError(f"Command CLI route has unparseable tokens for {entry.name}: {joined_tokens}")
+
+
+def _validate_demo_path_steps_by_flow_step() -> None:
+    seen_flow_steps: set[str] = set()
+    seen_demo_steps: set[str] = set()
+    for flow_step, demo_step in DEMO_PATH_STEPS_BY_FLOW_STEP:
+        normalized_flow_step = _normalize_token(flow_step)
+        normalized_demo_step = _normalize_token(demo_step)
+        if not normalized_flow_step:
+            raise ValueError("Command demo path flow steps must not be empty")
+        if not normalized_demo_step:
+            raise ValueError("Command demo path labels must not be empty")
+        if normalized_flow_step in seen_flow_steps:
+            raise ValueError(f"Duplicate command demo path flow step: {flow_step}")
+        if normalized_demo_step in seen_demo_steps:
+            raise ValueError(f"Duplicate command demo path label: {demo_step}")
+        seen_flow_steps.add(normalized_flow_step)
+        seen_demo_steps.add(normalized_demo_step)
+
+    required_flow_steps = set(_normalize_flow_steps(DEMO_COMMAND_FLOW_STEPS))
+    missing_flow_steps = tuple(
+        flow_step
+        for flow_step in DEMO_COMMAND_FLOW_STEPS
+        if _normalize_token(flow_step) not in seen_flow_steps
+    )
+    if missing_flow_steps:
+        joined_steps = ", ".join(missing_flow_steps)
+        raise ValueError(f"Command demo path labels are missing for flow steps: {joined_steps}")
+
+    extra_flow_steps = tuple(
+        flow_step
+        for flow_step in seen_flow_steps
+        if flow_step not in required_flow_steps
+    )
+    if extra_flow_steps:
+        joined_steps = ", ".join(extra_flow_steps)
+        raise ValueError(f"Command demo path labels include unknown flow steps: {joined_steps}")
+
+
 COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         name="bootstrap",
@@ -202,6 +298,7 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         aliases=("context", "basket"),
         description="Manage retrieval context basket items.",
         flow_step="retrieval",
+        smoke_args=("list",),
     ),
     CommandSpec(
         name="terminal",
@@ -226,6 +323,12 @@ DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "export-handoff",
 )
 MVP_COMMAND_FLOW_STEPS: tuple[str, ...] = DEMO_COMMAND_FLOW_STEPS
+DEMO_PATH_STEPS_BY_FLOW_STEP: tuple[tuple[str, str], ...] = (
+    ("project-open", "open-project-document"),
+    ("retrieval", "retrieve-relevant-material"),
+    ("patch-review", "preview-apply-or-reject-patch"),
+    ("export-handoff", "persist-and-continue"),
+)
 
 
 def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> None:
@@ -315,6 +418,24 @@ def canonical_command_for(specs: tuple[CommandSpec, ...], name: str) -> str:
     if spec is None:
         return normalized
     return spec.name
+
+
+def normalize_command_argv(
+    argv: tuple[str, ...] | list[str] | None,
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> tuple[str, ...]:
+    raw = tuple(argv or ())
+    if not raw:
+        return ("bootstrap",)
+
+    first, *rest = raw
+    if first.startswith("-"):
+        return ("bootstrap", *raw)
+
+    canonical_name = canonical_command_for(specs, first)
+    if not canonical_name:
+        return raw
+    return (canonical_name, *rest)
 
 
 @lru_cache(maxsize=None)
@@ -539,6 +660,7 @@ def _validate_command_cli_route_contract(
         raise ValueError("Command CLI route lookup surface is inconsistent")
     if contract.flow_surface_tokens != command_flow_surface_tokens(specs, flow_steps):
         raise ValueError("Command CLI route surface tokens are inconsistent")
+    _validate_route_cli_tokens(contract.route_catalog, cli_contract.tokens)
 
 
 @lru_cache(maxsize=None)
@@ -611,6 +733,7 @@ def command_flow_route_catalog(
     # that dispatch to each command.
     route_catalog = command_flow_surface_catalog(specs, ordered_flow_steps)
     cli_tokens_by_name = _route_cli_tokens_by_name(specs)
+    demo_labels_by_flow_step = _demo_path_labels_by_flow_step()
     return tuple(
         CommandFlowRouteEntry(
             flow_step=entry.flow_step,
@@ -619,6 +742,7 @@ def command_flow_route_catalog(
             lookup_tokens=entry.lookup_tokens,
             surface_tokens=entry.surface_tokens,
             description=entry.description,
+            demo_step=demo_labels_by_flow_step.get(entry.flow_step, ""),
         )
         for entry in route_catalog
     )
@@ -631,6 +755,251 @@ def command_flow_route_summary(
 ) -> tuple[tuple[str, str, tuple[str, ...]], ...]:
     route_catalog = command_flow_route_catalog(flow_steps=flow_steps, specs=specs)
     return tuple((entry.flow_step, entry.name, entry.cli_tokens) for entry in route_catalog)
+
+
+@lru_cache(maxsize=None)
+def command_cli_smoke_steps(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandCliSmokeStep, ...]:
+    route_catalog = command_flow_route_catalog(flow_steps=flow_steps, specs=specs)
+    if specs == COMMAND_SPECS:
+        _validate_route_cli_tokens(route_catalog, command_cli_tokens())
+    return tuple(
+        CommandCliSmokeStep(
+            flow_step=entry.flow_step,
+            name=entry.name,
+            cli_token=entry.cli_tokens[0],
+            argv=(entry.cli_tokens[0], *_smoke_args_for_command(specs, entry.name)),
+            lookup_tokens=entry.lookup_tokens,
+            description=entry.description,
+            demo_step=entry.demo_step,
+        )
+        for entry in route_catalog
+    )
+
+
+def _smoke_args_for_command(
+    specs: tuple[CommandSpec, ...],
+    name: str,
+) -> tuple[str, ...]:
+    spec = command_spec_for(specs, name)
+    if spec is None:
+        raise ValueError(f"Unknown command smoke target: {name}")
+    return spec.smoke_args
+
+
+def command_cli_smoke_argv(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, ...], ...]:
+    return tuple(step.argv for step in command_cli_smoke_steps(specs, flow_steps))
+
+
+def command_cli_smoke_commands(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, ...], ...]:
+    return tuple(entry.command for entry in command_cli_smoke_command_entries(program, specs, flow_steps))
+
+
+def command_cli_smoke_command_entries(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandCliSmokeCommand, ...]:
+    normalized_program = _normalize_smoke_program(program)
+    smoke_plan = command_cli_smoke_plan(specs, flow_steps)
+    entries = tuple(
+        CommandCliSmokeCommand(
+            flow_step=step.flow_step,
+            name=step.name,
+            cli_token=step.cli_token,
+            argv=step.argv,
+            command=(normalized_program, *step.argv),
+            lookup_tokens=step.lookup_tokens,
+            description=step.description,
+            demo_step=step.demo_step,
+        )
+        for step in smoke_plan.steps
+    )
+    _validate_command_cli_smoke_command_entries(entries, smoke_plan)
+    return entries
+
+
+def _validate_command_cli_smoke_command_entries(
+    entries: tuple[CommandCliSmokeCommand, ...],
+    smoke_plan: CommandCliSmokePlan,
+) -> None:
+    if tuple(entry.argv for entry in entries) != smoke_plan.argv:
+        raise ValueError("Command CLI smoke command argv is inconsistent")
+    if tuple(entry.flow_step for entry in entries) != smoke_plan.flow_steps:
+        raise ValueError("Command CLI smoke command flow steps are inconsistent")
+    if tuple(entry.name for entry in entries) != tuple(step.name for step in smoke_plan.steps):
+        raise ValueError("Command CLI smoke command names are inconsistent")
+    if tuple(entry.cli_token for entry in entries) != tuple(step.cli_token for step in smoke_plan.steps):
+        raise ValueError("Command CLI smoke command tokens are inconsistent")
+    if tuple(entry.demo_step for entry in entries) != tuple(step.demo_step for step in smoke_plan.steps):
+        raise ValueError("Command CLI smoke command demo steps are inconsistent")
+    for entry in entries:
+        if entry.command != (entry.command[0], *entry.argv):
+            raise ValueError("Command CLI smoke command tuple is inconsistent")
+
+
+def _normalize_smoke_program(program: str) -> str:
+    normalized_program = program.strip()
+    if not normalized_program:
+        raise ValueError("Command CLI smoke program must not be empty")
+    return normalized_program
+
+
+def _validate_command_cli_smoke_plan(plan: CommandCliSmokePlan) -> None:
+    route_flow_steps = tuple(flow_step for flow_step, _, _ in plan.route_summary)
+    if plan.flow_steps != route_flow_steps:
+        raise ValueError("Command CLI smoke plan flow steps are inconsistent")
+    if plan.flow_steps != tuple(step.flow_step for step in plan.steps):
+        raise ValueError("Command CLI smoke plan steps are inconsistent")
+    route_names = tuple(name for _, name, _ in plan.route_summary)
+    if route_names != tuple(step.name for step in plan.steps):
+        raise ValueError("Command CLI smoke plan names are inconsistent")
+    primary_tokens = tuple(cli_tokens[0] for _, _, cli_tokens in plan.route_summary)
+    if primary_tokens != tuple(step.cli_token for step in plan.steps):
+        raise ValueError("Command CLI smoke plan primary tokens are inconsistent")
+    if plan.argv != tuple(step.argv for step in plan.steps):
+        raise ValueError("Command CLI smoke plan argv is inconsistent")
+    if plan.demo_path_steps:
+        if plan.flow_steps != tuple(step.flow_step for step in plan.demo_path_steps):
+            raise ValueError("Command CLI smoke plan demo path steps are inconsistent")
+        if tuple(step.name for step in plan.demo_path_steps) != tuple(step.name for step in plan.steps):
+            raise ValueError("Command CLI smoke plan demo path names are inconsistent")
+        if tuple(step.argv for step in plan.demo_path_steps) != plan.argv:
+            raise ValueError("Command CLI smoke plan demo path argv is inconsistent")
+        demo_path_labels = tuple(step.demo_step for step in plan.demo_path_steps)
+        smoke_step_labels = tuple(step.demo_step for step in plan.steps)
+        if demo_path_labels != smoke_step_labels:
+            raise ValueError("Command CLI smoke plan demo path labels are inconsistent")
+
+
+def _command_demo_path_steps_for_smoke_steps(
+    smoke_steps: tuple[CommandCliSmokeStep, ...],
+) -> tuple[CommandDemoPathStep, ...]:
+    if _missing_demo_path_flow_steps(smoke_steps):
+        return ()
+    return tuple(
+        CommandDemoPathStep(
+            demo_step=step.demo_step,
+            flow_step=step.flow_step,
+            name=step.name,
+            cli_token=step.cli_token,
+            argv=step.argv,
+            description=step.description,
+        )
+        for step in smoke_steps
+    )
+
+
+def _missing_demo_path_flow_steps(
+    smoke_steps: tuple[CommandCliSmokeStep, ...],
+) -> tuple[str, ...]:
+    labels_by_flow_step = _demo_path_labels_by_flow_step()
+    return tuple(step.flow_step for step in smoke_steps if step.flow_step not in labels_by_flow_step)
+
+
+@lru_cache(maxsize=None)
+def command_cli_smoke_plan(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> CommandCliSmokePlan:
+    route_summary = command_flow_route_summary(specs, flow_steps)
+    steps = command_cli_smoke_steps(specs, flow_steps)
+    plan = CommandCliSmokePlan(
+        flow_steps=tuple(flow_step for flow_step, _, _ in route_summary),
+        route_summary=route_summary,
+        steps=steps,
+        argv=tuple(step.argv for step in steps),
+        demo_path_steps=_command_demo_path_steps_for_smoke_steps(steps),
+    )
+    _validate_command_cli_smoke_plan(plan)
+    return plan
+
+
+def _demo_path_labels_by_flow_step() -> dict[str, str]:
+    _validate_demo_path_steps_by_flow_step()
+    return {
+        _normalize_token(flow_step): _normalize_token(demo_step)
+        for flow_step, demo_step in DEMO_PATH_STEPS_BY_FLOW_STEP
+    }
+
+
+def command_demo_path_steps(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[CommandDemoPathStep, ...]:
+    smoke_plan = command_cli_smoke_plan(specs, flow_steps)
+    if not smoke_plan.demo_path_steps:
+        joined_steps = ", ".join(_missing_demo_path_flow_steps(smoke_plan.steps))
+        raise ValueError(f"Command demo path labels are missing for flow steps: {joined_steps}")
+    return smoke_plan.demo_path_steps
+
+
+def command_demo_path_argv(
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, ...], ...]:
+    return tuple(step.argv for step in command_demo_path_steps(specs, flow_steps))
+
+
+def command_demo_cli_smoke_steps() -> tuple[CommandCliSmokeStep, ...]:
+    return command_cli_smoke_steps(flow_steps=command_demo_flow_steps())
+
+
+def command_mvp_cli_smoke_steps() -> tuple[CommandCliSmokeStep, ...]:
+    return command_demo_cli_smoke_steps()
+
+
+def command_demo_cli_smoke_argv() -> tuple[tuple[str, ...], ...]:
+    return command_cli_smoke_argv(flow_steps=command_demo_flow_steps())
+
+
+def command_mvp_cli_smoke_argv() -> tuple[tuple[str, ...], ...]:
+    return command_demo_cli_smoke_argv()
+
+
+def command_demo_cli_smoke_commands(program: str = "qual-bootstrap") -> tuple[tuple[str, ...], ...]:
+    return command_cli_smoke_commands(program=program, flow_steps=command_demo_flow_steps())
+
+
+def command_mvp_cli_smoke_commands(program: str = "qual-bootstrap") -> tuple[tuple[str, ...], ...]:
+    return command_demo_cli_smoke_commands(program=program)
+
+
+def command_demo_cli_smoke_command_entries(
+    program: str = "qual-bootstrap",
+) -> tuple[CommandCliSmokeCommand, ...]:
+    return command_cli_smoke_command_entries(program=program, flow_steps=command_demo_flow_steps())
+
+
+def command_mvp_cli_smoke_command_entries(
+    program: str = "qual-bootstrap",
+) -> tuple[CommandCliSmokeCommand, ...]:
+    return command_demo_cli_smoke_command_entries(program=program)
+
+
+def command_demo_cli_smoke_plan() -> CommandCliSmokePlan:
+    return command_cli_smoke_plan(flow_steps=command_demo_flow_steps())
+
+
+def command_mvp_cli_smoke_plan() -> CommandCliSmokePlan:
+    return command_demo_cli_smoke_plan()
+
+
+def command_mvp_demo_path_steps() -> tuple[CommandDemoPathStep, ...]:
+    return command_demo_path_steps(flow_steps=command_mvp_flow_steps())
+
+
+def command_mvp_demo_path_argv() -> tuple[tuple[str, ...], ...]:
+    return command_demo_path_argv(flow_steps=command_mvp_flow_steps())
 
 
 @lru_cache(maxsize=None)
@@ -909,6 +1278,27 @@ def _validate_command_surface_contract(contract: CommandSurfaceContract) -> None
         raise ValueError("Command surface route surface tokens are inconsistent")
     if contract.lookup_surface != contract.lookup_index:
         raise ValueError("Command surface lookup surfaces must match")
+    route_demo_steps = tuple(entry.demo_step for entry in contract.route_catalog)
+    if any(route_demo_steps):
+        if not contract.demo_path_steps:
+            raise ValueError("Command surface demo path steps are missing")
+        if tuple(step.demo_step for step in contract.demo_path_steps) != route_demo_steps:
+            raise ValueError("Command surface demo path labels are inconsistent")
+    if contract.demo_path_steps:
+        if tuple(step.flow_step for step in contract.demo_path_steps) != contract.flow_steps:
+            raise ValueError("Command surface demo path steps are inconsistent")
+        if tuple(step.name for step in contract.demo_path_steps) != contract.names:
+            raise ValueError("Command surface demo path names are inconsistent")
+        route_cli_tokens = tuple(entry.cli_tokens[0] for entry in contract.route_catalog)
+        if tuple(step.cli_token for step in contract.demo_path_steps) != route_cli_tokens:
+            raise ValueError("Command surface demo path CLI tokens are inconsistent")
+        demo_argv_tokens = tuple(step.argv[0] if step.argv else "" for step in contract.demo_path_steps)
+        if demo_argv_tokens != route_cli_tokens:
+            raise ValueError("Command surface demo path argv tokens are inconsistent")
+        if tuple(step.description for step in contract.demo_path_steps) != tuple(
+            entry.description for entry in contract.route_catalog
+        ):
+            raise ValueError("Command surface demo path descriptions are inconsistent")
 
 
 @lru_cache(maxsize=None)
@@ -920,6 +1310,7 @@ def command_flow_contract(
     sequence = command_flow_sequence(specs, ordered_flow_steps)
     route_catalog = command_flow_route_catalog(flow_steps=ordered_flow_steps, specs=specs)
     route_summary = command_flow_route_summary(specs, ordered_flow_steps)
+    smoke_steps = command_cli_smoke_steps(specs, ordered_flow_steps)
     contract = CommandSurfaceContract(
         flow_steps=sequence.flow_steps,
         names=sequence.names,
@@ -933,6 +1324,7 @@ def command_flow_contract(
         flow_surface_tokens=command_flow_surface_tokens(specs, ordered_flow_steps),
         route_catalog=route_catalog,
         route_summary=route_summary,
+        demo_path_steps=_command_demo_path_steps_for_smoke_steps(smoke_steps),
     )
     _validate_command_surface_contract(contract)
     return contract

@@ -3,6 +3,7 @@ from __future__ import annotations
 import unittest
 from unittest.mock import patch
 
+from exegesis_engine.api.cli import parse_args
 import src.qual.commands.catalog as command_catalog
 from src.qual.commands import (
     CommandSpec,
@@ -17,6 +18,9 @@ from src.qual.commands import (
     command_cli_route_catalog,
     command_cli_route_contract,
     command_cli_route_summary,
+    command_cli_smoke_argv,
+    command_demo_cli_smoke_command_entries,
+    command_demo_cli_smoke_plan,
     command_flow_manifest,
     command_flow_catalog,
     command_flow_route_summary,
@@ -60,6 +64,7 @@ from src.qual.commands import (
     command_specs,
     command_tokens,
     command_flow_tokens,
+    normalize_command_argv,
     validate_command_catalog,
 )
 
@@ -191,6 +196,71 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(contract.lookup_surface, surface_contract.lookup_surface)
         self.assertEqual(contract.flow_surface_tokens, surface_contract.flow_surface_tokens)
         self.assertEqual(contract, command_mvp_cli_route_contract())
+
+    def test_command_argv_normalization_is_used_by_the_executable_cli_parser(self) -> None:
+        cases = (
+            ((), "bootstrap", None),
+            (("--project", "demo"), "bootstrap", None),
+            (("bootstrap", "--project", "demo"), "bootstrap", None),
+            (("open", "--project", "demo"), "bootstrap", None),
+            (("project-open",), "bootstrap", None),
+            (("project",), "bootstrap", None),
+            (("diff",), "diff-preview", None),
+            (("diff-preview",), "diff-preview", None),
+            (("context", "list"), "context-basket", "list"),
+            (("basket", "list"), "context-basket", "list"),
+            (("context-basket", "list"), "context-basket", "list"),
+            (("terminal",), "terminal", None),
+        )
+
+        for argv, expected_command, expected_basket_action in cases:
+            with self.subTest(argv=argv):
+                self.assertEqual(normalize_command_argv(argv)[0], expected_command)
+                args = parse_args(list(argv))
+                self.assertEqual(args.command, expected_command)
+                self.assertEqual(args.basket_action, expected_basket_action)
+
+    def test_command_cli_smoke_argv_are_parseable_by_the_executable_cli(self) -> None:
+        expected = (
+            ("bootstrap", "bootstrap", None),
+            ("context-basket list", "context-basket", "list"),
+            ("diff-preview", "diff-preview", None),
+            ("terminal", "terminal", None),
+        )
+
+        observed = []
+        for argv in command_cli_smoke_argv(flow_steps=("project-open", "retrieval", "patch-review", "export-handoff")):
+            args = parse_args(list(argv))
+            observed.append((" ".join(argv), args.command, args.basket_action))
+
+        self.assertEqual(tuple(observed), expected)
+
+    def test_command_demo_smoke_helpers_expose_parseable_demo_path_entries(self) -> None:
+        plan = command_demo_cli_smoke_plan()
+        entries = command_demo_cli_smoke_command_entries(program="qual-bootstrap")
+
+        self.assertEqual(
+            tuple(step.demo_step for step in plan.demo_path_steps),
+            (
+                "open-project-document",
+                "retrieve-relevant-material",
+                "preview-apply-or-reject-patch",
+                "persist-and-continue",
+            ),
+        )
+        self.assertEqual(tuple(entry.argv for entry in entries), plan.argv)
+        self.assertEqual(
+            tuple(entry.command for entry in entries),
+            tuple(("qual-bootstrap", *argv) for argv in plan.argv),
+        )
+        self.assertEqual(
+            tuple(entry.demo_step for entry in entries),
+            tuple(step.demo_step for step in plan.demo_path_steps),
+        )
+        for entry in entries:
+            with self.subTest(argv=entry.argv):
+                args = parse_args(list(entry.argv))
+                self.assertEqual(args.command, entry.name)
 
     def test_command_lookup_helpers_support_custom_catalogs(self) -> None:
         specs = (
@@ -518,6 +588,19 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertEqual(
             contract.lookup_tokens,
             tuple(entry.lookup_tokens for entry in command_mvp_flow()),
+        )
+        self.assertEqual(
+            tuple(step.demo_step for step in contract.demo_path_steps),
+            (
+                "open-project-document",
+                "retrieve-relevant-material",
+                "preview-apply-or-reject-patch",
+                "persist-and-continue",
+            ),
+        )
+        self.assertEqual(
+            tuple(step.argv for step in contract.demo_path_steps),
+            command_demo_cli_smoke_plan().argv,
         )
         self.assertEqual(contract.route_catalog, command_mvp_flow_route_catalog())
 
