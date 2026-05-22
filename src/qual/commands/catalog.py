@@ -1286,7 +1286,7 @@ def command_demo_path_handoff_evidence(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[tuple[str, str], ...]:
     summary = command_demo_path_handoff_summary(program, specs, flow_steps)
-    patch_review_contract = command_patch_review_outcome_contract(program, specs)
+    patch_review_contract = command_patch_review_outcome_contract(program, specs, flow_steps)
     evidence = _command_demo_path_handoff_evidence_entries(summary, patch_review_contract)
     _validate_command_demo_path_handoff_evidence(evidence, summary, patch_review_contract)
     return evidence
@@ -1295,9 +1295,10 @@ def command_demo_path_handoff_evidence(
 def command_patch_review_outcome_contract(
     program: str = "qual-bootstrap",
     specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
 ) -> CommandPatchReviewOutcomeContract:
     normalized_program = _normalize_smoke_program(program)
-    commands_by_outcome = _patch_review_commands_by_outcome(normalized_program, specs)
+    commands_by_outcome = _patch_review_commands_by_outcome(normalized_program, specs, flow_steps)
     gap_reasons = _patch_review_outcome_gap_reasons()
     statuses = tuple(
         CommandPatchReviewOutcomeStatus(
@@ -1434,7 +1435,13 @@ def _validate_command_demo_path_handoff_evidence(
 def _patch_review_commands_by_outcome(
     program: str,
     specs: tuple[CommandSpec, ...],
+    flow_steps: tuple[str, ...] | None = None,
 ) -> dict[str, str]:
+    ordered_flow_steps = _resolve_contract_flow_steps(specs, flow_steps)
+    _validate_flow_steps(ordered_flow_steps)
+    if "patch-review" not in _normalize_flow_steps(ordered_flow_steps):
+        return {}
+
     commands_by_outcome: dict[str, str] = {}
     for outcome, argv in PATCH_REVIEW_OUTCOME_COMMANDS:
         normalized_argv = normalize_command_argv(argv, specs)

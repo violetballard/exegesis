@@ -295,6 +295,21 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
             evidence,
         )
 
+    def test_handoff_evidence_scopes_patch_review_outcomes_to_requested_flow_steps(self) -> None:
+        evidence = command_demo_path_handoff_evidence(
+            program="qual-bootstrap",
+            flow_steps=("project-open", "retrieval"),
+        )
+
+        self.assertIn(("flow:project-open", "qual-bootstrap bootstrap"), evidence)
+        self.assertIn(("flow:retrieval", "qual-bootstrap context-basket list"), evidence)
+        self.assertNotIn(("patch-review:preview", "qual-bootstrap diff-preview"), evidence)
+        self.assertIn(
+            ("patch-review:preview", "missing: no stable command route is available"),
+            evidence,
+        )
+        self.assertNotIn(("flow:patch-review", "qual-bootstrap diff-preview"), evidence)
+
     def test_patch_review_outcome_contract_keeps_apply_reject_gaps_smoke_testable(self) -> None:
         contract = command_patch_review_outcome_contract(program="qual-bootstrap")
 
