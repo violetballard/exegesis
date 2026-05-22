@@ -81,7 +81,8 @@ SUCCESSFUL_INTEGRATOR_SUMMARY_RE = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 BLOCKED_INTEGRATOR_OUTPUT_RE = re.compile(
-    r"blocked before merge|no integration was performed|no integration performed",
+    r"\bBlocked\.\s|blocked before merge|no integration was performed|no integration performed|"
+    r"approved slice is not fully integrated|slice is not fully integrated",
     re.IGNORECASE,
 )
 RETRY_LIMIT_WRAPPER_RE = re.compile(
@@ -445,6 +446,33 @@ def _branch_changed_files(repo_cwd: str, branch: str) -> List[str]:
     return [line.strip() for line in (proc.stdout or "").splitlines() if line.strip()]
 
 
+def _branch_files_differing_from_head(repo_cwd: str, branch: str) -> List[str]:
+    """Return files whose branch tip content still differs from current HEAD."""
+    try:
+        proc = subprocess.run(
+            ["git", "diff", "--name-only", f"HEAD..{branch}"],
+            cwd=repo_cwd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            check=False,
+        )
+    except Exception:
+        return []
+    if proc.returncode != 0:
+        return []
+    return [line.strip() for line in (proc.stdout or "").splitlines() if line.strip()]
+
+
+def _branch_unmerged_authored_files(repo_cwd: str, branch: str) -> List[str]:
+    """Return branch-authored files that are not already represented in HEAD."""
+    authored = set(_branch_changed_files(repo_cwd, branch))
+    head_diff = set(_branch_files_differing_from_head(repo_cwd, branch))
+    if not authored:
+        return sorted(head_diff)
+    return sorted(authored & head_diff)
+
+
 def _branch_scope_violations(
     cfg: RouterConfig,
     repo_cwd: str,
@@ -621,10 +649,16 @@ def _integration_dependency_blockers(
         if not branch or _branch_merged_to_head(repo_cwd, branch):
             continue
         if reviewed_set:
-            prior_files = set(_latest_reviewed_files_for_lane(prior_lane))
-            if not prior_files:
-                prior_files = set(_branch_changed_files(repo_cwd, branch))
-            prior_files = set(_merge_relevant_review_files(list(prior_files)))
+            branch_files = set(_merge_relevant_review_files(_branch_unmerged_authored_files(repo_cwd, branch)))
+            prior_files = set(_merge_relevant_review_files(_latest_reviewed_files_for_lane(prior_lane)))
+            if prior_files:
+                # Reviewed-file metadata can outlive a narrow/squash integration.
+                # Only block later approved packets on prior reviewed files that
+                # still differ from main; otherwise a stale active branch can pin
+                # the integrator behind work that has already landed.
+                prior_files &= branch_files
+            else:
+                prior_files = branch_files
             if reviewed_set.isdisjoint(prior_files):
                 continue
         if branch:

@@ -862,6 +862,19 @@ Blockers: none.
 
         self.assertIsNone(router._local_cli_output_rejection_reason(output, require_verdict=False))
 
+    def test_integrator_plain_blocked_summary_is_rejected(self) -> None:
+        output = """Blocked.
+
+The approved slice is not fully integrated.
+
+Current blocker: an untracked local file differs from the reviewed file.
+"""
+
+        self.assertEqual(
+            router._local_cli_output_rejection_reason(output, require_verdict=False),
+            "integrator reported blocked/no integration performed",
+        )
+
     def test_process_integrator_backlog_completes_detached_cloud_job_on_later_tick(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             lane_dir = Path(tmp)
