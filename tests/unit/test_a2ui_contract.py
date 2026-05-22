@@ -4939,6 +4939,25 @@ class A2UIContractTests(unittest.TestCase):
         self.assertNotIn("policy_sensitive", result)
         self.assertEqual(gate.calls, [("gather_context", {"basket_id": "basket-1", "context_set_id": "ctx-1"}, False)])
 
+        execution = resolve_card_selection_execution(
+            card,
+            selection,
+            capabilities=_capabilities(),
+        )
+        self.assertEqual(execution["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
+        self.assertEqual(
+            execution["execution_policy"],
+            {
+                "policy_gate": "optional",
+                "requires_confirmation": False,
+                "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+            },
+        )
+        self.assertEqual(
+            execution["action_contract"]["payload"],
+            {"basket_id": "basket-1", "context_set_id": "ctx-1"},
+        )
+
     def test_card_selection_execution_rejects_unsupported_client_action(self) -> None:
         card = materialize_terminal_card(
             {

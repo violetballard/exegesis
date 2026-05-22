@@ -1894,6 +1894,12 @@ def resolve_card_selection_execution(
     return {
         "selection": deepcopy(selection),
         "action_contract": action_ref.as_contract(),
+        "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+        "execution_policy": {
+            "policy_gate": "required" if action_ref.policy_sensitive else "optional",
+            "requires_confirmation": action_ref.confirm is not None,
+            "action_authority": PATCH_REVIEW_ACTION_AUTHORITY,
+        },
     }
 
 
