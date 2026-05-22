@@ -203,6 +203,22 @@ class CommandCanonicalStepBlocker:
 
 
 @dataclass(frozen=True)
+class CommandPatchReviewOutcomeStatus:
+    outcome: str
+    ready: bool
+    command: str = ""
+    gap_reason: str = ""
+
+
+@dataclass(frozen=True)
+class CommandPatchReviewOutcomeContract:
+    program: str
+    ready: bool
+    statuses: tuple[CommandPatchReviewOutcomeStatus, ...]
+    missing_outcomes: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class CommandDemoPathContract:
     demo_steps: tuple[str, ...]
     flow_steps: tuple[str, ...]
@@ -471,6 +487,14 @@ CANONICAL_DEMO_PATH_SUPPLEMENTAL_COMMANDS: tuple[tuple[str, str, tuple[str, ...]
 )
 CANONICAL_DEMO_PATH_PARTIAL_COMMANDS: tuple[tuple[str, str], ...] = (
     ("preview-and-apply-or-reject-patch", "preview-patch"),
+)
+PATCH_REVIEW_REQUIRED_OUTCOMES: tuple[str, ...] = ("preview", "apply", "reject")
+PATCH_REVIEW_OUTCOME_COMMANDS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ("preview", ("diff-preview",)),
+)
+PATCH_REVIEW_OUTCOME_GAP_REASONS: tuple[tuple[str, str], ...] = (
+    ("apply", "no stable command route applies reviewed patches"),
+    ("reject", "no stable command route rejects reviewed patches"),
 )
 DEMO_PATH_STEPS_BY_FLOW_STEP: tuple[tuple[str, str], ...] = (
     ("project-open", "open-project-document"),
@@ -1262,9 +1286,40 @@ def command_demo_path_handoff_evidence(
     flow_steps: tuple[str, ...] | None = None,
 ) -> tuple[tuple[str, str], ...]:
     summary = command_demo_path_handoff_summary(program, specs, flow_steps)
-    evidence = _command_demo_path_handoff_evidence_entries(summary)
-    _validate_command_demo_path_handoff_evidence(evidence, summary)
+    patch_review_contract = command_patch_review_outcome_contract(program, specs)
+    evidence = _command_demo_path_handoff_evidence_entries(summary, patch_review_contract)
+    _validate_command_demo_path_handoff_evidence(evidence, summary, patch_review_contract)
     return evidence
+
+
+def command_patch_review_outcome_contract(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+) -> CommandPatchReviewOutcomeContract:
+    normalized_program = _normalize_smoke_program(program)
+    commands_by_outcome = _patch_review_commands_by_outcome(normalized_program, specs)
+    gap_reasons = _patch_review_outcome_gap_reasons()
+    statuses = tuple(
+        CommandPatchReviewOutcomeStatus(
+            outcome=outcome,
+            ready=outcome in commands_by_outcome,
+            command=commands_by_outcome.get(outcome, ""),
+            gap_reason="" if outcome in commands_by_outcome else gap_reasons.get(
+                outcome,
+                "no stable command route is available",
+            ),
+        )
+        for outcome in PATCH_REVIEW_REQUIRED_OUTCOMES
+    )
+    missing_outcomes = tuple(status.outcome for status in statuses if not status.ready)
+    contract = CommandPatchReviewOutcomeContract(
+        program=normalized_program,
+        ready=not missing_outcomes,
+        statuses=statuses,
+        missing_outcomes=missing_outcomes,
+    )
+    _validate_command_patch_review_outcome_contract(contract)
+    return contract
 
 
 def command_demo_path_next_blocker(
@@ -1306,11 +1361,22 @@ def _validate_command_demo_path_next_blocker(
 
 def _command_demo_path_handoff_evidence_entries(
     summary: CommandDemoPathHandoffSummary,
+    patch_review_contract: CommandPatchReviewOutcomeContract | None = None,
 ) -> tuple[tuple[str, str], ...]:
     next_blocker = _next_canonical_step_blocker(summary)
+    if patch_review_contract is None:
+        patch_review_contract = command_patch_review_outcome_contract(summary.program)
     evidence = (
         ("ready", "true" if summary.ready else "false"),
         ("fingerprint", summary.fingerprint),
+        ("patch-review-ready", "true" if patch_review_contract.ready else "false"),
+        *(
+            (
+                f"patch-review:{status.outcome}",
+                status.command if status.ready else f"missing: {status.gap_reason}",
+            )
+            for status in patch_review_contract.statuses
+        ),
         *((f"command:{index}", command) for index, command in enumerate(summary.command_lines, start=1)),
         *(
             (f"compatibility-command:{index}", command)
@@ -1358,9 +1424,48 @@ def _command_demo_path_handoff_evidence_entries(
 def _validate_command_demo_path_handoff_evidence(
     evidence: tuple[tuple[str, str], ...],
     summary: CommandDemoPathHandoffSummary,
+    patch_review_contract: CommandPatchReviewOutcomeContract | None = None,
 ) -> None:
-    if evidence != _command_demo_path_handoff_evidence_entries(summary):
+    if evidence != _command_demo_path_handoff_evidence_entries(summary, patch_review_contract):
         raise ValueError("Command demo path handoff evidence is inconsistent")
+
+
+def _patch_review_commands_by_outcome(
+    program: str,
+    specs: tuple[CommandSpec, ...],
+) -> dict[str, str]:
+    commands_by_outcome: dict[str, str] = {}
+    for outcome, argv in PATCH_REVIEW_OUTCOME_COMMANDS:
+        normalized_argv = normalize_command_argv(argv, specs)
+        spec = command_spec_for(specs, normalized_argv[0]) if normalized_argv else None
+        if spec is None or spec.flow_step != "patch-review":
+            continue
+        commands_by_outcome[_normalize_token(outcome)] = " ".join((program, *normalized_argv))
+    return commands_by_outcome
+
+
+def _patch_review_outcome_gap_reasons() -> dict[str, str]:
+    return {
+        _normalize_token(outcome): reason
+        for outcome, reason in PATCH_REVIEW_OUTCOME_GAP_REASONS
+    }
+
+
+def _validate_command_patch_review_outcome_contract(
+    contract: CommandPatchReviewOutcomeContract,
+) -> None:
+    expected_outcomes = tuple(_normalize_token(outcome) for outcome in PATCH_REVIEW_REQUIRED_OUTCOMES)
+    if tuple(status.outcome for status in contract.statuses) != expected_outcomes:
+        raise ValueError("Command patch-review outcomes are inconsistent")
+    if contract.missing_outcomes != tuple(status.outcome for status in contract.statuses if not status.ready):
+        raise ValueError("Command patch-review missing outcomes are inconsistent")
+    if contract.ready != (not contract.missing_outcomes):
+        raise ValueError("Command patch-review readiness is inconsistent")
+    for status in contract.statuses:
+        if status.ready == bool(status.gap_reason):
+            raise ValueError("Command patch-review outcome status is inconsistent")
+        if status.ready and not status.command:
+            raise ValueError("Command patch-review ready outcome must include a command")
 
 
 def _command_demo_path_readiness_steps(

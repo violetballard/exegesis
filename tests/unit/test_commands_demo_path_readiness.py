@@ -12,6 +12,7 @@ from src.qual.commands import (
     command_demo_path_readiness,
     command_mvp_demo_path_compatibility_lookup_table,
     command_mvp_demo_path_handoff_evidence,
+    command_patch_review_outcome_contract,
 )
 
 
@@ -243,7 +244,17 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
         evidence = command_demo_path_handoff_evidence(program="qual-bootstrap")
 
         self.assertEqual(evidence[0], ("ready", "false"))
-        self.assertEqual(evidence[2], ("command:1", "qual-bootstrap bootstrap"))
+        self.assertIn(("command:1", "qual-bootstrap bootstrap"), evidence)
+        self.assertIn(("patch-review-ready", "false"), evidence)
+        self.assertIn(("patch-review:preview", "qual-bootstrap diff-preview"), evidence)
+        self.assertIn(
+            ("patch-review:apply", "missing: no stable command route applies reviewed patches"),
+            evidence,
+        )
+        self.assertIn(
+            ("patch-review:reject", "missing: no stable command route rejects reviewed patches"),
+            evidence,
+        )
         self.assertIn(("flow:retrieval", "qual-bootstrap context-basket list"), evidence)
         self.assertIn(
             (
@@ -282,6 +293,20 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
                 ),
             ),
             evidence,
+        )
+
+    def test_patch_review_outcome_contract_keeps_apply_reject_gaps_smoke_testable(self) -> None:
+        contract = command_patch_review_outcome_contract(program="qual-bootstrap")
+
+        self.assertFalse(contract.ready)
+        self.assertEqual(contract.missing_outcomes, ("apply", "reject"))
+        self.assertEqual(
+            tuple((status.outcome, status.ready, status.command, status.gap_reason) for status in contract.statuses),
+            (
+                ("preview", True, "qual-bootstrap diff-preview", ""),
+                ("apply", False, "", "no stable command route applies reviewed patches"),
+                ("reject", False, "", "no stable command route rejects reviewed patches"),
+            ),
         )
 
     def test_mvp_handoff_evidence_matches_demo_path_evidence(self) -> None:
