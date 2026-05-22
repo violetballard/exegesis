@@ -5,7 +5,8 @@ import sys
 from dataclasses import dataclass
 
 from exegesis_engine.config import validate_project_name
-from src.qual.commands.catalog import canonical_command, normalize_command_argv
+from src.qual.commands.catalog import normalize_command_argv
+from src.qual.commands.canonical import canonical_command
 
 
 @dataclass(frozen=True)
@@ -30,7 +31,13 @@ class CLIArgs:
 
 def _normalize_argv(argv: list[str] | None) -> list[str]:
     raw = list(sys.argv[1:] if argv is None else argv)
-    return list(normalize_command_argv(raw))
+    if not raw:
+        return ["bootstrap"]
+
+    first = raw[0]
+    if first.startswith("-"):
+        return ["bootstrap", *raw]
+    return list(normalize_command_argv(tuple(raw)))
 
 
 def parse_args(argv: list[str] | None = None) -> CLIArgs:
