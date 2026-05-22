@@ -1375,7 +1375,7 @@ def _command_demo_path_handoff_evidence_entries(
     summary: CommandDemoPathHandoffSummary,
     patch_review_contract: CommandPatchReviewOutcomeContract | None = None,
 ) -> tuple[tuple[str, str], ...]:
-    next_blocker = _next_canonical_step_blocker(summary)
+    next_blocker = summary.next_blocker
     if patch_review_contract is None:
         patch_review_contract = command_patch_review_outcome_contract(summary.program)
     evidence = (
