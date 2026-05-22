@@ -4,11 +4,32 @@ import json
 from dataclasses import dataclass
 from typing import Any
 
-from exegesis_shared.contracts.actions import ALLOWED_ACTION_IDS, validate_action_ref
+from exegesis_shared.contracts.actions import (
+    ALLOWED_ACTION_IDS,
+    validate_complete_patch_review_capabilities,
+    materialize_action_selection_contract,
+    materialize_card_actions,
+    materialize_cli_fallback_card,
+    resolve_complete_patch_review_cli_command_execution,
+    resolve_complete_patch_review_control_execution,
+    resolve_complete_patch_review_decision_cli_command_execution,
+    validate_action_ref,
+)
 
 A2UI_VERSION = 1
 GENERIC_CARD_TYPE = "GenericCard"
 UNKNOWN_CARD_TYPE = "UnknownCard"
+PROPOSED_EDIT_CARD_TYPE = "ProposedEditCard"
+RETRIEVAL_RESULTS_CARD_TYPE = "RetrievalResultsCard"
+BASKET_CARD_TYPE = "BasketCard"
+CONTEXT_SET_CARD_TYPE = "ContextSetCard"
+KNOWN_CARD_TYPES: tuple[str, ...] = (
+    GENERIC_CARD_TYPE,
+    PROPOSED_EDIT_CARD_TYPE,
+    RETRIEVAL_RESULTS_CARD_TYPE,
+    BASKET_CARD_TYPE,
+    CONTEXT_SET_CARD_TYPE,
+)
 
 REQUIRED_PRIMITIVE_BLOCKS: tuple[str, ...] = (
     "MarkdownBlock",
@@ -22,6 +43,34 @@ REQUIRED_PRIMITIVE_BLOCKS: tuple[str, ...] = (
 
 _PRIMITIVE_BLOCK_SET = set(REQUIRED_PRIMITIVE_BLOCKS)
 _ALLOWED_ACTION_SET = set(ALLOWED_ACTION_IDS)
+_PRIMITIVE_BLOCK_REQUIRED_FIELDS: dict[str, dict[str, type | tuple[type, ...]]] = {
+    "MarkdownBlock": {"markdown": str},
+    "KeyValueBlock": {"items": list},
+    "ListBlock": {"items": list},
+    "TableBlock": {"columns": list, "rows": list},
+    "AlertBlock": {"message": str},
+    "ProgressBlock": {"title": str, "status_text": str},
+    "CodeBlock": {"language": str, "code": str},
+}
+_RETRIEVAL_RESULTS_CARD_FIELDS = frozenset({"type", "title", "query", "results", "actions", "action_selection"})
+_BASKET_CARD_FIELDS = frozenset(
+    {"type", "title", "basket_id", "items", "actions", "action_selection"}
+)
+_CONTEXT_SET_CARD_FIELDS = frozenset(
+    {"type", "title", "context_set_id", "items", "actions", "action_selection"}
+)
+DEMO_CONTEXT_CARD_TYPES: tuple[str, ...] = (
+    RETRIEVAL_RESULTS_CARD_TYPE,
+    BASKET_CARD_TYPE,
+    CONTEXT_SET_CARD_TYPE,
+)
+DEMO_CONTEXT_ACTION_IDS: tuple[str, ...] = (
+    "open_corpus_item",
+    "promote_to_basket",
+    "pin_to_context_set",
+    "create_context_set",
+    "gather_context",
+)
 
 
 @dataclass(frozen=True)
@@ -40,8 +89,9 @@ class A2UISessionStore:
         self._by_session: dict[str, A2UICapabilities] = {}
 
     def register(self, session_id: str, capabilities: A2UICapabilities) -> None:
-        if capabilities.a2ui_version < 1:
-            raise ValueError("Unsupported a2ui version")
+        if not isinstance(session_id, str) or not session_id.strip():
+            raise ValueError("session_id is required")
+        validate_capabilities(capabilities)
         self._by_session[session_id] = capabilities
 
     def get(self, session_id: str) -> A2UICapabilities:
@@ -51,12 +101,21 @@ class A2UISessionStore:
 
 
 def validate_capabilities(capabilities: A2UICapabilities) -> None:
+    if not isinstance(capabilities.a2ui_version, int) or isinstance(capabilities.a2ui_version, bool):
+        raise ValueError("a2ui_version must be a positive integer")
     if capabilities.a2ui_version < 1:
         raise ValueError("Unsupported a2ui version")
-    if not capabilities.client_name.strip():
+    if not isinstance(capabilities.client_name, str) or not capabilities.client_name.strip():
         raise ValueError("client_name is required")
+    if not isinstance(capabilities.max_payload_bytes, int) or isinstance(capabilities.max_payload_bytes, bool):
+        raise ValueError("max_payload_bytes must be a positive integer")
     if capabilities.max_payload_bytes <= 0:
         raise ValueError("max_payload_bytes must be positive")
+    _validate_capability_names(capabilities.cards_supported, "cards_supported")
+    _validate_capability_names(capabilities.primitive_blocks_supported, "primitive_blocks_supported")
+    _validate_capability_names(capabilities.actions_supported, "actions_supported")
+    if not isinstance(capabilities.supports_streaming, bool):
+        raise ValueError("supports_streaming must be a boolean")
     if not _PRIMITIVE_BLOCK_SET.issubset(set(capabilities.primitive_blocks_supported)):
         raise ValueError("Missing required primitive block support")
     for action_id in capabilities.actions_supported:
@@ -64,14 +123,128 @@ def validate_capabilities(capabilities: A2UICapabilities) -> None:
             raise ValueError(f"Unknown action in capabilities: {action_id}")
 
 
+def validate_complete_patch_review_card_capabilities(capabilities: A2UICapabilities) -> None:
+    validate_capabilities(capabilities)
+    if PROPOSED_EDIT_CARD_TYPE not in set(capabilities.cards_supported):
+        raise ValueError("Complete patch review requires ProposedEditCard support")
+    validate_complete_patch_review_capabilities(capabilities)
+
+
+def resolve_complete_patch_review_card_control_execution(
+    card: dict[str, Any],
+    *,
+    patch_id: str,
+    control: str,
+    capabilities: A2UICapabilities,
+) -> dict[str, Any]:
+    validate_complete_patch_review_card_capabilities(capabilities)
+    return resolve_complete_patch_review_control_execution(
+        card,
+        patch_id=patch_id,
+        control=control,
+        capabilities=capabilities,
+    )
+
+
+def resolve_complete_patch_review_card_cli_command_execution(
+    card: dict[str, Any],
+    *,
+    patch_id: str,
+    command: str,
+    capabilities: A2UICapabilities,
+) -> dict[str, Any]:
+    validate_complete_patch_review_card_capabilities(capabilities)
+    return resolve_complete_patch_review_cli_command_execution(
+        card,
+        patch_id=patch_id,
+        command=command,
+        capabilities=capabilities,
+    )
+
+
+def resolve_complete_patch_review_card_decision_cli_command_execution(
+    card: dict[str, Any],
+    *,
+    patch_id: str,
+    command: str,
+    capabilities: A2UICapabilities,
+) -> dict[str, Any]:
+    validate_complete_patch_review_card_capabilities(capabilities)
+    return resolve_complete_patch_review_decision_cli_command_execution(
+        card,
+        patch_id=patch_id,
+        command=command,
+        capabilities=capabilities,
+    )
+
+
+def validate_demo_context_card_capabilities(capabilities: A2UICapabilities) -> None:
+    validate_capabilities(capabilities)
+    cards_supported = set(capabilities.cards_supported)
+    missing_cards = [
+        card_type
+        for card_type in DEMO_CONTEXT_CARD_TYPES
+        if card_type not in cards_supported
+    ]
+    if missing_cards:
+        raise ValueError(
+            "Demo context flow requires card support: "
+            + ", ".join(missing_cards)
+        )
+    actions_supported = set(capabilities.actions_supported)
+    missing_actions = [
+        action_id
+        for action_id in DEMO_CONTEXT_ACTION_IDS
+        if action_id not in actions_supported
+    ]
+    if missing_actions:
+        raise ValueError(
+            "Demo context flow requires action support: "
+            + ", ".join(missing_actions)
+        )
+
+
+def validate_engine_demo_path_capabilities(capabilities: A2UICapabilities) -> None:
+    validate_demo_context_card_capabilities(capabilities)
+    validate_complete_patch_review_card_capabilities(capabilities)
+
+
+def _validate_capability_names(values: Any, field_name: str) -> None:
+    if not isinstance(values, tuple):
+        raise ValueError(f"{field_name} must be a tuple")
+    seen: set[str] = set()
+    for value in values:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"{field_name} entries must be non-empty strings")
+        normalized = value.strip()
+        if value != normalized:
+            raise ValueError(f"{field_name} entries must be normalized: {normalized}")
+        if normalized in seen:
+            raise ValueError(f"{field_name} entries must be unique: {normalized}")
+        seen.add(normalized)
+
+
 def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
+    validate_capabilities(capabilities)
     card_type = str(card.get("type", "")).strip()
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card)
-        return card
-    if card_type in set(capabilities.cards_supported):
-        return card
-    return {
+        prepared = _engine_filter_actions(card, capabilities)
+        prepared = materialize_cli_fallback_card(prepared)
+        validate_card_payload_size(prepared, capabilities)
+        return prepared
+    if card_type == PROPOSED_EDIT_CARD_TYPE:
+        prepared = materialize_proposed_edit_card(card)
+        if card_type in set(capabilities.cards_supported):
+            prepared = _engine_filter_actions(prepared, capabilities)
+            prepared = materialize_cli_fallback_card(prepared)
+            validate_card_payload_size(prepared, capabilities)
+            return prepared
+        card = prepared
+    elif card_type in _VALIDATORS_BY_CARD_TYPE:
+        validate_known_card(card)
+    fallback_actions = _engine_fallback_actions(card, capabilities)
+    fallback = {
         "type": GENERIC_CARD_TYPE,
         "title": f"Fallback view for {card_type or 'Unknown'}",
         "blocks": [
@@ -87,18 +260,51 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
                 "code": json.dumps(card, separators=(",", ":"), ensure_ascii=True),
             },
         ],
-        "actions": [],
+        "actions": fallback_actions,
     }
+    patch_id = card.get("patch_id")
+    if isinstance(patch_id, str) and patch_id.strip():
+        fallback["patch_id"] = patch_id.strip()
+    fallback = materialize_cli_fallback_card(fallback)
+    validate_card_payload_size(fallback, capabilities)
+    return fallback
 
 
 def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
+    validate_capabilities(capabilities)
     card_type = str(card.get("type", "")).strip()
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card, strict_actions=False)
-        return _studio_filter_actions(card, capabilities)
-    if card_type in set(capabilities.cards_supported):
-        return _studio_filter_actions(card, capabilities)
-    return build_unknown_card(card)
+        materialized = materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
+        validate_card_payload_size(materialized, capabilities)
+        return materialized
+    if card_type == PROPOSED_EDIT_CARD_TYPE:
+        card = materialize_proposed_edit_card(card)
+        if card_type not in set(capabilities.cards_supported):
+            card = build_unknown_card(card)
+        materialized = materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
+        validate_card_payload_size(materialized, capabilities)
+        return materialized
+    if card_type in _VALIDATORS_BY_CARD_TYPE:
+        validate_known_card(card, strict_actions=False)
+        if card_type not in set(capabilities.cards_supported):
+            card = build_unknown_card(card)
+        materialized = materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
+        validate_card_payload_size(materialized, capabilities)
+        return materialized
+    materialized = materialize_cli_fallback_card(_studio_filter_actions(build_unknown_card(card), capabilities))
+    validate_card_payload_size(materialized, capabilities)
+    return materialized
+
+
+def validate_card_payload_size(card: dict[str, Any], capabilities: A2UICapabilities) -> None:
+    validate_capabilities(capabilities)
+    encoded = json.dumps(card, sort_keys=True, separators=(",", ":"), ensure_ascii=True).encode("utf-8")
+    if len(encoded) > capabilities.max_payload_bytes:
+        raise ValueError(
+            "A2UI card payload exceeds negotiated max_payload_bytes "
+            f"({len(encoded)} > {capabilities.max_payload_bytes})"
+        )
 
 
 def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
@@ -107,8 +313,12 @@ def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
     blocks: list[dict[str, Any]] = []
     if isinstance(nested_blocks, list):
         for block in nested_blocks:
-            if isinstance(block, dict) and str(block.get("type", "")) in _PRIMITIVE_BLOCK_SET:
-                blocks.append(block)
+            try:
+                validate_primitive_block(block)
+            except ValueError:
+                continue
+            blocks.append(block)
+    blocks.append(_unknown_card_support_summary(raw_card))
     blocks.append(
         {
             "type": "CodeBlock",
@@ -117,12 +327,32 @@ def build_unknown_card(raw_card: dict[str, Any]) -> dict[str, Any]:
             "collapsed": True,
         }
     )
-    return {
+    actions = materialize_card_actions(raw_card)
+    actions.append({"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": json.dumps(raw_card)}})
+    fallback = {
         "type": UNKNOWN_CARD_TYPE,
         "title": f"Unsupported card type: {type_name}",
         "blocks": blocks,
-        "actions": [
-            {"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": json.dumps(raw_card)}}
+        "actions": actions,
+    }
+    patch_id = raw_card.get("patch_id")
+    if isinstance(patch_id, str) and patch_id.strip():
+        fallback["patch_id"] = patch_id.strip()
+    return fallback
+
+
+def _unknown_card_support_summary(raw_card: dict[str, Any]) -> dict[str, Any]:
+    raw_actions = raw_card.get("actions", [])
+    raw_action_count = len(raw_actions) if isinstance(raw_actions, list) else 0
+    materialized_actions = materialize_card_actions(raw_card)
+    return {
+        "type": "KeyValueBlock",
+        "items": [
+            {"key": "original_type", "value": str(raw_card.get("type", "<missing>"))},
+            {"key": "fallback", "value": "UnknownCard"},
+            {"key": "typed_action_candidates", "value": str(len(materialized_actions))},
+            {"key": "invalid_actions_filtered", "value": str(raw_action_count - len(materialized_actions))},
+            {"key": "raw_payload_available", "value": "true"},
         ],
     }
 
@@ -144,6 +374,126 @@ def validate_generic_card(card: dict[str, Any], *, strict_actions: bool = True) 
     if strict_actions:
         for action in actions:
             validate_action_ref(action)
+    _validate_optional_action_selection(card, strict_actions=strict_actions)
+
+
+def materialize_proposed_edit_card(card: dict[str, Any]) -> dict[str, Any]:
+    validate_proposed_edit_card(card, strict_actions=False)
+    materialized = dict(card)
+    patch_id = str(materialized["patch_id"]).strip()
+    materialized["patch_id"] = patch_id
+    actions = [
+        action
+        for action in materialize_card_actions(materialized)
+        if not _is_same_patch_review_action(action, patch_id)
+    ]
+    actions.extend(_canonical_patch_review_actions(patch_id))
+    materialized["actions"] = actions
+    validate_proposed_edit_card(materialized)
+    return materialized
+
+
+def validate_proposed_edit_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
+    if card.get("type") != PROPOSED_EDIT_CARD_TYPE:
+        raise ValueError("Card type must be ProposedEditCard")
+    patch_id = card.get("patch_id")
+    if not isinstance(patch_id, str) or not patch_id.strip():
+        raise ValueError("ProposedEditCard patch_id is required")
+    title = card.get("title")
+    if not isinstance(title, str) or not title.strip():
+        raise ValueError("ProposedEditCard title is required")
+    blocks = card.get("blocks")
+    if not isinstance(blocks, list):
+        raise ValueError("ProposedEditCard blocks must be a list")
+    for block in blocks:
+        validate_primitive_block(block)
+    actions = card.get("actions", [])
+    if not isinstance(actions, list):
+        raise ValueError("ProposedEditCard actions must be a list")
+    expected_patch_id = patch_id.strip()
+    for action in actions:
+        if not isinstance(action, dict):
+            if strict_actions:
+                validate_action_ref(action)
+            continue
+        action_id = action.get("id")
+        if action_id in {"preview_patch", "apply_patch", "reject_patch"}:
+            payload = action.get("payload")
+            action_patch_id = payload.get("patch_id") if isinstance(payload, dict) else None
+            if action_patch_id != expected_patch_id:
+                raise ValueError(f"{action_id} payload patch_id must match ProposedEditCard patch_id")
+        if strict_actions:
+            validate_action_ref(action)
+    _validate_optional_action_selection(card, strict_actions=strict_actions)
+
+
+def validate_known_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
+    card_type = str(card.get("type", "")).strip()
+    validator = _VALIDATORS_BY_CARD_TYPE.get(card_type)
+    if validator is None:
+        raise ValueError(f"Unsupported known A2UI card type: {card_type}")
+    validator(card, strict_actions=strict_actions)
+
+
+def validate_retrieval_results_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
+    _validate_card_fields(card, RETRIEVAL_RESULTS_CARD_TYPE, _RETRIEVAL_RESULTS_CARD_FIELDS)
+    _validate_card_title(card, RETRIEVAL_RESULTS_CARD_TYPE)
+    query = card.get("query")
+    if not isinstance(query, str) or not query.strip():
+        raise ValueError("RetrievalResultsCard query is required")
+    results = card.get("results")
+    if not isinstance(results, list):
+        raise ValueError("RetrievalResultsCard results must be a list")
+    for result in results:
+        _validate_typed_mapping(
+            result,
+            "RetrievalResultsCard result",
+            required_fields={"item_id": str, "title": str, "snippet": str},
+        )
+    _validate_unique_item_ids(results, "RetrievalResultsCard result")
+    _validate_optional_card_actions(card, strict_actions=strict_actions)
+    _validate_item_scoped_actions(card, results, "RetrievalResultsCard result")
+
+
+def validate_basket_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
+    _validate_card_fields(card, BASKET_CARD_TYPE, _BASKET_CARD_FIELDS)
+    _validate_card_title(card, BASKET_CARD_TYPE)
+    _validate_optional_card_identifier(card, "basket_id", BASKET_CARD_TYPE)
+    items = card.get("items")
+    if not isinstance(items, list):
+        raise ValueError("BasketCard items must be a list")
+    for item in items:
+        _validate_typed_mapping(
+            item,
+            "BasketCard item",
+            required_fields={"item_id": str, "title": str},
+        )
+    _validate_unique_item_ids(items, "BasketCard item")
+    _validate_optional_card_actions(card, strict_actions=strict_actions)
+    _validate_item_scoped_actions(card, items, "BasketCard item")
+    _validate_basket_scoped_actions(card)
+
+
+def validate_context_set_card(card: dict[str, Any], *, strict_actions: bool = True) -> None:
+    _validate_card_fields(card, CONTEXT_SET_CARD_TYPE, _CONTEXT_SET_CARD_FIELDS)
+    _validate_card_title(card, CONTEXT_SET_CARD_TYPE)
+    context_set_id = card.get("context_set_id")
+    if not isinstance(context_set_id, str) or not context_set_id.strip():
+        raise ValueError("ContextSetCard context_set_id is required")
+    _validate_card_identifier(context_set_id, "context_set_id", CONTEXT_SET_CARD_TYPE)
+    items = card.get("items")
+    if not isinstance(items, list):
+        raise ValueError("ContextSetCard items must be a list")
+    for item in items:
+        _validate_typed_mapping(
+            item,
+            "ContextSetCard item",
+            required_fields={"item_id": str, "title": str},
+        )
+    _validate_unique_item_ids(items, "ContextSetCard item")
+    _validate_optional_card_actions(card, strict_actions=strict_actions)
+    _validate_item_scoped_actions(card, items, "ContextSetCard item")
+    _validate_context_set_scoped_actions(card, context_set_id.strip())
 
 
 def validate_primitive_block(block: Any) -> None:
@@ -152,6 +502,187 @@ def validate_primitive_block(block: Any) -> None:
     block_type = str(block.get("type", ""))
     if block_type not in _PRIMITIVE_BLOCK_SET:
         raise ValueError(f"Unsupported primitive block: {block_type}")
+    required_fields = _PRIMITIVE_BLOCK_REQUIRED_FIELDS[block_type]
+    for field_name, field_type in required_fields.items():
+        if field_name not in block:
+            raise ValueError(f"{block_type} requires '{field_name}'")
+        value = block[field_name]
+        if not isinstance(value, field_type):
+            if isinstance(field_type, tuple):
+                type_names = " or ".join(value_type.__name__ for value_type in field_type)
+            else:
+                type_names = field_type.__name__
+            raise ValueError(f"{block_type} field '{field_name}' must be {type_names}")
+        if field_type is str and not value.strip():
+            raise ValueError(f"{block_type} field '{field_name}' is required")
+
+
+def _validate_card_title(card: dict[str, Any], card_type: str) -> None:
+    if card.get("type") != card_type:
+        raise ValueError(f"Card type must be {card_type}")
+    title = card.get("title")
+    if not isinstance(title, str) or not title.strip():
+        raise ValueError(f"{card_type} title is required")
+
+
+def _validate_card_fields(card: dict[str, Any], card_type: str, allowed_fields: frozenset[str]) -> None:
+    unexpected_fields = set(card) - allowed_fields
+    if unexpected_fields:
+        field_list = ", ".join(sorted(unexpected_fields))
+        raise ValueError(f"Unsupported {card_type} field(s): {field_list}")
+
+
+def _validate_optional_card_identifier(card: dict[str, Any], field_name: str, card_type: str) -> None:
+    if field_name not in card:
+        return
+    value = card[field_name]
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{card_type} {field_name} is required")
+    _validate_card_identifier(value, field_name, card_type)
+
+
+def _validate_card_identifier(value: str, field_name: str, card_type: str) -> None:
+    if value != value.strip():
+        raise ValueError(f"{card_type} {field_name} must be normalized")
+
+
+def _validate_typed_mapping(
+    value: Any,
+    label: str,
+    *,
+    required_fields: dict[str, type],
+) -> None:
+    if not isinstance(value, dict):
+        raise ValueError(f"{label} must be an object")
+    unexpected_fields = set(value) - set(required_fields)
+    if unexpected_fields:
+        field_list = ", ".join(sorted(unexpected_fields))
+        raise ValueError(f"Unsupported {label} field(s): {field_list}")
+    for field_name, field_type in required_fields.items():
+        field_value = value.get(field_name)
+        if not isinstance(field_value, field_type):
+            raise ValueError(f"{label} field '{field_name}' must be {field_type.__name__}")
+        if field_type is str and not field_value.strip():
+            raise ValueError(f"{label} field '{field_name}' is required")
+
+
+def _validate_unique_item_ids(items: list[Any], item_label: str) -> None:
+    seen_item_ids: set[str] = set()
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        item_id = item.get("item_id")
+        if not isinstance(item_id, str):
+            continue
+        normalized_item_id = item_id.strip()
+        if normalized_item_id in seen_item_ids:
+            raise ValueError(f"{item_label} item_id entries must be unique: {normalized_item_id}")
+        seen_item_ids.add(normalized_item_id)
+
+
+def _validate_optional_card_actions(card: dict[str, Any], *, strict_actions: bool) -> None:
+    actions = card.get("actions", [])
+    if not isinstance(actions, list):
+        raise ValueError(f"{card.get('type')} actions must be a list")
+    if strict_actions:
+        for action in actions:
+            validate_action_ref(action)
+    _validate_optional_action_selection(card, strict_actions=strict_actions)
+
+
+def _validate_optional_action_selection(card: dict[str, Any], *, strict_actions: bool) -> None:
+    if not strict_actions or "action_selection" not in card:
+        return
+    selection = card["action_selection"]
+    if not isinstance(selection, dict):
+        raise ValueError(f"{card.get('type')} action_selection must be an object")
+    expected = materialize_action_selection_contract(card)
+    if selection != expected:
+        raise ValueError(f"{card.get('type')} action_selection must match materialized actions")
+
+
+def _validate_item_scoped_actions(card: dict[str, Any], items: list[Any], item_label: str) -> None:
+    known_item_ids = {
+        item["item_id"].strip()
+        for item in items
+        if isinstance(item, dict) and isinstance(item.get("item_id"), str) and item["item_id"].strip()
+    }
+    for action in card.get("actions", []):
+        if not isinstance(action, dict):
+            continue
+        action_id = action.get("id")
+        if action_id not in {"open_corpus_item", "promote_to_basket", "pin_to_context_set"}:
+            continue
+        payload = action.get("payload")
+        item_id = payload.get("item_id") if isinstance(payload, dict) else None
+        if not isinstance(item_id, str) or not item_id.strip():
+            continue
+        if item_id.strip() not in known_item_ids:
+            raise ValueError(f"{action_id} item_id must reference a {item_label}")
+
+
+def _validate_basket_scoped_actions(card: dict[str, Any]) -> None:
+    basket_id = card.get("basket_id")
+    for action in card.get("actions", []):
+        if not isinstance(action, dict) or action.get("id") != "gather_context":
+            continue
+        payload = action.get("payload")
+        action_basket_id = payload.get("basket_id") if isinstance(payload, dict) else None
+        if not isinstance(action_basket_id, str) or not action_basket_id.strip():
+            continue
+        if not isinstance(basket_id, str) or not basket_id.strip():
+            raise ValueError("gather_context requires BasketCard basket_id")
+        if action_basket_id.strip() != basket_id.strip():
+            raise ValueError("gather_context basket_id must match BasketCard basket_id")
+
+
+def _validate_context_set_scoped_actions(card: dict[str, Any], context_set_id: str) -> None:
+    for action in card.get("actions", []):
+        if not isinstance(action, dict) or action.get("id") != "pin_to_context_set":
+            continue
+        payload = action.get("payload")
+        action_context_set_id = payload.get("context_set_id") if isinstance(payload, dict) else None
+        if not isinstance(action_context_set_id, str) or not action_context_set_id.strip():
+            continue
+        if action_context_set_id.strip() != context_set_id:
+            raise ValueError("pin_to_context_set context_set_id must match ContextSetCard context_set_id")
+
+
+def _is_same_patch_review_action(action: dict[str, Any], patch_id: str) -> bool:
+    if action.get("id") not in {"preview_patch", "apply_patch", "reject_patch"}:
+        return False
+    payload = action.get("payload")
+    action_patch_id = payload.get("patch_id") if isinstance(payload, dict) else None
+    return isinstance(action_patch_id, str) and action_patch_id.strip() == patch_id
+
+
+def _canonical_patch_review_actions(patch_id: str) -> list[dict[str, Any]]:
+    return [
+        {"id": "preview_patch", "label": "Preview patch", "payload": {"patch_id": patch_id}},
+        {
+            "id": "apply_patch",
+            "label": "Apply patch",
+            "payload": {"patch_id": patch_id},
+            "confirm": {"title": "Apply patch?"},
+            "policy_sensitive": True,
+        },
+        {
+            "id": "reject_patch",
+            "label": "Reject patch",
+            "payload": {"patch_id": patch_id},
+            "confirm": {"title": "Reject patch?"},
+            "policy_sensitive": True,
+        },
+    ]
+
+
+_VALIDATORS_BY_CARD_TYPE = {
+    GENERIC_CARD_TYPE: validate_generic_card,
+    PROPOSED_EDIT_CARD_TYPE: validate_proposed_edit_card,
+    RETRIEVAL_RESULTS_CARD_TYPE: validate_retrieval_results_card,
+    BASKET_CARD_TYPE: validate_basket_card,
+    CONTEXT_SET_CARD_TYPE: validate_context_set_card,
+}
 
 
 def _studio_filter_actions(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
@@ -175,3 +706,21 @@ def _studio_filter_actions(card: dict[str, Any], capabilities: A2UICapabilities)
         key=lambda action: json.dumps(action, sort_keys=True, separators=(",", ":"), ensure_ascii=True),
     )
     return filtered
+
+
+def _engine_filter_actions(card: dict[str, Any], capabilities: A2UICapabilities) -> dict[str, Any]:
+    filtered = dict(card)
+    supported_actions = set(capabilities.actions_supported)
+    filtered["actions"] = [
+        action
+        for action in materialize_card_actions(card)
+        if action.get("id") in supported_actions
+    ]
+    return filtered
+
+
+def _engine_fallback_actions(
+    card: dict[str, Any],
+    capabilities: A2UICapabilities,
+) -> list[dict[str, Any]]:
+    return _engine_filter_actions(card, capabilities)["actions"]
