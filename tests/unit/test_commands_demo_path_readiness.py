@@ -9,6 +9,7 @@ from src.qual.commands import (
     command_demo_path_compatibility_lookup_table,
     command_demo_path_handoff_evidence,
     command_demo_path_handoff_summary,
+    command_demo_path_next_blocker,
     command_demo_path_readiness,
     command_mvp_demo_path_compatibility_lookup_table,
     command_mvp_demo_path_handoff_evidence,
@@ -85,6 +86,8 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
                 ),
             ),
         )
+        self.assertIsNotNone(readiness.next_blocker)
+        self.assertEqual(readiness.next_blocker, readiness.canonical_step_blockers[0])
 
     def test_readiness_flags_partial_demo_paths(self) -> None:
         readiness = command_demo_path_readiness(
@@ -240,6 +243,20 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
         self.assertEqual(summary.command_lines[-1], "qual-bootstrap diff-preview")
         self.assertNotIn("qual-bootstrap terminal", summary.compatibility_command_lines)
 
+    def test_handoff_summary_exposes_next_canonical_blocker(self) -> None:
+        readiness = command_demo_path_readiness(program="qual-bootstrap")
+        summary = command_demo_path_handoff_summary(program="qual-bootstrap")
+
+        self.assertEqual(summary.next_blocker, readiness.next_blocker)
+        self.assertIsNotNone(summary.next_blocker)
+        self.assertEqual(summary.next_blocker.demo_step, "produce-plan-or-revision")
+        self.assertEqual(summary.next_blocker.blocker_type, "missing-command")
+        self.assertEqual(summary.next_blocker.partial_command, "")
+        self.assertEqual(
+            command_demo_path_next_blocker(program="qual-bootstrap"),
+            summary.next_blocker,
+        )
+
     def test_handoff_evidence_exposes_deterministic_canonical_gap_rows(self) -> None:
         evidence = command_demo_path_handoff_evidence(program="qual-bootstrap")
 
@@ -290,6 +307,16 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
                 (
                     "partial-command: qual-bootstrap diff-preview; "
                     "the current patch-review route previews diffs but does not apply or reject patches"
+                ),
+            ),
+            evidence,
+        )
+        self.assertIn(
+            (
+                "next-blocker",
+                (
+                    "produce-plan-or-revision: missing-command: "
+                    "no stable command route produces a plan or revision through the engine loop"
                 ),
             ),
             evidence,
