@@ -195,6 +195,14 @@ class CommandCanonicalStepStatus:
 
 
 @dataclass(frozen=True)
+class CommandCanonicalStepBlocker:
+    demo_step: str
+    blocker_type: str
+    reason: str
+    partial_command: str = ""
+
+
+@dataclass(frozen=True)
 class CommandDemoPathContract:
     demo_steps: tuple[str, ...]
     flow_steps: tuple[str, ...]
@@ -236,6 +244,7 @@ class CommandDemoPathReadiness:
     supplemental_canonical_step_commands: tuple[tuple[str, str], ...] = ()
     missing_canonical_step_lines: tuple[str, ...] = ()
     canonical_step_statuses: tuple[CommandCanonicalStepStatus, ...] = ()
+    canonical_step_blockers: tuple[CommandCanonicalStepBlocker, ...] = ()
     fingerprint: str = ""
 
 
@@ -254,6 +263,7 @@ class CommandDemoPathHandoffSummary:
     supplemental_canonical_step_commands: tuple[tuple[str, str], ...] = ()
     missing_canonical_step_lines: tuple[str, ...] = ()
     canonical_step_statuses: tuple[CommandCanonicalStepStatus, ...] = ()
+    canonical_step_blockers: tuple[CommandCanonicalStepBlocker, ...] = ()
     fingerprint: str = ""
 
 
@@ -458,6 +468,9 @@ CANONICAL_DEMO_PATH_SUPPLEMENTAL_COMMANDS: tuple[tuple[str, str, tuple[str, ...]
         "retrieval",
         ("context-basket", "add", "demo-context-item"),
     ),
+)
+CANONICAL_DEMO_PATH_PARTIAL_COMMANDS: tuple[tuple[str, str], ...] = (
+    ("preview-and-apply-or-reject-patch", "preview-patch"),
 )
 DEMO_PATH_STEPS_BY_FLOW_STEP: tuple[tuple[str, str], ...] = (
     ("project-open", "open-project-document"),
@@ -1164,6 +1177,10 @@ def command_demo_path_readiness(
         covered_canonical_step_commands,
         missing_demo_steps,
     )
+    canonical_step_blockers = _canonical_step_blockers(
+        missing_demo_steps=missing_demo_steps,
+        demo_step_commands=demo_step_commands,
+    )
     readiness = CommandDemoPathReadiness(
         program=normalized_program,
         ready=bool(steps) and not missing_demo_steps and all(step.ready for step in steps),
@@ -1180,6 +1197,7 @@ def command_demo_path_readiness(
         supplemental_canonical_step_commands=supplemental_commands,
         missing_canonical_step_lines=missing_canonical_step_lines,
         canonical_step_statuses=canonical_step_statuses,
+        canonical_step_blockers=canonical_step_blockers,
         fingerprint=_command_demo_path_readiness_fingerprint(
             program=normalized_program,
             commands=contract.commands,
@@ -1188,6 +1206,7 @@ def command_demo_path_readiness(
             missing_canonical_step_lines=missing_canonical_step_lines,
             missing_demo_steps=missing_demo_steps,
             canonical_step_statuses=canonical_step_statuses,
+            canonical_step_blockers=canonical_step_blockers,
         ),
     )
     _validate_command_demo_path_readiness(readiness, contract, expected_missing_demo_steps=missing_demo_steps)
@@ -1230,6 +1249,7 @@ def command_demo_path_handoff_summary(
         supplemental_canonical_step_commands=supplemental_commands,
         missing_canonical_step_lines=readiness.missing_canonical_step_lines,
         canonical_step_statuses=readiness.canonical_step_statuses,
+        canonical_step_blockers=readiness.canonical_step_blockers,
         fingerprint=readiness.fingerprint,
     )
     _validate_command_demo_path_handoff_summary(summary, readiness, compatibility_entries)
@@ -1276,6 +1296,17 @@ def _command_demo_path_handoff_evidence_entries(
                 status.command if status.covered else f"missing: {status.gap_reason}",
             )
             for status in summary.canonical_step_statuses
+        ),
+        *(
+            (
+                f"blocker:{blocker.demo_step}",
+                (
+                    f"{blocker.blocker_type}: {blocker.partial_command}; {blocker.reason}"
+                    if blocker.partial_command
+                    else f"{blocker.blocker_type}: {blocker.reason}"
+                ),
+            )
+            for blocker in summary.canonical_step_blockers
         ),
     )
     return evidence
@@ -1353,6 +1384,8 @@ def _validate_command_demo_path_handoff_summary(
         raise ValueError("Command demo path handoff missing canonical steps are inconsistent")
     if summary.canonical_step_statuses != readiness.canonical_step_statuses:
         raise ValueError("Command demo path handoff canonical step statuses are inconsistent")
+    if summary.canonical_step_blockers != readiness.canonical_step_blockers:
+        raise ValueError("Command demo path handoff blockers are inconsistent")
     if summary.fingerprint != readiness.fingerprint:
         raise ValueError("Command demo path handoff fingerprint is inconsistent")
 
@@ -1366,6 +1399,7 @@ def _command_demo_path_readiness_fingerprint(
     missing_canonical_step_lines: tuple[str, ...],
     missing_demo_steps: tuple[str, ...],
     canonical_step_statuses: tuple[CommandCanonicalStepStatus, ...],
+    canonical_step_blockers: tuple[CommandCanonicalStepBlocker, ...],
 ) -> str:
     payload_parts = (
         "v1",
@@ -1391,6 +1425,17 @@ def _command_demo_path_readiness_fingerprint(
             + ":"
             + status.gap_reason
             for status in canonical_step_statuses
+        ),
+        *(
+            "blocker:"
+            + blocker.demo_step
+            + ":"
+            + blocker.blocker_type
+            + ":"
+            + blocker.partial_command
+            + ":"
+            + blocker.reason
+            for blocker in canonical_step_blockers
         ),
     )
     return sha256("\n".join(payload_parts).encode("utf-8")).hexdigest()
@@ -1481,6 +1526,39 @@ def _missing_canonical_step_lines(missing_demo_steps: tuple[str, ...]) -> tuple[
     )
 
 
+def _partial_command_lookup() -> dict[str, str]:
+    return {
+        _normalize_token(canonical_step): _normalize_token(partial_step)
+        for canonical_step, partial_step in CANONICAL_DEMO_PATH_PARTIAL_COMMANDS
+    }
+
+
+def _canonical_step_blockers(
+    *,
+    missing_demo_steps: tuple[str, ...],
+    demo_step_commands: tuple[tuple[str, str], ...],
+) -> tuple[CommandCanonicalStepBlocker, ...]:
+    gap_reasons = _canonical_demo_path_gap_reasons()
+    partial_lookup = _partial_command_lookup()
+    commands_by_step = {
+        _normalize_token(demo_step): command
+        for demo_step, command in demo_step_commands
+    }
+    blockers: list[CommandCanonicalStepBlocker] = []
+    for demo_step in missing_demo_steps:
+        normalized_step = _normalize_token(demo_step)
+        partial_command = commands_by_step.get(partial_lookup.get(normalized_step, ""), "")
+        blockers.append(
+            CommandCanonicalStepBlocker(
+                demo_step=demo_step,
+                blocker_type="partial-command" if partial_command else "missing-command",
+                partial_command=partial_command,
+                reason=gap_reasons.get(normalized_step, "no stable command route is available"),
+            )
+        )
+    return tuple(blockers)
+
+
 def _validate_command_demo_path_readiness(
     readiness: CommandDemoPathReadiness,
     contract: CommandDemoPathContract,
@@ -1513,6 +1591,7 @@ def _validate_command_demo_path_readiness(
         missing_canonical_step_lines=readiness.missing_canonical_step_lines,
         missing_demo_steps=readiness.missing_demo_steps,
         canonical_step_statuses=readiness.canonical_step_statuses,
+        canonical_step_blockers=readiness.canonical_step_blockers,
     )
     if readiness.fingerprint != expected_fingerprint:
         raise ValueError("Command demo path readiness fingerprint is inconsistent")
@@ -1532,6 +1611,11 @@ def _validate_command_demo_path_readiness(
         readiness.missing_demo_steps,
     ):
         raise ValueError("Command demo path readiness canonical step statuses are inconsistent")
+    if readiness.canonical_step_blockers != _canonical_step_blockers(
+        missing_demo_steps=readiness.missing_demo_steps,
+        demo_step_commands=demo_step_commands,
+    ):
+        raise ValueError("Command demo path readiness blockers are inconsistent")
     if tuple(step.demo_step for step in readiness.steps) != readiness.demo_steps:
         raise ValueError("Command demo path readiness step labels are inconsistent")
     if tuple(step.flow_step for step in readiness.steps) != readiness.flow_steps:

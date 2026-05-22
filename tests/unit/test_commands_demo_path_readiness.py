@@ -45,6 +45,23 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
                 "export-handoff",
             ),
         )
+        self.assertIn(
+            (
+                "preview-and-apply-or-reject-patch",
+                "partial-command",
+                "qual-bootstrap diff-preview",
+                "the current patch-review route previews diffs but does not apply or reject patches",
+            ),
+            tuple(
+                (
+                    blocker.demo_step,
+                    blocker.blocker_type,
+                    blocker.partial_command,
+                    blocker.reason,
+                )
+                for blocker in readiness.canonical_step_blockers
+            ),
+        )
 
     def test_readiness_flags_partial_demo_paths(self) -> None:
         readiness = command_demo_path_readiness(
@@ -202,6 +219,16 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
             (
                 "canonical:preview-and-apply-or-reject-patch",
                 "missing: the current patch-review route previews diffs but does not apply or reject patches",
+            ),
+            evidence,
+        )
+        self.assertIn(
+            (
+                "blocker:preview-and-apply-or-reject-patch",
+                (
+                    "partial-command: qual-bootstrap diff-preview; "
+                    "the current patch-review route previews diffs but does not apply or reject patches"
+                ),
             ),
             evidence,
         )
