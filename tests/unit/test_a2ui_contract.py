@@ -6488,6 +6488,33 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(reject_ref.payload, {"patch_id": "p1"})
         self.assertTrue(reject_ref.policy_sensitive)
 
+    def test_terminal_patch_review_card_embeds_typed_control_plan(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Choose"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        controls = card["patch_review_controls"]
+
+        self.assertEqual([entry["control"] for entry in controls], ["preview", "apply", "reject"])
+        self.assertTrue(all(entry["status"] == "available" for entry in controls))
+        self.assertEqual(controls[0]["command_aliases"], ["preview", "preview_patch"])
+        self.assertEqual(controls[1]["action_id"], "apply_patch")
+        self.assertEqual(controls[1]["execution_policy"], PATCH_REVIEW_EXECUTION_POLICY["apply"])
+        self.assertEqual(controls[1]["preconditions"], patch_review_execution_preconditions("apply"))
+        self.assertEqual(controls[1]["action_contract"], card["complete_patch_review_actions"]["decisions"]["apply"])
+        self.assertEqual(controls[2]["action_id"], "reject_patch")
+        self.assertEqual(controls[2]["action_contract"], card["complete_patch_review_actions"]["decisions"]["reject"])
+
     def test_complete_patch_review_events_revalidate_client_action_capabilities(self) -> None:
         card = materialize_terminal_card(
             {

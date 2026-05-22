@@ -573,6 +573,11 @@ def materialize_cli_fallback_card(card: dict[str, Any]) -> dict[str, Any]:
             if "not available" not in str(exc):
                 raise
         else:
+            materialized["patch_review_controls"] = patch_review_control_plan_from_contract(
+                materialized,
+                materialized["patch_review"],
+                patch_id=patch_id,
+            )
             try:
                 materialized["complete_patch_review_actions"] = complete_patch_review_actions_from_contract(
                     materialized,
