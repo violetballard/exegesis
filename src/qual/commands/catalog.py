@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from hashlib import sha256
 from dataclasses import dataclass
 from functools import lru_cache
 
@@ -223,6 +224,7 @@ class CommandDemoPathReadiness:
     route_summary: tuple[tuple[str, str, tuple[str, ...]], ...]
     steps: tuple[CommandDemoPathReadinessStep, ...] = ()
     missing_demo_steps: tuple[str, ...] = ()
+    fingerprint: str = ""
 
 
 @dataclass(frozen=True)
@@ -236,6 +238,10 @@ class CommandDemoPathHandoffSummary:
     flow_step_commands: tuple[tuple[str, str], ...]
     demo_step_commands: tuple[tuple[str, str], ...]
     missing_demo_steps: tuple[str, ...]
+    covered_canonical_step_commands: tuple[tuple[str, str], ...] = ()
+    supplemental_canonical_step_commands: tuple[tuple[str, str], ...] = ()
+    missing_canonical_step_lines: tuple[str, ...] = ()
+    fingerprint: str = ""
 
 
 def _normalize_token(value: str) -> str:
@@ -410,6 +416,35 @@ CANONICAL_DEMO_PATH_STEPS: tuple[str, ...] = (
     "preview-and-apply-or-reject-patch",
     "persist-updated-document-session-state",
     "continue-without-losing-context",
+)
+CANONICAL_DEMO_PATH_GAP_REASONS: tuple[tuple[str, str], ...] = (
+    (
+        "promote-or-gather-context-into-basket",
+        "no stable command route promotes or gathers retrieved context into the basket",
+    ),
+    (
+        "produce-plan-or-revision",
+        "no stable command route produces a plan or revision through the engine loop",
+    ),
+    (
+        "preview-and-apply-or-reject-patch",
+        "the current patch-review route previews diffs but does not apply or reject patches",
+    ),
+    (
+        "persist-updated-document-session-state",
+        "no stable command route persists the updated document and session state",
+    ),
+    (
+        "continue-without-losing-context",
+        "no stable command route resumes the workflow without losing context",
+    ),
+)
+CANONICAL_DEMO_PATH_SUPPLEMENTAL_COMMANDS: tuple[tuple[str, str, tuple[str, ...]], ...] = (
+    (
+        "promote-or-gather-context-into-basket",
+        "retrieval",
+        ("context-basket", "add", "demo-context-item"),
+    ),
 )
 DEMO_PATH_STEPS_BY_FLOW_STEP: tuple[tuple[str, str], ...] = (
     ("project-open", "open-project-document"),
@@ -1099,7 +1134,15 @@ def command_demo_path_readiness(
     normalized_program = _normalize_smoke_program(program)
     contract = command_demo_path_contract(normalized_program, specs, flow_steps)
     steps = _command_demo_path_readiness_steps(contract, normalized_program)
-    missing_demo_steps = _missing_demo_path_steps(contract.demo_steps)
+    supplemental_demo_steps = tuple(
+        demo_step
+        for demo_step, _ in _supplemental_canonical_step_commands(
+            normalized_program,
+            specs=specs,
+            flow_steps=contract.flow_steps,
+        )
+    )
+    missing_demo_steps = _missing_demo_path_steps((*contract.demo_steps, *supplemental_demo_steps))
     readiness = CommandDemoPathReadiness(
         program=normalized_program,
         ready=bool(steps) and not missing_demo_steps and all(step.ready for step in steps),
@@ -1112,8 +1155,14 @@ def command_demo_path_readiness(
         command_lookup_table=contract.command_lookup_table,
         route_summary=contract.route_summary,
         steps=steps,
+        fingerprint=_command_demo_path_readiness_fingerprint(
+            program=normalized_program,
+            commands=contract.commands,
+            route_summary=contract.route_summary,
+            missing_demo_steps=missing_demo_steps,
+        ),
     )
-    _validate_command_demo_path_readiness(readiness, contract)
+    _validate_command_demo_path_readiness(readiness, contract, expected_missing_demo_steps=missing_demo_steps)
     return readiness
 
 
@@ -1124,6 +1173,12 @@ def command_demo_path_handoff_summary(
 ) -> CommandDemoPathHandoffSummary:
     readiness = command_demo_path_readiness(program, specs, flow_steps)
     command_lines = tuple(" ".join(command) for command in readiness.commands)
+    demo_step_commands = tuple(zip(readiness.demo_steps, command_lines, strict=True))
+    supplemental_commands = _supplemental_canonical_step_commands(
+        readiness.program,
+        specs=specs,
+        flow_steps=readiness.flow_steps,
+    )
     compatibility_entries = command_demo_path_compatibility_command_entries(
         program=readiness.program,
         specs=specs,
@@ -1141,8 +1196,14 @@ def command_demo_path_handoff_summary(
             " ".join(entry.normalized_command) for entry in compatibility_entries
         ),
         flow_step_commands=tuple(zip(readiness.flow_steps, command_lines, strict=True)),
-        demo_step_commands=tuple(zip(readiness.demo_steps, command_lines, strict=True)),
+        demo_step_commands=demo_step_commands,
         missing_demo_steps=readiness.missing_demo_steps,
+        covered_canonical_step_commands=_covered_canonical_step_commands(
+            (*demo_step_commands, *supplemental_commands)
+        ),
+        supplemental_canonical_step_commands=supplemental_commands,
+        missing_canonical_step_lines=_missing_canonical_step_lines(readiness.missing_demo_steps),
+        fingerprint=readiness.fingerprint,
     )
     _validate_command_demo_path_handoff_summary(summary, readiness, compatibility_entries)
     return summary
@@ -1203,6 +1264,35 @@ def _validate_command_demo_path_handoff_summary(
         raise ValueError("Command demo path handoff demo steps are inconsistent")
     if summary.missing_demo_steps != readiness.missing_demo_steps:
         raise ValueError("Command demo path handoff missing steps are inconsistent")
+    expected_covered_commands = _covered_canonical_step_commands(
+        (*summary.demo_step_commands, *summary.supplemental_canonical_step_commands)
+    )
+    if summary.covered_canonical_step_commands != expected_covered_commands:
+        raise ValueError("Command demo path handoff covered canonical steps are inconsistent")
+    if summary.missing_canonical_step_lines != _missing_canonical_step_lines(readiness.missing_demo_steps):
+        raise ValueError("Command demo path handoff missing canonical steps are inconsistent")
+    if summary.fingerprint != readiness.fingerprint:
+        raise ValueError("Command demo path handoff fingerprint is inconsistent")
+
+
+def _command_demo_path_readiness_fingerprint(
+    *,
+    program: str,
+    commands: tuple[tuple[str, ...], ...],
+    route_summary: tuple[tuple[str, str, tuple[str, ...]], ...],
+    missing_demo_steps: tuple[str, ...],
+) -> str:
+    payload_parts = (
+        "v1",
+        program,
+        *("command:" + " ".join(command) for command in commands),
+        *(
+            "route:" + flow_step + ":" + name + ":" + ",".join(cli_tokens)
+            for flow_step, name, cli_tokens in route_summary
+        ),
+        *("missing:" + step for step in missing_demo_steps),
+    )
+    return sha256("\n".join(payload_parts).encode("utf-8")).hexdigest()
 
 
 def _missing_demo_path_steps(demo_steps: tuple[str, ...]) -> tuple[str, ...]:
@@ -1214,9 +1304,58 @@ def _missing_demo_path_steps(demo_steps: tuple[str, ...]) -> tuple[str, ...]:
     )
 
 
+def _supplemental_canonical_step_commands(
+    program: str,
+    *,
+    specs: tuple[CommandSpec, ...],
+    flow_steps: tuple[str, ...],
+) -> tuple[tuple[str, str], ...]:
+    flow_step_set = {_normalize_token(flow_step) for flow_step in flow_steps}
+    commands: list[tuple[str, str]] = []
+    for demo_step, flow_step, argv in CANONICAL_DEMO_PATH_SUPPLEMENTAL_COMMANDS:
+        normalized_flow_step = _normalize_token(flow_step)
+        if normalized_flow_step not in flow_step_set:
+            continue
+        normalized_argv = normalize_command_argv(argv, specs)
+        if normalized_argv != argv:
+            raise ValueError("Supplemental command demo path argv must be canonical")
+        if command_spec_for(specs, argv[0]) is None:
+            raise ValueError(f"Unknown supplemental command demo path entrypoint: {argv[0]}")
+        commands.append((_normalize_token(demo_step), " ".join((program, *argv))))
+    return tuple(commands)
+
+
+def _covered_canonical_step_commands(
+    demo_step_commands: tuple[tuple[str, str], ...],
+) -> tuple[tuple[str, str], ...]:
+    canonical_steps = {_normalize_token(step) for step in CANONICAL_DEMO_PATH_STEPS}
+    return tuple(
+        (demo_step, command)
+        for demo_step, command in demo_step_commands
+        if _normalize_token(demo_step) in canonical_steps
+    )
+
+
+def _canonical_demo_path_gap_reasons() -> dict[str, str]:
+    return {
+        _normalize_token(step): reason
+        for step, reason in CANONICAL_DEMO_PATH_GAP_REASONS
+    }
+
+
+def _missing_canonical_step_lines(missing_demo_steps: tuple[str, ...]) -> tuple[str, ...]:
+    gap_reasons = _canonical_demo_path_gap_reasons()
+    return tuple(
+        f"{step}: {gap_reasons.get(_normalize_token(step), 'no stable command route is available')}"
+        for step in missing_demo_steps
+    )
+
+
 def _validate_command_demo_path_readiness(
     readiness: CommandDemoPathReadiness,
     contract: CommandDemoPathContract,
+    *,
+    expected_missing_demo_steps: tuple[str, ...] | None = None,
 ) -> None:
     if readiness.command_count != len(contract.entries):
         raise ValueError("Command demo path readiness count is inconsistent")
@@ -1224,7 +1363,9 @@ def _validate_command_demo_path_readiness(
         raise ValueError("Command demo path readiness labels are inconsistent")
     if readiness.flow_steps != contract.flow_steps:
         raise ValueError("Command demo path readiness flow steps are inconsistent")
-    if readiness.missing_demo_steps != _missing_demo_path_steps(contract.demo_steps):
+    if expected_missing_demo_steps is None:
+        expected_missing_demo_steps = _missing_demo_path_steps(contract.demo_steps)
+    if readiness.missing_demo_steps != expected_missing_demo_steps:
         raise ValueError("Command demo path readiness missing labels are inconsistent")
     if readiness.argv != contract.argv:
         raise ValueError("Command demo path readiness argv is inconsistent")
@@ -1234,6 +1375,14 @@ def _validate_command_demo_path_readiness(
         raise ValueError("Command demo path readiness command lookup table is inconsistent")
     if readiness.route_summary != contract.route_summary:
         raise ValueError("Command demo path readiness route summary is inconsistent")
+    expected_fingerprint = _command_demo_path_readiness_fingerprint(
+        program=readiness.program,
+        commands=readiness.commands,
+        route_summary=readiness.route_summary,
+        missing_demo_steps=readiness.missing_demo_steps,
+    )
+    if readiness.fingerprint != expected_fingerprint:
+        raise ValueError("Command demo path readiness fingerprint is inconsistent")
     if tuple(step.demo_step for step in readiness.steps) != readiness.demo_steps:
         raise ValueError("Command demo path readiness step labels are inconsistent")
     if tuple(step.flow_step for step in readiness.steps) != readiness.flow_steps:
@@ -1498,6 +1647,12 @@ def command_mvp_demo_path_command_lookup_table(
 
 def command_mvp_demo_path_readiness(program: str = "qual-bootstrap") -> CommandDemoPathReadiness:
     return command_demo_path_readiness(program=program, flow_steps=command_mvp_flow_steps())
+
+
+def command_mvp_demo_path_handoff_summary(
+    program: str = "qual-bootstrap",
+) -> CommandDemoPathHandoffSummary:
+    return command_demo_path_handoff_summary(program=program, flow_steps=command_mvp_flow_steps())
 
 
 def command_mvp_demo_path_readiness_steps(
