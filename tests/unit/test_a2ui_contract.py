@@ -21,6 +21,7 @@ from exegesis_shared.contracts.actions import (
     PATCH_REVIEW_EXECUTION_POLICY,
     PATCH_REVIEW_FLOW,
     PATCH_REVIEW_REQUIRED_PARTS,
+    PATCH_REVIEW_RESOLVED_STATUSES,
     materialize_action_selection_contract,
 )
 from exegesis_shared.contracts import studio_materialize_card as shared_studio_materialize_card
@@ -40,6 +41,7 @@ from src.qual.ui.a2ui import (
     PATCH_REVIEW_CLI_COMMAND_ALIASES as UI_PATCH_REVIEW_CLI_COMMAND_ALIASES,
     PATCH_REVIEW_DECISION_GROUP as UI_PATCH_REVIEW_DECISION_GROUP,
     PATCH_REVIEW_EXECUTION_PRECONDITIONS as UI_PATCH_REVIEW_EXECUTION_PRECONDITIONS,
+    PATCH_REVIEW_RESOLVED_STATUSES as UI_PATCH_REVIEW_RESOLVED_STATUSES,
     RETRIEVAL_RESULTS_CARD_TYPE,
     action_ref_from_selection,
     build_complete_patch_review_contract,
@@ -98,6 +100,7 @@ from src.qual.ui.a2ui import (
     patch_review_control_summary_from_contract,
     patch_review_control_slots_from_contract,
     patch_review_execution_preconditions,
+    patch_review_resolved_status,
     patch_review_next_control_from_contract,
     patch_review_selection_from_cli_command,
     render_terminal_card,
@@ -6263,10 +6266,17 @@ class A2UIContractTests(unittest.TestCase):
                 "requires_policy_gate": False,
             },
         )
+        self.assertEqual(patch_review_resolved_status("preview"), "previewed")
+        self.assertEqual(patch_review_resolved_status("apply"), "applied")
+        self.assertEqual(patch_review_resolved_status("reject"), "rejected")
         plan = patch_review_control_plan_from_contract(card, review, patch_id="p1")
         self.assertEqual(
             {entry["control"]: entry["preconditions"] for entry in plan},
             PATCH_REVIEW_EXECUTION_PRECONDITIONS,
+        )
+        self.assertEqual(
+            {entry["control"]: entry["resolved_status"] for entry in plan},
+            PATCH_REVIEW_RESOLVED_STATUSES,
         )
 
         execution = resolve_patch_review_control_execution(
@@ -6290,6 +6300,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(UI_PATCH_REVIEW_DECISION_GROUP, PATCH_REVIEW_DECISION_GROUP)
         self.assertEqual(UI_PATCH_REVIEW_CLI_COMMAND_ALIASES, PATCH_REVIEW_CLI_COMMAND_ALIASES)
         self.assertEqual(UI_PATCH_REVIEW_EXECUTION_PRECONDITIONS, PATCH_REVIEW_EXECUTION_PRECONDITIONS)
+        self.assertEqual(UI_PATCH_REVIEW_RESOLVED_STATUSES, PATCH_REVIEW_RESOLVED_STATUSES)
         self.assertIs(shared_contracts.PATCH_REVIEW_DECISION_GROUP, PATCH_REVIEW_DECISION_GROUP)
         self.assertIs(
             shared_contracts.PATCH_REVIEW_CLI_COMMAND_ALIASES,
@@ -6299,6 +6310,11 @@ class A2UIContractTests(unittest.TestCase):
             shared_contracts.PATCH_REVIEW_EXECUTION_PRECONDITIONS,
             PATCH_REVIEW_EXECUTION_PRECONDITIONS,
         )
+        self.assertIs(
+            shared_contracts.PATCH_REVIEW_RESOLVED_STATUSES,
+            PATCH_REVIEW_RESOLVED_STATUSES,
+        )
+        self.assertIs(shared_contracts.patch_review_resolved_status, patch_review_resolved_status)
 
     def test_patch_review_selections_carry_engine_execution_policy(self) -> None:
         card = materialize_terminal_card(
@@ -6523,6 +6539,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(controls[1]["decision"], "apply")
         self.assertEqual(controls[1]["execution_policy"], PATCH_REVIEW_EXECUTION_POLICY["apply"])
         self.assertEqual(controls[1]["preconditions"], patch_review_execution_preconditions("apply"))
+        self.assertEqual(controls[1]["resolved_status"], "applied")
         self.assertEqual(controls[1]["action_contract"], card["complete_patch_review_actions"]["decisions"]["apply"])
         self.assertEqual(controls[2]["action_id"], "reject_patch")
         self.assertEqual(controls[2]["decision_group"], "patch_terminal_decision")
