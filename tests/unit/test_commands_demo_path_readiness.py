@@ -47,13 +47,7 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
                 "export-handoff",
             ),
         )
-        self.assertIn(
-            (
-                "preview-and-apply-or-reject-patch",
-                "partial-command",
-                "qual-bootstrap diff-preview",
-                "the current patch-review route previews diffs but does not apply or reject patches",
-            ),
+        self.assertEqual(
             tuple(
                 (
                     blocker.demo_step,
@@ -62,6 +56,32 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
                     blocker.reason,
                 )
                 for blocker in readiness.canonical_step_blockers
+            ),
+            (
+                (
+                    "produce-plan-or-revision",
+                    "missing-command",
+                    "",
+                    "no stable command route produces a plan or revision through the engine loop",
+                ),
+                (
+                    "preview-and-apply-or-reject-patch",
+                    "partial-command",
+                    "qual-bootstrap diff-preview",
+                    "the current patch-review route previews diffs but does not apply or reject patches",
+                ),
+                (
+                    "persist-updated-document-session-state",
+                    "missing-command",
+                    "",
+                    "no stable command route persists the updated document and session state",
+                ),
+                (
+                    "continue-without-losing-context",
+                    "missing-command",
+                    "",
+                    "no stable command route resumes the workflow without losing context",
+                ),
             ),
         )
 
