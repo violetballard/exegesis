@@ -1540,6 +1540,12 @@ def command_mvp_demo_path_readiness(program: str = "qual-bootstrap") -> CommandD
     return command_demo_path_readiness(program=program, flow_steps=command_mvp_flow_steps())
 
 
+def command_mvp_demo_path_handoff_summary(
+    program: str = "qual-bootstrap",
+) -> CommandDemoPathHandoffSummary:
+    return command_demo_path_handoff_summary(program=program, flow_steps=command_mvp_flow_steps())
+
+
 def command_mvp_demo_path_readiness_steps(
     program: str = "qual-bootstrap",
 ) -> tuple[CommandDemoPathReadinessStep, ...]:
