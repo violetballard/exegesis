@@ -94,7 +94,8 @@ SUCCESSFUL_INTEGRATOR_SUMMARY_RE = re.compile(
     re.IGNORECASE | re.DOTALL,
 )
 BLOCKED_INTEGRATOR_OUTPUT_RE = re.compile(
-    r"\bBlocked\.\s|blocked before merge|no integration was performed|no integration performed|"
+    r"\bBlocked\.\s|verdict:\s*`?blocked\b|blocked\s+[—-]\s+post-merge checks fail|"
+    r"blocked before merge|no integration was performed|no integration performed|"
     r"approved slice is not fully integrated|slice is not fully integrated",
     re.IGNORECASE,
 )

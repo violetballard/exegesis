@@ -875,6 +875,18 @@ Current blocker: an untracked local file differs from the reviewed file.
             "integrator reported blocked/no integration performed",
         )
 
+    def test_integrator_blocked_verdict_with_post_merge_failure_is_rejected(self) -> None:
+        output = """## INTEGRATOR REPORT — feat-retrieval-fts @ 1f491ed7
+
+**Verdict:** ❌ **BLOCKED — post-merge checks fail.**
+Integration commit `4a795986` was created and then reverted.
+"""
+
+        self.assertEqual(
+            router._local_cli_output_rejection_reason(output, require_verdict=False),
+            "integrator reported blocked/no integration performed",
+        )
+
     def test_process_integrator_backlog_completes_detached_cloud_job_on_later_tick(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             lane_dir = Path(tmp)
