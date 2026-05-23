@@ -333,7 +333,10 @@ def render_terminal_card(card: dict[str, Any]) -> str:
                 if isinstance(entry, dict) and "decision" in entry and "slot" in entry
             ]
             if decision_controls:
-                lines.append(f"Patch review controls: {', '.join(decision_controls)}")
+                lines.append(
+                    "Partial patch decision actions: "
+                    f"{', '.join(decision_controls)} (preview missing)"
+                )
     for slot, action in enumerate(materialized.get("actions", []), start=1):
         if isinstance(action, dict):
             label = str(action.get("label", action.get("id", "action")))

@@ -211,6 +211,14 @@ class _RecordingPolicyGate:
         return self.allow
 
 
+@dataclass
+class _UntypedPolicyGate:
+    decision: object
+
+    def allow_action(self, *_args, **_kwargs) -> object:
+        return self.decision
+
+
 class A2UIContractTests(unittest.TestCase):
     def test_shared_exports_engine_demo_card_contract_types(self) -> None:
         self.assertIn(RETRIEVAL_RESULTS_CARD_TYPE, KNOWN_CARD_TYPES)
@@ -399,10 +407,25 @@ class A2UIContractTests(unittest.TestCase):
                     "query": "chapter five",
                     "results": [
                         {"item_id": "doc-1", "title": "Chapter 5", "snippet": "Relevant paragraph"},
-                        {"item_id": " doc-1 ", "title": "Chapter 5 duplicate", "snippet": "Same source"},
+                        {"item_id": "doc-1", "title": "Chapter 5 duplicate", "snippet": "Same source"},
                     ],
                     "actions": [
                         {"id": "promote_to_basket", "label": "Add to basket", "payload": {"item_id": "doc-1"}}
+                    ],
+                }
+            )
+
+        with self.assertRaisesRegex(
+            ValueError,
+            "RetrievalResultsCard result item_id must be normalized",
+        ):
+            validate_retrieval_results_card(
+                {
+                    "type": RETRIEVAL_RESULTS_CARD_TYPE,
+                    "title": "Retrieval",
+                    "query": "chapter five",
+                    "results": [
+                        {"item_id": " doc-1 ", "title": "Chapter 5", "snippet": "Relevant paragraph"},
                     ],
                 }
             )
@@ -536,8 +559,17 @@ class A2UIContractTests(unittest.TestCase):
                     "title": "Basket",
                     "items": [
                         {"item_id": "doc-1", "title": "Chapter 5"},
-                        {"item_id": " doc-1 ", "title": "Chapter 5 duplicate"},
+                        {"item_id": "doc-1", "title": "Chapter 5 duplicate"},
                     ],
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "BasketCard item item_id must be normalized"):
+            validate_basket_card(
+                {
+                    "type": BASKET_CARD_TYPE,
+                    "title": "Basket",
+                    "items": [{"item_id": " doc-1 ", "title": "Chapter 5"}],
                 }
             )
 
@@ -629,8 +661,18 @@ class A2UIContractTests(unittest.TestCase):
                     "context_set_id": "ctx-1",
                     "items": [
                         {"item_id": "doc-1", "title": "Chapter 5"},
-                        {"item_id": " doc-1 ", "title": "Chapter 5 duplicate"},
+                        {"item_id": "doc-1", "title": "Chapter 5 duplicate"},
                     ],
+                }
+            )
+
+        with self.assertRaisesRegex(ValueError, "ContextSetCard item item_id must be normalized"):
+            validate_context_set_card(
+                {
+                    "type": CONTEXT_SET_CARD_TYPE,
+                    "title": "Context",
+                    "context_set_id": "ctx-1",
+                    "items": [{"item_id": " doc-1 ", "title": "Chapter 5"}],
                 }
             )
 
@@ -4332,6 +4374,52 @@ class A2UIContractTests(unittest.TestCase):
         )
         self.assertEqual(executed, [("apply_patch", {"patch_id": "p9"})])
 
+    def test_patch_review_action_requires_complete_contract_for_decisions(self) -> None:
+        executed: list[tuple[str, dict[str, str]]] = []
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "diff"}],
+            "actions": [
+                {"id": "apply_patch", "label": "Apply Patch", "payload": {"patch_id": "p9"}},
+                {"id": "reject_patch", "label": "Reject Patch", "payload": {"patch_id": "p9"}},
+            ],
+        }
+
+        with self.assertRaisesRegex(ValueError, "Complete patch review is missing: preview"):
+            execute_patch_review_action(
+                card=card,
+                selection="apply",
+                capabilities=_capabilities(),
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: executed.append((action.id, action.payload)),
+            )
+
+        self.assertEqual(executed, [])
+
+    def test_patch_review_preview_action_requires_complete_contract(self) -> None:
+        executed: list[tuple[str, dict[str, str]]] = []
+        card = {
+            "type": "GenericCard",
+            "title": "Patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "diff"}],
+            "actions": [
+                {"id": "preview_patch", "label": "Preview Patch", "payload": {"patch_id": "p9"}},
+                {"id": "apply_patch", "label": "Apply Patch", "payload": {"patch_id": "p9"}},
+            ],
+        }
+
+        with self.assertRaisesRegex(ValueError, "Complete patch review is missing: reject"):
+            execute_patch_review_action(
+                card=card,
+                selection="preview",
+                capabilities=_capabilities(),
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: executed.append((action.id, action.payload)),
+            )
+
+        self.assertEqual(executed, [])
+
     def test_engine_policy_gate_is_authoritative(self) -> None:
         executed: list[str] = []
         action = ActionRef(
@@ -4358,6 +4446,19 @@ class A2UIContractTests(unittest.TestCase):
             executor=lambda a: executed.append(a.id),
         )
         self.assertEqual(executed, ["export_document"])
+
+    def test_engine_policy_gate_rejects_untyped_decisions(self) -> None:
+        executed: list[str] = []
+
+        with self.assertRaisesRegex(ValueError, "PolicyGate allow_action must return bool"):
+            execute_action_with_policy_gate(
+                action=ActionRef(id="apply_patch", label="Apply", payload={"patch_id": "p1"}),
+                capabilities=_capabilities(),
+                policy_gate=_UntypedPolicyGate("allow"),
+                executor=lambda action: executed.append(action.id),
+            )
+
+        self.assertEqual(executed, [])
 
     def test_engine_policy_sensitive_actions_reach_executor_with_derived_flag(self) -> None:
         cases = [

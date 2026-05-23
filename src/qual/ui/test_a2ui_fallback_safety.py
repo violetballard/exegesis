@@ -6,6 +6,7 @@ from exegesis_shared.contracts.actions import ACTION_SELECTION_CONTRACT_VERSION
 from src.qual.ui.a2ui import (
     A2UICapabilities,
     build_unknown_card,
+    execute_patch_review_action,
     materialize_terminal_card,
     render_terminal_card,
     resolve_card_selection_by_index,
@@ -48,6 +49,14 @@ def _capabilities(
         max_payload_bytes=1_000_000,
         supports_streaming=False,
     )
+
+
+class _PolicyGateStub:
+    def __init__(self, allow: bool) -> None:
+        self.allow = allow
+
+    def allow_action(self, *_args: object, **_kwargs: object) -> bool:
+        return self.allow
 
 
 class A2UICliFallbackSafetyTests(unittest.TestCase):
@@ -300,7 +309,18 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
             [(1, "apply_patch"), (2, "reject_patch")],
         )
         self.assertEqual(resolve_card_selection_by_index(card, 1)["payload"], {"patch_id": "p1"})
-        self.assertIn("Patch review controls: apply=1, reject=2", text)
+        self.assertNotIn("Patch review controls:", text)
+        self.assertIn("Partial patch decision actions: apply=1, reject=2 (preview missing)", text)
+        executed: list[tuple[str, dict[str, str]]] = []
+        with self.assertRaisesRegex(ValueError, "Complete patch review .* missing: preview"):
+            execute_patch_review_action(
+                card=card,
+                selection="apply",
+                capabilities=caps,
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: executed.append((action.id, action.payload)),
+            )
+        self.assertEqual(executed, [])
         self.assertEqual(
             [line for line in text.splitlines() if line.startswith("* ")],
             ["* 1. Apply [confirm: Apply patch?]", "* 2. Reject [confirm: Reject patch?]"],

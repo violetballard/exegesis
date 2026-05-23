@@ -2365,7 +2365,14 @@ def execute_action_with_policy_gate(
     if policy_sensitive != action.policy_sensitive:
         action = replace(action, policy_sensitive=policy_sensitive)
         validate_action_ref(action.as_contract())
-    if not policy_gate.allow_action(action.id, action.payload, policy_sensitive=policy_sensitive):
+    policy_decision = policy_gate.allow_action(
+        action.id,
+        action.payload,
+        policy_sensitive=policy_sensitive,
+    )
+    if not isinstance(policy_decision, bool):
+        raise ValueError("PolicyGate allow_action must return bool")
+    if not policy_decision:
         raise PermissionError("PolicyGate blocked action")
     return executor(action)
 

@@ -461,6 +461,28 @@ def execute_patch_review_action(
         raise ValueError("Patch review selection must resolve to a patch action")
     if action.payload.get("patch_id") != envelope["patch_id"]:
         raise ValueError("Patch review action does not match envelope patch_id")
+    if action.id in {"preview_patch", "apply_patch", "reject_patch"}:
+        control = {
+            "preview_patch": "preview",
+            "apply_patch": "apply",
+            "reject_patch": "reject",
+        }[action.id]
+        execution = resolve_complete_patch_review_control_execution(
+            card,
+            patch_id=str(envelope["patch_id"]),
+            control=control,
+            capabilities=capabilities,
+        )
+        action_contract = execution["action_contract"]
+        action = ActionRef(
+            id=str(action_contract["id"]),
+            label=str(action_contract["label"]),
+            payload=dict(action_contract["payload"]),
+            confirm=action_contract.get("confirm")
+            if isinstance(action_contract.get("confirm"), dict)
+            else None,
+            policy_sensitive=bool(action_contract.get("policy_sensitive", False)),
+        )
     return execute_action_with_policy_gate(
         action=action,
         capabilities=capabilities,
@@ -588,6 +610,7 @@ def validate_retrieval_results_card(card: dict[str, Any], *, strict_actions: boo
             "RetrievalResultsCard result",
             required_fields={"item_id": str, "title": str, "snippet": str},
         )
+        _validate_item_identifier(result, "RetrievalResultsCard result")
     _validate_unique_item_ids(results, "RetrievalResultsCard result")
     _validate_optional_card_actions(card, strict_actions=strict_actions)
     _validate_item_scoped_actions(card, results, "RetrievalResultsCard result")
@@ -606,6 +629,7 @@ def validate_basket_card(card: dict[str, Any], *, strict_actions: bool = True) -
             "BasketCard item",
             required_fields={"item_id": str, "title": str},
         )
+        _validate_item_identifier(item, "BasketCard item")
     _validate_unique_item_ids(items, "BasketCard item")
     _validate_optional_card_actions(card, strict_actions=strict_actions)
     _validate_item_scoped_actions(card, items, "BasketCard item")
@@ -628,6 +652,7 @@ def validate_context_set_card(card: dict[str, Any], *, strict_actions: bool = Tr
             "ContextSetCard item",
             required_fields={"item_id": str, "title": str},
         )
+        _validate_item_identifier(item, "ContextSetCard item")
     _validate_unique_item_ids(items, "ContextSetCard item")
     _validate_optional_card_actions(card, strict_actions=strict_actions)
     _validate_item_scoped_actions(card, items, "ContextSetCard item")
@@ -716,6 +741,12 @@ def _validate_unique_item_ids(items: list[Any], item_label: str) -> None:
         if normalized_item_id in seen_item_ids:
             raise ValueError(f"{item_label} item_id entries must be unique: {normalized_item_id}")
         seen_item_ids.add(normalized_item_id)
+
+
+def _validate_item_identifier(item: dict[str, Any], item_label: str) -> None:
+    item_id = item["item_id"]
+    if item_id != item_id.strip():
+        raise ValueError(f"{item_label} item_id must be normalized")
 
 
 def _validate_optional_card_actions(card: dict[str, Any], *, strict_actions: bool) -> None:
