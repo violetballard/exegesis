@@ -216,7 +216,9 @@ class CommandPatchReviewOutcomeContract:
     ready: bool
     statuses: tuple[CommandPatchReviewOutcomeStatus, ...]
     missing_outcomes: tuple[str, ...]
+    ready_outcomes: tuple[str, ...] = ()
     lookup_table: tuple[tuple[str, str], ...] = ()
+    missing_outcome_lookup_table: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -1318,13 +1320,16 @@ def command_patch_review_outcome_contract(
         )
         for outcome in PATCH_REVIEW_REQUIRED_OUTCOMES
     )
+    ready_outcomes = tuple(status.outcome for status in statuses if status.ready)
     missing_outcomes = tuple(status.outcome for status in statuses if not status.ready)
     contract = CommandPatchReviewOutcomeContract(
         program=normalized_program,
         ready=not missing_outcomes,
         statuses=statuses,
         missing_outcomes=missing_outcomes,
+        ready_outcomes=ready_outcomes,
         lookup_table=_patch_review_outcome_lookup_table(statuses),
+        missing_outcome_lookup_table=_patch_review_missing_outcome_lookup_table(statuses),
     )
     _validate_command_patch_review_outcome_contract(contract)
     return contract
@@ -1337,6 +1342,24 @@ def command_patch_review_outcome_lookup_table(
 ) -> tuple[tuple[str, str], ...]:
     contract = command_patch_review_outcome_contract(program, specs, flow_steps)
     return contract.lookup_table
+
+
+def command_patch_review_missing_outcome_lookup_table(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, str], ...]:
+    contract = command_patch_review_outcome_contract(program, specs, flow_steps)
+    return contract.missing_outcome_lookup_table
+
+
+def command_patch_review_ready_outcomes(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    contract = command_patch_review_outcome_contract(program, specs, flow_steps)
+    return contract.ready_outcomes
 
 
 def command_demo_path_next_blocker(
@@ -1393,7 +1416,9 @@ def _command_demo_path_handoff_evidence_entries(
         ("ready", "true" if summary.ready else "false"),
         ("fingerprint", summary.fingerprint),
         ("patch-review-ready", "true" if patch_review_contract.ready else "false"),
+        ("patch-review-ready-outcomes", ",".join(patch_review_contract.ready_outcomes)),
         ("patch-review-missing-outcomes", ",".join(patch_review_contract.missing_outcomes)),
+        *_patch_review_missing_outcome_evidence_entries(patch_review_contract),
         *(
             (
                 f"patch-review:{status.outcome}",
@@ -1454,6 +1479,15 @@ def _validate_command_demo_path_handoff_evidence(
         raise ValueError("Command demo path handoff evidence is inconsistent")
 
 
+def _patch_review_missing_outcome_evidence_entries(
+    contract: CommandPatchReviewOutcomeContract,
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (f"patch-review-missing-outcome:{index}", f"{outcome}: {reason}")
+        for index, (outcome, reason) in enumerate(contract.missing_outcome_lookup_table, start=1)
+    )
+
+
 def _patch_review_commands_by_outcome(
     program: str,
     specs: tuple[CommandSpec, ...],
@@ -1493,6 +1527,16 @@ def _patch_review_outcome_lookup_table(
     )
 
 
+def _patch_review_missing_outcome_lookup_table(
+    statuses: tuple[CommandPatchReviewOutcomeStatus, ...],
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (status.outcome, status.gap_reason)
+        for status in statuses
+        if not status.ready
+    )
+
+
 def _validate_command_patch_review_outcome_contract(
     contract: CommandPatchReviewOutcomeContract,
 ) -> None:
@@ -1504,12 +1548,20 @@ def _validate_command_patch_review_outcome_contract(
         raise ValueError("Command patch-review outcomes must be unique")
     if any(outcome not in expected_outcomes for outcome in contract.missing_outcomes):
         raise ValueError("Command patch-review missing outcomes contain unknown outcomes")
+    if any(outcome not in expected_outcomes for outcome in contract.ready_outcomes):
+        raise ValueError("Command patch-review ready outcomes contain unknown outcomes")
+    if contract.ready_outcomes != tuple(status.outcome for status in contract.statuses if status.ready):
+        raise ValueError("Command patch-review ready outcomes are inconsistent")
     if contract.missing_outcomes != tuple(status.outcome for status in contract.statuses if not status.ready):
         raise ValueError("Command patch-review missing outcomes are inconsistent")
+    if set(contract.ready_outcomes) & set(contract.missing_outcomes):
+        raise ValueError("Command patch-review outcome readiness sets overlap")
     if contract.ready != (not contract.missing_outcomes):
         raise ValueError("Command patch-review readiness is inconsistent")
     if contract.lookup_table != _patch_review_outcome_lookup_table(contract.statuses):
         raise ValueError("Command patch-review outcome lookup table is inconsistent")
+    if contract.missing_outcome_lookup_table != _patch_review_missing_outcome_lookup_table(contract.statuses):
+        raise ValueError("Command patch-review missing outcome lookup table is inconsistent")
     for status in contract.statuses:
         if status.ready == bool(status.gap_reason):
             raise ValueError("Command patch-review outcome status is inconsistent")
@@ -2118,6 +2170,24 @@ def command_mvp_demo_path_handoff_evidence(
     program: str = "qual-bootstrap",
 ) -> tuple[tuple[str, str], ...]:
     return command_demo_path_handoff_evidence(program=program, flow_steps=command_mvp_flow_steps())
+
+
+def command_mvp_patch_review_missing_outcome_lookup_table(
+    program: str = "qual-bootstrap",
+) -> tuple[tuple[str, str], ...]:
+    return command_patch_review_missing_outcome_lookup_table(
+        program=program,
+        flow_steps=command_mvp_flow_steps(),
+    )
+
+
+def command_mvp_patch_review_ready_outcomes(
+    program: str = "qual-bootstrap",
+) -> tuple[str, ...]:
+    return command_patch_review_ready_outcomes(
+        program=program,
+        flow_steps=command_mvp_flow_steps(),
+    )
 
 
 def command_mvp_demo_path_next_blocker(

@@ -14,6 +14,7 @@ from src.qual.commands import (
     command_mvp_demo_path_compatibility_lookup_table,
     command_mvp_demo_path_handoff_evidence,
     command_patch_review_outcome_contract,
+    command_patch_review_outcome_lookup_table,
 )
 
 
@@ -363,6 +364,16 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
                 ("apply", False, "", "no stable command route applies reviewed patches"),
                 ("reject", False, "", "no stable command route rejects reviewed patches"),
             ),
+        )
+        expected_lookup_table = (
+            ("preview", "qual-bootstrap diff-preview"),
+            ("apply", "missing: no stable command route applies reviewed patches"),
+            ("reject", "missing: no stable command route rejects reviewed patches"),
+        )
+        self.assertEqual(contract.lookup_table, expected_lookup_table)
+        self.assertEqual(
+            command_patch_review_outcome_lookup_table(program="qual-bootstrap"),
+            expected_lookup_table,
         )
 
     def test_mvp_handoff_evidence_matches_demo_path_evidence(self) -> None:
