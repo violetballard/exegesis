@@ -258,6 +258,7 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
         )
 
     def test_handoff_evidence_exposes_deterministic_canonical_gap_rows(self) -> None:
+        summary = command_demo_path_handoff_summary(program="qual-bootstrap")
         evidence = command_demo_path_handoff_evidence(program="qual-bootstrap")
 
         self.assertEqual(evidence[0], ("ready", "false"))
@@ -310,6 +311,19 @@ class CommandDemoPathReadinessTests(unittest.TestCase):
                 ),
             ),
             evidence,
+        )
+        next_blocker_rows = tuple(row for row in evidence if row[0] == "next-blocker")
+        self.assertEqual(
+            next_blocker_rows,
+            (
+                (
+                    "next-blocker",
+                    (
+                        f"{summary.next_blocker.demo_step}: {summary.next_blocker.blocker_type}: "
+                        f"{summary.next_blocker.reason}"
+                    ),
+                ),
+            ),
         )
         self.assertIn(
             (
