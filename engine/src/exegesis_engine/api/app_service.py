@@ -70,6 +70,14 @@ class PatchPreview:
     metadata: dict[str, object]
 
 
+@dataclass(frozen=True)
+class WorkflowActionRecord:
+    sequence: int
+    action: str
+    request: dict[str, object]
+    result: dict[str, object]
+
+
 class EngineService:
     """Existing bootstrap/runtime service preserved under the canonical package path."""
 
@@ -233,11 +241,35 @@ class ExegesisAppService:
     def plan_from_basket(self) -> WorkflowCard:
         card = self._plan_service.plan_from_basket(self.state.basket.items)
         self._remember_workflow_card(card)
+        self._record_workflow_action(
+            action="plan_from_basket",
+            request={
+                "basket_item_ids": [item.id for item in self.state.basket.items],
+                "basket_item_count": len(self.state.basket.items),
+            },
+            result={
+                "card_id": card.id,
+                "card_type": card.card_type,
+                "title": card.title,
+            },
+        )
         return card
 
     def draft_from_basket(self) -> WorkflowCard:
         card = self._revise_service.draft_from_basket(self.state.basket.items)
         self._remember_workflow_card(card)
+        self._record_workflow_action(
+            action="draft_from_basket",
+            request={
+                "basket_item_ids": [item.id for item in self.state.basket.items],
+                "basket_item_count": len(self.state.basket.items),
+            },
+            result={
+                "card_id": card.id,
+                "card_type": card.card_type,
+                "title": card.title,
+            },
+        )
         return card
 
     def revise_selection(self, *, proposed_text: str) -> PatchProposal:
@@ -265,6 +297,19 @@ class ExegesisAppService:
                     {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": patch.patch_id}},
                 ],
             )
+        )
+        self._record_workflow_action(
+            action="revise_selection",
+            request={
+                "document_id": document.current_document_id,
+                "target_range": [selection.start, selection.end],
+                "original_text": selection.selected_text,
+                "proposed_text": proposed_text,
+            },
+            result={
+                "patch_id": patch.patch_id,
+                "preview_text": preview or proposed_text,
+            },
         )
         return patch
 
@@ -318,7 +363,7 @@ class ExegesisAppService:
         )
         self.state.document.current_selection = None
 
-        return PatchResolution(
+        resolution = PatchResolution(
             patch_id=patch.patch_id,
             decision=decision,
             target_document_id=patch.target_document_id,
@@ -327,6 +372,22 @@ class ExegesisAppService:
             persisted=persisted,
             metadata=resolution_metadata,
         )
+        self._record_workflow_action(
+            action="resolve_patch",
+            request={
+                "patch_id": patch.patch_id,
+                "decision": decision,
+                "persist": persist,
+            },
+            result={
+                "patch_id": resolution.patch_id,
+                "decision": resolution.decision,
+                "target_document_id": resolution.target_document_id,
+                "dirty": resolution.dirty,
+                "persisted": resolution.persisted,
+            },
+        )
+        return resolution
 
     def describe_state(self) -> dict[str, object]:
         return {
@@ -350,6 +411,9 @@ class ExegesisAppService:
                 "focused_card_id": self.state.workflow.focused_card_id,
                 "last_action_status": self.state.workflow.last_action_status,
                 "command_history": list(self.state.workflow.command_history),
+                "action_records": [
+                    self._workflow_action_record_manifest(record) for record in self._workflow_action_records()
+                ],
                 "cards": [self._workflow_card_manifest(card) for card in self.state.workflow.cards],
                 "patch_resolutions": [
                     self._workflow_card_manifest(card)
@@ -366,6 +430,11 @@ class ExegesisAppService:
     def save_session_snapshot(self, session_id: str = "sessions/current-session.md") -> ProjectItem:
         if self._project_store is None:
             raise RuntimeError("Project must be opened before saving a session snapshot")
+        action_record = self._record_workflow_action(
+            action="save_session_snapshot",
+            request={"session_id": session_id},
+            result={"snapshot_kind": "app_state"},
+        )
         manifest = self.describe_state()
         content = "# Exegesis Session Snapshot\n\n```json\n"
         content += json.dumps(manifest, indent=2, sort_keys=True)
@@ -389,6 +458,13 @@ class ExegesisAppService:
                 break
         else:
             self.state.project.sessions.append(item)
+        action_record.result.update(
+            {
+                "item_id": item.id,
+                "path": item.path,
+                "metadata": dict(item.metadata),
+            }
+        )
         return item
 
     def set_document_selection(self, *, start: int, end: int) -> DocumentSelection:
@@ -430,6 +506,31 @@ class ExegesisAppService:
         self.state.workflow.cards.append(card)
         self.state.workflow.focused_card_id = card.id
         self.state.workflow.last_action_status = card.title
+
+    def _record_workflow_action(
+        self,
+        *,
+        action: str,
+        request: dict[str, object] | None = None,
+        result: dict[str, object] | None = None,
+    ) -> WorkflowActionRecord:
+        self.state.workflow.command_history.append(action)
+        action_records = self._workflow_action_records()
+        record = WorkflowActionRecord(
+            sequence=len(action_records) + 1,
+            action=action,
+            request=dict(request or {}),
+            result=dict(result or {}),
+        )
+        action_records.append(record)
+        return record
+
+    def _workflow_action_records(self) -> list[WorkflowActionRecord]:
+        records = getattr(self.state.workflow, "action_records", None)
+        if records is None:
+            records = []
+            setattr(self.state.workflow, "action_records", records)
+        return records
 
     def _patch_proposal_manifest(self, patch: PatchProposal) -> dict[str, object]:
         return {
@@ -489,6 +590,15 @@ class ExegesisAppService:
             "body": card.body,
             "metadata": dict(card.metadata),
             "actions": [dict(action) for action in card.actions],
+        }
+
+    @staticmethod
+    def _workflow_action_record_manifest(record: WorkflowActionRecord) -> dict[str, object]:
+        return {
+            "sequence": record.sequence,
+            "action": record.action,
+            "request": dict(record.request),
+            "result": dict(record.result),
         }
 
     @staticmethod

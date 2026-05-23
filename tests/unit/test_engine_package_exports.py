@@ -8,6 +8,8 @@ from unittest.mock import patch
 from exegesis_engine.api import ExegesisAppService, PatchPreview, PatchResolution
 
 import src.qual.engine as engine
+import src.qual.engine.retrieval as engine_retrieval
+import src.qual.retrieval as package_retrieval
 
 
 class EnginePackageExportTests(unittest.TestCase):
@@ -54,6 +56,18 @@ class EnginePackageExportTests(unittest.TestCase):
     def test_unknown_export_raises_attribute_error(self) -> None:
         with self.assertRaises(AttributeError):
             engine.__getattr__("MissingExport")
+
+    def test_retrieval_query_constructor_rejects_boolean_max_results(self) -> None:
+        for constructor in (engine_retrieval.build_retrieval_query, package_retrieval.build_retrieval_query):
+            with self.subTest(constructor=constructor.__module__):
+                with self.assertRaisesRegex(TypeError, "max_results must be an integer retrieval limit"):
+                    constructor(
+                        query_text="memo comparison",
+                        scope="vault",
+                        intent="compare",
+                        constraints={"max_results": True},
+                        confidentiality_profile="standard",
+                    )
 
 
 class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
@@ -215,6 +229,27 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
         self.assertEqual(pending["document"]["current_selection"]["selected_text"], "world")
         self.assertEqual(pending["basket"]["selected_basket_item_id"], "retrieval:fts:draft.md:1")
         self.assertEqual(pending["workflow"]["cards"][0]["id"], plan.id)
+        self.assertEqual(pending["workflow"]["command_history"], ["plan_from_basket", "revise_selection"])
+        self.assertEqual(
+            [record["action"] for record in pending["workflow"]["action_records"]],
+            ["plan_from_basket", "revise_selection"],
+        )
+        self.assertEqual(pending["workflow"]["action_records"][0]["sequence"], 1)
+        self.assertEqual(
+            pending["workflow"]["action_records"][0]["request"],
+            {"basket_item_ids": ["retrieval:fts:draft.md:1"], "basket_item_count": 1},
+        )
+        self.assertEqual(pending["workflow"]["action_records"][0]["result"]["card_id"], plan.id)
+        self.assertEqual(
+            pending["workflow"]["action_records"][1]["request"],
+            {
+                "document_id": "draft.md",
+                "target_range": [6, 11],
+                "original_text": "world",
+                "proposed_text": "team",
+            },
+        )
+        self.assertEqual(pending["workflow"]["action_records"][1]["result"]["patch_id"], patch.patch_id)
         self.assertEqual(pending["pending_patch_proposals"][0]["patch_id"], patch.patch_id)
         self.assertEqual(pending["pending_patch_proposals"][0]["target_range"], [6, 11])
         self.assertEqual(pending["pending_patch_proposals"][0]["original_text"], "world")
@@ -229,6 +264,28 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
         self.assertIsNone(resolved["document"]["current_selection"])
         self.assertEqual(resolved["workflow"]["patch_resolutions"][0]["metadata"]["decision"], "accepted")
         self.assertEqual(resolved["workflow"]["focused_card_id"], f"{patch.patch_id}:resolution")
+        self.assertEqual(
+            resolved["workflow"]["command_history"],
+            ["plan_from_basket", "revise_selection", "resolve_patch"],
+        )
+        self.assertEqual(
+            [record["action"] for record in resolved["workflow"]["action_records"]],
+            ["plan_from_basket", "revise_selection", "resolve_patch"],
+        )
+        self.assertEqual(
+            resolved["workflow"]["action_records"][2]["request"],
+            {"patch_id": patch.patch_id, "decision": "accepted", "persist": True},
+        )
+        self.assertEqual(
+            resolved["workflow"]["action_records"][2]["result"],
+            {
+                "patch_id": patch.patch_id,
+                "decision": "accepted",
+                "target_document_id": "draft.md",
+                "dirty": False,
+                "persisted": True,
+            },
+        )
 
     def test_save_session_snapshot_persists_current_engine_loop_state(self) -> None:
         self.service.add_basket_item("retrieval:fts:draft.md:1", label="Draft excerpt")
@@ -250,11 +307,35 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
         self.assertEqual(snapshot["workflow"]["patch_resolutions"][0]["metadata"]["original_text"], "world")
         self.assertEqual(snapshot["workflow"]["patch_resolutions"][0]["metadata"]["proposed_text"], "team")
         self.assertIn("+team", snapshot["workflow"]["patch_resolutions"][0]["metadata"]["preview_text"])
+        self.assertEqual(
+            snapshot["workflow"]["command_history"],
+            ["plan_from_basket", "revise_selection", "resolve_patch", "save_session_snapshot"],
+        )
+        self.assertEqual(
+            [record["action"] for record in snapshot["workflow"]["action_records"]],
+            ["plan_from_basket", "revise_selection", "resolve_patch", "save_session_snapshot"],
+        )
+        self.assertEqual(snapshot["workflow"]["action_records"][3]["sequence"], 4)
+        self.assertEqual(
+            snapshot["workflow"]["action_records"][3]["request"],
+            {"session_id": "sessions/current-session.md"},
+        )
+        self.assertEqual(
+            snapshot["workflow"]["action_records"][3]["result"],
+            {"snapshot_kind": "app_state"},
+        )
         self.assertEqual(snapshot["pending_patch_proposals"], [])
         self.assertTrue(any(item.id == session.id for item in self.service.state.project.sessions))
         state_session = next(item for item in self.service.state.project.sessions if item.id == session.id)
         self.assertEqual(state_session.metadata, session.metadata)
-        self.assertEqual(self.service.describe_state()["project"]["sessions"][0]["metadata"], session.metadata)
+        described = self.service.describe_state()
+        self.assertEqual(described["project"]["sessions"][0]["metadata"], session.metadata)
+        self.assertEqual(
+            described["workflow"]["command_history"],
+            ["plan_from_basket", "revise_selection", "resolve_patch", "save_session_snapshot"],
+        )
+        self.assertEqual(described["workflow"]["action_records"][3]["result"]["item_id"], session.id)
+        self.assertEqual(described["workflow"]["action_records"][3]["result"]["path"], session.path)
 
         self.service.list_project_items()
         refreshed_session = next(item for item in self.service.state.project.sessions if item.id == session.id)

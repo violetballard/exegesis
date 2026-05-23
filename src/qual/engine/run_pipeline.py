@@ -1061,19 +1061,27 @@ class EngineRunService:
                     proposed=patch_proposed_value,
                     target_path=patch_target_path_value,
                 )
+                if patch_decision_value == "accepted" and patch_text == "":
+                    raise ValueError("accepted patch decision requires a non-empty patch proposal")
+                persisted_patch_state: tuple[Path, bool, str | None] | None = None
                 if patch_decision_value == "accepted":
                     # Persist first so patch_applied is never recorded without a document mutation.
-                    self._persist_accepted_patch(
+                    persisted_patch_state = self._persist_accepted_patch(
                         target_path=patch_target_path_value,
                         original=patch_original_value,
                         proposed=patch_proposed_value,
                     )
-                patch_decision_event = self.record_patch_decision(
-                    run.run_id,
-                    decision=patch_decision_value,
-                    target_path=patch_target_path_value,
-                    reason=patch_reason,
-                )
+                try:
+                    patch_decision_event = self.record_patch_decision(
+                        run.run_id,
+                        decision=patch_decision_value,
+                        target_path=patch_target_path_value,
+                        reason=patch_reason,
+                    )
+                except Exception:
+                    if persisted_patch_state is not None:
+                        self._rollback_accepted_patch(persisted_patch_state)
+                    raise
             preview_export: PreviewArtifactRef | None = None
             final_export: ExportArtifactRef | None = None
             if export_options is not None:
@@ -1950,8 +1958,8 @@ class EngineRunService:
             if str(event.payload.get("proposal_artifact_id")) == proposal_artifact_id:
                 raise ValueError(f"patch decision already recorded for proposal: {proposal_artifact_id}")
 
-    @staticmethod
     def _require_patch_flow_inputs(
+        self,
         *,
         patch_original: str | None,
         patch_proposed: str | None,
@@ -1979,19 +1987,30 @@ class EngineRunService:
             field_name="patch_target_path",
         )
         normalized_decision = EngineRunService._normalize_patch_decision(patch_decision)
-        if normalized_decision == "accepted" and patch_original == patch_proposed:
+        if normalized_decision == "accepted" and self._drafting.propose_diff(patch_original, patch_proposed) == "":
             raise ValueError("accepted patch decision requires a non-empty patch proposal")
         return patch_original, patch_proposed, normalized_target_path, normalized_decision
 
-    def _persist_accepted_patch(self, *, target_path: str, original: str, proposed: str) -> Path:
+    def _persist_accepted_patch(self, *, target_path: str, original: str, proposed: str) -> tuple[Path, bool, str | None]:
         """Apply the accepted run-flow patch to the target document on disk."""
         document_path = self._resolve_document_target_path(target_path)
-        current_content = document_path.read_text(encoding="utf-8") if document_path.exists() else original
+        document_existed = document_path.exists()
+        previous_content = document_path.read_text(encoding="utf-8") if document_existed else None
+        current_content = previous_content if document_existed else original
         if current_content != original:
             raise ValueError("patch original text does not match current document content")
         document_path.parent.mkdir(parents=True, exist_ok=True)
         document_path.write_text(proposed, encoding="utf-8")
-        return document_path
+        return document_path, document_existed, previous_content
+
+    @staticmethod
+    def _rollback_accepted_patch(persisted_patch_state: tuple[Path, bool, str | None]) -> None:
+        document_path, document_existed, previous_content = persisted_patch_state
+        if document_existed:
+            assert previous_content is not None
+            document_path.write_text(previous_content, encoding="utf-8")
+        elif document_path.exists():
+            document_path.unlink()
 
     def _resolve_document_target_path(self, target_path: str) -> Path:
         candidate = Path(target_path)

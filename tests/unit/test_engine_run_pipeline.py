@@ -850,6 +850,26 @@ class EngineRunPipelineTests(unittest.TestCase):
 
         self.assertEqual(document_path.read_text(encoding="utf-8"), "stale content\n")
 
+    def test_run_flow_rolls_back_accepted_patch_when_decision_recording_fails(self) -> None:
+        document_path = self.root / "notes.md"
+        document_path.write_text("line one\n", encoding="utf-8")
+
+        with self.assertRaisesRegex(TypeError, "patch decision reason must be a string"):
+            self.service.run_flow(
+                operation="draft",
+                scope="doc:doc-1",
+                intent="outline",
+                request_fingerprint="fp-flow-decision-recording-failure",
+                retrieval_query_text="alpha summary",
+                patch_original="line one\n",
+                patch_proposed="line one\nline two\n",
+                patch_target_path="notes.md",
+                patch_decision="accepted",
+                patch_reason=object(),  # type: ignore[arg-type]
+            )
+
+        self.assertEqual(document_path.read_text(encoding="utf-8"), "line one\n")
+
     def test_run_flow_rejected_patch_leaves_document_state_unchanged(self) -> None:
         document_path = self.root / "notes.md"
         document_path.write_text("line one\n", encoding="utf-8")
@@ -1493,6 +1513,27 @@ class EngineRunPipelineTests(unittest.TestCase):
                 patch_reason="no-op should not apply",
             )
 
+        self.assertEqual(self.service._load_records(), {})
+
+    def test_run_flow_rejects_normalized_empty_accepted_patch_without_mutating_target(self) -> None:
+        document_path = self.root / "notes.md"
+        document_path.write_text("line one\n", encoding="utf-8")
+
+        with self.assertRaisesRegex(ValueError, "accepted patch decision requires a non-empty patch proposal"):
+            self.service.run_flow(
+                operation="draft",
+                scope="doc:doc-1",
+                intent="outline",
+                request_fingerprint="fp-normalized-empty-patch-accepted",
+                retrieval_query_text="alpha summary",
+                patch_original="line one\n",
+                patch_proposed="\ufeffline one   \r\n",
+                patch_target_path="notes.md",
+                patch_decision="accepted",
+                patch_reason="normalization-only change should not apply",
+            )
+
+        self.assertEqual(document_path.read_text(encoding="utf-8"), "line one\n")
         self.assertEqual(self.service._load_records(), {})
 
     def test_patch_flow_normalizes_target_path_before_persisting_artifacts(self) -> None:

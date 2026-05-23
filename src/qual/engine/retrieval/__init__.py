@@ -57,6 +57,8 @@ def _normalize_constraint_values(value: object, *, field_name: str) -> tuple[str
 def _normalize_optional_int(value: object, *, default: int) -> int:
     if value is None:
         return default
+    if isinstance(value, bool):
+        raise TypeError("max_results must be an integer retrieval limit, not bool or non-int")
     return int(value)
 
 
