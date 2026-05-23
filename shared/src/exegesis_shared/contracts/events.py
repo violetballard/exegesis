@@ -263,6 +263,12 @@ def validate_stream_event(
         card = event.get("card")
         if not isinstance(card, dict):
             raise ValueError("card_published event requires a card object")
+        card_type = card.get("type")
+        if not isinstance(card_type, str) or not card_type.strip():
+            raise ValueError("card_published card requires a non-blank type")
+        card_title = card.get("title")
+        if not isinstance(card_title, str) or not card_title.strip():
+            raise ValueError("card_published card requires a non-blank title")
         if capabilities is not None:
             validate_card_payload_size(card, capabilities)
         return
@@ -278,7 +284,7 @@ def validate_stream_event(
         _validate_required_text(event, "action_id")
         action_id = _validate_action_id(event, capabilities)
         status = event.get("status")
-        if status not in {"previewed", "applied", "rejected", "blocked", "failed"}:
+        if status not in {"previewed", "applied", "rejected", "blocked", "failed", "completed"}:
             raise ValueError("Unsupported action_resolved status")
         _validate_action_resolved_status_for_action(action_id, str(status))
         message = event.get("message")
@@ -338,6 +344,13 @@ def _validate_action_resolved_status_for_action(action_id: str, status: str) -> 
     expected_status = expected_by_action_id.get(action_id)
     if expected_status is not None and status != expected_status:
         raise ValueError("Patch review resolved status does not match action id")
+    _CONTEXT_BASKET_ACTION_IDS = {"promote_to_basket", "pin_to_context_set", "create_context_set", "gather_context"}
+    if action_id in _CONTEXT_BASKET_ACTION_IDS and status != "completed":
+        raise ValueError("Context and basket action resolved status must be 'completed'")
+    _PATCH_REVIEW_ACTION_IDS = {"preview_patch", "apply_patch", "reject_patch"}
+    _SPECIAL_ACTION_IDS = _PATCH_REVIEW_ACTION_IDS | _CONTEXT_BASKET_ACTION_IDS
+    if action_id not in _SPECIAL_ACTION_IDS and status != "completed":
+        raise ValueError("Generic action resolved status must be 'completed'")
 
 
 def _validate_action_selection(selection: dict[str, Any], action_id: str) -> None:

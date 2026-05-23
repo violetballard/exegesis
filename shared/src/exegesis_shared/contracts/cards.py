@@ -9,6 +9,7 @@ from exegesis_shared.contracts.actions import (
     ActionRef,
     PATCH_REVIEW_CLI_COMMAND_ALIASES,
     PolicyGate,
+    advance_patch_review_state,
     execute_action_with_policy_gate,
     validate_complete_patch_review_capabilities,
     materialize_action_selection_contract,
@@ -248,6 +249,11 @@ def engine_prepare_card(card: dict[str, Any], capabilities: A2UICapabilities) ->
         card = prepared
     elif card_type in _VALIDATORS_BY_CARD_TYPE:
         validate_known_card(card)
+        if card_type in set(capabilities.cards_supported):
+            prepared = _engine_filter_actions(card, capabilities)
+            prepared = materialize_cli_fallback_card(prepared)
+            validate_card_payload_size(prepared, capabilities)
+            return prepared
     fallback_actions = _engine_fallback_actions(card, capabilities)
     fallback = {
         "type": GENERIC_CARD_TYPE,
@@ -501,6 +507,76 @@ def execute_patch_review_action(
     )
 
 
+@dataclass(frozen=True)
+class PatchReviewExecutionOutcome:
+    review_state: dict[str, Any]
+    control: str
+    patch_id: str
+    executor_result: Any = None
+
+    @property
+    def is_previewed(self) -> bool:
+        return bool(self.review_state.get("previewed"))
+
+    @property
+    def is_resolved(self) -> bool:
+        return bool(self.review_state.get("resolved"))
+
+    @property
+    def resolved_as(self) -> str | None:
+        value = self.review_state.get("resolved_as")
+        return str(value) if isinstance(value, str) else None
+
+
+_PATCH_ACTION_TO_CONTROL: dict[str, str] = {
+    "preview_patch": "preview",
+    "apply_patch": "apply",
+    "reject_patch": "reject",
+}
+
+
+def execute_patch_review_action_and_advance_state(
+    *,
+    card: dict[str, Any],
+    selection: str | int,
+    capabilities: A2UICapabilities,
+    policy_gate: PolicyGate,
+    executor: Callable[[ActionRef], Any],
+    review_state: dict[str, Any] | None = None,
+) -> PatchReviewAdvanceOutcome:
+    envelope = materialize_patch_selection_envelope(card)
+    action = resolve_action_selection(card, selection)
+    control = _PATCH_ACTION_TO_CONTROL.get(action.id)
+    if control is None:
+        raise ValueError("Patch review selection must resolve to a patch action")
+    patch_id = str(envelope["patch_id"])
+    # Validate state machine preconditions before touching the executor.
+    advance_patch_review_state(
+        patch_id=patch_id,
+        control=control,
+        current_state=review_state,
+    )
+    executor_result = execute_patch_review_action(
+        card=card,
+        selection=selection,
+        capabilities=capabilities,
+        policy_gate=policy_gate,
+        executor=executor,
+        review_state=review_state,
+    )
+    new_state = advance_patch_review_state(
+        patch_id=patch_id,
+        control=control,
+        current_state=review_state,
+    )
+    return PatchReviewExecutionOutcome(
+        review_state=new_state,
+        control=control,
+        patch_id=patch_id,
+        executor_result=executor_result,
+    )
+
+
 def _action_selection_aliases(action: dict[str, Any]) -> tuple[str, ...]:
     action_id = str(action.get("id", ""))
     aliases = [action_id]
@@ -619,6 +695,7 @@ def validate_retrieval_results_card(card: dict[str, Any], *, strict_actions: boo
             result,
             "RetrievalResultsCard result",
             required_fields={"item_id": str, "title": str, "snippet": str},
+            optional_fields={"score": (int, float), "source_ref": str},
         )
         _validate_item_identifier(result, "RetrievalResultsCard result")
     _validate_unique_item_ids(results, "RetrievalResultsCard result")
@@ -667,6 +744,83 @@ def validate_context_set_card(card: dict[str, Any], *, strict_actions: bool = Tr
     _validate_optional_card_actions(card, strict_actions=strict_actions)
     _validate_item_scoped_actions(card, items, "ContextSetCard item")
     _validate_context_set_scoped_actions(card, context_set_id.strip())
+
+
+def build_retrieval_results_card(
+    *,
+    title: str,
+    query: str,
+    results: list[dict[str, Any]],
+    actions: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    card: dict[str, Any] = {
+        "type": RETRIEVAL_RESULTS_CARD_TYPE,
+        "title": title,
+        "query": query,
+        "results": results,
+    }
+    if actions is not None:
+        card["actions"] = actions
+    validate_retrieval_results_card(card)
+    return card
+
+
+def build_basket_card(
+    *,
+    title: str,
+    items: list[dict[str, Any]],
+    basket_id: str | None = None,
+    actions: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    card: dict[str, Any] = {
+        "type": BASKET_CARD_TYPE,
+        "title": title,
+        "items": items,
+    }
+    if basket_id is not None:
+        card["basket_id"] = basket_id
+    if actions is not None:
+        card["actions"] = actions
+    validate_basket_card(card)
+    return card
+
+
+def build_context_set_card(
+    *,
+    title: str,
+    context_set_id: str,
+    items: list[dict[str, Any]],
+    actions: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    card: dict[str, Any] = {
+        "type": CONTEXT_SET_CARD_TYPE,
+        "title": title,
+        "context_set_id": context_set_id,
+        "items": items,
+    }
+    if actions is not None:
+        card["actions"] = actions
+    validate_context_set_card(card)
+    return card
+
+
+def build_proposed_edit_card(
+    *,
+    patch_id: str,
+    title: str,
+    blocks: list[dict[str, Any]],
+    actions: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    card: dict[str, Any] = {
+        "type": PROPOSED_EDIT_CARD_TYPE,
+        "patch_id": patch_id,
+        "title": title,
+        "blocks": blocks,
+    }
+    if actions is not None:
+        card["actions"] = actions
+    validate_proposed_edit_card(card)
+    return card
 
 
 def validate_primitive_block(block: Any) -> None:
@@ -724,10 +878,12 @@ def _validate_typed_mapping(
     label: str,
     *,
     required_fields: dict[str, type],
+    optional_fields: dict[str, type | tuple[type, ...]] | None = None,
 ) -> None:
     if not isinstance(value, dict):
         raise ValueError(f"{label} must be an object")
-    unexpected_fields = set(value) - set(required_fields)
+    allowed_fields = set(required_fields) | (set(optional_fields) if optional_fields else set())
+    unexpected_fields = set(value) - allowed_fields
     if unexpected_fields:
         field_list = ", ".join(sorted(unexpected_fields))
         raise ValueError(f"Unsupported {label} field(s): {field_list}")
@@ -737,6 +893,15 @@ def _validate_typed_mapping(
             raise ValueError(f"{label} field '{field_name}' must be {field_type.__name__}")
         if field_type is str and not field_value.strip():
             raise ValueError(f"{label} field '{field_name}' is required")
+    if optional_fields:
+        for field_name, field_type in optional_fields.items():
+            if field_name not in value:
+                continue
+            field_value = value[field_name]
+            types = field_type if isinstance(field_type, tuple) else (field_type,)
+            if not isinstance(field_value, types):
+                type_names = " or ".join(t.__name__ for t in types)
+                raise ValueError(f"{label} optional field '{field_name}' must be {type_names}")
 
 
 def _validate_unique_item_ids(items: list[Any], item_label: str) -> None:

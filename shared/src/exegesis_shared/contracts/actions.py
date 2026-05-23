@@ -407,6 +407,8 @@ def validate_patch_review_execution_state(
         raise ValueError("Patch review state patch_id is required")
     if state_patch_id.strip() != expected_patch_id:
         raise ValueError("Patch review state does not match the current patch")
+    if review_state.get("resolved"):
+        raise PermissionError("Patch review state is already resolved")
     if PATCH_REVIEW_EXECUTION_PRECONDITIONS[normalized_control]["requires_preview"]:
         previewed = review_state.get("previewed", False)
         if not isinstance(previewed, bool):
@@ -432,6 +434,36 @@ def resolve_patch_review_execution_state(
         "control": normalized_control,
         "status": PATCH_REVIEW_RESOLVED_STATUSES[normalized_control],
         "preconditions": deepcopy(PATCH_REVIEW_EXECUTION_PRECONDITIONS[normalized_control]),
+    }
+
+
+def advance_patch_review_state(
+    *,
+    patch_id: str,
+    control: str,
+    current_state: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    normalized_patch_id = patch_id.strip()
+    if not normalized_patch_id:
+        raise ValueError("Patch review patch_id is required")
+    normalized_control = control.strip().lower()
+    if normalized_control not in set(PATCH_REVIEW_REQUIRED_PARTS):
+        raise ValueError("Patch review control must be 'preview', 'apply', or 'reject'")
+    if current_state is not None:
+        state_patch_id = current_state.get("patch_id", "")
+        if isinstance(state_patch_id, str) and state_patch_id.strip() != normalized_patch_id:
+            raise ValueError("Patch review state does not match the current patch")
+        if current_state.get("resolved"):
+            raise PermissionError("Patch review state is already resolved")
+    if normalized_control == "preview":
+        return {"patch_id": normalized_patch_id, "previewed": True}
+    if current_state is None or not current_state.get("previewed"):
+        raise PermissionError("Patch review decision requires preview")
+    return {
+        "patch_id": normalized_patch_id,
+        "previewed": True,
+        "resolved": True,
+        "resolved_as": normalized_control,
     }
 
 

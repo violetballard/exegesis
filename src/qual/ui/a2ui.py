@@ -22,7 +22,10 @@ from exegesis_shared.contracts.actions import (
     PATCH_REVIEW_RESOLVED_STATUSES,
     PatchReviewActionSelection,
     PolicyGate,
+    advance_patch_review_state,
     action_ref_from_selection,
+    is_policy_sensitive_action,
+    POLICY_SENSITIVE_ACTION_IDS,
     build_patch_decision_selection,
     build_complete_patch_review_contract,
     build_patch_preview_selection,
@@ -109,9 +112,15 @@ from exegesis_shared.contracts.cards import (
     REQUIRED_PRIMITIVE_BLOCKS,
     RETRIEVAL_RESULTS_CARD_TYPE,
     UNKNOWN_CARD_TYPE,
+    PatchReviewExecutionOutcome,
+    build_basket_card,
+    build_context_set_card,
+    build_proposed_edit_card,
+    build_retrieval_results_card,
     build_unknown_card,
     engine_prepare_card,
     execute_patch_review_action,
+    execute_patch_review_action_and_advance_state,
     materialize_action_slots,
     materialize_patch_selection_envelope,
     materialize_proposed_edit_card,
@@ -339,6 +348,41 @@ def render_terminal_card(card: dict[str, Any]) -> str:
                     "Partial patch decision actions: "
                     f"{', '.join(decision_controls)} (preview missing)"
                 )
+    if card_type == RETRIEVAL_RESULTS_CARD_TYPE:
+        query = materialized.get("query", "")
+        if isinstance(query, str) and query.strip():
+            lines.append(f"Query: {query.strip()}")
+        results = materialized.get("results", [])
+        result_list = results if isinstance(results, list) else []
+        lines.append(f"Results: {len(result_list)}")
+        for result in result_list:
+            if isinstance(result, dict):
+                r_title = str(result.get("title", ""))
+                r_snippet = str(result.get("snippet", "")).strip()
+                if r_snippet:
+                    lines.append(f"  - {r_title}: {r_snippet}")
+                else:
+                    lines.append(f"  - {r_title}")
+    elif card_type == BASKET_CARD_TYPE:
+        basket_id = materialized.get("basket_id", "")
+        if isinstance(basket_id, str) and basket_id.strip():
+            lines.append(f"Basket: {basket_id.strip()}")
+        items = materialized.get("items", [])
+        item_list = items if isinstance(items, list) else []
+        lines.append(f"Items: {len(item_list)}")
+        for item in item_list:
+            if isinstance(item, dict):
+                lines.append(f"  - {item.get('title', '')}")
+    elif card_type == CONTEXT_SET_CARD_TYPE:
+        context_set_id = materialized.get("context_set_id", "")
+        if isinstance(context_set_id, str) and context_set_id.strip():
+            lines.append(f"Context set: {context_set_id.strip()}")
+        items = materialized.get("items", [])
+        item_list = items if isinstance(items, list) else []
+        lines.append(f"Pinned items: {len(item_list)}")
+        for item in item_list:
+            if isinstance(item, dict):
+                lines.append(f"  - {item.get('title', '')}")
     for slot, action in enumerate(materialized.get("actions", []), start=1):
         if isinstance(action, dict):
             label = str(action.get("label", action.get("id", "action")))
@@ -438,6 +482,11 @@ __all__ = [
     "build_complete_patch_review_action_resolved_event",
     "build_complete_patch_review_action_selected_event",
     "canonicalize_action_order",
+    "PatchReviewExecutionOutcome",
+    "build_basket_card",
+    "build_context_set_card",
+    "build_proposed_edit_card",
+    "build_retrieval_results_card",
     "build_unknown_card",
     "complete_patch_review_action_ref_from_cli_command",
     "complete_patch_review_action_from_card",
@@ -458,6 +507,7 @@ __all__ = [
     "execute_action_with_policy_gate",
     "execute_patch_review_selection_with_policy_gate",
     "execute_patch_review_action",
+    "execute_patch_review_action_and_advance_state",
     "materialize_action_slots",
     "materialize_action_selection_contract",
     "materialize_cli_fallback_card",
