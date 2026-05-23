@@ -496,8 +496,26 @@ def _branch_scope_violations(
             continue
         if any(fnmatchcase(normalized, pattern) for pattern in patterns):
             continue
+        if _is_main_equivalent_control_plane_sync(repo_cwd, branch, normalized):
+            continue
         violations.append(normalized)
     return sorted(set(violations))
+
+
+def _is_main_equivalent_control_plane_sync(repo_cwd: str, branch: str, path: str) -> bool:
+    """Allow feature branches to carry control-plane files already present on main."""
+    if not (
+        path.startswith(".codex/kickoff_packets/")
+        or path in {"THREAD_OWNERSHIP.md", "packet_garden/tools/planner.py", "scripts/scope-check.sh"}
+    ):
+        return False
+    proc = subprocess.run(
+        ["git", "diff", "--quiet", "main", branch, "--", path],
+        cwd=repo_cwd,
+        text=True,
+        capture_output=True,
+    )
+    return proc.returncode == 0
 
 
 def _parse_packet_file_list(text: str) -> List[str]:

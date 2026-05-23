@@ -839,7 +839,7 @@ def _split_files(lane: str, files: List[str]) -> Tuple[List[str], List[str]]:
     return owned_files, shared_files
 
 
-def _full_branch_scope_violations(lane: str, files: List[str]) -> List[str]:
+def _full_branch_scope_violations(lane: str, files: List[str], branch: str = "HEAD") -> List[str]:
     """Return files outside the lane ownership map for the full branch diff."""
     owned_patterns = _owned_patterns_for_lane(lane)
     if not owned_patterns:
@@ -853,8 +853,26 @@ def _full_branch_scope_violations(lane: str, files: List[str]) -> List[str]:
             continue
         if any(fnmatchcase(normalized, pattern) for pattern in owned_patterns):
             continue
+        if _is_main_equivalent_control_plane_sync(normalized, branch):
+            continue
         violations.append(normalized)
     return sorted(set(violations))
+
+
+def _is_main_equivalent_control_plane_sync(path: str, branch: str) -> bool:
+    """Allow feature branches to carry control-plane files already present on main."""
+    if not (
+        path.startswith(".codex/kickoff_packets/")
+        or path in {"THREAD_OWNERSHIP.md", "packet_garden/tools/planner.py", "scripts/scope-check.sh"}
+    ):
+        return False
+    proc = subprocess.run(
+        ["git", "diff", "--quiet", "main", branch, "--", path],
+        cwd=str(REPO_ROOT),
+        text=True,
+        capture_output=True,
+    )
+    return proc.returncode == 0
 
 
 def _owned_path_note(lane: str) -> str:
@@ -1174,7 +1192,7 @@ def main()->None:
             except Exception as e:
                 print(f"[planner] {lane}: diff failed vs {base_ref}: {e}")
                 continue
-            scope_violations = _full_branch_scope_violations(lane, files)
+            scope_violations = _full_branch_scope_violations(lane, files, branch=branch)
             if scope_violations:
                 preview = "\n".join(f"  - {path}" for path in scope_violations[:40])
                 extra = "" if len(scope_violations) <= 40 else f"\n  ... {len(scope_violations) - 40} more"
