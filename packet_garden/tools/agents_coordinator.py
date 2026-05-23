@@ -1246,8 +1246,20 @@ def _lane_scope_violations(lane: str) -> List[str]:
             continue
         if any(fnmatch.fnmatchcase(normalized, pattern) for pattern in patterns):
             continue
+        if _is_main_equivalent_control_plane_sync(branch, normalized):
+            continue
         violations.append(normalized)
     return sorted(set(violations))
+
+
+def _is_main_equivalent_control_plane_sync(branch: str, path: str) -> bool:
+    if not (
+        path.startswith(".codex/kickoff_packets/")
+        or path in {"THREAD_OWNERSHIP.md", "packet_garden/tools/planner.py", "scripts/scope-check.sh"}
+    ):
+        return False
+    proc = run_git(["diff", "--quiet", "main", branch, "--", path], cwd=REPO_ROOT, timeout=30)
+    return proc.returncode == 0
 
 
 def _auto_revert_scope_violations(lane: str, violations: List[str]) -> Tuple[bool, str]:
@@ -1284,7 +1296,10 @@ def _auto_revert_scope_violations(lane: str, violations: List[str]) -> Tuple[boo
         return False, f"status_failed: {status.stdout.strip()[:240]}"
     if not (status.stdout or "").strip():
         return True, "already_clean"
-    add = run_git(["add", "--", *paths], cwd=worktree, timeout=60, write=True)
+    add_args = ["add"]
+    if any(path.startswith(".codex/") for path in paths):
+        add_args.append("-f")
+    add = run_git([*add_args, "--", *paths], cwd=worktree, timeout=60, write=True)
     if add.returncode != 0:
         return False, f"add_failed: {add.stdout.strip()[:240]}"
     commit = run_git(
