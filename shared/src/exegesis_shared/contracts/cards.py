@@ -286,7 +286,7 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
     if card_type == PROPOSED_EDIT_CARD_TYPE:
         if card_type not in set(capabilities.cards_supported):
             validate_proposed_edit_card(card, strict_actions=False)
-            card = build_unknown_card(card)
+            card = build_unknown_card(materialize_proposed_edit_card(card))
         else:
             card = materialize_proposed_edit_card(card)
         materialized = materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
@@ -362,13 +362,6 @@ def build_unknown_card(
     )
     actions = materialize_card_actions(raw_card)
     patch_id = raw_card.get("patch_id")
-    if (
-        type_name != PROPOSED_EDIT_CARD_TYPE
-        and isinstance(patch_id, str)
-        and patch_id.strip()
-        and not any(_is_same_patch_review_action(action, patch_id.strip()) for action in actions)
-    ):
-        actions.extend(_canonical_patch_review_actions(patch_id.strip()))
     actions.append({"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": json.dumps(raw_card)}})
     if capabilities is not None:
         validate_capabilities(capabilities)

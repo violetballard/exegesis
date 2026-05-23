@@ -1071,6 +1071,10 @@ class A2UIContractTests(unittest.TestCase):
         )
         with self.assertRaisesRegex(ValueError, "actions_supported entries must be normalized"):
             store.register("sess-actions", padded_action)
+        with self.assertRaisesRegex(ValueError, "actions_supported entries must be normalized: apply_patch"):
+            validate_action_capabilities(padded_action)
+        with self.assertRaisesRegex(ValueError, "actions_supported entries must be normalized: apply_patch"):
+            validate_complete_patch_review_capabilities(padded_action)
 
         padded_card = A2UICapabilities(
             a2ui_version=caps.a2ui_version,
@@ -1237,6 +1241,35 @@ class A2UIContractTests(unittest.TestCase):
             ],
             [("apply", 2, "apply_patch"), ("reject", 3, "reject_patch")],
         )
+
+    def test_unsupported_proposed_edit_card_fallback_synthesizes_canonical_patch_actions(self) -> None:
+        caps = _capabilities(
+            cards_supported=("GenericCard",),
+            actions_supported=("preview_patch", "apply_patch", "reject_patch"),
+        )
+        card = {
+            "type": "ProposedEditCard",
+            "patch_id": "patch-1",
+            "title": "Preview patch",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "```diff\n+new\n```"}],
+            "actions": [],
+        }
+
+        materialized = studio_materialize_card(card, caps)
+
+        self.assertEqual(materialized["type"], "UnknownCard")
+        self.assertEqual(materialized["patch_id"], "patch-1")
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in materialized["action_selection"]["order"]],
+            [(1, "preview_patch"), (2, "apply_patch"), (3, "reject_patch")],
+        )
+        self.assertEqual(materialized["patch_review"]["patch_id"], "patch-1")
+        self.assertEqual(materialized["patch_review"]["preview"]["patch_id"], "patch-1")
+        self.assertEqual(
+            [entry["selection"]["patch_id"] for entry in materialized["patch_review"]["decisions"]],
+            ["patch-1", "patch-1"],
+        )
+        self.assertEqual(materialized["complete_patch_review_actions"]["patch_id"], "patch-1")
 
     def test_proposed_edit_card_replaces_malformed_same_patch_actions_for_cli_fallback(self) -> None:
         card = {
@@ -1516,7 +1549,7 @@ class A2UIContractTests(unittest.TestCase):
             ["p1", "p1"],
         )
 
-    def test_unsupported_proposed_edit_card_does_not_synthesize_patch_controls(self) -> None:
+    def test_unsupported_proposed_edit_card_with_only_patch_id_gets_canonical_patch_controls(self) -> None:
         caps = _capabilities(
             cards_supported=("GenericCard",),
             actions_supported=("preview_patch", "apply_patch", "reject_patch"),
@@ -1533,12 +1566,17 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(card["type"], "UnknownCard")
         self.assertEqual(card["patch_id"], "p1")
-        self.assertEqual(card["actions"], [])
-        self.assertEqual(card["action_selection"]["order"], [])
-        self.assertNotIn("patch_preview", card)
-        self.assertNotIn("patch_decision", card)
-        self.assertNotIn("patch_review", card)
-        self.assertNotIn("complete_patch_review_actions", card)
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in card["action_selection"]["order"]],
+            [(1, "preview_patch"), (2, "apply_patch"), (3, "reject_patch")],
+        )
+        self.assertEqual(card["patch_review"]["patch_id"], "p1")
+        self.assertEqual(card["patch_review"]["preview"]["patch_id"], "p1")
+        self.assertEqual(
+            [entry["selection"]["patch_id"] for entry in card["patch_review"]["decisions"]],
+            ["p1", "p1"],
+        )
+        self.assertEqual(card["complete_patch_review_actions"]["patch_id"], "p1")
 
     def test_unknown_patch_card_filters_invalid_patch_controls(self) -> None:
         caps = _capabilities(
@@ -1564,6 +1602,63 @@ class A2UIContractTests(unittest.TestCase):
         self.assertNotIn("patch_decision", card)
         self.assertNotIn("patch_review", card)
 
+    def test_unknown_patch_card_preserves_provided_controls_without_synthesis(self) -> None:
+        caps = _capabilities(
+            cards_supported=("GenericCard",),
+            actions_supported=("preview_patch", "apply_patch", "reject_patch"),
+        )
+        payload = {
+            "type": "FuturePatchCard",
+            "title": "Patch",
+            "patch_id": "p1",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+            "actions": [
+                {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+            ],
+        }
+
+        card = studio_materialize_card(payload, caps)
+
+        self.assertEqual([action["id"] for action in card["actions"]], ["preview_patch", "reject_patch"])
+        self.assertNotIn("apply_patch", {action["id"] for action in card["actions"]})
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in card["action_selection"]["order"]],
+            [(1, "preview_patch"), (2, "reject_patch")],
+        )
+        self.assertEqual(card["patch_preview"]["patch_id"], "p1")
+        self.assertEqual([entry["decision"] for entry in card["patch_decision"]["decisions"]], ["reject"])
+        self.assertNotIn("apply_patch", {action["id"] for action in card["actions"]})
+
+    def test_unknown_patch_card_preserves_complete_engine_provided_controls(self) -> None:
+        caps = _capabilities(
+            cards_supported=("GenericCard",),
+            actions_supported=("preview_patch", "apply_patch", "reject_patch"),
+        )
+        payload = {
+            "type": "FuturePatchCard",
+            "title": "Patch",
+            "patch_id": "p1",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+            "actions": [
+                {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+            ],
+        }
+
+        card = studio_materialize_card(payload, caps)
+
+        self.assertEqual([action["id"] for action in card["actions"]], ["preview_patch", "apply_patch", "reject_patch"])
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in card["action_selection"]["order"]],
+            [(1, "preview_patch"), (2, "apply_patch"), (3, "reject_patch")],
+        )
+        self.assertEqual(card["patch_preview"]["patch_id"], "p1")
+        self.assertEqual([entry["decision"] for entry in card["patch_decision"]["decisions"]], ["apply", "reject"])
+        self.assertEqual(card["patch_review"]["availability"]["missing"], [])
+        self.assertIn("complete_patch_review_actions", card)
+
     def test_unknown_card_fallback_honors_supported_actions(self) -> None:
         caps = _capabilities(
             cards_supported=("RunLogCard",),
@@ -1575,7 +1670,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["actions"], [])
         self.assertEqual(card["action_selection"]["order"], [])
 
-    def test_unknown_patch_card_fallback_synthesizes_patch_controls_for_future_patch_card(self) -> None:
+    def test_unknown_patch_card_fallback_does_not_synthesize_patch_controls_from_patch_id(self) -> None:
         caps = _capabilities(
             cards_supported=("RunLogCard",),
             actions_supported=("preview_patch", "apply_patch", "reject_patch"),
@@ -1591,12 +1686,40 @@ class A2UIContractTests(unittest.TestCase):
 
         self.assertEqual(card["type"], "UnknownCard")
         self.assertEqual(card["patch_id"], "p1")
-        self.assertEqual(
-            [(entry["slot"], entry["action_id"]) for entry in card["action_selection"]["order"]],
-            [(1, "preview_patch"), (2, "apply_patch"), (3, "reject_patch")],
+        self.assertEqual(card["actions"], [])
+        self.assertFalse(
+            {"preview_patch", "apply_patch", "reject_patch"}
+            & {action.get("id") for action in card["actions"]}
         )
-        self.assertEqual(card["patch_review"]["availability"]["missing"], [])
-        self.assertEqual(card["complete_patch_review_actions"]["patch_id"], "p1")
+        self.assertEqual(card["action_selection"]["order"], [])
+        self.assertNotIn("patch_preview", card)
+        self.assertNotIn("patch_decision", card)
+        self.assertNotIn("patch_review", card)
+        self.assertNotIn("complete_patch_review_actions", card)
+
+    def test_engine_unknown_patch_card_fallback_does_not_synthesize_patch_controls(self) -> None:
+        caps = _capabilities(
+            cards_supported=("GenericCard",),
+            actions_supported=("preview_patch", "apply_patch", "reject_patch"),
+        )
+        payload = {
+            "type": "FuturePatchCard",
+            "title": "Patch",
+            "patch_id": "p1",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+            "actions": [],
+        }
+
+        card = engine_prepare_card(payload, caps)
+
+        self.assertEqual(card["type"], "GenericCard")
+        self.assertEqual(card["patch_id"], "p1")
+        self.assertEqual(card["actions"], [])
+        self.assertEqual(card["action_selection"]["order"], [])
+        self.assertNotIn("patch_preview", card)
+        self.assertNotIn("patch_decision", card)
+        self.assertNotIn("patch_review", card)
+        self.assertNotIn("complete_patch_review_actions", card)
 
     def test_unknown_or_invalid_actions_are_filtered_client_side(self) -> None:
         caps = _capabilities(actions_supported=("apply_patch",))
@@ -5697,6 +5820,16 @@ class A2UIContractTests(unittest.TestCase):
         )
 
         self.assertEqual(blocked["status"], "blocked")
+
+    def test_streaming_action_resolved_event_rejects_padded_patch_action_id(self) -> None:
+        with self.assertRaisesRegex(ValueError, "action id must be normalized"):
+            build_action_resolved_event(
+                event_id="evt-3",
+                run_id="run-1",
+                sequence=3,
+                action_id=" apply_patch ",
+                status="rejected",
+            )
 
     def test_streaming_action_selected_event_can_derive_action_id_from_selection(self) -> None:
         card = materialize_terminal_card(

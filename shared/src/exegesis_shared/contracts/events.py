@@ -268,19 +268,19 @@ def validate_stream_event(
         return
     if event_type == "action_selected":
         _validate_required_text(event, "action_id")
-        _validate_action_id(event, capabilities)
+        action_id = _validate_action_id(event, capabilities)
         selection = event.get("selection")
         if not isinstance(selection, dict):
             raise ValueError("action_selected event requires a selection object")
-        _validate_action_selection(selection, str(event.get("action_id", "")))
+        _validate_action_selection(selection, action_id)
         return
     if event_type == "action_resolved":
         _validate_required_text(event, "action_id")
-        _validate_action_id(event, capabilities)
+        action_id = _validate_action_id(event, capabilities)
         status = event.get("status")
         if status not in {"previewed", "applied", "rejected", "blocked", "failed"}:
             raise ValueError("Unsupported action_resolved status")
-        _validate_action_resolved_status_for_action(str(event.get("action_id", "")), str(status))
+        _validate_action_resolved_status_for_action(action_id, str(status))
         message = event.get("message")
         if message is not None and (not isinstance(message, str) or not message.strip()):
             raise ValueError("action_resolved event message must be a non-empty string")
@@ -288,7 +288,7 @@ def validate_stream_event(
         if selection is not None:
             if not isinstance(selection, dict):
                 raise ValueError("action_resolved event selection must be an object")
-            _validate_action_selection(selection, str(event.get("action_id", "")))
+            _validate_action_selection(selection, action_id)
 
 
 def _base_event(*, event_id: str, run_id: str, sequence: int, event_type: str) -> dict[str, Any]:
@@ -315,12 +315,16 @@ def _validate_event_fields(event: dict[str, Any], event_type: str) -> None:
         raise ValueError(f"Unsupported A2UI stream event field(s): {field_list}")
 
 
-def _validate_action_id(event: dict[str, Any], capabilities: A2UICapabilities | None) -> None:
-    action_id = str(event.get("action_id", "")).strip()
+def _validate_action_id(event: dict[str, Any], capabilities: A2UICapabilities | None) -> str:
+    raw_action_id = str(event.get("action_id", ""))
+    action_id = raw_action_id.strip()
+    if raw_action_id != action_id:
+        raise ValueError("A2UI stream event action id must be normalized")
     if action_id not in _ALLOWED_ACTION_SET:
         raise ValueError(f"Unsupported A2UI stream event action id: {action_id}")
     if capabilities is not None and action_id not in set(capabilities.actions_supported):
         raise ValueError(f"Client does not support A2UI stream event action id: {action_id}")
+    return action_id
 
 
 def _validate_action_resolved_status_for_action(action_id: str, status: str) -> None:

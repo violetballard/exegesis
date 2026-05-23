@@ -306,7 +306,7 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
             ["* 1. Apply [confirm: Apply patch?]", "* 2. Reject [confirm: Reject patch?]"],
         )
 
-    def test_unknown_patch_card_fallback_synthesizes_missing_patch_actions(self) -> None:
+    def test_unknown_patch_card_fallback_without_engine_actions_is_not_executable(self) -> None:
         caps = _capabilities(
             cards_supported=("RunLogCard",),
             actions_supported=("preview_patch", "apply_patch", "reject_patch"),
@@ -324,10 +324,40 @@ class A2UICliFallbackSafetyTests(unittest.TestCase):
         text = render_terminal_card(card)
 
         self.assertEqual(card["type"], "UnknownCard")
+        self.assertEqual(card["patch_id"], "p1")
+        self.assertEqual(card["actions"], [])
+        self.assertEqual(card["action_selection"]["order"], [])
+        self.assertNotIn("patch_review_controls", card)
+        self.assertNotIn("Patch review controls:", text)
+        self.assertEqual([line for line in text.splitlines() if line.startswith("* ")], [])
+
+    def test_unsupported_proposed_edit_materializes_canonical_patch_actions(self) -> None:
+        caps = _capabilities(
+            cards_supported=("RunLogCard",),
+            actions_supported=("preview_patch", "apply_patch", "reject_patch"),
+        )
+
+        card = studio_materialize_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [],
+            },
+            caps,
+        )
+        text = render_terminal_card(card)
+
+        self.assertEqual(card["type"], "UnknownCard")
+        self.assertEqual(card["patch_id"], "p1")
         self.assertEqual(
             [(entry["slot"], entry["action_id"]) for entry in card["action_selection"]["order"]],
             [(1, "preview_patch"), (2, "apply_patch"), (3, "reject_patch")],
         )
+        self.assertEqual(resolve_card_selection_by_index(card, 1)["payload"], {"patch_id": "p1"})
+        self.assertEqual(resolve_card_selection_by_index(card, 2)["payload"], {"patch_id": "p1"})
+        self.assertEqual(resolve_card_selection_by_index(card, 3)["payload"], {"patch_id": "p1"})
         self.assertIn("Patch review controls: preview=1, apply=2, reject=3", text)
         self.assertEqual(
             [line for line in text.splitlines() if line.startswith("* ")],

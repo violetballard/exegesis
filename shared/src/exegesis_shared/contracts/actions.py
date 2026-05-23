@@ -351,6 +351,9 @@ def validate_action_capabilities(capabilities: Any) -> None:
     for action_id in actions_supported:
         if not isinstance(action_id, str) or not action_id.strip():
             raise ValueError("actions_supported entries must be non-empty strings")
+        normalized = action_id.strip()
+        if action_id != normalized:
+            raise ValueError(f"actions_supported entries must be normalized: {normalized}")
         if action_id not in _ALLOWED_ACTION_SET:
             raise ValueError(f"Unknown action in capabilities: {action_id}")
         if action_id in seen:
@@ -577,7 +580,7 @@ def materialize_cli_fallback_card(card: dict[str, Any]) -> dict[str, Any]:
     materialized["actions"] = materialize_card_actions(card)
     materialized["action_selection"] = materialize_action_selection_contract(card)
     patch_id = card.get("patch_id")
-    if isinstance(patch_id, str) and patch_id.strip():
+    if isinstance(patch_id, str) and patch_id.strip() and _has_patch_review_action(materialized, patch_id):
         patch_preview = materialize_patch_preview_contract(materialized, patch_id)
         if patch_preview["previews"]:
             materialized["patch_preview"] = patch_preview
@@ -612,6 +615,18 @@ def materialize_cli_fallback_card(card: dict[str, Any]) -> dict[str, Any]:
                 materialized.pop("patch_review_controls", None)
                 materialized.pop("complete_patch_review_actions", None)
     return materialized
+
+
+def _has_patch_review_action(card: dict[str, Any], patch_id: str) -> bool:
+    expected_patch_id = patch_id.strip()
+    for action in materialize_card_actions(card):
+        if action.get("id") not in {"preview_patch", "apply_patch", "reject_patch"}:
+            continue
+        payload = action.get("payload")
+        action_patch_id = payload.get("patch_id") if isinstance(payload, dict) else None
+        if isinstance(action_patch_id, str) and action_patch_id.strip() == expected_patch_id:
+            return True
+    return False
 
 
 def build_patch_review_contract(card: dict[str, Any], *, patch_id: str) -> dict[str, Any]:
