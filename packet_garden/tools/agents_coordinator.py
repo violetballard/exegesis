@@ -1223,8 +1223,8 @@ def _lane_worktree_changed_files(lane: str) -> List[str]:
     worktree = Path(worktree_raw)
     changed: List[str] = []
     for args in (
-        ["diff", "--name-only", "--diff-filter=ACMR"],
-        ["diff", "--name-only", "--cached", "--diff-filter=ACMR"],
+        ["diff", "--name-only", "--diff-filter=ACMRD"],
+        ["diff", "--name-only", "--cached", "--diff-filter=ACMRD"],
     ):
         proc = run_git(args, cwd=worktree, timeout=30)
         if proc.returncode != 0:
@@ -1276,15 +1276,11 @@ def _auto_revert_scope_violations(lane: str, violations: List[str]) -> Tuple[boo
     worktree = _git_worktree_branch_map().get(f"refs/heads/{branch}") or _git_worktree_branch_map().get(branch)
     if not worktree:
         return False, "missing_worktree"
-    base = run_git(["merge-base", "HEAD", branch], cwd=REPO_ROOT, timeout=30)
-    if base.returncode != 0 or not (base.stdout or "").strip():
-        return False, "missing_merge_base"
-    merge_base = (base.stdout or "").strip()
     paths = sorted(set(_normalize_repo_path(p) for p in violations if str(p).strip()))
     if not paths:
         return False, "empty_paths"
     restore = run_git(
-        ["restore", "--source", merge_base, "--staged", "--worktree", "--", *paths],
+        ["restore", "--source", "main", "--staged", "--worktree", "--", *paths],
         cwd=worktree,
         timeout=120,
         write=True,
