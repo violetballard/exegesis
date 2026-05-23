@@ -280,6 +280,7 @@ def validate_stream_event(
         status = event.get("status")
         if status not in {"previewed", "applied", "rejected", "blocked", "failed"}:
             raise ValueError("Unsupported action_resolved status")
+        _validate_action_resolved_status_for_action(str(event.get("action_id", "")), str(status))
         message = event.get("message")
         if message is not None and (not isinstance(message, str) or not message.strip()):
             raise ValueError("action_resolved event message must be a non-empty string")
@@ -320,6 +321,19 @@ def _validate_action_id(event: dict[str, Any], capabilities: A2UICapabilities | 
         raise ValueError(f"Unsupported A2UI stream event action id: {action_id}")
     if capabilities is not None and action_id not in set(capabilities.actions_supported):
         raise ValueError(f"Client does not support A2UI stream event action id: {action_id}")
+
+
+def _validate_action_resolved_status_for_action(action_id: str, status: str) -> None:
+    if status in {"blocked", "failed"}:
+        return
+    expected_by_action_id = {
+        "preview_patch": "previewed",
+        "apply_patch": "applied",
+        "reject_patch": "rejected",
+    }
+    expected_status = expected_by_action_id.get(action_id)
+    if expected_status is not None and status != expected_status:
+        raise ValueError("Patch review resolved status does not match action id")
 
 
 def _validate_action_selection(selection: dict[str, Any], action_id: str) -> None:

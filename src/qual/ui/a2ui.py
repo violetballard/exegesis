@@ -323,6 +323,17 @@ def render_terminal_card(card: dict[str, Any]) -> str:
                         "Patch review next required CLI aliases: "
                         f"{'/'.join(str(alias) for alias in aliases)}"
                     )
+    elif isinstance(patch_id, str) and patch_id.strip():
+        decision = materialized.get("patch_decision")
+        decisions = decision.get("decisions") if isinstance(decision, dict) else None
+        if isinstance(decisions, list):
+            decision_controls = [
+                f"{entry['decision']}={entry['slot']}"
+                for entry in decisions
+                if isinstance(entry, dict) and "decision" in entry and "slot" in entry
+            ]
+            if decision_controls:
+                lines.append(f"Patch review controls: {', '.join(decision_controls)}")
     for slot, action in enumerate(materialized.get("actions", []), start=1):
         if isinstance(action, dict):
             label = str(action.get("label", action.get("id", "action")))

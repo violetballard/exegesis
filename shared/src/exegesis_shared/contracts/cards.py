@@ -280,13 +280,17 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
     if card_type == GENERIC_CARD_TYPE:
         validate_generic_card(card, strict_actions=False)
         materialized = materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
+        materialized = _prune_incomplete_unknown_patch_review(materialized)
         validate_card_payload_size(materialized, capabilities)
         return materialized
     if card_type == PROPOSED_EDIT_CARD_TYPE:
-        card = materialize_proposed_edit_card(card)
         if card_type not in set(capabilities.cards_supported):
+            validate_proposed_edit_card(card, strict_actions=False)
             card = build_unknown_card(card)
+        else:
+            card = materialize_proposed_edit_card(card)
         materialized = materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
+        materialized = _prune_incomplete_unknown_patch_review(materialized)
         validate_card_payload_size(materialized, capabilities)
         return materialized
     if card_type in _VALIDATORS_BY_CARD_TYPE:
@@ -294,11 +298,33 @@ def studio_materialize_card(card: dict[str, Any], capabilities: A2UICapabilities
         if card_type not in set(capabilities.cards_supported):
             card = build_unknown_card(card)
         materialized = materialize_cli_fallback_card(_studio_filter_actions(card, capabilities))
+        materialized = _prune_incomplete_unknown_patch_review(materialized)
         validate_card_payload_size(materialized, capabilities)
         return materialized
     materialized = materialize_cli_fallback_card(_studio_filter_actions(build_unknown_card(card), capabilities))
+    materialized = _prune_incomplete_unknown_patch_review(materialized)
     validate_card_payload_size(materialized, capabilities)
     return materialized
+
+
+def _prune_incomplete_unknown_patch_review(card: dict[str, Any]) -> dict[str, Any]:
+    if card.get("type") != UNKNOWN_CARD_TYPE:
+        return card
+    patch_review = card.get("patch_review")
+    if not isinstance(patch_review, dict):
+        return card
+    availability = patch_review.get("availability")
+    if isinstance(availability, dict) and availability.get("is_complete") is True:
+        return card
+    patch_decision = card.get("patch_decision")
+    decisions = patch_decision.get("decisions") if isinstance(patch_decision, dict) else None
+    if isinstance(decisions, list) and decisions:
+        return card
+    pruned = dict(card)
+    pruned.pop("patch_review", None)
+    pruned.pop("patch_review_controls", None)
+    pruned.pop("complete_patch_review_actions", None)
+    return pruned
 
 
 def validate_card_payload_size(card: dict[str, Any], capabilities: A2UICapabilities) -> None:
@@ -336,17 +362,13 @@ def build_unknown_card(
     )
     actions = materialize_card_actions(raw_card)
     patch_id = raw_card.get("patch_id")
-    if isinstance(patch_id, str) and patch_id.strip():
-        present_patch_action_ids = {
-            str(action.get("id"))
-            for action in actions
-            if _is_same_patch_review_action(action, patch_id.strip())
-        }
-        actions.extend(
-            action
-            for action in _canonical_patch_review_actions(patch_id.strip())
-            if action["id"] not in present_patch_action_ids
-        )
+    if (
+        type_name != PROPOSED_EDIT_CARD_TYPE
+        and isinstance(patch_id, str)
+        and patch_id.strip()
+        and not any(_is_same_patch_review_action(action, patch_id.strip()) for action in actions)
+    ):
+        actions.extend(_canonical_patch_review_actions(patch_id.strip()))
     actions.append({"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": json.dumps(raw_card)}})
     if capabilities is not None:
         validate_capabilities(capabilities)

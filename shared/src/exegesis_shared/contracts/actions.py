@@ -604,6 +604,13 @@ def materialize_cli_fallback_card(card: dict[str, Any]) -> dict[str, Any]:
             except ValueError as exc:
                 if "missing" not in str(exc):
                     raise
+        if materialized.get("type") == "UnknownCard":
+            patch_review = materialized.get("patch_review")
+            availability = patch_review.get("availability") if isinstance(patch_review, dict) else None
+            if not (isinstance(availability, dict) and availability.get("is_complete") is True):
+                materialized.pop("patch_review", None)
+                materialized.pop("patch_review_controls", None)
+                materialized.pop("complete_patch_review_actions", None)
     return materialized
 
 
