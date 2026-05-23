@@ -20,7 +20,7 @@ Manual breakdown if you need to inspect each step:
 - `python packet_garden/tools/daemon_ctl.py status`
 - `python packet_garden/tools/status.py`
 - `python packet_garden/tools/daemon_monitor.py`
-- `ps -axo pid,etime,command | rg "codex exec|opencode run|packet_garden/tools/agents_coordinator.py" || true`
+- `ps -axo pid,etime,command | rg "codex exec|opencode run|claude -p|packet_garden/tools/agents_coordinator.py" || true`
 - `for f in $(ls -1t .codex/feature_runner/logs/*.log 2>/dev/null | head -n 5); do echo "FILE:$f"; tail -n 20 "$f"; done`
 - `for f in $(ls -1t .codex/packet_router/logs/*.log 2>/dev/null | head -n 5); do echo "FILE:$f"; tail -n 40 "$f"; done`
 - `tail -n 80 .codex/packet_coordinator/daemon.log 2>/dev/null || true`
@@ -34,6 +34,7 @@ Then summarize:
 - launchd loaded/running state for daemon, monitor, and shell
 - local remote monitor process running/stopped state, PID, and whether phone/VPN status access should be available
 - daemon running/stopped state from `daemon_ctl.py status`
+- active cloud provider, provider order, provider availability, and cloud/local job split from `daemon_monitor.py`
 - filesystem truth per lane (`status.py`)
 - daemon state, reviewer/integrator queues, `active_blocker`, and latest lane discussion (`daemon_monitor.py`)
 - manual feature-lane Codex activity from process list / feature runner logs

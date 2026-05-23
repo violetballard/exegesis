@@ -17,6 +17,7 @@
       "model_args": []
     },
     "worker_cloud": {
+      "harness": "codex",
       "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
       "codex_args": [
         "-c",
@@ -29,6 +30,7 @@
       ]
     },
     "worker_cloud_standard_medium": {
+      "harness": "codex",
       "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
       "codex_args": [
         "-c",
@@ -41,6 +43,7 @@
       ]
     },
     "integrator_cloud": {
+      "harness": "codex",
       "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
       "codex_args": [
         "-c",
@@ -72,11 +75,11 @@
     "cloud_probe": "worker_cloud",
     "feature_cloud": "worker_cloud",
     "feature_local": "worker_local",
-    "reviewer_cloud": "worker_cloud",
+    "reviewer_cloud": "worker_cloud_standard_medium",
     "reviewer_local": "worker_local",
     "integrator_cloud": "integrator_cloud",
     "integrator_local": "worker_local",
-    "fixer_cloud": "worker_cloud",
+    "fixer_cloud": "worker_cloud_standard_medium",
     "fixer_local": "worker_local"
   },
   "runtime_mode_default": "hybrid",
@@ -264,5 +267,10 @@
     "feat-retrieval-fts",
     "feat-engine-runs",
     "feat-a2ui-contract"
+  ],
+  "cloud_provider": "codex",
+  "cloud_provider_order": [
+    "claude",
+    "codex"
   ]
 }

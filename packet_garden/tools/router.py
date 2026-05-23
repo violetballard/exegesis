@@ -40,10 +40,23 @@ CONFIG_FILE = ROUTER_ROOT / "config.json"
 CURSOR_FILE = ROUTER_ROOT / "cursor.json"
 LEASE_FILE = ROUTER_ROOT / "lease.json"
 REPO_ROOT = Path(__file__).resolve().parents[2]
+PROVIDER_CONFIG_DIR = REPO_ROOT / "packet_garden/config/providers"
 COORD_STATE_FILE = REPO_ROOT / ".codex/packet_coordinator/state.json"
 FEATURE_RUNNER_STATE_FILE = REPO_ROOT / ".codex/feature_runner/state.json"
 LOCAL_CLI_WORKER = Path(__file__).resolve().with_name("local_cli_worker.py")
 LOCAL_JOB_ROOT = ROUTER_ROOT / "local_jobs"
+CLOUD_PROFILE_KEYS = {
+    "worker_cloud",
+    "worker_cloud_standard_medium",
+    "integrator_cloud",
+}
+CLOUD_ROLE_KEYS = {
+    "cloud_probe",
+    "feature_cloud",
+    "reviewer_cloud",
+    "fixer_cloud",
+    "integrator_cloud",
+}
 
 VERDICT_INLINE_RE = re.compile(
     r"^\s*(?:#{1,6}\s*)?(?:\*\*)?(?:\d+\.\s*)?(?:\*\*)?Verdict(?:\*\*)?:?\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?\s*$",
@@ -176,6 +189,8 @@ class RouterConfig:
     role_profiles: Dict[str, str]
     lanes: Dict[str, Dict[str, Any]]
     max_total_local_lms_jobs: int = 4
+    cloud_provider: str = "codex"
+    cloud_provider_order: Optional[List[str]] = None
 
 
 @dataclass
@@ -226,7 +241,8 @@ def _normalize_profile(raw: Dict[str, Any], *, fallback_cmd: str = "codex", fall
     else:
         model = str(fallback_model or "")
     model_args = [str(x) for x in list(raw.get("model_args") or [])]
-    harness = str(raw.get("harness") or ("opencode" if Path(cmd).name == "opencode" else "codex"))
+    default_harness = "opencode" if Path(cmd).name == "opencode" else "claude" if Path(cmd).name == "claude" else "codex"
+    harness = str(raw.get("harness") or default_harness)
     return LaunchProfile(codex_cmd=cmd, codex_args=cmd_args, model=model, model_args=model_args, harness=harness)
 
 
@@ -338,6 +354,12 @@ def load_cfg() -> RouterConfig:
         profiles=profiles,
         role_profiles=role_profiles,
         lanes=lane_cfg_map,
+        cloud_provider=str(cfg.get("cloud_provider") or "codex"),
+        cloud_provider_order=[
+            str(provider)
+            for provider in list(cfg.get("cloud_provider_order") or [str(cfg.get("cloud_provider") or "codex")])
+            if str(provider).strip()
+        ],
     )
 
 def ensure_lane_dirs(lane: str) -> Path:
@@ -877,13 +899,141 @@ def _hybrid_mode(cfg: RouterConfig, state: Dict[str, Any]) -> bool:
     return _runtime_mode(cfg, state) == "hybrid"
 
 
+def _current_cloud_provider(cfg: RouterConfig, state: Dict[str, Any]) -> str:
+    return str(state.get("cloud_provider") or getattr(cfg, "cloud_provider", "") or "codex")
+
+
+def _cloud_provider_order(cfg: RouterConfig, state: Dict[str, Any]) -> List[str]:
+    raw = state.get("cloud_provider_order") or getattr(cfg, "cloud_provider_order", None) or []
+    order = [str(item) for item in list(raw) if str(item).strip()]
+    current = _current_cloud_provider(cfg, state)
+    if current and current not in order:
+        order.append(current)
+    for fallback in ("claude", "codex"):
+        if fallback not in order and (PROVIDER_CONFIG_DIR / f"{fallback}_cloud.json").exists():
+            order.append(fallback)
+    return order
+
+
+def _provider_state(state: Dict[str, Any], provider: str) -> Dict[str, Any]:
+    providers = state.get("cloud_providers")
+    if not isinstance(providers, dict):
+        providers = {}
+        state["cloud_providers"] = providers
+    entry = providers.get(provider)
+    if not isinstance(entry, dict):
+        entry = {"available": True, "retry_at": 0}
+        providers[provider] = entry
+    return entry
+
+
+def _provider_available(state: Dict[str, Any], provider: str) -> bool:
+    entry = _provider_state(state, provider)
+    retry_at = float(entry.get("retry_at", 0) or 0)
+    if retry_at and retry_at <= time.time():
+        entry["available"] = True
+        entry["retry_at"] = 0
+    return bool(entry.get("available", True))
+
+
+def _load_provider_template(provider: str) -> Dict[str, Any]:
+    path = PROVIDER_CONFIG_DIR / f"{provider}_cloud.json"
+    data = load_json(path, {})
+    return data if isinstance(data, dict) else {}
+
+
+def _apply_provider_template_to_raw_config(raw_cfg: Dict[str, Any], provider: str) -> Dict[str, Any]:
+    template = _load_provider_template(provider)
+    if not template:
+        return raw_cfg
+    next_cfg = dict(raw_cfg)
+    top_level = template.get("top_level") if isinstance(template.get("top_level"), dict) else {}
+    for key, value in top_level.items():
+        next_cfg[str(key)] = value
+    next_cfg["cloud_provider"] = provider
+    profiles = dict(next_cfg.get("profiles") or {})
+    for key, value in dict(template.get("profiles") or {}).items():
+        if key in CLOUD_PROFILE_KEYS:
+            profiles[key] = value
+    next_cfg["profiles"] = profiles
+    role_profiles = dict(next_cfg.get("role_profiles") or {})
+    for key, value in dict(template.get("role_profiles") or {}).items():
+        if key in CLOUD_ROLE_KEYS:
+            role_profiles[key] = value
+    next_cfg["role_profiles"] = role_profiles
+    return next_cfg
+
+
+def _apply_provider_template_to_runtime(cfg: RouterConfig, provider: str) -> bool:
+    raw_cfg = load_json(CONFIG_FILE, {})
+    if not isinstance(raw_cfg, dict):
+        return False
+    next_cfg = _apply_provider_template_to_raw_config(raw_cfg, provider)
+    if next_cfg == raw_cfg:
+        return False
+    save_json(CONFIG_FILE, next_cfg)
+    fresh = load_cfg()
+    cfg.model = fresh.model
+    cfg.codex_cmd = fresh.codex_cmd
+    cfg.profiles = fresh.profiles
+    cfg.role_profiles = fresh.role_profiles
+    cfg.cloud_provider = fresh.cloud_provider
+    cfg.cloud_provider_order = fresh.cloud_provider_order
+    return True
+
+
+def _switch_to_next_cloud_provider(
+    cfg: RouterConfig,
+    state: Dict[str, Any],
+    *,
+    reason: str,
+) -> bool:
+    current = _current_cloud_provider(cfg, state)
+    for provider in _cloud_provider_order(cfg, state):
+        if provider == current:
+            continue
+        if not _provider_available(state, provider):
+            continue
+        if _apply_provider_template_to_runtime(cfg, provider):
+            state["cloud_provider"] = provider
+            state["cloud_available"] = True
+            state["cloud_retry_at"] = 0
+            state["last_mode_switch_at"] = time.time()
+            state["last_quota_reason"] = f"{reason}; switched cloud provider {current} -> {provider}"
+            return True
+    return False
+
+
+def _select_available_cloud_provider(
+    cfg: RouterConfig,
+    state: Dict[str, Any],
+    *,
+    reason: str,
+) -> bool:
+    current = _current_cloud_provider(cfg, state)
+    ordered = _cloud_provider_order(cfg, state)
+    for provider in ordered:
+        if not _provider_available(state, provider):
+            continue
+        if provider != current:
+            _apply_provider_template_to_runtime(cfg, provider)
+        state["cloud_provider"] = provider
+        state["cloud_available"] = True
+        state["cloud_retry_at"] = 0
+        state["last_mode_switch_at"] = time.time()
+        state["last_quota_reason"] = reason if provider == current else f"{reason}; selected cloud provider {provider}"
+        return True
+    return False
+
+
 def _cloud_available(cfg: RouterConfig, state: Dict[str, Any]) -> bool:
     mode = _runtime_mode(cfg, state)
     if mode == "local_fallback":
         return False
     if mode == "cloud_primary":
         return True
-    return bool(state.get("cloud_available", True))
+    provider = _current_cloud_provider(cfg, state)
+    return bool(state.get("cloud_available", True)) and _provider_available(state, provider)
 
 
 def _use_local_provider(cfg: RouterConfig, state: Dict[str, Any]) -> bool:
@@ -898,6 +1048,15 @@ def _mark_cloud_unavailable(
 ) -> Dict[str, Any]:
     if retry_at is None or retry_at <= time.time():
         retry_at = time.time() + cfg.cloud_probe_cooldown_seconds
+    provider = _current_cloud_provider(cfg, state)
+    entry = _provider_state(state, provider)
+    entry["available"] = False
+    entry["retry_at"] = retry_at
+    entry["reason"] = reason
+    state["cloud_provider"] = provider
+    if _switch_to_next_cloud_provider(cfg, state, reason=reason):
+        state["runtime_mode"] = "hybrid" if _hybrid_mode(cfg, state) or str(cfg.runtime_mode_default) == "hybrid" else "cloud_primary"
+        return state
     if _hybrid_mode(cfg, state) or str(cfg.runtime_mode_default) == "hybrid":
         state["runtime_mode"] = "hybrid"
         state["cloud_available"] = False
@@ -1000,6 +1159,21 @@ def _build_cli_command(
             cmd.append(prompt)
         return [str(x) for x in cmd]
 
+    if profile.harness == "claude":
+        cmd = [profile.codex_cmd, "-p", *profile.codex_args]
+        if profile.model:
+            cmd.extend(["--model", profile.model])
+        cmd.extend(profile.model_args)
+        if sandbox != "read-only":
+            cmd.append("--dangerously-skip-permissions")
+        for add_dir in add_dirs or []:
+            if add_dir:
+                cmd.extend(["--add-dir", str(add_dir)])
+        cmd.extend(["--output-format", "text"])
+        if not stdin_prompt:
+            cmd.append(prompt)
+        return [str(x) for x in cmd]
+
     cmd = [profile.codex_cmd, "exec", *profile.codex_args]
     if ignore_user_config:
         cmd.append("--ignore-user-config")
@@ -1063,6 +1237,8 @@ def _maybe_restore_cloud(
     if mode == "hybrid" and _cloud_available(cfg, state):
         return state
     if not cfg.auto_probe_cloud_recovery:
+        return state
+    if mode == "hybrid" and _select_available_cloud_provider(cfg, state, reason="restored cloud via available provider"):
         return state
     retry_at = float(state.get("cloud_retry_at", 0) or 0)
     now = time.time()
@@ -1236,19 +1412,21 @@ def _run_cli_codex(
     skip_git_repo_check: bool = False,
     harness: str = "codex",
 ) -> Tuple[int, str]:
+    stdin_prompt = harness == "claude"
     cmd = _build_cli_command(
         LaunchProfile(codex_cmd, codex_args, model, model_args, harness=harness),
         sandbox=sandbox,
         prompt=prompt,
         local=skip_git_repo_check,
         cwd=cwd,
+        stdin_prompt=stdin_prompt,
     )
     p = subprocess.run(
         cmd,
         cwd=cwd,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
-        stdin=subprocess.DEVNULL,
+        input=prompt if stdin_prompt else None,
         text=True,
         timeout=timeout,
         env=agent_runtime_env(cwd, env),
@@ -1671,6 +1849,9 @@ def _spawn_detached_cli_job(
         "lane": lane,
         "packet_name": packet_name,
         "pid": proc.pid,
+        "provider": "local" if local else _current_cloud_provider(cfg, {}),
+        "profile": _profile_name_for_role(cfg, role, local=local, lane=lane),
+        "harness": profile.harness,
         "spec_path": str(spec_path),
         "output_path": str(output_path),
         "result_path": str(result_path),
@@ -2599,14 +2780,14 @@ def run_fixer(
             add_dirs=[str(prompt_path.parent.resolve())] if runtime_local else None,
             cwd=(wt or repo_cwd),
             ignore_user_config=not runtime_local,
-            stdin_prompt=prof.harness == "codex",
+            stdin_prompt=prof.harness in {"codex", "claude"},
         )
         proc = subprocess.Popen(
             cmd,
             cwd=(wt or repo_cwd),
             stdout=lf,
             stderr=subprocess.STDOUT,
-            stdin=subprocess.PIPE if prof.harness == "codex" else subprocess.DEVNULL,
+            stdin=subprocess.PIPE if prof.harness in {"codex", "claude"} else subprocess.DEVNULL,
             text=True,
             env=env,
             start_new_session=True,
@@ -2614,7 +2795,7 @@ def run_fixer(
         proc_stdin = getattr(proc, "stdin", None)
         if proc_stdin is not None:
             try:
-                proc_stdin.write(_prompt_file_bootstrap(prompt_path))
+                proc_stdin.write(prompt_text if prof.harness == "claude" else _prompt_file_bootstrap(prompt_path))
                 proc_stdin.close()
             except BrokenPipeError:
                 pass
@@ -2624,6 +2805,9 @@ def run_fixer(
         "ts": ts,
         "pid": proc.pid,
         "local": runtime_local,
+        "provider": "local" if runtime_local else _current_cloud_provider(cfg, state),
+        "profile": _profile_name_for_role(cfg, "fixer", local=runtime_local, lane=lane),
+        "harness": prof.harness,
         "prompt_path": str(prompt_path),
     }
     state["fixer_fallback_jobs"] = fallback

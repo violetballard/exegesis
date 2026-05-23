@@ -560,6 +560,16 @@ def _runtime_state() -> Dict[str, Any]:
     now = time.time()
     retry_in = int(max(0, retry_at - now)) if retry_at else 0
     mode = str((state or {}).get("runtime_mode") or (cfg or {}).get("runtime_mode_default") or "cloud_primary")
+    provider = str((state or {}).get("cloud_provider") or (cfg or {}).get("cloud_provider") or "codex")
+    provider_order_raw = (state or {}).get("cloud_provider_order") or (cfg or {}).get("cloud_provider_order") or []
+    if isinstance(provider_order_raw, list):
+        provider_order = [str(item) for item in provider_order_raw if str(item).strip()]
+    else:
+        provider_order = [str(provider_order_raw)] if str(provider_order_raw).strip() else []
+    if provider and provider not in provider_order:
+        provider_order.append(provider)
+    provider_states_raw = (state or {}).get("cloud_providers")
+    provider_states = provider_states_raw if isinstance(provider_states_raw, dict) else {}
     if mode == "local_fallback":
         cloud_available = False
     elif mode == "cloud_primary":
@@ -572,6 +582,9 @@ def _runtime_state() -> Dict[str, Any]:
         "retry_at": retry_at,
         "retry_in": retry_in,
         "reason": str((state or {}).get("last_quota_reason") or "-"),
+        "cloud_provider": provider,
+        "cloud_provider_order": provider_order,
+        "cloud_provider_states": provider_states,
     }
 
 
@@ -1277,6 +1290,15 @@ def main() -> None:
 
     print("CONTROL PLANE")
     print(f"runtime_mode={runtime['mode']}")
+    print(f"cloud_provider={runtime['cloud_provider']}")
+    print(f"cloud_provider_order={','.join(runtime['cloud_provider_order']) or '-'}")
+    provider_states = runtime.get("cloud_provider_states") if isinstance(runtime.get("cloud_provider_states"), dict) else {}
+    for provider_name in runtime["cloud_provider_order"]:
+        provider_state = provider_states.get(provider_name) if isinstance(provider_states.get(provider_name), dict) else {}
+        available = provider_state.get("available", True)
+        retry_at = float(provider_state.get("retry_at", 0) or 0)
+        retry_in = int(max(0, retry_at - time.time())) if retry_at else 0
+        print(f"cloud_provider_{provider_name}=available={available} retry_in={retry_in}")
     print(f"cloud_available={runtime['cloud_available']}")
     print(f"cloud_retry_in_seconds={runtime['retry_in']}")
     print(f"last_quota_reason={runtime['reason']}")

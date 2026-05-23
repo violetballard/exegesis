@@ -5,32 +5,40 @@ We are no longer treating this as a full replacement of the operator/control-pla
 
 Current state already completed:
 - local/offline worker backend has moved to OpenCode + LM Studio
-- current local model: `qwen3.6-27b`
-- local Qwen/OpenCode workers are the baseline worker pool
+- current local model: `gemma-4-31b-it`
+- local Gemma/OpenCode workers are the baseline worker pool
 - hybrid scheduling is active: local workers keep moving while cloud adds capacity when available
 
 Future target:
 - keep Codex for control-plane monitoring and infra work while it remains useful and paid/available
 - replace OpenAI cloud worker dependency over time with Claude-family cloud workers
-- keep OpenCode + Qwen local as the always-on fallback/baseline
+- keep OpenCode + Gemma local as the always-on fallback/baseline
 - keep `.codex/` state directories and `codex/<lane>` branch names through the migration
 - defer namespace cleanup until after the runtime transition is boring and stable
 
 ## Target Runtime Split
 - control-plane/operator chat: keep Codex for monitoring, daemon work, commits, and long-context project continuity
-- local workers: OpenCode + LM Studio using `qwen3.6-27b`
-- cloud integrator: Claude Opus 4.7, high effort by default
-- cloud reviewer: Claude Sonnet 4.6, high effort by default, with Opus escalation for high-risk/shared/core reviews
-- cloud fixer: Claude Sonnet 4.6, medium effort by default, with Opus escalation after repeated failure
-- cloud feature worker: Claude Sonnet 4.6, medium effort by default
-- cloud light/triage worker: Claude Haiku 4.5, low or medium effort
+- local workers: OpenCode + LM Studio using `gemma-4-31b-it`
+- cloud worker tiers stay normalized across providers:
+  - `worker_cloud`: light cloud worker
+  - `worker_cloud_standard_medium`: standard cloud worker
+  - `integrator_cloud`: heavy/integrator cloud worker
+- Codex/OpenAI mapping:
+  - `worker_cloud`: GPT 5.5, low reasoning
+  - `worker_cloud_standard_medium`: GPT 5.5, medium reasoning
+  - `integrator_cloud`: GPT 5.5, high reasoning
+- Claude mapping:
+  - `worker_cloud`: Claude Sonnet, low effort
+  - `worker_cloud_standard_medium`: Claude Sonnet, medium effort
+  - `integrator_cloud`: Claude Opus, high effort
 - manual deep architecture/spec work: Claude Opus 4.7, high/xhigh effort, with max effort only for one-off manual escalations
 
 ## Design Principles
 - This is a backend-runtime migration, not a workflow redesign.
 - Local workers are baseline capacity, not merely emergency fallback.
 - Cloud workers are additive capacity and should be spent where they improve quality most.
-- Quota failure should disable only the cloud pool; local workers should continue.
+- Quota failure should disable only the affected cloud provider first; local workers should continue.
+- If one cloud provider hits quota, new cloud work can fail over to the other configured cloud provider before the daemon drops to local-only.
 - No active local job should be killed or migrated just because cloud quota returns.
 - Correctness must not depend on vendor-native persistent thread IDs.
 - The packet/worktree filesystem remains the source of truth.
@@ -86,9 +94,9 @@ Run metadata fields:
 - `effort_used`
 
 Implementation split:
-- `OpenCodeRuntime`: used for local Qwen worker runs
-- `ClaudeRuntime`: used for future cloud worker, reviewer, fixer, and integrator runs
-- `CodexRuntime`: kept for current control-plane/cloud compatibility until Claude cloud cutover is proven
+- `OpenCodeRuntime`: used for local Gemma worker runs
+- `ClaudeRuntime`: used for cloud worker, reviewer, fixer, and integrator runs after switch-over
+- `CodexRuntime`: kept for current control-plane/cloud compatibility and easy switch-back
 
 ### 3. Keep OpenCode as the Local/Offline Backend
 This part is already effectively complete for the daemon’s local pool.
@@ -96,7 +104,7 @@ This part is already effectively complete for the daemon’s local pool.
 Current local defaults:
 - backend: OpenCode
 - provider: LM Studio
-- model: `qwen3.6-27b`
+- model: `gemma-4-31b-it`
 - local total cap: `4`
 - local jobs continue even when cloud quota is exhausted
 
@@ -109,21 +117,37 @@ Implementation notes:
 Design Claude as a cloud worker pool, not as a replacement for local execution or this operator chat.
 
 Recommended cloud role mapping:
-- `cloud_integrator`: Claude Opus 4.7, high effort
-- `cloud_reviewer`: Claude Sonnet 4.6, high effort
-- `cloud_reviewer_high_risk`: Claude Opus 4.7, high effort
-- `cloud_fixer`: Claude Sonnet 4.6, medium effort
-- `cloud_fixer_escalated`: Claude Opus 4.7, high effort
-- `cloud_feature`: Claude Sonnet 4.6, medium effort
-- `cloud_light_feature`: Claude Haiku 4.5, medium effort
-- `cloud_triage`: Claude Haiku 4.5, low effort
-- `manual_architecture`: Claude Opus 4.7, high/xhigh effort
+- use the same three cloud profile names regardless of provider
+- `worker_cloud`: cheap/light cloud work and probes
+- `worker_cloud_standard_medium`: default reviewer, fixer, and feature cloud work
+- `integrator_cloud`: integration and hard review work
+
+Claude-specific model mapping:
+- `worker_cloud`: Sonnet, low effort
+- `worker_cloud_standard_medium`: Sonnet, medium effort
+- `integrator_cloud`: Opus, high effort
+
+Codex-specific model mapping:
+- `worker_cloud`: GPT 5.5, low reasoning
+- `worker_cloud_standard_medium`: GPT 5.5, medium reasoning
+- `integrator_cloud`: GPT 5.5, high reasoning
 
 Cost/performance policy:
-- Haiku is for cheap triage, packet cleanup, status summaries, simple classification, and low-risk formatting work.
+- Sonnet low effort is for cheap triage, packet cleanup, status summaries, simple classification, low-risk feature work, and probes.
 - Sonnet is the default serious worker: feature work, ordinary fixers, and most reviews.
 - Opus is the closer: integrator, high-risk review, stuck fixers, provider/routing/core changes, and deep architecture/spec reconciliation.
 - Max effort is manual-only, not daemon-default.
+
+Switching policy:
+- provider switch files live in `packet_garden/config/providers/`
+- `packet_garden/tools/provider_switch.py claude` maps the normalized profile names to Claude
+- `packet_garden/tools/provider_switch.py codex` maps the normalized profile names back to Codex/OpenAI
+- `cloud_provider_order` controls quota failover order; default preference is Claude, then Codex
+- active provider can remain Codex while existing Codex jobs drain and current Codex quota is used
+- when the active provider hits quota, the daemon marks only that provider unavailable and switches new cloud jobs to the next available provider
+- before falling back to local-only, the daemon re-checks every configured cloud provider in preferred order, including providers whose cooldown has expired
+- local Gemma/OpenCode becomes the only runtime only when all configured cloud providers are currently unavailable
+- switching cloud providers must not modify local OpenCode/Gemma profiles, lane enablement, or lane priority
 
 ### 5. Preserve Hybrid Scheduling
 The hybrid pool is the correct target shape.
@@ -178,14 +202,14 @@ Fallback target:
 Required behavior:
 - status must show provider/model/effort used per run
 - cloud auth failure must be explicit
-- cloud auth failure must not stop local OpenCode/Qwen workers
+- cloud auth failure must not stop local OpenCode/Gemma workers
 - no fallback path should silently reintroduce OpenAI cloud workers once Claude cutover is complete
 
 ### 8. Migration Phases
 Current completed phase:
 1. OpenCode local backend
 - local fallback and local heavy worker pool use OpenCode + LM Studio
-- current model is `qwen3.6-27b`
+- current model is `gemma-4-31b-it`
 - hybrid mode keeps local pool active while cloud is available or exhausted
 
 Next phases:
@@ -200,7 +224,7 @@ Next phases:
 
 4. Claude cloud cutover
 - route cloud reviewer/integrator/fixer/feature roles to Claude according to the tiering policy
-- keep local OpenCode/Qwen pool unchanged
+- keep local OpenCode/Gemma pool unchanged
 - keep this Codex chat as the operator control plane unless we explicitly decide otherwise later
 
 5. Cleanup pass
@@ -212,7 +236,7 @@ Next phases:
   - status output shows backend, provider, model, effort, context window, and pid/session id where available
   - historical Codex, current OpenCode, and future Claude jobs can all be represented in one status view
 - Local OpenCode:
-  - feature lane launch works on `qwen3.6-27b`
+  - feature lane launch works on `gemma-4-31b-it`
   - local workers continue when cloud quota/auth fails
   - orphan sweeper kills stale OpenCode runs without killing active ones
 - Claude cloud:
@@ -220,7 +244,7 @@ Next phases:
   - cloud fixer works through Claude profile
   - cloud integrator works through Claude profile
   - high-risk review can escalate from Sonnet to Opus
-  - Haiku low/medium can complete cheap triage/status/packet work without burning Sonnet/Opus budget
+  - Sonnet low effort can complete cheap triage/status/packet work without burning medium-effort Sonnet or Opus budget
 - Hybrid scheduling:
   - integrator gets precedence over reviewer, fixer, and feature work
   - reviewer gets precedence over fixer and feature work
@@ -229,7 +253,7 @@ Next phases:
 - Failure handling:
   - Claude auth failure disables only Claude cloud scheduling
   - cloud quota failure disables only cloud scheduling
-  - local OpenCode/Qwen work continues
+  - local OpenCode/Gemma work continues
   - status clearly distinguishes local capacity, cloud capacity, and cloud quota/auth state
 - Acceptance criteria:
   - offline workers run through OpenCode + LM Studio
@@ -241,7 +265,7 @@ Next phases:
 - We are intentionally keeping the Python daemon/coordinator and packet model.
 - We are intentionally keeping `.codex/` and `codex/<lane>` names during the runtime transition.
 - OpenCode remains on LM Studio for local workers.
-- `qwen3.6-27b` remains the local default unless memory/performance testing says otherwise.
+- `gemma-4-31b-it` remains the local default unless memory/performance testing says otherwise.
 - Claude model names and effort labels may need exact provider-string updates at implementation time.
 - Claude Code/CLI subscription automation may not be reliable enough; Anthropic API can back the same runtime interface if needed.
 - Codex remains acceptable for this control-plane chat and monitoring role even while we reduce OpenAI dependency in daemon worker execution.

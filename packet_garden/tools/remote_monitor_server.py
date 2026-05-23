@@ -220,6 +220,7 @@ def summary_text(payload: Mapping[str, Any]) -> str:
         f"Generated: {human_timestamp(payload.get('generated_at'))}",
         f"Daemon:    {daemon} ({paused})",
         f"Runtime:   {payload.get('runtime_mode', '-')}",
+        f"Provider:  {payload.get('cloud_provider', '-')} ({payload.get('cloud_provider_order', '-')})",
         f"Cloud:     {cloud}",
         "",
         "Capacity",
@@ -295,10 +296,12 @@ def _format_lane_running(lane: Mapping[str, Any]) -> str:
         role = str(item.get("role") or "job")
         tier = str(item.get("tier") or "").strip()
         profile = str(item.get("profile") or "").strip()
+        provider_name = str(item.get("provider_name") or "").strip()
+        cloud_label = f"cloud:{provider_name}" if provider == "cloud" and provider_name else provider
         if provider == "cloud" and tier:
-            labels.append(f"{provider} {tier} {role}")
+            labels.append(f"{cloud_label} {tier} {role}")
         elif provider == "cloud" and profile:
-            labels.append(f"{provider} {role} ({profile})")
+            labels.append(f"{cloud_label} {role} ({profile})")
         else:
             labels.append(f"{provider} {role}")
     return ", ".join(labels) if labels else "not running"
@@ -336,6 +339,8 @@ def summary_html(payload: Mapping[str, Any], *, session_token: str = "", base_ur
     kick_href = _control_href(base_url, "kick", session_token)
     rows = [
         ("Runtime", payload.get("runtime_mode", "-"), ""),
+        ("Cloud provider", payload.get("cloud_provider", "-"), ""),
+        ("Provider order", payload.get("cloud_provider_order", "-"), ""),
         ("Cloud", cloud_value, cloud_class),
         ("Local LMS", payload.get("local_lms_jobs", "-"), ""),
         ("Cloud jobs", payload.get("cloud_jobs", "-"), ""),

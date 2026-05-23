@@ -9,7 +9,7 @@ Run from repo root:
 - `python packet_garden/tools/status.py`
 - `python packet_garden/tools/daemon_monitor.py`
 - `python packet_garden/tools/remote_monitor_ctl.py status`
-- `ps -axo pid,etime,command | rg "codex exec|packet_garden/tools/agents_coordinator.py" || true`
+- `ps -axo pid,etime,command | rg "codex exec|opencode run|claude -p|packet_garden/tools/agents_coordinator.py" || true`
 - `for f in $(ls -1t .codex/feature_runner/logs/*.log 2>/dev/null | head -n 5); do echo "FILE:$f"; tail -n 30 "$f"; done`
 - `for f in $(ls -1t .codex/packet_router/logs/*.log 2>/dev/null | head -n 5); do echo "FILE:$f"; tail -n 40 "$f"; done`
 - `tail -n 80 .codex/packet_coordinator/daemon.log 2>/dev/null || true`
@@ -33,6 +33,7 @@ Then summarize all of these together:
 - launchd loaded/running state for daemon, monitor, and shell
 - local remote monitor process running/stopped state, PID, and phone/VPN availability
 - daemon running/stopped state from `daemon_ctl.py status`
+- active cloud provider, provider order, provider availability, and local/cloud capacity split
 - filesystem truth per lane from `status.py`
 - daemon running/stopped state
 - backlog bottleneck and `active_blocker` from `daemon_monitor.py`

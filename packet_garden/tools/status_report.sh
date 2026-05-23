@@ -17,9 +17,9 @@ print_heading() {
 
 print_process_view() {
   if have_rg; then
-    ps -axo pid,etime,command | rg 'codex exec|opencode run|packet_garden/tools/agents_coordinator.py' || true
+    ps -axo pid,etime,command | rg 'codex exec|opencode run|claude -p|packet_garden/tools/agents_coordinator.py' || true
   else
-    ps -axo pid,etime,command | grep -E 'codex exec|opencode run|packet_garden/tools/agents_coordinator.py' || true
+    ps -axo pid,etime,command | grep -E 'codex exec|opencode run|claude -p|packet_garden/tools/agents_coordinator.py' || true
   fi
 }
 

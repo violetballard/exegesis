@@ -212,12 +212,15 @@ def _add_lane_placement(
     role: str,
     pid: int,
     profile: str = "",
+    provider_name: str = "",
 ) -> None:
     if not lane or not _pid_alive(pid):
         return
     item = {"provider": provider, "role": role, "pid": str(pid)}
     if profile:
         item["profile"] = profile
+    if provider_name:
+        item["provider_name"] = provider_name
     if provider == "cloud":
         tier = _cloud_profile_tier(profile)
         if tier:
@@ -244,6 +247,7 @@ def _lane_placements() -> Dict[str, List[Dict[str, str]]]:
                 role="feature",
                 pid=int(lane_state.get("pid") or 0),
                 profile=str(lane_state.get("profile") or ""),
+                provider_name=str(lane_state.get("provider_name") or ""),
             )
 
     router_state = _load_json(ROUTER_STATE, {})
@@ -273,7 +277,8 @@ def _lane_placements() -> Dict[str, List[Dict[str, str]]]:
                 provider=provider,
                 role=role,
                 pid=int(job.get("pid") or 0),
-                profile=_profile_name_for_job(router_cfg, role, provider=provider, lane=lane),
+                profile=str(job.get("profile") or _profile_name_for_job(router_cfg, role, provider=provider, lane=lane)),
+                provider_name=str(job.get("provider") or ""),
             )
 
     fixer_jobs = router_state.get("fixer_fallback_jobs")
@@ -288,7 +293,8 @@ def _lane_placements() -> Dict[str, List[Dict[str, str]]]:
                 provider=provider,
                 role="fixer",
                 pid=int(job.get("pid") or 0),
-                profile=_profile_name_for_job(router_cfg, "fixer", provider=provider, lane=str(lane)),
+                profile=str(job.get("profile") or _profile_name_for_job(router_cfg, "fixer", provider=provider, lane=str(lane))),
+                provider_name=str(job.get("provider") or ""),
             )
     metadata_jobs = router_state.get("metadata_repair_jobs")
     if isinstance(metadata_jobs, dict):
@@ -301,7 +307,8 @@ def _lane_placements() -> Dict[str, List[Dict[str, str]]]:
                 provider="cloud",
                 role="metadata",
                 pid=int(job.get("pid") or 0),
-                profile=_profile_name_for_job(router_cfg, "fixer", provider="cloud", lane=str(lane)),
+                profile=str(job.get("profile") or _profile_name_for_job(router_cfg, "fixer", provider="cloud", lane=str(lane))),
+                provider_name=str(job.get("provider") or ""),
             )
     return placements
 
@@ -371,6 +378,24 @@ def _runtime_fallbacks(
     cloud_fixers = _count_active_pid_jobs(router_state.get("fixer_fallback_jobs"), local=False)
     cloud_metadata = _count_active_pid_jobs(router_state.get("metadata_repair_jobs"))
     cloud_total = cloud_features + cloud_reviewers + cloud_integrators + cloud_fixers + cloud_metadata
+    cloud_provider = str(
+        monitor_values.get("cloud_provider")
+        or router_state.get("cloud_provider")
+        or router_cfg.get("cloud_provider")
+        or "-"
+    )
+    provider_order_raw = (
+        monitor_values.get("cloud_provider_order")
+        or router_state.get("cloud_provider_order")
+        or router_cfg.get("cloud_provider_order")
+        or []
+    )
+    if isinstance(provider_order_raw, str):
+        cloud_provider_order = provider_order_raw
+    elif isinstance(provider_order_raw, list):
+        cloud_provider_order = ",".join(str(item) for item in provider_order_raw if str(item).strip())
+    else:
+        cloud_provider_order = "-"
 
     totals = pipeline.get("totals", {}) if isinstance(pipeline, dict) else {}
     approved = int(totals.get("approved_for_integrator", 0) or 0)
@@ -409,6 +434,8 @@ def _runtime_fallbacks(
             or router_cfg.get("runtime_mode_default")
             or "-"
         ),
+        "cloud_provider": cloud_provider,
+        "cloud_provider_order": cloud_provider_order or "-",
         "cloud_available": str(
             monitor_values.get("cloud_available")
             if monitor_values.get("cloud_available")
@@ -518,6 +545,8 @@ def _summary_from(daemon: Mapping[str, str], pipeline: Mapping[str, Any], monito
     return {
         "daemon_running": daemon_running,
         "runtime_mode": fallback["runtime_mode"],
+        "cloud_provider": fallback["cloud_provider"],
+        "cloud_provider_order": fallback["cloud_provider_order"],
         "cloud_available": fallback["cloud_available"],
         "local_lms_jobs": fallback["local_lms_jobs"],
         "cloud_jobs": fallback["cloud_jobs"],

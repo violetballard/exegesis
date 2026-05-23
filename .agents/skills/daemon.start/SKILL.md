@@ -10,7 +10,7 @@ Run from repo root:
 - `python packet_garden/tools/remote_monitor_ctl.py status`
 - `python packet_garden/tools/status.py`
 - `python packet_garden/tools/daemon_monitor.py`
-- `ps -axo pid,etime,command | rg "codex exec|packet_garden/tools/agents_coordinator.py" || true`
+- `ps -axo pid,etime,command | rg "codex exec|opencode run|claude -p|packet_garden/tools/agents_coordinator.py" || true`
 - `for f in $(ls -1t .codex/feature_runner/logs/*.log 2>/dev/null | head -n 3); do echo "FILE:$f"; tail -n 20 "$f"; done`
 - `tail -n 50 .codex/packet_coordinator/daemon.log 2>/dev/null || true`
 

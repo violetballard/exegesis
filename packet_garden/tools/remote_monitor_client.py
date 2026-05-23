@@ -89,6 +89,8 @@ def _print_summary(payload: Dict[str, Any]) -> None:
     if pause.get("paused"):
         print(f"pause_reason={pause.get('reason', '-')}")
     print(f"runtime_mode={payload.get('runtime_mode', '-')}")
+    print(f"cloud_provider={payload.get('cloud_provider', '-')}")
+    print(f"cloud_provider_order={payload.get('cloud_provider_order', '-')}")
     print(f"cloud_available={payload.get('cloud_available', '-')}")
     print(f"local_lms_jobs={payload.get('local_lms_jobs', '-')}")
     print(f"cloud_jobs={payload.get('cloud_jobs', '-')}")

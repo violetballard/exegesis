@@ -6,6 +6,7 @@ import json
 import os
 import subprocess
 import threading
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List
@@ -132,12 +133,13 @@ def _normalize_profile(raw: Dict[str, object], fallback_cmd: str, fallback_model
     else:
         model = fallback_model
     cmd = str(raw.get("codex_cmd") or fallback_cmd or "codex")
+    default_harness = "opencode" if Path(cmd).name == "opencode" else "claude" if Path(cmd).name == "claude" else "codex"
     return {
         "cmd": cmd,
         "cmd_args": [str(x) for x in cmd_args],
         "model": model,
         "model_args": [str(x) for x in list(raw.get("model_args") or [])],
-        "harness": str(raw.get("harness") or ("opencode" if Path(cmd).name == "opencode" else "codex")),
+        "harness": str(raw.get("harness") or default_harness),
     }
 
 
@@ -222,7 +224,12 @@ def _cloud_available(cfg: Dict[str, object], state: Dict[str, object]) -> bool:
         return False
     if mode == "cloud_primary":
         return True
-    return bool(state.get("cloud_available", True))
+    provider = str(state.get("cloud_provider") or cfg.get("cloud_provider") or "codex")
+    providers = state.get("cloud_providers") if isinstance(state.get("cloud_providers"), dict) else {}
+    provider_state = providers.get(provider) if isinstance(providers.get(provider), dict) else {}
+    retry_at = float(provider_state.get("retry_at", 0) or 0)
+    provider_available = bool(provider_state.get("available", True)) or (retry_at and retry_at <= time.time())
+    return bool(state.get("cloud_available", True)) and provider_available
 
 
 def _launch_mode_for_provider(cfg: Dict[str, object], state: Dict[str, object], provider: str) -> str:
@@ -266,6 +273,7 @@ def runtime_launch_config(lane: str | None = None, *, provider: str = "auto") ->
         "max_total_cloud_jobs": int(cfg.get("max_total_cloud_jobs", 4)),
         "max_total_local_lms_jobs": int(cfg.get("max_total_local_lms_jobs", 4)),
         "provider": "local" if mode == "local_fallback" else "cloud",
+        "cloud_provider": str(cfg.get("cloud_provider") or state.get("cloud_provider") or "codex"),
         "disable_local_fallback_on_cloud_timeout": bool(cfg.get("disable_local_fallback_on_cloud_timeout", False)),
         "prefer_direct_exec_cloud": bool(cfg.get("prefer_direct_exec_feature_cloud", True)),
         "local_profile_name": local_profile_name,
@@ -522,6 +530,14 @@ def _spawn_direct_exec(
         # a "cat the prompt file first" bootstrap can be treated as the whole
         # job and exit after printing the file. Send the lane prompt directly.
         cmd.append(prompt)
+    elif harness == "claude":
+        cmd = [str(profile_cfg["cmd"]), "-p", *cmd_args]
+        if model:
+            cmd.extend(["--model", model])
+        cmd.extend([str(x) for x in list(profile_cfg.get("model_args") or [])])
+        cmd.extend(["--dangerously-skip-permissions", "--output-format", "text"])
+        if resolved_prompt_path.parent:
+            cmd.extend(["--add-dir", str(resolved_prompt_path.parent.resolve())])
     else:
         cmd = [str(profile_cfg["cmd"]), "exec", *cmd_args]
         if local_mode:
@@ -538,11 +554,17 @@ def _spawn_direct_exec(
             cwd=workdir,
             stdout=lf,
             stderr=subprocess.STDOUT,
-            stdin=subprocess.DEVNULL,
+            stdin=subprocess.PIPE if harness == "claude" else subprocess.DEVNULL,
             text=True,
             env=env,
             start_new_session=True,
         )
+        if harness == "claude" and proc.stdin is not None:
+            try:
+                proc.stdin.write(prompt)
+                proc.stdin.close()
+            except BrokenPipeError:
+                pass
     return proc.pid
 
 
@@ -565,6 +587,7 @@ def _set_lane_state(
     error: str = "",
     action: str = "",
     pid: int = 0,
+    provider_name: str = "",
 ) -> None:
     current_epoch = _current_resume_epoch()
     with STATE_LOCK:
@@ -578,6 +601,7 @@ def _set_lane_state(
             "thread_id": thread_id,
             "mode": mode,
             "profile": profile,
+            "provider_name": provider_name,
             "workdir": workdir,
             "prompt_path": str(prompt_path),
             "log_path": str(log_path),

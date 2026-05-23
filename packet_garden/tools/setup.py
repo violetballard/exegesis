@@ -112,6 +112,8 @@ def write_example_config():
         }
     )
     example = {
+        "cloud_provider": "codex",
+        "cloud_provider_order": ["claude", "codex"],
         "model": "gpt-5.1-codex",
         "codex_cmd": APP_CODEX_CMD,
         "fallback_model": LOCAL_LMS_MODEL,
@@ -163,11 +165,11 @@ def write_example_config():
             "cloud_probe": "worker_cloud",
             "feature_cloud": "worker_cloud",
             "feature_local": "worker_local",
-            "reviewer_cloud": "worker_cloud",
+            "reviewer_cloud": "worker_cloud_standard_medium",
             "reviewer_local": "worker_local",
             "integrator_cloud": "integrator_cloud",
             "integrator_local": "worker_local",
-            "fixer_cloud": "worker_cloud",
+            "fixer_cloud": "worker_cloud_standard_medium",
             "fixer_local": "worker_local",
         },
         "runtime_mode_default": "hybrid",
