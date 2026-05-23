@@ -13,6 +13,13 @@ def _complete_promotion_item(*, item_id: str = "excerpt-1") -> dict[str, object]
     excerpt_text = "memo excerpt"
     excerpt_text_hash = hashlib.sha256(excerpt_text.encode("utf-8")).hexdigest()
     span = {"char_range": {"start": 0, "end": len(excerpt_text)}}
+    doc_identity_fingerprint = _stable_fingerprint(
+        {
+            "doc_id": "doc-1",
+            "source_hash": "source-1",
+            "doc_type": "note",
+        }
+    )
     excerpt_fingerprint = _stable_fingerprint(
         {
             "doc_id": "doc-1",
@@ -42,7 +49,7 @@ def _complete_promotion_item(*, item_id: str = "excerpt-1") -> dict[str, object]
         "doc_type": "note",
         "source_type": "note",
         "source_hash": "source-1",
-        "doc_identity_fingerprint": "doc-identity-1",
+        "doc_identity_fingerprint": doc_identity_fingerprint,
         "excerpt_id": "excerpt-1",
         "excerpt_text": excerpt_text,
         "snippet": excerpt_text,

@@ -640,6 +640,15 @@ def _has_complete_sparse_promotion_provenance(
         return False
     if normalized_source_type != normalized_doc_type:
         return False
+    expected_doc_identity_fingerprint = _stable_fingerprint(
+        {
+            "doc_id": normalized_doc_id,
+            "source_hash": normalized_source_hash,
+            "doc_type": normalized_doc_type,
+        }
+    )
+    if normalized_doc_identity_fingerprint != expected_doc_identity_fingerprint:
+        return False
     normalized_excerpt_text = _normalize_optional_text(excerpt_text)
     normalized_snippet = _normalize_optional_text(snippet)
     if (

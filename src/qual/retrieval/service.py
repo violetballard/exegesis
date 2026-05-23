@@ -799,9 +799,9 @@ class RetrievalResult:
             return False
         doc_type = _optional_text(provenance.get("doc_type"))
         source_type = _optional_text(provenance.get("source_type"))
-        if doc_type is None:
+        if doc_type is None or source_type is None:
             return False
-        if source_type is not None and source_type != doc_type:
+        if source_type != doc_type:
             return False
         doc_source_type = _optional_text(doc_provenance.get("source_type"))
         doc_provenance_type = _optional_text(doc_provenance.get("doc_type"))

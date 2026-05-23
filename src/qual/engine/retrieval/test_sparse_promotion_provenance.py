@@ -100,6 +100,12 @@ class SparsePromotionProvenanceValidationTests(unittest.TestCase):
 
         self._assert_not_ready(_build_retrieval_basket_promotion_bundle_from_payload(payload))
 
+    def test_existing_bundle_enrichment_rejects_stale_doc_identity_fingerprint(self) -> None:
+        payload = self._payload()
+        self._replace_key(payload, "doc_identity_fingerprint", "stale-doc-identity")
+
+        self._assert_not_ready(_build_retrieval_basket_promotion_bundle_from_payload(payload))
+
     def test_existing_bundle_enrichment_rejects_incomplete_doc_source_record(self) -> None:
         payload = self._payload()
         self._strip_doc_source_record_key(payload, "source_hash")
@@ -123,12 +129,37 @@ class SparsePromotionProvenanceValidationTests(unittest.TestCase):
 
         self._assert_not_ready(_build_retrieval_basket_promotion_bundle_from_payload(payload))
 
+    def test_rebuild_rejects_stale_doc_identity_fingerprint(self) -> None:
+        payload = self._payload()
+        payload.pop("retrieval_basket_promotion_bundle", None)
+        self._replace_key(payload, "doc_identity_fingerprint", "stale-doc-identity")
+
+        self._assert_not_ready(_build_retrieval_basket_promotion_bundle_from_payload(payload))
+
     def test_rebuild_rejects_incomplete_doc_source_record(self) -> None:
         payload = self._payload()
         payload.pop("retrieval_basket_promotion_bundle", None)
         self._strip_doc_source_record_key(payload, "source_hash")
 
         self._assert_not_ready(_build_retrieval_basket_promotion_bundle_from_payload(payload))
+
+    def test_live_basket_promotion_requires_explicit_source_type(self) -> None:
+        result = self.service.retrieve_auto(
+            RetrievalQuery(
+                query_text="memo comparison",
+                scope="vault",
+                intent="compare",
+                constraints=RetrievalConstraints(max_results=4),
+                confidentiality_profile="confidential",
+            )
+        )
+        self.assertTrue(result.basket_promotion_items())
+
+        for hit in result.hits:
+            hit.provenance.pop("source_type", None)
+
+        self.assertEqual(result.basket_promotion_items(), [])
+        self.assertFalse(result.retrieval_basket_promotion_bundle()["basket_promotion_ready"])
 
 
 if __name__ == "__main__":
