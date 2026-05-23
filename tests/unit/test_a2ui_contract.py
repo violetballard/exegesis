@@ -7492,6 +7492,91 @@ class A2UIContractTests(unittest.TestCase):
         unknown_text = render_terminal_card(unknown)
         self.assertIn("[UnknownCard] Unsupported card type: FutureCard", unknown_text)
 
+    def test_stream_event_key_produces_stable_canonical_key(self) -> None:
+        from src.qual.ui.a2ui import stream_event_key
+
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Run Log",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [{"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}}],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+        event = build_action_selected_event(
+            event_id="evt-key-1",
+            run_id="run-42",
+            sequence=3,
+            action_id="apply_patch",
+            selection=selection,
+        )
+        key = stream_event_key(event)
+        self.assertIsInstance(key, str)
+        import json as _json
+        parsed = _json.loads(key)
+        self.assertEqual(parsed["event_id"], "evt-key-1")
+        self.assertEqual(parsed["run_id"], "run-42")
+        self.assertEqual(parsed["sequence"], 3)
+        self.assertEqual(parsed["event_type"], "action_selected")
+        self.assertNotIn("action_id", parsed)
+        self.assertNotIn("selection", parsed)
+
+    def test_stream_event_key_is_deterministic_across_calls(self) -> None:
+        from src.qual.ui.a2ui import stream_event_key
+
+        card = materialize_terminal_card(
+            {
+                "type": "GenericCard",
+                "title": "Det Log",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "x"}],
+                "actions": [{"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p2"}}],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p2", decision="apply")
+        event = build_action_selected_event(
+            event_id="evt-det-1",
+            run_id="run-det",
+            sequence=1,
+            action_id="apply_patch",
+            selection=selection,
+        )
+        self.assertEqual(stream_event_key(event), stream_event_key(deepcopy(event)))
+
+    def test_stream_event_key_rejects_invalid_event(self) -> None:
+        from src.qual.ui.a2ui import stream_event_key
+
+        with self.assertRaises(ValueError):
+            stream_event_key({"contract_version": 1, "event_type": "unknown_type"})
+
+    def test_stream_event_key_is_exported_from_shim(self) -> None:
+        import src.qual.ui.a2ui as shim
+        self.assertTrue(hasattr(shim, "stream_event_key"))
+        self.assertIn("stream_event_key", shim.__all__)
+
+    def test_stream_event_key_card_published_omits_card_payload(self) -> None:
+        from src.qual.ui.a2ui import stream_event_key
+
+        event = build_card_published_event(
+            event_id="evt-pub-1",
+            run_id="run-pub",
+            sequence=7,
+            card={
+                "type": "ProposedEditCard",
+                "patch_id": "p3",
+                "title": "Patch",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Body"}],
+                "actions": [],
+            },
+            capabilities=_capabilities(),
+        )
+        key = stream_event_key(event)
+        import json as _json
+        parsed = _json.loads(key)
+        self.assertEqual(parsed["event_type"], "card_published")
+        self.assertEqual(parsed["sequence"], 7)
+        self.assertNotIn("card", parsed)
+
 
 if __name__ == "__main__":
     unittest.main()
