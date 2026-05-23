@@ -143,6 +143,22 @@ is_feature_branch() {
   return 1
 }
 
+is_main_equivalent_control_plane_sync() {
+  local f="$1"
+  is_feature_branch || return 1
+  case "$f" in
+    .codex/kickoff_packets/*|THREAD_OWNERSHIP.md|packet_garden/tools/planner.py|scripts/scope-check.sh)
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+  git show-ref --verify --quiet refs/heads/main || return 1
+  git cat-file -e "main:$f" 2>/dev/null || return 1
+  git cat-file -e "HEAD:$f" 2>/dev/null || return 1
+  git diff --quiet main HEAD -- "$f"
+}
+
 is_control_plane_file() {
   local f="$1"
   case "$f" in
@@ -380,6 +396,9 @@ is_allowed() {
 violations=()
 while IFS= read -r file; do
   [[ -z "$file" ]] && continue
+  if is_main_equivalent_control_plane_sync "$file"; then
+    continue
+  fi
   if ! is_allowed "$file"; then
     violations+=("$file")
   fi
