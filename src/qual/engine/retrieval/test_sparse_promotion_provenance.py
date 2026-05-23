@@ -48,6 +48,22 @@ class SparsePromotionProvenanceValidationTests(unittest.TestCase):
             for nested in snapshot:
                 SparsePromotionProvenanceValidationTests._replace_key(nested, key, value)
 
+    @staticmethod
+    def _strip_doc_source_record_key(snapshot: object, key: str) -> None:
+        if isinstance(snapshot, dict):
+            if (
+                snapshot.get("doc_id") == "doc-memo-1"
+                and "excerpt_id" not in snapshot
+                and "basket_item_id" not in snapshot
+                and "item_id" not in snapshot
+            ):
+                snapshot.pop(key, None)
+            for nested in snapshot.values():
+                SparsePromotionProvenanceValidationTests._strip_doc_source_record_key(nested, key)
+        elif isinstance(snapshot, list):
+            for nested in snapshot:
+                SparsePromotionProvenanceValidationTests._strip_doc_source_record_key(nested, key)
+
     def _payload(self) -> dict[str, object]:
         result = self.service.retrieve_auto(
             RetrievalQuery(
@@ -84,6 +100,12 @@ class SparsePromotionProvenanceValidationTests(unittest.TestCase):
 
         self._assert_not_ready(_build_retrieval_basket_promotion_bundle_from_payload(payload))
 
+    def test_existing_bundle_enrichment_rejects_incomplete_doc_source_record(self) -> None:
+        payload = self._payload()
+        self._strip_doc_source_record_key(payload, "source_hash")
+
+        self._assert_not_ready(_build_retrieval_basket_promotion_bundle_from_payload(payload))
+
     def test_rebuild_requires_explicit_backend_and_mode(self) -> None:
         base_payload = self._payload()
         base_payload.pop("retrieval_basket_promotion_bundle", None)
@@ -98,6 +120,13 @@ class SparsePromotionProvenanceValidationTests(unittest.TestCase):
         payload = self._payload()
         payload.pop("retrieval_basket_promotion_bundle", None)
         self._replace_key(payload, "excerpt_lookup_fingerprint", "stale-fingerprint")
+
+        self._assert_not_ready(_build_retrieval_basket_promotion_bundle_from_payload(payload))
+
+    def test_rebuild_rejects_incomplete_doc_source_record(self) -> None:
+        payload = self._payload()
+        payload.pop("retrieval_basket_promotion_bundle", None)
+        self._strip_doc_source_record_key(payload, "source_hash")
 
         self._assert_not_ready(_build_retrieval_basket_promotion_bundle_from_payload(payload))
 

@@ -1379,14 +1379,14 @@ def _matches_sparse_doc_source_record(
         provenance = {}
     doc_id = _first_text_value(item.get("doc_id"), provenance.get("doc_id"))
     if doc_id is None:
-        return True
+        return False
     source_record = records_by_id.get(doc_id)
     if not isinstance(source_record, dict):
-        return True
+        return False
     for key in ("source_hash", "doc_identity_fingerprint", "doc_type", "source_type"):
         expected_value = _first_text_value(source_record.get(key))
         actual_value = _first_text_value(item.get(key), provenance.get(key))
-        if expected_value is not None and actual_value is not None and actual_value != expected_value:
+        if expected_value is None or actual_value is None or actual_value != expected_value:
             return False
     return True
 
