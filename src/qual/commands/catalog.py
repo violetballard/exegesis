@@ -216,6 +216,7 @@ class CommandPatchReviewOutcomeContract:
     ready: bool
     statuses: tuple[CommandPatchReviewOutcomeStatus, ...]
     missing_outcomes: tuple[str, ...]
+    lookup_table: tuple[tuple[str, str], ...] = ()
 
 
 @dataclass(frozen=True)
@@ -1323,9 +1324,19 @@ def command_patch_review_outcome_contract(
         ready=not missing_outcomes,
         statuses=statuses,
         missing_outcomes=missing_outcomes,
+        lookup_table=_patch_review_outcome_lookup_table(statuses),
     )
     _validate_command_patch_review_outcome_contract(contract)
     return contract
+
+
+def command_patch_review_outcome_lookup_table(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[tuple[str, str], ...]:
+    contract = command_patch_review_outcome_contract(program, specs, flow_steps)
+    return contract.lookup_table
 
 
 def command_demo_path_next_blocker(
@@ -1470,6 +1481,18 @@ def _patch_review_outcome_gap_reasons() -> dict[str, str]:
     }
 
 
+def _patch_review_outcome_lookup_table(
+    statuses: tuple[CommandPatchReviewOutcomeStatus, ...],
+) -> tuple[tuple[str, str], ...]:
+    return tuple(
+        (
+            status.outcome,
+            status.command if status.ready else f"missing: {status.gap_reason}",
+        )
+        for status in statuses
+    )
+
+
 def _validate_command_patch_review_outcome_contract(
     contract: CommandPatchReviewOutcomeContract,
 ) -> None:
@@ -1485,6 +1508,8 @@ def _validate_command_patch_review_outcome_contract(
         raise ValueError("Command patch-review missing outcomes are inconsistent")
     if contract.ready != (not contract.missing_outcomes):
         raise ValueError("Command patch-review readiness is inconsistent")
+    if contract.lookup_table != _patch_review_outcome_lookup_table(contract.statuses):
+        raise ValueError("Command patch-review outcome lookup table is inconsistent")
     for status in contract.statuses:
         if status.ready == bool(status.gap_reason):
             raise ValueError("Command patch-review outcome status is inconsistent")
