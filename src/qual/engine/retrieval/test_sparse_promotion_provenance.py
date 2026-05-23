@@ -7,6 +7,7 @@ from pathlib import Path
 
 from src.qual.audit import AuditLog
 from src.qual.engine.retrieval.payload import _build_retrieval_basket_promotion_bundle_from_payload
+from src.qual.engine.retrieval.payload import _stable_fingerprint
 from src.qual.retrieval.service import RetrievalConstraints
 from src.qual.retrieval.service import RetrievalQuery
 from src.qual.retrieval.service import RetrievalService
@@ -99,6 +100,22 @@ class SparsePromotionProvenanceValidationTests(unittest.TestCase):
         self._replace_key(payload, "excerpt_lookup_fingerprint", "stale-fingerprint")
 
         self._assert_not_ready(_build_retrieval_basket_promotion_bundle_from_payload(payload))
+
+    def test_live_basket_promotion_uses_canonical_doc_identity_fingerprint(self) -> None:
+        payload = self._payload()
+        basket_items = payload["retrieval_basket_promotion_bundle"]["basket_promotion_items"]
+        self.assertTrue(basket_items)
+
+        for item in basket_items:
+            expected_fingerprint = _stable_fingerprint(
+                {
+                    "doc_id": item["doc_id"],
+                    "source_hash": item["source_hash"],
+                    "doc_type": item["doc_type"],
+                }
+            )
+            self.assertEqual(item["doc_identity_fingerprint"], expected_fingerprint)
+            self.assertEqual(item["source_type"], item["doc_type"])
 
     def test_existing_bundle_enrichment_rejects_stale_doc_identity_fingerprint(self) -> None:
         payload = self._payload()
