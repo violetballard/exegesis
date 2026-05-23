@@ -483,9 +483,9 @@ def _branch_scope_violations(
     patterns = _owned_patterns_for_lane(lane)
     if not patterns:
         return []
+    lane_cfg = (cfg.lanes.get(lane) or {}) if isinstance(cfg.lanes, dict) else {}
+    branch = str(lane_cfg.get("branch") or f"codex/{lane}")
     if files is None:
-        lane_cfg = (cfg.lanes.get(lane) or {}) if isinstance(cfg.lanes, dict) else {}
-        branch = str(lane_cfg.get("branch") or f"codex/{lane}")
         files = _branch_changed_files(repo_cwd, branch) if branch else []
     violations: List[str] = []
     for file_name in files:
