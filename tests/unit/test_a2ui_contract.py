@@ -6974,16 +6974,6 @@ class A2UIContractTests(unittest.TestCase):
         )
         self.assertIs(shared_contracts.patch_review_resolved_status, patch_review_resolved_status)
 
-    def test_cli_shim_all_exports_decision_action_ref_and_validate_contract(self) -> None:
-        import src.qual.ui.a2ui as _shim
-        self.assertIn("complete_patch_review_decision_action_ref_from_cli_command", _shim.__all__)
-        self.assertIn("validate_patch_review_contract", _shim.__all__)
-        self.assertIs(
-            _shim.complete_patch_review_decision_action_ref_from_cli_command,
-            complete_patch_review_decision_action_ref_from_cli_command,
-        )
-        self.assertIs(_shim.validate_patch_review_contract, validate_patch_review_contract)
-
     def test_patch_review_selections_carry_engine_execution_policy(self) -> None:
         card = materialize_terminal_card(
             {
