@@ -18,6 +18,7 @@ from exegesis_shared.contracts.actions import (
     resolve_complete_patch_review_control_execution,
     resolve_complete_patch_review_decision_cli_command_execution,
     validate_action_ref,
+    validate_patch_review_execution_state,
 )
 
 A2UI_VERSION = 1
@@ -454,6 +455,7 @@ def execute_patch_review_action(
     capabilities: A2UICapabilities,
     policy_gate: PolicyGate,
     executor: Callable[[ActionRef], Any],
+    review_state: dict[str, Any] | None = None,
 ) -> Any:
     envelope = materialize_patch_selection_envelope(card)
     action = resolve_action_selection(card, selection)
@@ -473,6 +475,14 @@ def execute_patch_review_action(
             control=control,
             capabilities=capabilities,
         )
+        if control in {"apply", "reject"}:
+            if review_state is None:
+                raise PermissionError("Patch review decision requires preview")
+            validate_patch_review_execution_state(
+                control=control,
+                patch_id=str(envelope["patch_id"]),
+                review_state=review_state,
+            )
         action_contract = execution["action_contract"]
         action = ActionRef(
             id=str(action_contract["id"]),

@@ -435,6 +435,26 @@ def resolve_patch_review_execution_state(
     }
 
 
+def _validate_patch_review_execution_precondition(
+    *,
+    control: str,
+    patch_id: str,
+    review_state: dict[str, Any] | None,
+) -> None:
+    normalized_control = control.strip().lower()
+    if normalized_control not in set(PATCH_REVIEW_REQUIRED_PARTS):
+        raise ValueError("Patch review control must be 'preview', 'apply', or 'reject'")
+    if review_state is None:
+        if PATCH_REVIEW_EXECUTION_PRECONDITIONS[normalized_control]["requires_preview"]:
+            raise PermissionError("Patch review decision requires preview")
+        return
+    validate_patch_review_execution_state(
+        control=normalized_control,
+        patch_id=patch_id,
+        review_state=review_state,
+    )
+
+
 def canonical_action_key(action: dict[str, Any]) -> str:
     return json.dumps(action, sort_keys=True, separators=(",", ":"), ensure_ascii=True)
 
@@ -2500,13 +2520,12 @@ def execute_patch_review_selection_with_policy_gate(
         selection,
         patch_id=patch_id,
     )
-    if review_state is not None:
-        selected_control = selected.decision if selected.kind == "decision" else selected.kind
-        validate_patch_review_execution_state(
-            control=str(selected_control),
-            patch_id=patch_id,
-            review_state=review_state,
-        )
+    selected_control = selected.decision if selected.kind == "decision" else selected.kind
+    _validate_patch_review_execution_precondition(
+        control=str(selected_control),
+        patch_id=patch_id,
+        review_state=review_state,
+    )
     return execute_action_with_policy_gate(
         action=engine_authoritative_action_ref(selected.action),
         capabilities=capabilities,
@@ -2524,6 +2543,7 @@ def execute_patch_review_cli_command_with_policy_gate(
     capabilities: Any,
     policy_gate: PolicyGate,
     executor: Callable[[ActionRef], Any],
+    review_state: dict[str, Any] | None = None,
 ) -> Any:
     execution = resolve_patch_review_cli_command_execution(
         card,
@@ -2531,6 +2551,11 @@ def execute_patch_review_cli_command_with_policy_gate(
         patch_id=patch_id,
         command=command,
         capabilities=capabilities,
+    )
+    _validate_patch_review_execution_precondition(
+        control=str(execution["control"]),
+        patch_id=patch_id,
+        review_state=review_state,
     )
     return execute_action_with_policy_gate(
         action=_action_ref_from_contract(execution["action_contract"]),
@@ -2611,13 +2636,12 @@ def execute_complete_patch_review_action_with_policy_gate(
     review_state: dict[str, Any] | None = None,
 ) -> Any:
     validate_complete_patch_review_capabilities(capabilities)
-    if review_state is not None:
-        validate_patch_review_execution_state(
-            control=control,
-            patch_id=patch_id,
-            review_state=review_state,
-        )
     action = complete_patch_review_action_from_card(card, patch_id=patch_id, control=control)
+    _validate_patch_review_execution_precondition(
+        control=control,
+        patch_id=patch_id,
+        review_state=review_state,
+    )
     return execute_action_with_policy_gate(
         action=engine_authoritative_action_ref(action),
         capabilities=capabilities,
@@ -2689,6 +2713,7 @@ def execute_complete_patch_review_cli_command_with_policy_gate(
     capabilities: Any,
     policy_gate: PolicyGate,
     executor: Callable[[ActionRef], Any],
+    review_state: dict[str, Any] | None = None,
 ) -> Any:
     validate_complete_patch_review_capabilities(capabilities)
     execution = resolve_complete_patch_review_cli_command_execution(
@@ -2697,11 +2722,14 @@ def execute_complete_patch_review_cli_command_with_policy_gate(
         command=command,
         capabilities=capabilities,
     )
-    return execute_action_with_policy_gate(
-        action=_action_ref_from_contract(execution["action_contract"]),
+    return execute_complete_patch_review_selection_with_policy_gate(
+        card=card,
+        selection=execution["selection"],
+        patch_id=patch_id,
         capabilities=capabilities,
         policy_gate=policy_gate,
         executor=executor,
+        review_state=review_state,
     )
 
 

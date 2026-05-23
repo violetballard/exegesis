@@ -4364,6 +4364,49 @@ class A2UIContractTests(unittest.TestCase):
                 capabilities=_capabilities(),
                 policy_gate=_PolicyGateStub(False),
                 executor=lambda action: executed.append((action.id, action.payload)),
+                review_state={"patch_id": "p9", "previewed": True},
+            )
+        self.assertEqual(executed, [])
+
+        with self.assertRaisesRegex(PermissionError, "requires preview"):
+            execute_patch_review_action(
+                card=card,
+                selection="apply",
+                capabilities=_capabilities(),
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: executed.append((action.id, action.payload)),
+            )
+        self.assertEqual(executed, [])
+
+        with self.assertRaisesRegex(PermissionError, "requires preview"):
+            execute_patch_review_action(
+                card=card,
+                selection="reject",
+                capabilities=_capabilities(),
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: executed.append((action.id, action.payload)),
+            )
+        self.assertEqual(executed, [])
+
+        with self.assertRaisesRegex(PermissionError, "requires preview"):
+            execute_patch_review_action(
+                card=card,
+                selection="apply",
+                capabilities=_capabilities(),
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: executed.append((action.id, action.payload)),
+                review_state={"patch_id": "p9", "previewed": False},
+            )
+        self.assertEqual(executed, [])
+
+        with self.assertRaisesRegex(ValueError, "does not match"):
+            execute_patch_review_action(
+                card=card,
+                selection="apply",
+                capabilities=_capabilities(),
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: executed.append((action.id, action.payload)),
+                review_state={"patch_id": "p8", "previewed": True},
             )
         self.assertEqual(executed, [])
 
@@ -4373,8 +4416,22 @@ class A2UIContractTests(unittest.TestCase):
             capabilities=_capabilities(),
             policy_gate=_PolicyGateStub(True),
             executor=lambda action: executed.append((action.id, action.payload)),
+            review_state={"patch_id": "p9", "previewed": True},
         )
         self.assertEqual(executed, [("apply_patch", {"patch_id": "p9"})])
+
+        execute_patch_review_action(
+            card=card,
+            selection="3",
+            capabilities=_capabilities(),
+            policy_gate=_PolicyGateStub(True),
+            executor=lambda action: executed.append((action.id, action.payload)),
+            review_state={"patch_id": "p9", "previewed": True},
+        )
+        self.assertEqual(
+            executed,
+            [("apply_patch", {"patch_id": "p9"}), ("reject_patch", {"patch_id": "p9"})],
+        )
 
     def test_patch_review_action_requires_complete_contract_for_decisions(self) -> None:
         executed: list[tuple[str, dict[str, str]]] = []
@@ -4522,6 +4579,7 @@ class A2UIContractTests(unittest.TestCase):
                 capabilities=_capabilities(),
                 policy_gate=_PolicyGateStub(False),
                 executor=lambda action: executed.append(action.id),
+                review_state={"patch_id": "p1", "previewed": True},
             )
         self.assertEqual(executed, [])
 
@@ -4533,6 +4591,7 @@ class A2UIContractTests(unittest.TestCase):
             capabilities=_capabilities(),
             policy_gate=_PolicyGateStub(True),
             executor=lambda action: executed.append(action.id),
+            review_state={"patch_id": "p1", "previewed": True},
         )
 
         self.assertEqual(executed, ["apply_patch"])
@@ -4552,9 +4611,23 @@ class A2UIContractTests(unittest.TestCase):
             }
         )
         review = build_complete_patch_review_contract(card, patch_id="p1")
-        gate = _RecordingPolicyGate(False, [])
+        gate = _RecordingPolicyGate(True, [])
 
-        with self.assertRaises(PermissionError):
+        preview_result = execute_patch_review_cli_command_with_policy_gate(
+            card=card,
+            review=review,
+            patch_id="p1",
+            command="preview",
+            capabilities=_capabilities(),
+            policy_gate=gate,
+            executor=lambda action: action.id,
+        )
+
+        self.assertEqual(preview_result, "preview_patch")
+        self.assertEqual(gate.calls, [("preview_patch", {"patch_id": "p1"}, False)])
+
+        gate = _RecordingPolicyGate(True, [])
+        with self.assertRaisesRegex(PermissionError, "Patch review decision requires preview"):
             execute_patch_review_cli_command_with_policy_gate(
                 card=card,
                 review=review,
@@ -4565,7 +4638,7 @@ class A2UIContractTests(unittest.TestCase):
                 executor=lambda action: action.id,
             )
 
-        self.assertEqual(gate.calls, [("apply_patch", {"patch_id": "p1"}, True)])
+        self.assertEqual(gate.calls, [])
 
         gate = _RecordingPolicyGate(True, [])
         result = execute_patch_review_cli_command_with_policy_gate(
@@ -4576,6 +4649,7 @@ class A2UIContractTests(unittest.TestCase):
             capabilities=_capabilities(),
             policy_gate=gate,
             executor=lambda action: (action.id, action.policy_sensitive, action.confirm),
+            review_state={"patch_id": "p1", "previewed": True},
         )
 
         self.assertEqual(result, ("reject_patch", True, {"title": "Reject patch?"}))
@@ -4605,6 +4679,7 @@ class A2UIContractTests(unittest.TestCase):
             capabilities=_capabilities(),
             policy_gate=gate,
             executor=lambda action: executed.append(action) or f"ran {action.id}",
+            review_state={"patch_id": "p1", "previewed": True},
         )
 
         self.assertEqual(result, "ran reject_patch")
@@ -4678,6 +4753,7 @@ class A2UIContractTests(unittest.TestCase):
             capabilities=_capabilities(),
             policy_gate=gate,
             executor=lambda action: (action.id, action.policy_sensitive, action.confirm),
+            review_state={"patch_id": "p1", "previewed": True},
         )
 
         self.assertEqual(result, ("apply_patch", True, {"title": "Apply patch?"}))
@@ -4767,6 +4843,7 @@ class A2UIContractTests(unittest.TestCase):
             capabilities=_capabilities(),
             policy_gate=gate,
             executor=lambda action: (action.id, action.policy_sensitive, action.confirm),
+            review_state={"patch_id": "p1", "previewed": True},
         )
 
         self.assertEqual(result, ("apply_patch", True, {"title": "Apply patch?"}))
@@ -4827,6 +4904,7 @@ class A2UIContractTests(unittest.TestCase):
                 capabilities=_capabilities(),
                 policy_gate=_PolicyGateStub(False),
                 executor=lambda action: executed.append(action.id),
+                review_state={"patch_id": "p1", "previewed": True},
             )
         self.assertEqual(executed, [])
 
@@ -4837,6 +4915,7 @@ class A2UIContractTests(unittest.TestCase):
             capabilities=_capabilities(),
             policy_gate=_PolicyGateStub(True),
             executor=lambda action: executed.append(action.id),
+            review_state={"patch_id": "p1", "previewed": True},
         )
 
         self.assertEqual(executed, ["apply_patch"])
@@ -4864,6 +4943,7 @@ class A2UIContractTests(unittest.TestCase):
             capabilities=_capabilities(),
             policy_gate=gate,
             executor=lambda action: (action.id, action.confirm, action.policy_sensitive),
+            review_state={"patch_id": "p1", "previewed": True},
         )
 
         self.assertEqual(result, ("apply_patch", {"title": "Apply patch?"}, True))
@@ -4921,6 +5001,7 @@ class A2UIContractTests(unittest.TestCase):
             capabilities=_capabilities(),
             policy_gate=gate,
             executor=lambda action: (action.id, action.confirm, action.policy_sensitive),
+            review_state={"patch_id": "p1", "previewed": True},
         )
 
         self.assertEqual(result, ("apply_patch", {"title": "Apply patch?"}, True))
@@ -5005,6 +5086,47 @@ class A2UIContractTests(unittest.TestCase):
             patch_id=" p1 ",
             command="2",
         )
+        preview_result = execute_complete_patch_review_cli_command_with_policy_gate(
+            card=card,
+            patch_id="p1",
+            command="preview",
+            capabilities=_capabilities(),
+            policy_gate=gate,
+            executor=lambda action: action.id,
+        )
+
+        self.assertEqual(preview_result, "preview_patch")
+        self.assertEqual(gate.calls, [("preview_patch", {"patch_id": "p1"}, False)])
+
+        for command in ("apply", "reject"):
+            gate = _RecordingPolicyGate(True, [])
+            with self.assertRaisesRegex(PermissionError, "Patch review decision requires preview"):
+                execute_complete_patch_review_cli_command_with_policy_gate(
+                    card=card,
+                    patch_id="p1",
+                    command=command,
+                    capabilities=_capabilities(),
+                    policy_gate=gate,
+                    executor=lambda action: action.id,
+                )
+
+            self.assertEqual(gate.calls, [])
+
+            gate = _RecordingPolicyGate(True, [])
+            with self.assertRaisesRegex(PermissionError, "Patch review decision requires preview"):
+                execute_complete_patch_review_cli_command_with_policy_gate(
+                    card=card,
+                    patch_id="p1",
+                    command=command,
+                    capabilities=_capabilities(),
+                    policy_gate=gate,
+                    executor=lambda action: action.id,
+                    review_state={"patch_id": "p1", "previewed": False},
+                )
+
+            self.assertEqual(gate.calls, [])
+
+        gate = _RecordingPolicyGate(True, [])
         result = execute_complete_patch_review_cli_command_with_policy_gate(
             card=card,
             patch_id="p1",
@@ -5012,6 +5134,7 @@ class A2UIContractTests(unittest.TestCase):
             capabilities=_capabilities(),
             policy_gate=gate,
             executor=lambda action: (action.id, action.confirm, action.policy_sensitive),
+            review_state={"patch_id": "p1", "previewed": True},
         )
 
         self.assertEqual(selected.id, "apply_patch")
@@ -5339,6 +5462,7 @@ class A2UIContractTests(unittest.TestCase):
                 capabilities=_capabilities(),
                 policy_gate=gate,
                 executor=lambda action: action.id,
+                review_state={"patch_id": "p1", "previewed": True},
             )
 
         self.assertEqual(gate.calls, [("apply_patch", {"patch_id": "p1"}, True)])
@@ -5366,6 +5490,7 @@ class A2UIContractTests(unittest.TestCase):
             capabilities=_capabilities(),
             policy_gate=gate,
             executor=lambda action: action.policy_sensitive,
+            review_state={"patch_id": "p1", "previewed": True},
         )
 
         self.assertTrue(result)
@@ -6746,6 +6871,88 @@ class A2UIContractTests(unittest.TestCase):
             shared_contracts.patch_review_execution_preconditions,
             patch_review_execution_preconditions,
         )
+
+    def test_patch_review_execution_state_enforces_preview_precondition(self) -> None:
+        # preview has no preconditions — always allowed
+        result = resolve_patch_review_execution_state(
+            control="preview",
+            patch_id="p-1",
+            review_state={"patch_id": "p-1"},
+        )
+        self.assertEqual(result["control"], "preview")
+        self.assertEqual(result["status"], "previewed")
+        self.assertEqual(result["patch_id"], "p-1")
+        self.assertFalse(result["preconditions"]["requires_preview"])
+
+        # apply and reject require previewed=True
+        previewed_state = {"patch_id": "p-1", "previewed": True}
+        for control, expected_status in (("apply", "applied"), ("reject", "rejected")):
+            result = resolve_patch_review_execution_state(
+                control=control,
+                patch_id="p-1",
+                review_state=previewed_state,
+            )
+            self.assertEqual(result["control"], control)
+            self.assertEqual(result["status"], expected_status)
+            self.assertTrue(result["preconditions"]["requires_preview"])
+
+        # decision without preview raises PermissionError
+        unreviewed_state = {"patch_id": "p-1", "previewed": False}
+        for control in ("apply", "reject"):
+            with self.assertRaises(PermissionError):
+                validate_patch_review_execution_state(
+                    control=control,
+                    patch_id="p-1",
+                    review_state=unreviewed_state,
+                )
+
+    def test_patch_review_execution_state_rejects_mismatched_patch_id(self) -> None:
+        with self.assertRaises(ValueError):
+            validate_patch_review_execution_state(
+                control="preview",
+                patch_id="p-1",
+                review_state={"patch_id": "p-2"},
+            )
+
+    def test_patch_review_execution_state_rejects_invalid_inputs(self) -> None:
+        # unknown control
+        with self.assertRaises(ValueError):
+            validate_patch_review_execution_state(
+                control="submit",
+                patch_id="p-1",
+                review_state={"patch_id": "p-1"},
+            )
+        # empty patch_id
+        with self.assertRaises(ValueError):
+            validate_patch_review_execution_state(
+                control="preview",
+                patch_id="  ",
+                review_state={"patch_id": "  "},
+            )
+        # non-dict review_state
+        with self.assertRaises(ValueError):
+            validate_patch_review_execution_state(
+                control="preview",
+                patch_id="p-1",
+                review_state=None,  # type: ignore[arg-type]
+            )
+        # non-boolean previewed flag
+        with self.assertRaises(ValueError):
+            validate_patch_review_execution_state(
+                control="apply",
+                patch_id="p-1",
+                review_state={"patch_id": "p-1", "previewed": "yes"},
+            )
+
+    def test_resolve_patch_review_execution_state_strips_whitespace(self) -> None:
+        result = resolve_patch_review_execution_state(
+            control="  Preview  ",
+            patch_id="  p-1  ",
+            review_state={"patch_id": "p-1"},
+        )
+        self.assertEqual(result["control"], "preview")
+        self.assertEqual(result["patch_id"], "p-1")
+        self.assertEqual(result["status"], "previewed")
 
     def test_cli_shim_exports_patch_review_contract_constants(self) -> None:
         self.assertEqual(UI_PATCH_REVIEW_DECISION_GROUP, PATCH_REVIEW_DECISION_GROUP)
