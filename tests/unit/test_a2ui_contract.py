@@ -4648,6 +4648,34 @@ class A2UIContractTests(unittest.TestCase):
                 executor=lambda action: action,
             )
 
+    def test_complete_patch_review_selection_execution_rejects_stale_embedded_review(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+        selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
+        card["patch_review"] = build_complete_patch_review_contract(card, patch_id="p1")
+        card["patch_review"]["decisions"][0]["selection"]["patch_id"] = "stale"
+
+        with self.assertRaisesRegex(ValueError, "selection does not match the current patch"):
+            execute_complete_patch_review_selection_with_policy_gate(
+                card=card,
+                selection=selection,
+                patch_id="p1",
+                capabilities=_capabilities(),
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: action,
+            )
+
     def test_complete_patch_review_cli_command_execution_uses_complete_engine_contract(self) -> None:
         card = materialize_terminal_card(
             {
@@ -6269,6 +6297,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(patch_review_resolved_status("preview"), "previewed")
         self.assertEqual(patch_review_resolved_status("apply"), "applied")
         self.assertEqual(patch_review_resolved_status("reject"), "rejected")
+        self.assertEqual(tuple(PATCH_REVIEW_RESOLVED_STATUSES), PATCH_REVIEW_REQUIRED_PARTS)
         plan = patch_review_control_plan_from_contract(card, review, patch_id="p1")
         self.assertEqual(
             {entry["control"]: entry["preconditions"] for entry in plan},
@@ -6277,6 +6306,10 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(
             {entry["control"]: entry["resolved_status"] for entry in plan},
             PATCH_REVIEW_RESOLVED_STATUSES,
+        )
+        self.assertEqual(
+            set(PATCH_REVIEW_RESOLVED_STATUSES),
+            set(PATCH_REVIEW_REQUIRED_PARTS),
         )
 
         execution = resolve_patch_review_control_execution(

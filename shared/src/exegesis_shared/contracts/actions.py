@@ -2563,7 +2563,7 @@ def execute_complete_patch_review_selection_with_policy_gate(
     expected_patch_id = patch_id.strip()
     if not expected_patch_id:
         raise ValueError("Patch review patch_id is required")
-    review = build_complete_patch_review_contract(card, patch_id=expected_patch_id)
+    review = _complete_patch_review_contract_from_card(card, patch_id=expected_patch_id)
     complete_patch_review_actions_from_contract(card, review, patch_id=expected_patch_id)
     return execute_patch_review_selection_with_policy_gate(
         card=card,
