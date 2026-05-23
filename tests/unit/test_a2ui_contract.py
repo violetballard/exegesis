@@ -1517,6 +1517,32 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(card["actions"], [])
         self.assertEqual(card["action_selection"]["order"], [])
 
+    def test_unknown_patch_card_fallback_materializes_engine_patch_controls(self) -> None:
+        caps = _capabilities(
+            cards_supported=("RunLogCard",),
+            actions_supported=("preview_patch", "apply_patch", "reject_patch"),
+        )
+        payload = {
+            "type": "FuturePatchCard",
+            "title": "Patch",
+            "patch_id": " p1 ",
+            "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+        }
+
+        card = studio_materialize_card(payload, caps)
+
+        self.assertEqual(card["type"], "UnknownCard")
+        self.assertEqual(card["patch_id"], "p1")
+        self.assertEqual(
+            [(entry["slot"], entry["action_id"]) for entry in card["action_selection"]["order"]],
+            [(1, "preview_patch"), (2, "apply_patch"), (3, "reject_patch")],
+        )
+        self.assertEqual(card["patch_review"]["patch_id"], "p1")
+        self.assertEqual(
+            card["complete_patch_review_actions"]["decisions"]["apply"]["payload"],
+            {"patch_id": "p1"},
+        )
+
     def test_unknown_or_invalid_actions_are_filtered_client_side(self) -> None:
         caps = _capabilities(actions_supported=("apply_patch",))
         card = {
@@ -4664,6 +4690,7 @@ class A2UIContractTests(unittest.TestCase):
         )
         selection = build_patch_decision_selection(card, patch_id="p1", decision="apply")
         card["patch_review"] = build_complete_patch_review_contract(card, patch_id="p1")
+        self.assertEqual(card["patch_review"]["decisions"][0]["selection"]["patch_id"], "p1")
         card["patch_review"]["decisions"][0]["selection"]["patch_id"] = "stale"
 
         with self.assertRaisesRegex(ValueError, "selection does not match the current patch"):

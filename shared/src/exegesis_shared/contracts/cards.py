@@ -335,6 +335,18 @@ def build_unknown_card(
         }
     )
     actions = materialize_card_actions(raw_card)
+    patch_id = raw_card.get("patch_id")
+    if isinstance(patch_id, str) and patch_id.strip():
+        present_patch_action_ids = {
+            str(action.get("id"))
+            for action in actions
+            if _is_same_patch_review_action(action, patch_id.strip())
+        }
+        actions.extend(
+            action
+            for action in _canonical_patch_review_actions(patch_id.strip())
+            if action["id"] not in present_patch_action_ids
+        )
     actions.append({"id": "copy_to_clipboard", "label": "Copy JSON", "payload": {"text": json.dumps(raw_card)}})
     if capabilities is not None:
         validate_capabilities(capabilities)
@@ -350,7 +362,6 @@ def build_unknown_card(
         "blocks": blocks,
         "actions": actions,
     }
-    patch_id = raw_card.get("patch_id")
     if isinstance(patch_id, str) and patch_id.strip():
         fallback["patch_id"] = patch_id.strip()
     return fallback
