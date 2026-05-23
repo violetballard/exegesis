@@ -1,6 +1,6 @@
 {
-  "model": "gpt-5.1-codex",
-  "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
+  "model": "sonnet",
+  "codex_cmd": "/Users/doctor-violet/.local/bin/claude",
   "fallback_model": "gemma-4-31b-it",
   "fallback_codex_cmd": "/opt/homebrew/bin/opencode",
   "fallback_codex_args": [],
@@ -17,42 +17,33 @@
       "model_args": []
     },
     "worker_cloud": {
-      "harness": "codex",
-      "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
-      "codex_args": [
-        "-c",
-        "model_context_window=256000"
-      ],
-      "model": "gpt-5.5",
+      "harness": "claude",
+      "codex_cmd": "/Users/doctor-violet/.local/bin/claude",
+      "codex_args": [],
+      "model": "sonnet",
       "model_args": [
-        "-c",
-        "model_reasoning_effort=low"
+        "--effort",
+        "low"
       ]
     },
     "worker_cloud_standard_medium": {
-      "harness": "codex",
-      "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
-      "codex_args": [
-        "-c",
-        "model_context_window=256000"
-      ],
-      "model": "gpt-5.5",
+      "harness": "claude",
+      "codex_cmd": "/Users/doctor-violet/.local/bin/claude",
+      "codex_args": [],
+      "model": "sonnet",
       "model_args": [
-        "-c",
-        "model_reasoning_effort=medium"
+        "--effort",
+        "medium"
       ]
     },
     "integrator_cloud": {
-      "harness": "codex",
-      "codex_cmd": "/Applications/Codex.app/Contents/Resources/codex",
-      "codex_args": [
-        "-c",
-        "model_context_window=256000"
-      ],
-      "model": "gpt-5.5",
+      "harness": "claude",
+      "codex_cmd": "/Users/doctor-violet/.local/bin/claude",
+      "codex_args": [],
+      "model": "opus",
       "model_args": [
-        "-c",
-        "model_reasoning_effort=high"
+        "--effort",
+        "high"
       ]
     },
     "worker_local": {
@@ -268,7 +259,7 @@
     "feat-engine-runs",
     "feat-a2ui-contract"
   ],
-  "cloud_provider": "codex",
+  "cloud_provider": "claude",
   "cloud_provider_order": [
     "claude",
     "codex"

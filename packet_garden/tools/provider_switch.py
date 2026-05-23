@@ -100,7 +100,12 @@ def apply_provider(cfg: Dict[str, Any], provider_cfg: Dict[str, Any]) -> Dict[st
     return next_cfg
 
 
-def reset_cloud_state(provider: str, order: list[str] | None = None) -> None:
+def reset_cloud_state(
+    provider: str,
+    order: list[str] | None = None,
+    *,
+    unavailable: Dict[str, tuple[float, str]] | None = None,
+) -> None:
     state = load_json(STATE_FILE, {})
     if not isinstance(state, dict):
         state = {}
@@ -109,6 +114,17 @@ def reset_cloud_state(provider: str, order: list[str] | None = None) -> None:
         providers = {}
     providers.setdefault(provider, {})
     providers[provider].update({"available": True, "retry_at": 0})
+    for unavailable_provider, (retry_at, reason) in (unavailable or {}).items():
+        if unavailable_provider == provider:
+            continue
+        providers.setdefault(unavailable_provider, {})
+        providers[unavailable_provider].update(
+            {
+                "available": False,
+                "retry_at": retry_at,
+                "reason": reason,
+            }
+        )
     state["runtime_mode"] = "hybrid"
     state["cloud_available"] = True
     state["cloud_retry_at"] = 0
@@ -121,6 +137,31 @@ def reset_cloud_state(provider: str, order: list[str] | None = None) -> None:
     save_json(STATE_FILE, state)
 
 
+def mark_provider_unavailable(provider: str, *, retry_seconds: float, reason: str) -> Dict[str, Any]:
+    state = load_json(STATE_FILE, {})
+    if not isinstance(state, dict):
+        state = {}
+    providers = state.get("cloud_providers")
+    if not isinstance(providers, dict):
+        providers = {}
+    retry_at = time.time() + max(1.0, float(retry_seconds))
+    providers.setdefault(provider, {})
+    providers[provider].update(
+        {
+            "available": False,
+            "retry_at": retry_at,
+            "reason": reason,
+        }
+    )
+    state["cloud_providers"] = providers
+    if str(state.get("cloud_provider") or "") == provider:
+        state["cloud_available"] = False
+        state["cloud_retry_at"] = retry_at
+    state["last_quota_reason"] = reason
+    save_json(STATE_FILE, state)
+    return state
+
+
 def restart_daemon() -> None:
     subprocess.run([sys.executable, str(LAUNCHD_CTL), "stop", "daemon"], cwd=REPO_ROOT, check=False)
     subprocess.run([sys.executable, str(LAUNCHD_CTL), "start", "daemon"], cwd=REPO_ROOT, check=True)
@@ -128,8 +169,12 @@ def restart_daemon() -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Switch Packet Garden cloud worker provider profiles.")
-    parser.add_argument("provider", nargs="?", choices=["codex", "claude", "status"], default="status")
+    parser.add_argument("provider", nargs="?", choices=["codex", "claude", "status", "mark-unavailable"], default="status")
     parser.add_argument("--order", nargs="+", choices=["claude", "codex"], help="Preferred cloud provider order for quota failover.")
+    parser.add_argument("--provider", choices=["claude", "codex"], dest="mark_provider", help="Provider to mark unavailable.")
+    parser.add_argument("--mark-codex-unavailable", action="store_true", help="When switching providers, mark Codex unavailable for the retry cooldown.")
+    parser.add_argument("--retry-seconds", type=float, default=None, help="Provider-unavailable cooldown in seconds.")
+    parser.add_argument("--reason", default="", help="Reason stored in provider state.")
     parser.add_argument("--dry-run", action="store_true", help="Show the provider mapping without writing config/state.")
     parser.add_argument("--restart-daemon", action="store_true", help="Restart the launchd-managed daemon after switching.")
     return parser.parse_args()
@@ -143,6 +188,18 @@ def main() -> int:
 
     if args.provider == "status":
         print(json.dumps(provider_summary(cfg, load_json(STATE_FILE, {})), indent=2))
+        return 0
+
+    cooldown = float(args.retry_seconds or cfg.get("cloud_probe_cooldown_seconds") or 1800)
+    if args.provider == "mark-unavailable":
+        target = args.mark_provider
+        if not target:
+            raise SystemExit("mark-unavailable requires --provider claude|codex")
+        reason = args.reason or f"{target} manually marked unavailable"
+        state = mark_provider_unavailable(target, retry_seconds=cooldown, reason=reason)
+        print(json.dumps(provider_summary(cfg, state), indent=2))
+        if args.restart_daemon:
+            restart_daemon()
         return 0
 
     order = list(dict.fromkeys(args.order or cfg.get("cloud_provider_order") or []))
@@ -161,8 +218,14 @@ def main() -> int:
         print(json.dumps(provider_summary(next_cfg), indent=2))
         return 0
 
+    unavailable: Dict[str, tuple[float, str]] = {}
+    if args.mark_codex_unavailable and args.provider != "codex":
+        unavailable["codex"] = (
+            time.time() + max(1.0, cooldown),
+            args.reason or "codex manually marked unavailable during provider switch",
+        )
     save_json(CONFIG_FILE, next_cfg)
-    reset_cloud_state(args.provider, order)
+    reset_cloud_state(args.provider, order, unavailable=unavailable)
     print(json.dumps(provider_summary(next_cfg, load_json(STATE_FILE, {})), indent=2))
     if args.restart_daemon:
         restart_daemon()

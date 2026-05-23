@@ -4,7 +4,7 @@ description: "Switch Packet Garden cloud workers to Claude CLI while preserving 
 ---
 
 Run from repo root:
-- `python packet_garden/tools/provider_switch.py claude --order claude codex --restart-daemon`
+- `python packet_garden/tools/provider_switch.py claude --order claude codex --mark-codex-unavailable --reason "codex quota exhausted" --restart-daemon`
 - `python packet_garden/tools/provider_switch.py status`
 - `./packet_garden/tools/status_report.sh`
 
@@ -21,7 +21,8 @@ Claude mapping:
 
 Cloud failover:
 - preferred order is Claude, then Codex
-- if Claude quota/auth fails, new cloud jobs may fall back to Codex
+- when Codex quota is known exhausted, mark Codex unavailable with a retry cooldown instead of treating it as live
+- if Claude quota/auth fails after Codex's cooldown expires, new cloud jobs may fall back to Codex
 - if both cloud providers are unavailable, local Gemma/OpenCode remains active
 
 Report:
