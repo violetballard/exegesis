@@ -64,6 +64,7 @@ require control-plane changes still require integrator approval.
     - `engine/src/exegesis_engine/patches/**`
     - `engine/src/exegesis_engine/audit/**`
     - `engine/src/exegesis_engine/services/**`
+    - `engine/src/exegesis_engine/state/models.py`
     - `tests/unit/test_bulk_draft_routing.py`
     - `tests/unit/test_engine_package_exports.py`
     - `tests/unit/test_engine_run_pipeline.py`
