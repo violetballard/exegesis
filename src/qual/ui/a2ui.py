@@ -72,6 +72,7 @@ from exegesis_shared.contracts.actions import (
     patch_review_execution_preconditions,
     patch_review_resolved_status,
     patch_review_selection_from_cli_command,
+    resolve_patch_review_execution_state,
     resolve_card_selection,
     resolve_card_selection_contract,
     resolve_card_selection_by_index,
@@ -92,6 +93,7 @@ from exegesis_shared.contracts.actions import (
     validate_action_ref,
     validate_complete_patch_review_capabilities,
     validate_patch_review_contract,
+    validate_patch_review_execution_state,
 )
 from exegesis_shared.contracts.cards import (
     A2UICapabilities,
@@ -482,6 +484,7 @@ __all__ = [
     "patch_review_control_slots_from_contract",
     "patch_review_execution_preconditions",
     "patch_review_resolved_status",
+    "resolve_patch_review_execution_state",
     "materialize_card_actions",
     "materialize_terminal_card",
     "render_terminal_card",
@@ -510,6 +513,7 @@ __all__ = [
     "validate_action_ref",
     "validate_action_capabilities",
     "validate_complete_patch_review_capabilities",
+    "validate_patch_review_execution_state",
     "validate_complete_patch_review_card_capabilities",
     "validate_basket_card",
     "validate_card_payload_size",

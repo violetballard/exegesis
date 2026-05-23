@@ -103,6 +103,7 @@ from src.qual.ui.a2ui import (
     patch_review_resolved_status,
     patch_review_next_control_from_contract,
     patch_review_selection_from_cli_command,
+    resolve_patch_review_execution_state,
     render_terminal_card,
     resolve_action_selection,
     resolve_card_selection_contract,
@@ -134,6 +135,7 @@ from src.qual.ui.a2ui import (
     validate_engine_demo_path_capabilities,
     validate_known_card,
     validate_patch_review_contract,
+    validate_patch_review_execution_state,
     validate_retrieval_results_card,
     validate_stream_event,
 )
@@ -5163,6 +5165,83 @@ class A2UIContractTests(unittest.TestCase):
                 _capabilities(actions_supported=("preview_patch", "apply_patch"))
             )
 
+    def test_patch_review_execution_state_enforces_preview_before_decision(self) -> None:
+        card = materialize_terminal_card(
+            {
+                "type": "ProposedEditCard",
+                "patch_id": "p1",
+                "title": "Patch choices",
+                "blocks": [{"type": "MarkdownBlock", "markdown": "Preview"}],
+                "actions": [
+                    {"id": "preview_patch", "label": "Preview", "payload": {"patch_id": "p1"}},
+                    {"id": "apply_patch", "label": "Apply", "payload": {"patch_id": "p1"}},
+                    {"id": "reject_patch", "label": "Reject", "payload": {"patch_id": "p1"}},
+                ],
+            }
+        )
+
+        with self.assertRaisesRegex(PermissionError, "requires preview"):
+            execute_complete_patch_review_control_with_policy_gate(
+                card=card,
+                patch_id="p1",
+                control="apply",
+                capabilities=_capabilities(),
+                policy_gate=_PolicyGateStub(True),
+                executor=lambda action: action.id,
+                review_state={"patch_id": "p1", "previewed": False},
+            )
+
+        result = execute_complete_patch_review_control_with_policy_gate(
+            card=card,
+            patch_id="p1",
+            control="apply",
+            capabilities=_capabilities(),
+            policy_gate=_PolicyGateStub(True),
+            executor=lambda action: action.id,
+            review_state={"patch_id": "p1", "previewed": True},
+        )
+
+        self.assertEqual(result, "apply_patch")
+
+    def test_patch_review_execution_state_allows_preview_without_previewed_flag(self) -> None:
+        validate_patch_review_execution_state(
+            control="preview",
+            patch_id="p1",
+            review_state={"patch_id": "p1"},
+        )
+
+        state = resolve_patch_review_execution_state(
+            control="preview",
+            patch_id="p1",
+            review_state={"patch_id": "p1"},
+        )
+
+        self.assertEqual(
+            state,
+            {
+                "patch_id": "p1",
+                "control": "preview",
+                "status": "previewed",
+                "preconditions": PATCH_REVIEW_EXECUTION_PRECONDITIONS["preview"],
+            },
+        )
+        self.assertIs(
+            shared_contracts.validate_patch_review_execution_state,
+            validate_patch_review_execution_state,
+        )
+        self.assertIs(
+            shared_contracts.resolve_patch_review_execution_state,
+            resolve_patch_review_execution_state,
+        )
+
+    def test_patch_review_execution_state_rejects_stale_patch_state(self) -> None:
+        with self.assertRaisesRegex(ValueError, "does not match the current patch"):
+            validate_patch_review_execution_state(
+                control="reject",
+                patch_id="p1",
+                review_state={"patch_id": "p2", "previewed": True},
+            )
+
     def test_complete_patch_review_action_execution_requires_full_client_controls(self) -> None:
         card = materialize_terminal_card(
             {
@@ -6415,6 +6494,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(execution["action_contract"]["confirm"], {"title": "Apply patch?"})
         self.assertTrue(execution["action_contract"]["policy_sensitive"])
         self.assertEqual(execution["execution_policy"], PATCH_REVIEW_EXECUTION_POLICY["apply"])
+        self.assertEqual(execution["resolved_status"], "applied")
         self.assertEqual(execution["action_authority"], PATCH_REVIEW_ACTION_AUTHORITY)
         self.assertEqual(execution["demo_path_step"], PATCH_REVIEW_DEMO_PATH_STEP)
 
@@ -6471,6 +6551,7 @@ class A2UIContractTests(unittest.TestCase):
         self.assertEqual(execution["action_contract"]["confirm"], {"title": "Reject patch?"})
         self.assertTrue(execution["action_contract"]["policy_sensitive"])
         self.assertEqual(execution["execution_policy"], PATCH_REVIEW_EXECUTION_POLICY["reject"])
+        self.assertEqual(execution["resolved_status"], "rejected")
         self.assertEqual(
             execution["complete_patch_review"],
             {
