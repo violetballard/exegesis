@@ -1279,14 +1279,44 @@ def _auto_revert_scope_violations(lane: str, violations: List[str]) -> Tuple[boo
     paths = sorted(set(_normalize_repo_path(p) for p in violations if str(p).strip()))
     if not paths:
         return False, "empty_paths"
-    restore = run_git(
-        ["restore", "--source", "main", "--staged", "--worktree", "--", *paths],
-        cwd=worktree,
-        timeout=120,
-        write=True,
-    )
-    if restore.returncode != 0:
-        return False, f"restore_failed: {restore.stdout.strip()[:240]}"
+    base = run_git(["merge-base", "main", "HEAD"], cwd=worktree, timeout=30)
+    if base.returncode != 0 or not (base.stdout or "").strip():
+        return False, f"merge_base_failed: {base.stdout.strip()[:240]}"
+    merge_base = (base.stdout or "").strip()
+
+    failed: List[str] = []
+    for path in paths:
+        exists_at_base = run_git(["cat-file", "-e", f"{merge_base}:{path}"], cwd=worktree, timeout=30)
+        if exists_at_base.returncode == 0:
+            restore = run_git(
+                ["restore", "--source", merge_base, "--staged", "--worktree", "--", path],
+                cwd=worktree,
+                timeout=120,
+                write=True,
+            )
+            if restore.returncode != 0:
+                failed.append(f"{path}: restore_failed: {restore.stdout.strip()[:160]}")
+            continue
+
+        remove = run_git(
+            ["rm", "-r", "-f", "--ignore-unmatch", "--", path],
+            cwd=worktree,
+            timeout=120,
+            write=True,
+        )
+        if remove.returncode != 0:
+            failed.append(f"{path}: rm_failed: {remove.stdout.strip()[:160]}")
+            continue
+        fs_path = Path(worktree) / path
+        try:
+            if fs_path.is_dir():
+                shutil.rmtree(fs_path)
+            elif fs_path.exists():
+                fs_path.unlink()
+        except Exception as exc:
+            failed.append(f"{path}: unlink_failed: {exc}")
+    if failed:
+        return False, "; ".join(failed)[:240]
     status = run_git(["status", "--porcelain", "--", *paths], cwd=worktree, timeout=30)
     if status.returncode != 0:
         return False, f"status_failed: {status.stdout.strip()[:240]}"
