@@ -68,7 +68,7 @@ class CommandCatalogTests(unittest.TestCase):
     def test_command_names_match_catalog_order(self) -> None:
         self.assertEqual(
             command_names(),
-            ("bootstrap", "diff-preview", "context-basket", "terminal"),
+            ("bootstrap", "diff-preview", "context-basket", "terminal", "revise", "session-save", "session-resume"),
         )
 
     def test_command_specs_and_names_stay_aligned(self) -> None:
@@ -110,6 +110,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("diff", "diff-preview"),
                 ("context-basket", "context-basket"),
                 ("terminal", "terminal"),
+                ("revise", "revise"),
+                ("session-save", "session-save"),
+                ("session-resume", "session-resume"),
             ),
         )
 
@@ -147,6 +150,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("diff", "diff-preview", "patch-review"),
                 ("context-basket", "context-basket", "retrieval"),
                 ("terminal", "terminal", "export-handoff"),
+                ("revise", "revise", "plan-revision"),
+                ("session-save", "session-save", "persist-save"),
+                ("session-resume", "session-resume", "session-resume"),
             ),
         )
         self.assertEqual(
@@ -157,6 +163,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("diff", "patch-review"),
                 ("context-basket", "retrieval"),
                 ("terminal", "export-handoff"),
+                ("revise", "plan-revision"),
+                ("session-save", "persist-save"),
+                ("session-resume", "session-resume"),
             ),
         )
         self.assertEqual(contract, command_mvp_cli_flow_contract())
@@ -169,6 +178,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("retrieval", "context-basket", ("context-basket",)),
                 ("patch-review", "diff-preview", ("diff-preview", "diff")),
                 ("export-handoff", "terminal", ("terminal",)),
+                ("plan-revision", "revise", ("revise",)),
+                ("persist-save", "session-save", ("session-save",)),
+                ("session-resume", "session-resume", ("session-resume",)),
             ),
         )
         self.assertEqual(command_cli_route_summary(), command_surface_contract().route_summary)
@@ -184,6 +196,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("retrieval", "context-basket", ("context-basket",)),
                 ("patch-review", "diff-preview", ("diff-preview", "diff")),
                 ("export-handoff", "terminal", ("terminal",)),
+                ("plan-revision", "revise", ("revise",)),
+                ("persist-save", "session-save", ("session-save",)),
+                ("session-resume", "session-resume", ("session-resume",)),
             ),
         )
         self.assertEqual(contract.route_catalog, surface_contract.route_catalog)
@@ -212,6 +227,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("diff-preview", ("diff-preview", "diff", "diff_preview")),
                 ("context-basket", ("context-basket", "context", "basket")),
                 ("terminal", ("terminal",)),
+                ("revise", ("revise", "revision")),
+                ("session-save", ("session-save", "save")),
+                ("session-resume", ("session-resume", "resume")),
             ),
         )
         self.assertEqual(
@@ -234,6 +252,12 @@ class CommandCatalogTests(unittest.TestCase):
                 "context",
                 "basket",
                 "terminal",
+                "revise",
+                "revision",
+                "session-save",
+                "save",
+                "session-resume",
+                "resume",
             ),
         )
 
@@ -295,6 +319,12 @@ class CommandCatalogTests(unittest.TestCase):
                 ("context", "context-basket"),
                 ("basket", "context-basket"),
                 ("terminal", "terminal"),
+                ("revise", "revise"),
+                ("revision", "revise"),
+                ("session-save", "session-save"),
+                ("save", "session-save"),
+                ("session-resume", "session-resume"),
+                ("resume", "session-resume"),
             ),
         )
 
@@ -327,6 +357,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("retrieval", "context-basket", ("context-basket",)),
                 ("patch-review", "diff-preview", ("diff-preview", "diff")),
                 ("export-handoff", "terminal", ("terminal",)),
+                ("plan-revision", "revise", ("revise",)),
+                ("persist-save", "session-save", ("session-save",)),
+                ("session-resume", "session-resume", ("session-resume",)),
             ),
         )
         self.assertEqual(command_flow_route_summary(), command_cli_route_summary())
@@ -373,6 +406,14 @@ class CommandCatalogTests(unittest.TestCase):
                 ("patch-review", "diff-preview"),
                 ("terminal", "terminal"),
                 ("export-handoff", "terminal"),
+                ("revise", "revise"),
+                ("revision", "revise"),
+                ("plan-revision", "revise"),
+                ("session-save", "session-save"),
+                ("save", "session-save"),
+                ("persist-save", "session-save"),
+                ("session-resume", "session-resume"),
+                ("resume", "session-resume"),
             ),
         )
 
@@ -385,6 +426,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("retrieval", "context-basket", ("context-basket",)),
                 ("patch-review", "diff-preview", ("diff-preview", "diff")),
                 ("export-handoff", "terminal", ("terminal",)),
+                ("plan-revision", "revise", ("revise",)),
+                ("persist-save", "session-save", ("session-save",)),
+                ("session-resume", "session-resume", ("session-resume",)),
             ),
         )
         self.assertEqual(command_surface_contract().route_catalog, route_catalog)
@@ -404,6 +448,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("context-basket", "context", "basket", "retrieval"),
                 ("diff-preview", "diff", "patch-review"),
                 ("terminal", "export-handoff"),
+                ("revise", "revision", "plan-revision"),
+                ("session-save", "save", "persist-save"),
+                ("session-resume", "resume"),
             ),
         )
         self.assertEqual(command_demo_flow_surface_tokens(), command_mvp_flow_surface_tokens())
@@ -422,6 +469,12 @@ class CommandCatalogTests(unittest.TestCase):
                 ("diff-preview", "diff-preview"),
                 ("diff", "diff-preview"),
                 ("terminal", "terminal"),
+                ("revise", "revise"),
+                ("revision", "revise"),
+                ("session-save", "session-save"),
+                ("save", "session-save"),
+                ("session-resume", "session-resume"),
+                ("resume", "session-resume"),
             ),
         )
         self.assertEqual(
@@ -448,6 +501,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("retrieval", "context-basket"),
                 ("patch-review", "diff-preview"),
                 ("export-handoff", "terminal"),
+                ("plan-revision", "revise"),
+                ("persist-save", "session-save"),
+                ("session-resume", "session-resume"),
             ),
         )
         self.assertEqual(
@@ -457,6 +513,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("context-basket", "context", "basket"),
                 ("diff-preview", "diff", "diff_preview"),
                 ("terminal",),
+                ("revise", "revision"),
+                ("session-save", "save"),
+                ("session-resume", "resume"),
             ),
         )
 
@@ -468,6 +527,9 @@ class CommandCatalogTests(unittest.TestCase):
                 ("retrieval", "context-basket"),
                 ("patch-review", "diff-preview"),
                 ("export-handoff", "terminal"),
+                ("plan-revision", "revise"),
+                ("persist-save", "session-save"),
+                ("session-resume", "session-resume"),
             ),
         )
 
@@ -513,6 +575,14 @@ class CommandCatalogTests(unittest.TestCase):
                 ("patch-review", "diff-preview"),
                 ("terminal", "terminal"),
                 ("export-handoff", "terminal"),
+                ("revise", "revise"),
+                ("revision", "revise"),
+                ("plan-revision", "revise"),
+                ("session-save", "session-save"),
+                ("save", "session-save"),
+                ("persist-save", "session-save"),
+                ("session-resume", "session-resume"),
+                ("resume", "session-resume"),
             ),
         )
         self.assertEqual(
@@ -534,32 +604,32 @@ class CommandCatalogTests(unittest.TestCase):
         manifest = command_manifest()
         self.assertEqual(
             tuple(entry.flow_step for entry in manifest),
-            ("project-open", "patch-review", "retrieval", "export-handoff"),
+            ("project-open", "patch-review", "retrieval", "export-handoff", "plan-revision", "persist-save", "session-resume"),
         )
         self.assertEqual(
             tuple(entry.name for entry in manifest),
-            ("bootstrap", "diff-preview", "context-basket", "terminal"),
+            ("bootstrap", "diff-preview", "context-basket", "terminal", "revise", "session-save", "session-resume"),
         )
 
     def test_command_mvp_flow_manifest_matches_the_demo_sequence(self) -> None:
         manifest = command_mvp_flow_manifest()
         self.assertEqual(
             tuple(entry.flow_step for entry in manifest),
-            ("project-open", "retrieval", "patch-review", "export-handoff"),
+            ("project-open", "retrieval", "patch-review", "export-handoff", "plan-revision", "persist-save", "session-resume"),
         )
         self.assertEqual(
             tuple(entry.name for entry in manifest),
-            ("bootstrap", "context-basket", "diff-preview", "terminal"),
+            ("bootstrap", "context-basket", "diff-preview", "terminal", "revise", "session-save", "session-resume"),
         )
 
     def test_mvp_flow_helpers_expose_the_expected_sequence(self) -> None:
         self.assertEqual(
             command_mvp_flow_steps(),
-            ("project-open", "retrieval", "patch-review", "export-handoff"),
+            ("project-open", "retrieval", "patch-review", "export-handoff", "plan-revision", "persist-save", "session-resume"),
         )
         self.assertEqual(
             command_mvp_flow_names(),
-            ("bootstrap", "context-basket", "diff-preview", "terminal"),
+            ("bootstrap", "context-basket", "diff-preview", "terminal", "revise", "session-save", "session-resume"),
         )
         self.assertEqual(
             tuple(entry.name for entry in command_mvp_flow()),
@@ -590,15 +660,18 @@ class CommandCatalogTests(unittest.TestCase):
             CommandSpec(name="context-basket", flow_step="Retrieval"),
             CommandSpec(name="diff-preview", flow_step="Patch Review"),
             CommandSpec(name="terminal", flow_step="Export Handoff"),
+            CommandSpec(name="revise", flow_step=" Plan Revision "),
+            CommandSpec(name="session-save", flow_step="Persist Save"),
+            CommandSpec(name="session-resume", flow_step="Session Resume"),
         )
 
         self.assertEqual(
             command_flow_steps(specs),
-            ("project-open", "retrieval", "patch-review", "export-handoff"),
+            ("project-open", "retrieval", "patch-review", "export-handoff", "plan-revision", "persist-save", "session-resume"),
         )
         self.assertEqual(
             tuple(entry.flow_step for entry in command_flow_manifest(specs)),
-            ("project-open", "retrieval", "patch-review", "export-handoff"),
+            ("project-open", "retrieval", "patch-review", "export-handoff", "plan-revision", "persist-save", "session-resume"),
         )
         self.assertEqual(
             command_flow_lookup_table(specs),
@@ -607,11 +680,14 @@ class CommandCatalogTests(unittest.TestCase):
                 ("retrieval", "context-basket"),
                 ("patch-review", "diff-preview"),
                 ("export-handoff", "terminal"),
+                ("plan-revision", "revise"),
+                ("persist-save", "session-save"),
+                ("session-resume", "session-resume"),
             ),
         )
         self.assertEqual(
             tuple(entry.flow_step for entry in command_mvp_flow_catalog(specs)),
-            ("project-open", "retrieval", "patch-review", "export-handoff"),
+            ("project-open", "retrieval", "patch-review", "export-handoff", "plan-revision", "persist-save", "session-resume"),
         )
 
     def test_validate_command_catalog_rejects_ambiguous_definitions(self) -> None:
@@ -671,7 +747,8 @@ class CommandCatalogTests(unittest.TestCase):
         self.assertIn("open-project-document", covered)
         self.assertIn("retrieve-relevant-material", covered)
         self.assertIn("promote-or-gather-context-into-basket", covered)
-        self.assertIn("preview-and-apply-or-reject-patch", missing)
+        # patch-review gap is closed: diff-preview apply/reject cover all three outcomes.
+        self.assertIn("preview-and-apply-or-reject-patch", covered)
         self.assertIn("produce-plan-or-revision", missing)
         self.assertIn("persist-updated-document-session-state", missing)
         self.assertIn("continue-without-losing-context", missing)
@@ -715,15 +792,15 @@ class CommandArgvNormalizationScopeTests(unittest.TestCase):
                 result = engine_cli.parse_args(alias_argv)  # type: ignore[union-attr]
                 self.assertEqual(result.command, expected_command)
 
-    def test_patch_review_outcome_contract_keeps_apply_reject_gaps_smoke_testable(self) -> None:
+    def test_patch_review_outcome_contract_all_outcomes_are_covered(self) -> None:
+        # apply and reject gaps are closed: diff-preview apply/reject routes now exist.
         from src.qual.commands.catalog import (
-            PATCH_REVIEW_OUTCOME_GAP_REASONS,
+            PATCH_REVIEW_OUTCOME_COMMANDS,
             PATCH_REVIEW_REQUIRED_OUTCOMES,
         )
-        gap_outcomes = {outcome for outcome, _ in PATCH_REVIEW_OUTCOME_GAP_REASONS}
-        self.assertIn("apply", gap_outcomes, "apply must remain a documented gap")
-        self.assertIn("reject", gap_outcomes, "reject must remain a documented gap")
-        for outcome in ("apply", "reject"):
+        covered_outcomes = {outcome for outcome, _ in PATCH_REVIEW_OUTCOME_COMMANDS}
+        for outcome in ("preview", "apply", "reject"):
+            self.assertIn(outcome, covered_outcomes, f"{outcome} must have a route in PATCH_REVIEW_OUTCOME_COMMANDS")
             self.assertIn(outcome, PATCH_REVIEW_REQUIRED_OUTCOMES)
 
     def test_patch_review_outcome_commands_are_parseable_by_the_cli(self) -> None:

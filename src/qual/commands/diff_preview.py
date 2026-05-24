@@ -30,6 +30,18 @@ class DiffPreviewInput:
     proposed: str
 
 
+@dataclass(frozen=True)
+class PatchApplyInput:
+    original: str
+    proposed: str
+
+
+@dataclass(frozen=True)
+class PatchRejectInput:
+    original: str
+    proposed: str
+
+
 def _normalize_text(value: str) -> str:
     # Normalize newlines so diff output is stable across platforms.
     return value.replace("\r\n", "\n").replace("\r", "\n")
@@ -179,6 +191,16 @@ def _truncate_diff(diff: str, max_chars: int) -> str:
         f"{_truncation_marker(omitted)}"
         f"{diff[-tail_chars:]}"
     )
+
+
+def run_patch_apply(payload: PatchApplyInput) -> str:
+    """Accept the proposed changes; delegate actual write to the caller."""
+    return _normalize_text(payload.proposed)
+
+
+def run_patch_reject(payload: PatchRejectInput) -> str:
+    """Decline the proposed changes; retain original text."""
+    return _normalize_text(payload.original)
 
 
 def run_diff_preview(payload: DiffPreviewInput) -> str:

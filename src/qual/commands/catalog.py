@@ -207,6 +207,7 @@ class CommandCanonicalStepStatus:
     covered: bool
     command: str = ""
     gap_reason: str = ""
+    partial_command: str = ""
 
 
 @dataclass(frozen=True)
@@ -449,6 +450,24 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         description="Run terminal export handoff routing.",
         flow_step="export-handoff",
     ),
+    CommandSpec(
+        name="revise",
+        aliases=("revision",),
+        description="Produce a plan or revision through the engine loop.",
+        flow_step="plan-revision",
+    ),
+    CommandSpec(
+        name="session-save",
+        aliases=("save",),
+        description="Persist the updated document and session state.",
+        flow_step="persist-save",
+    ),
+    CommandSpec(
+        name="session-resume",
+        aliases=("resume",),
+        description="Resume the workflow without losing context.",
+        flow_step="session-resume",
+    ),
 )
 
 # Keep the parser surface explicit: only these tokens are accepted by the current CLI.
@@ -459,12 +478,18 @@ _CLI_ENTRYPOINTS: tuple[str, ...] = (
     "diff",
     "context-basket",
     "terminal",
+    "revise",
+    "session-save",
+    "session-resume",
 )
 DEMO_COMMAND_FLOW_STEPS: tuple[str, ...] = (
     "project-open",
     "retrieval",
     "patch-review",
     "export-handoff",
+    "plan-revision",
+    "persist-save",
+    "session-resume",
 )
 MVP_COMMAND_FLOW_STEPS: tuple[str, ...] = DEMO_COMMAND_FLOW_STEPS
 CANONICAL_DEMO_PATH_STEPS: tuple[str, ...] = (
@@ -480,10 +505,6 @@ CANONICAL_DEMO_PATH_GAP_REASONS: tuple[tuple[str, str], ...] = (
     (
         "produce-plan-or-revision",
         "no stable command route produces a plan or revision through the engine loop",
-    ),
-    (
-        "preview-and-apply-or-reject-patch",
-        "the current patch-review route previews diffs but does not apply or reject patches",
     ),
     (
         "persist-updated-document-session-state",
@@ -502,21 +523,32 @@ CANONICAL_DEMO_PATH_SUPPLEMENTAL_COMMANDS: tuple[tuple[str, str, tuple[str, ...]
     ),
 )
 CANONICAL_DEMO_PATH_PARTIAL_COMMANDS: tuple[tuple[str, str], ...] = (
-    ("preview-and-apply-or-reject-patch", "preview-patch"),
+    # Thin command entrypoints exist; engine loop not yet wired end-to-end.
+    # Maps canonical step → stub demo-path label so _canonical_step_blockers
+    # can resolve the partial command from demo_step_commands.
+    ("produce-plan-or-revision", "revise-in-progress"),
+    ("persist-updated-document-session-state", "save-in-progress"),
+    ("continue-without-losing-context", "resume-in-progress"),
 )
 PATCH_REVIEW_REQUIRED_OUTCOMES: tuple[str, ...] = ("preview", "apply", "reject")
 PATCH_REVIEW_OUTCOME_COMMANDS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ("preview", ("diff-preview",)),
+    ("apply", ("diff-preview", "apply")),
+    ("reject", ("diff-preview", "reject")),
 )
-PATCH_REVIEW_OUTCOME_GAP_REASONS: tuple[tuple[str, str], ...] = (
-    ("apply", "no stable command route applies reviewed patches"),
-    ("reject", "no stable command route rejects reviewed patches"),
-)
+PATCH_REVIEW_OUTCOME_GAP_REASONS: tuple[tuple[str, str], ...] = ()
 DEMO_PATH_STEPS_BY_FLOW_STEP: tuple[tuple[str, str], ...] = (
     ("project-open", "open-project-document"),
     ("retrieval", "retrieve-relevant-material"),
-    ("patch-review", "preview-patch"),
+    # diff-preview apply/reject close the full apply-or-reject canonical step.
+    ("patch-review", "preview-and-apply-or-reject-patch"),
     ("export-handoff", "export-handoff"),
+    # Stub labels: the canonical steps (produce-plan-or-revision, etc.) remain
+    # missing until feat-engine-runs closes the engine loop; command specs exist
+    # but are not yet end-to-end stable.
+    ("plan-revision", "revise-in-progress"),
+    ("persist-save", "save-in-progress"),
+    ("session-resume", "resume-in-progress"),
 )
 
 
@@ -1229,6 +1261,7 @@ def command_demo_path_readiness(
     canonical_step_statuses = _canonical_step_statuses(
         covered_canonical_step_commands,
         missing_demo_steps,
+        demo_step_commands=demo_step_commands,
     )
     canonical_step_blockers = _canonical_step_blockers(
         missing_demo_steps=missing_demo_steps,
@@ -1397,6 +1430,37 @@ def command_demo_path_next_blocker(
     return blocker
 
 
+def command_demo_path_next_blocker_line(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> str:
+    """Return the formatted next-blocker string, or empty string if the demo path is unblocked.
+
+    This is the canonical string signal for downstream lanes — identical to the
+    ``next-blocker`` key in ``command_demo_path_handoff_evidence()``.
+    """
+    blocker = command_demo_path_next_blocker(program, specs, flow_steps)
+    if blocker is None:
+        return ""
+    return _format_canonical_step_blocker(blocker)
+
+
+def command_demo_path_blocker_lines(
+    program: str = "qual-bootstrap",
+    specs: tuple[CommandSpec, ...] = COMMAND_SPECS,
+    flow_steps: tuple[str, ...] | None = None,
+) -> tuple[str, ...]:
+    """Return all canonical step blockers as formatted strings, in demo-path order.
+
+    Complements command_demo_path_next_blocker_line(), which returns only the first
+    blocker. Downstream lanes can call this to enumerate every remaining gap in the
+    MVP loop without importing CommandCanonicalStepBlocker or inspecting its fields.
+    """
+    summary = command_demo_path_handoff_summary(program, specs, flow_steps)
+    return tuple(_format_canonical_step_blocker(b) for b in summary.canonical_step_blockers)
+
+
 def _first_canonical_step_blocker(
     blockers: tuple[CommandCanonicalStepBlocker, ...],
 ) -> CommandCanonicalStepBlocker | None:
@@ -1470,7 +1534,13 @@ def _command_demo_path_handoff_evidence_entries(
         *(
             (
                 f"canonical:{status.demo_step}",
-                status.command if status.covered else f"missing: {status.gap_reason}",
+                status.command
+                if status.covered
+                else (
+                    f"partial-command: {status.partial_command}; {status.gap_reason}"
+                    if status.partial_command
+                    else f"missing: {status.gap_reason}"
+                ),
             )
             for status in summary.canonical_step_statuses
         ),
@@ -1699,6 +1769,8 @@ def _command_demo_path_readiness_fingerprint(
             + status.command
             + ":"
             + status.gap_reason
+            + ":"
+            + status.partial_command
             for status in canonical_step_statuses
         ),
         *(
@@ -1772,6 +1844,7 @@ def _canonical_demo_path_gap_reasons() -> dict[str, str]:
 def _canonical_step_statuses(
     covered_canonical_step_commands: tuple[tuple[str, str], ...],
     missing_demo_steps: tuple[str, ...],
+    demo_step_commands: tuple[tuple[str, str], ...] = (),
 ) -> tuple[CommandCanonicalStepStatus, ...]:
     covered_commands = {
         _normalize_token(demo_step): command
@@ -1779,11 +1852,21 @@ def _canonical_step_statuses(
     }
     missing_steps = {_normalize_token(step) for step in missing_demo_steps}
     gap_reasons = _canonical_demo_path_gap_reasons()
+    partial_lookup = _partial_command_lookup()
+    commands_by_step = {
+        _normalize_token(demo_step): command
+        for demo_step, command in demo_step_commands
+    }
     statuses: list[CommandCanonicalStepStatus] = []
     for demo_step in CANONICAL_DEMO_PATH_STEPS:
         normalized_step = _normalize_token(demo_step)
         command = covered_commands.get(normalized_step, "")
         covered = bool(command) and normalized_step not in missing_steps
+        partial_command = (
+            commands_by_step.get(partial_lookup.get(normalized_step, ""), "")
+            if not covered
+            else ""
+        )
         statuses.append(
             CommandCanonicalStepStatus(
                 demo_step=demo_step,
@@ -1793,6 +1876,7 @@ def _canonical_step_statuses(
                     normalized_step,
                     "no stable command route is available",
                 ),
+                partial_command=partial_command,
             )
         )
     return tuple(statuses)
@@ -1889,6 +1973,7 @@ def _validate_command_demo_path_readiness(
     if readiness.canonical_step_statuses != _canonical_step_statuses(
         readiness.covered_canonical_step_commands,
         readiness.missing_demo_steps,
+        demo_step_commands=demo_step_commands,
     ):
         raise ValueError("Command demo path readiness canonical step statuses are inconsistent")
     if readiness.canonical_step_blockers != _canonical_step_blockers(

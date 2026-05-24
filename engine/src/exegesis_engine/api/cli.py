@@ -15,6 +15,7 @@ class CLIArgs:
     project: str | None
     original: str | None
     proposed: str | None
+    diff_preview_action: str
     basket_action: str | None
     basket_item_id: str | None
     terminal_message: str | None
@@ -46,10 +47,24 @@ def parse_args(argv: list[str] | None = None) -> CLIArgs:
     )
 
     p_diff = sub.add_parser("diff-preview", help="Preview unified diff output")
+    p_diff.add_argument(
+        "action",
+        nargs="?",
+        choices=["preview", "apply", "reject"],
+        default="preview",
+        help="Patch-review action: preview (default), apply, or reject.",
+    )
     p_diff.add_argument("--original", help="Original text")
     p_diff.add_argument("--proposed", help="Proposed text")
 
     p_diff_alias = sub.add_parser("diff", help="Alias for diff-preview")
+    p_diff_alias.add_argument(
+        "action",
+        nargs="?",
+        choices=["preview", "apply", "reject"],
+        default="preview",
+        help="Patch-review action: preview (default), apply, or reject.",
+    )
     p_diff_alias.add_argument("--original", help="Original text")
     p_diff_alias.add_argument("--proposed", help="Proposed text")
 
@@ -92,6 +107,7 @@ def parse_args(argv: list[str] | None = None) -> CLIArgs:
         project=None,
         original=None,
         proposed=None,
+        action="preview",
         basket_action=None,
         item_id=None,
         message=None,
@@ -112,6 +128,7 @@ def parse_args(argv: list[str] | None = None) -> CLIArgs:
         project=ns.project,
         original=ns.original,
         proposed=ns.proposed,
+        diff_preview_action=str(getattr(ns, "action", "preview")),
         basket_action=ns.basket_action,
         basket_item_id=getattr(ns, "item_id", None),
         terminal_message=getattr(ns, "message", None),
