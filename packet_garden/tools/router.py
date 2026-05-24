@@ -63,7 +63,7 @@ VERDICT_INLINE_RE = re.compile(
     re.IGNORECASE,
 )
 VERDICT_ONLY_RE = re.compile(
-    r"^\s*`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?\s*$",
+    r"^\s*(?:\*\*)?`?(APPROVED|CHANGES_REQUESTED|CHANGES REQUESTED)`?(?:\*\*)?\s*$",
     re.IGNORECASE,
 )
 INVALID_REVIEWER_RE = re.compile(r"session not found for thread_id|thread not found", re.IGNORECASE)

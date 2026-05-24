@@ -76,6 +76,22 @@ class OfflineReviewerGuardTests(unittest.TestCase):
     def setUp(self) -> None:
         self.profile = router.LaunchProfile("codex", ["--oss", "--local-provider", "lmstudio"], "gpt-oss-120b", [])
 
+    def test_extract_reviewer_verdict_accepts_numbered_heading_with_bold_verdict(self) -> None:
+        output = "\n".join(
+            [
+                "I have enough evidence.",
+                "",
+                "## 1. Verdict",
+                "",
+                "**APPROVED**",
+                "",
+                "## 2. Findings",
+                "None.",
+            ]
+        )
+
+        self.assertEqual(router._extract_reviewer_verdict(output), "APPROVED")
+
     def test_local_reviewer_rejects_known_bad_marker(self) -> None:
         bad_output = (FIXTURES / "reviewer_bad_text_format.txt").read_text(encoding="utf-8")
         cfg = SimpleNamespace(use_cli_reviewer_fallback=True, reviewer_timeout=30)
