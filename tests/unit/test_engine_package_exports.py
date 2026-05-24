@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 from exegesis_engine.api import ExegesisAppService, PatchPreview, PatchResolution
+from exegesis_engine.state.models import WorkflowActionRecord
 
 import src.qual.engine as engine
 import src.qual.engine.retrieval as engine_retrieval
@@ -82,6 +83,19 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
     def tearDown(self) -> None:
         self._tmp.cleanup()
 
+    def test_patch_resolution_current_document_content_falls_back_to_document_content(self) -> None:
+        resolution = PatchResolution(
+            patch_id="patch-1",
+            decision="accepted",
+            target_document_id="draft.md",
+            document_content="hello world\n",
+            dirty=False,
+            persisted=False,
+            metadata={},
+        )
+
+        self.assertEqual(resolution.current_document_content, "hello world\n")
+
     def test_resolve_patch_accepts_and_persists_document_for_continuation(self) -> None:
         self.service.set_document_selection(start=6, end=11)
         patch = self.service.revise_selection(proposed_text="team")
@@ -96,17 +110,37 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
         self.assertEqual(preview.proposed_text, "team")
         self.assertIn("-world", preview.preview_text)
         self.assertIn("+team", preview.preview_text)
+        self.assertEqual(preview.result_document_content, "hello team\n")
+        self.assertTrue(preview.can_apply)
+        self.assertEqual(preview.status, "ready_to_apply")
+        self.assertEqual(self.service.state.workflow.last_previewed_patch_id, patch.patch_id)
+        self.assertEqual(self.service.state.workflow.action_records[-1].action, "preview_patch")
+        self.assertEqual(
+            self.service.state.workflow.action_records[-1].result,
+            {
+                "patch_id": patch.patch_id,
+                "target_document_id": "draft.md",
+                "target_range": [6, 11],
+                "preview_text": preview.preview_text,
+                "result_document_content": "hello team\n",
+                "can_apply": True,
+                "status": "ready_to_apply",
+            },
+        )
 
         resolution = self.service.resolve_patch(patch.patch_id, decision="accepted", persist=True)
 
         self.assertIsInstance(resolution, PatchResolution)
         self.assertEqual(resolution.decision, "accepted")
         self.assertEqual(resolution.document_content, "hello team\n")
+        self.assertEqual(resolution.continuation_document_id, "draft.md")
+        self.assertEqual(resolution.continuation_document_content, "hello team\n")
         self.assertFalse(resolution.dirty)
         self.assertTrue(resolution.persisted)
         self.assertIsNone(self.service.state.document.current_selection)
         self.assertEqual((self.project_root / "draft.md").read_text(encoding="utf-8"), "hello team\n")
         self.assertEqual(self.service.state.workflow.focused_card_id, f"{patch.patch_id}:resolution")
+        self.assertEqual(self.service.describe_state()["workflow"]["last_previewed_patch_id"], patch.patch_id)
         self.assertEqual(self.service.state.workflow.cards[-1].metadata["decision"], "accepted")
         self.assertEqual(self.service.state.workflow.cards[-1].metadata["target_range"], [6, 11])
         self.assertEqual(self.service.state.workflow.cards[-1].metadata["original_text"], "world")
@@ -126,9 +160,53 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
         self.assertEqual(preview.patch_id, patch.patch_id)
         self.assertEqual(preview.original_text, "world")
         self.assertEqual(preview.proposed_text, "team")
+        self.assertIsNone(preview.result_document_content)
+        self.assertFalse(preview.can_apply)
+        self.assertEqual(preview.status, "stale_target")
         self.assertEqual(described["pending_patch_proposals"][0]["patch_id"], patch.patch_id)
         self.assertEqual(described["pending_patch_proposals"][0]["target_range"], [6, 11])
+        self.assertIsNone(described["pending_patch_proposals"][0]["result_document_content"])
+        self.assertFalse(described["pending_patch_proposals"][0]["can_apply"])
+        self.assertEqual(described["pending_patch_proposals"][0]["status"], "stale_target")
         self.assertEqual(self.service.state.workflow.focused_card_id, patch.patch_id)
+
+    def test_resolve_patch_requires_current_target_document_and_keeps_proposal_pending(self) -> None:
+        (self.project_root / "notes.md").write_text("hello notes\n", encoding="utf-8")
+        self.service.set_document_selection(start=6, end=11)
+        patch = self.service.revise_selection(proposed_text="team")
+        self.service.open_document("notes.md")
+
+        with self.assertRaisesRegex(ValueError, "patch target document is not the current document"):
+            self.service.resolve_patch(patch.patch_id, decision="accepted")
+
+        described = self.service.describe_state()
+        self.assertEqual(described["document"]["current_document_id"], "notes.md")
+        self.assertEqual(described["document"]["current_document_content"], "hello notes\n")
+        self.assertEqual(described["pending_patch_proposals"][0]["patch_id"], patch.patch_id)
+        self.assertEqual(described["workflow"]["last_resolved_patch_id"], None)
+
+    def test_reject_patch_can_resolve_previous_document_proposal_without_mutation(self) -> None:
+        (self.project_root / "notes.md").write_text("hello notes\n", encoding="utf-8")
+        self.service.set_document_selection(start=6, end=11)
+        patch = self.service.revise_selection(proposed_text="team")
+        self.service.open_document("notes.md")
+
+        resolution = self.service.reject_patch(patch.patch_id)
+
+        described = self.service.describe_state()
+        self.assertEqual(resolution.decision, "rejected")
+        self.assertEqual(resolution.target_document_id, "draft.md")
+        self.assertEqual(resolution.document_content, "hello world\n")
+        self.assertEqual(resolution.continuation_document_id, "notes.md")
+        self.assertEqual(resolution.continuation_document_content, "hello notes\n")
+        self.assertEqual(resolution.current_document_content, "hello notes\n")
+        self.assertNotEqual(resolution.document_content, described["document"]["current_document_content"])
+        self.assertEqual(resolution.current_document_content, described["document"]["current_document_content"])
+        self.assertEqual(described["document"]["current_document_id"], "notes.md")
+        self.assertEqual(described["document"]["current_document_content"], "hello notes\n")
+        self.assertEqual(described["pending_patch_proposals"], [])
+        self.assertEqual(described["workflow"]["last_resolved_patch_id"], patch.patch_id)
+        self.assertEqual((self.project_root / "draft.md").read_text(encoding="utf-8"), "hello world\n")
 
     def test_resolve_patch_rejects_without_mutating_document(self) -> None:
         self.service.set_document_selection(start=6, end=11)
@@ -138,6 +216,8 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
 
         self.assertEqual(resolution.decision, "rejected")
         self.assertEqual(resolution.document_content, "hello world\n")
+        self.assertEqual(resolution.continuation_document_id, "draft.md")
+        self.assertEqual(resolution.continuation_document_content, "hello world\n")
         self.assertFalse(resolution.dirty)
         self.assertFalse(resolution.persisted)
         self.assertIsNone(self.service.state.document.current_selection)
@@ -157,6 +237,8 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
         self.assertIsInstance(resolution, PatchResolution)
         self.assertEqual(resolution.decision, "accepted")
         self.assertEqual(resolution.document_content, "hello team\n")
+        self.assertEqual(resolution.continuation_document_id, "draft.md")
+        self.assertEqual(resolution.continuation_document_content, "hello team\n")
         self.assertTrue(resolution.dirty)
         self.assertFalse(resolution.persisted)
         self.assertEqual(described["pending_patch_proposals"], [])
@@ -172,6 +254,11 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
         self.assertEqual(described["workflow"]["patch_resolutions"][0]["metadata"]["proposed_text"], "team")
         self.assertIn("+team", described["workflow"]["patch_resolutions"][0]["metadata"]["preview_text"])
         self.assertFalse(described["workflow"]["patch_resolutions"][0]["metadata"]["persisted"])
+        self.assertEqual(described["workflow"]["patch_resolutions"][0]["metadata"]["continuation_document_id"], "draft.md")
+        self.assertEqual(
+            described["workflow"]["patch_resolutions"][0]["metadata"]["continuation_document_content"],
+            "hello team\n",
+        )
         self.assertEqual((self.project_root / "draft.md").read_text(encoding="utf-8"), "hello world\n")
 
     def test_advertised_reject_patch_action_resolves_pending_patch(self) -> None:
@@ -229,10 +316,14 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
         self.assertEqual(pending["document"]["current_selection"]["selected_text"], "world")
         self.assertEqual(pending["basket"]["selected_basket_item_id"], "retrieval:fts:draft.md:1")
         self.assertEqual(pending["workflow"]["cards"][0]["id"], plan.id)
+        self.assertIsNone(pending["workflow"]["last_previewed_patch_id"])
         self.assertEqual(pending["workflow"]["command_history"], ["plan_from_basket", "revise_selection"])
         self.assertEqual(
             [record["action"] for record in pending["workflow"]["action_records"]],
             ["plan_from_basket", "revise_selection"],
+        )
+        self.assertTrue(
+            all(isinstance(record, WorkflowActionRecord) for record in self.service.state.workflow.action_records)
         )
         self.assertEqual(pending["workflow"]["action_records"][0]["sequence"], 1)
         self.assertEqual(
@@ -254,6 +345,9 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
         self.assertEqual(pending["pending_patch_proposals"][0]["target_range"], [6, 11])
         self.assertEqual(pending["pending_patch_proposals"][0]["original_text"], "world")
         self.assertIn("+team", pending["pending_patch_proposals"][0]["preview_text"])
+        self.assertEqual(pending["pending_patch_proposals"][0]["result_document_content"], "hello team\n")
+        self.assertTrue(pending["pending_patch_proposals"][0]["can_apply"])
+        self.assertEqual(pending["pending_patch_proposals"][0]["status"], "ready_to_apply")
 
         self.service.resolve_patch(patch.patch_id, decision="accepted", persist=True)
         resolved = self.service.describe_state()
@@ -262,6 +356,7 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
         self.assertEqual(resolved["document"]["current_document_content"], "hello team\n")
         self.assertFalse(resolved["document"]["dirty"])
         self.assertIsNone(resolved["document"]["current_selection"])
+        self.assertEqual(resolved["workflow"]["last_resolved_patch_id"], patch.patch_id)
         self.assertEqual(resolved["workflow"]["patch_resolutions"][0]["metadata"]["decision"], "accepted")
         self.assertEqual(resolved["workflow"]["focused_card_id"], f"{patch.patch_id}:resolution")
         self.assertEqual(
@@ -282,8 +377,11 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
                 "patch_id": patch.patch_id,
                 "decision": "accepted",
                 "target_document_id": "draft.md",
+                "document_content": "hello team\n",
                 "dirty": False,
                 "persisted": True,
+                "continuation_document_id": "draft.md",
+                "continuation_document_content": "hello team\n",
             },
         )
 
@@ -302,6 +400,8 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
         snapshot_json = snapshot_text.split("```json\n", 1)[1].split("\n```", 1)[0]
         snapshot = json.loads(snapshot_json)
         self.assertEqual(snapshot["document"]["current_document_content"], "hello world\n")
+        self.assertIsNone(snapshot["workflow"]["last_previewed_patch_id"])
+        self.assertEqual(snapshot["workflow"]["last_resolved_patch_id"], patch.patch_id)
         self.assertEqual(snapshot["workflow"]["patch_resolutions"][0]["metadata"]["decision"], "rejected")
         self.assertEqual(snapshot["workflow"]["patch_resolutions"][0]["metadata"]["target_range"], [6, 11])
         self.assertEqual(snapshot["workflow"]["patch_resolutions"][0]["metadata"]["original_text"], "world")
@@ -315,6 +415,7 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
             [record["action"] for record in snapshot["workflow"]["action_records"]],
             ["plan_from_basket", "revise_selection", "resolve_patch", "save_session_snapshot"],
         )
+        self.assertIsInstance(self.service.state.workflow.action_records[3], WorkflowActionRecord)
         self.assertEqual(snapshot["workflow"]["action_records"][3]["sequence"], 4)
         self.assertEqual(
             snapshot["workflow"]["action_records"][3]["request"],
@@ -322,13 +423,19 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
         )
         self.assertEqual(
             snapshot["workflow"]["action_records"][3]["result"],
-            {"snapshot_kind": "app_state"},
+            {
+                "snapshot_kind": "app_state",
+                "item_id": session.id,
+                "path": session.path,
+                "metadata": session.metadata,
+            },
         )
         self.assertEqual(snapshot["pending_patch_proposals"], [])
         self.assertTrue(any(item.id == session.id for item in self.service.state.project.sessions))
         state_session = next(item for item in self.service.state.project.sessions if item.id == session.id)
         self.assertEqual(state_session.metadata, session.metadata)
         described = self.service.describe_state()
+        self.assertEqual(described["workflow"]["last_resolved_patch_id"], patch.patch_id)
         self.assertEqual(described["project"]["sessions"][0]["metadata"], session.metadata)
         self.assertEqual(
             described["workflow"]["command_history"],
@@ -336,10 +443,68 @@ class ExegesisEngineAppServicePatchResolutionTests(unittest.TestCase):
         )
         self.assertEqual(described["workflow"]["action_records"][3]["result"]["item_id"], session.id)
         self.assertEqual(described["workflow"]["action_records"][3]["result"]["path"], session.path)
+        self.assertEqual(
+            described["workflow"]["action_records"][3]["result"],
+            snapshot["workflow"]["action_records"][3]["result"],
+        )
 
         self.service.list_project_items()
         refreshed_session = next(item for item in self.service.state.project.sessions if item.id == session.id)
         self.assertEqual(refreshed_session.metadata, session.metadata)
+
+
+    def test_demo_path_continuation_state_is_self_contained_after_patch_resolution(self) -> None:
+        # Verify the canonical demo path: plan → revise → preview → apply carries
+        # enough state in last_patch_preview / last_patch_resolution that the caller
+        # can continue without hand-editing any state.
+        self.service.add_basket_item("retrieval:fts:draft.md:1", label="Draft excerpt")
+        self.service.plan_from_basket()
+        self.service.set_document_selection(start=6, end=11)
+        patch = self.service.revise_selection(proposed_text="team")
+
+        preview = self.service.preview_patch(patch.patch_id)
+
+        wf = self.service.state.workflow
+        self.assertIsNotNone(wf.last_patch_preview)
+        self.assertEqual(wf.last_patch_preview["patch_id"], patch.patch_id)
+        self.assertEqual(wf.last_patch_preview["original_text"], "world")
+        self.assertEqual(wf.last_patch_preview["proposed_text"], "team")
+        self.assertEqual(wf.last_patch_preview["result_document_content"], "hello team\n")
+        self.assertTrue(wf.last_patch_preview["can_apply"])
+        self.assertEqual(wf.last_patch_preview["status"], "ready_to_apply")
+        self.assertIsNone(wf.last_patch_resolution)
+
+        resolution = self.service.resolve_patch(patch.patch_id, decision="accepted", persist=True)
+
+        self.assertIsNotNone(wf.last_patch_resolution)
+        self.assertEqual(wf.last_patch_resolution["patch_id"], resolution.patch_id)
+        self.assertEqual(wf.last_patch_resolution["decision"], "accepted")
+        self.assertEqual(wf.last_patch_resolution["continuation_document_id"], "draft.md")
+        self.assertEqual(wf.last_patch_resolution["continuation_document_content"], "hello team\n")
+        self.assertTrue(wf.last_patch_resolution["persisted"])
+
+        described = self.service.describe_state()
+        self.assertIsNotNone(described["workflow"]["last_patch_preview"])
+        self.assertIsNotNone(described["workflow"]["last_patch_resolution"])
+        self.assertEqual(described["workflow"]["last_patch_resolution"]["continuation_document_id"], "draft.md")
+        self.assertEqual(described["workflow"]["last_patch_resolution"]["continuation_document_content"], "hello team\n")
+        self.assertEqual(described["document"]["current_document_content"], "hello team\n")
+        self.assertEqual(described["pending_patch_proposals"], [])
+
+    def test_demo_path_continuation_state_preserved_on_rejection(self) -> None:
+        self.service.set_document_selection(start=6, end=11)
+        patch = self.service.revise_selection(proposed_text="team")
+        self.service.preview_patch(patch.patch_id)
+        self.service.resolve_patch(patch.patch_id, decision="rejected")
+
+        wf = self.service.state.workflow
+        self.assertEqual(wf.last_patch_resolution["decision"], "rejected")
+        self.assertEqual(wf.last_patch_resolution["continuation_document_id"], "draft.md")
+        self.assertEqual(wf.last_patch_resolution["continuation_document_content"], "hello world\n")
+        self.assertFalse(wf.last_patch_resolution["persisted"])
+        described = self.service.describe_state()
+        self.assertEqual(described["workflow"]["last_patch_resolution"]["decision"], "rejected")
+        self.assertEqual(described["document"]["current_document_content"], "hello world\n")
 
 
 if __name__ == "__main__":

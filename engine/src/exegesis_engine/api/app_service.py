@@ -23,6 +23,7 @@ from exegesis_engine.state.models import (
     InspectorState,
     ProjectItem,
     ProjectState,
+    WorkflowActionRecord,
     WorkflowCard,
 )
 from exegesis_engine.storage.project_store import ProjectStore
@@ -53,9 +54,13 @@ class PatchResolution:
     dirty: bool
     persisted: bool
     metadata: dict[str, object]
+    continuation_document_id: str | None = None
+    continuation_document_content: str = ""
 
     @property
     def current_document_content(self) -> str:
+        if self.continuation_document_id is not None:
+            return self.continuation_document_content
         return self.document_content
 
 
@@ -68,14 +73,9 @@ class PatchPreview:
     proposed_text: str
     preview_text: str
     metadata: dict[str, object]
-
-
-@dataclass(frozen=True)
-class WorkflowActionRecord:
-    sequence: int
-    action: str
-    request: dict[str, object]
-    result: dict[str, object]
+    result_document_content: str | None = None
+    can_apply: bool = False
+    status: str = "stale"
 
 
 class EngineService:
@@ -316,7 +316,10 @@ class ExegesisAppService:
     def preview_patch(self, patch_id: str) -> PatchPreview:
         patch = self._pending_patches[patch_id]
         preview_text = self._patch_preview_text(patch)
-        return PatchPreview(
+        result_document_content = self._patch_result_document_content(patch)
+        can_apply = result_document_content is not None
+        status = "ready_to_apply" if can_apply else "stale_target"
+        preview = PatchPreview(
             patch_id=patch.patch_id,
             target_document_id=patch.target_document_id,
             target_range=patch.target_range,
@@ -324,7 +327,36 @@ class ExegesisAppService:
             proposed_text=patch.proposed_text,
             preview_text=preview_text,
             metadata=dict(patch.metadata),
+            result_document_content=result_document_content,
+            can_apply=can_apply,
+            status=status,
         )
+        self.state.workflow.last_previewed_patch_id = patch.patch_id
+        self.state.workflow.last_patch_preview = {
+            "patch_id": preview.patch_id,
+            "target_document_id": preview.target_document_id,
+            "target_range": list(preview.target_range),
+            "original_text": preview.original_text,
+            "proposed_text": preview.proposed_text,
+            "preview_text": preview.preview_text,
+            "result_document_content": preview.result_document_content,
+            "can_apply": preview.can_apply,
+            "status": preview.status,
+        }
+        self._record_workflow_action(
+            action="preview_patch",
+            request={"patch_id": patch.patch_id},
+            result={
+                "patch_id": preview.patch_id,
+                "target_document_id": preview.target_document_id,
+                "target_range": list(preview.target_range),
+                "preview_text": preview.preview_text,
+                "result_document_content": preview.result_document_content,
+                "can_apply": preview.can_apply,
+                "status": preview.status,
+            },
+        )
+        return preview
 
     def apply_patch(self, patch_id: str, *, persist: bool = False) -> PatchResolution:
         return self.resolve_patch(patch_id, decision="accepted", persist=persist)
@@ -339,6 +371,7 @@ class ExegesisAppService:
         patch = self._pending_patches[patch_id]
         persisted = False
         if decision == "accepted":
+            self._ensure_patch_targets_current_document(patch)
             self._apply_patch_to_document(patch)
             if persist:
                 self.save_document()
@@ -362,16 +395,31 @@ class ExegesisAppService:
             )
         )
         self.state.document.current_selection = None
+        self.state.workflow.last_resolved_patch_id = patch.patch_id
 
+        resolution_document_content, resolution_dirty = self._patch_resolution_document_state(patch, decision)
         resolution = PatchResolution(
             patch_id=patch.patch_id,
             decision=decision,
             target_document_id=patch.target_document_id,
-            document_content=self.state.document.current_document_content,
-            dirty=self.state.document.dirty,
+            document_content=resolution_document_content,
+            dirty=resolution_dirty,
             persisted=persisted,
             metadata=resolution_metadata,
+            continuation_document_id=self.state.document.current_document_id,
+            continuation_document_content=self.state.document.current_document_content,
         )
+        resolution_manifest: dict[str, object] = {
+            "patch_id": resolution.patch_id,
+            "decision": resolution.decision,
+            "target_document_id": resolution.target_document_id,
+            "document_content": resolution.document_content,
+            "dirty": resolution.dirty,
+            "persisted": resolution.persisted,
+            "continuation_document_id": resolution.continuation_document_id,
+            "continuation_document_content": resolution.continuation_document_content,
+        }
+        self.state.workflow.last_patch_resolution = resolution_manifest
         self._record_workflow_action(
             action="resolve_patch",
             request={
@@ -379,13 +427,7 @@ class ExegesisAppService:
                 "decision": decision,
                 "persist": persist,
             },
-            result={
-                "patch_id": resolution.patch_id,
-                "decision": resolution.decision,
-                "target_document_id": resolution.target_document_id,
-                "dirty": resolution.dirty,
-                "persisted": resolution.persisted,
-            },
+            result=resolution_manifest,
         )
         return resolution
 
@@ -409,6 +451,10 @@ class ExegesisAppService:
             },
             "workflow": {
                 "focused_card_id": self.state.workflow.focused_card_id,
+                "last_previewed_patch_id": self.state.workflow.last_previewed_patch_id,
+                "last_resolved_patch_id": self.state.workflow.last_resolved_patch_id,
+                "last_patch_preview": self.state.workflow.last_patch_preview,
+                "last_patch_resolution": self.state.workflow.last_patch_resolution,
                 "last_action_status": self.state.workflow.last_action_status,
                 "command_history": list(self.state.workflow.command_history),
                 "action_records": [
@@ -435,11 +481,10 @@ class ExegesisAppService:
             request={"session_id": session_id},
             result={"snapshot_kind": "app_state"},
         )
-        manifest = self.describe_state()
-        content = "# Exegesis Session Snapshot\n\n```json\n"
-        content += json.dumps(manifest, indent=2, sort_keys=True)
-        content += "\n```\n"
-        path = self._project_store.write_document(session_id, content)
+        path = Path(session_id)
+        if not path.is_absolute():
+            path = self._project_store.project_root / path
+        path = path.resolve()
         try:
             item_id = str(path.relative_to(self._project_store.project_root.resolve()))
         except ValueError:
@@ -465,6 +510,11 @@ class ExegesisAppService:
                 "metadata": dict(item.metadata),
             }
         )
+        manifest = self.describe_state()
+        content = "# Exegesis Session Snapshot\n\n```json\n"
+        content += json.dumps(manifest, indent=2, sort_keys=True)
+        content += "\n```\n"
+        self._project_store.write_document(session_id, content)
         return item
 
     def set_document_selection(self, *, start: int, end: int) -> DocumentSelection:
@@ -481,11 +531,34 @@ class ExegesisAppService:
         )
         self.state.document.dirty = True
 
+    def _ensure_patch_targets_current_document(self, patch: PatchProposal) -> None:
+        if self.state.document.current_document_id != patch.target_document_id:
+            raise ValueError("patch target document is not the current document")
+
     def _patch_preview_text(self, patch: PatchProposal) -> str:
         for card in reversed(self.state.workflow.cards):
             if card.id == patch.patch_id and card.card_type == "patch":
                 return card.body
         return patch.proposed_text
+
+    def _patch_result_document_content(self, patch: PatchProposal) -> str | None:
+        if self.state.document.current_document_id != patch.target_document_id:
+            return None
+        try:
+            return self._patch_service.apply(
+                self.state.document.current_document_content,
+                patch,
+            )
+        except ValueError:
+            return None
+
+    def _patch_resolution_document_state(self, patch: PatchProposal, decision: PatchDecision) -> tuple[str, bool]:
+        if self.state.document.current_document_id == patch.target_document_id:
+            return self.state.document.current_document_content, self.state.document.dirty
+        if decision == "rejected":
+            _, document_content = self._project_store.read_document(patch.target_document_id)
+            return document_content, False
+        return self.state.document.current_document_content, self.state.document.dirty
 
     def _search(self, *, query_text: str, scope: str, max_results: int, doc_types: tuple[str, ...] = ()):
         if self._retrieval_service is None:
@@ -526,13 +599,10 @@ class ExegesisAppService:
         return record
 
     def _workflow_action_records(self) -> list[WorkflowActionRecord]:
-        records = getattr(self.state.workflow, "action_records", None)
-        if records is None:
-            records = []
-            setattr(self.state.workflow, "action_records", records)
-        return records
+        return self.state.workflow.action_records
 
     def _patch_proposal_manifest(self, patch: PatchProposal) -> dict[str, object]:
+        result_document_content = self._patch_result_document_content(patch)
         return {
             "patch_id": patch.patch_id,
             "target_document_id": patch.target_document_id,
@@ -540,6 +610,9 @@ class ExegesisAppService:
             "original_text": patch.original_text,
             "proposed_text": patch.proposed_text,
             "preview_text": self._patch_preview_text(patch),
+            "result_document_content": result_document_content,
+            "can_apply": result_document_content is not None,
+            "status": "ready_to_apply" if result_document_content is not None else "stale_target",
             "metadata": dict(patch.metadata),
         }
 
@@ -559,7 +632,23 @@ class ExegesisAppService:
             "proposed_text": patch.proposed_text,
             "preview_text": self._patch_preview_text(patch),
             "persisted": persisted,
+            "continuation_document_id": self.state.document.current_document_id,
+            "continuation_document_content": self.state.document.current_document_content,
             **dict(patch.metadata),
+        }
+
+    @staticmethod
+    def _patch_resolution_manifest(resolution: PatchResolution) -> dict[str, object]:
+        return {
+            "patch_id": resolution.patch_id,
+            "decision": resolution.decision,
+            "target_document_id": resolution.target_document_id,
+            "document_content": resolution.document_content,
+            "dirty": resolution.dirty,
+            "persisted": resolution.persisted,
+            "metadata": dict(resolution.metadata),
+            "continuation_document_id": resolution.continuation_document_id,
+            "continuation_document_content": resolution.continuation_document_content,
         }
 
     @staticmethod

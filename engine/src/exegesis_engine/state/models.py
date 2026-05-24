@@ -34,6 +34,14 @@ class WorkflowCard:
 
 
 @dataclass(frozen=True)
+class WorkflowActionRecord:
+    sequence: int
+    action: str
+    request: dict[str, Any] = field(default_factory=dict)
+    result: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
 class DocumentSelection:
     start: int
     end: int
@@ -61,6 +69,11 @@ class WorkflowState:
     cards: list[WorkflowCard] = field(default_factory=list)
     focused_card_id: str | None = None
     command_history: list[str] = field(default_factory=list)
+    action_records: list[WorkflowActionRecord] = field(default_factory=list)
+    last_previewed_patch_id: str | None = None
+    last_resolved_patch_id: str | None = None
+    last_patch_preview: dict[str, Any] | None = None
+    last_patch_resolution: dict[str, Any] | None = None
     last_action_status: str | None = None
 
 
