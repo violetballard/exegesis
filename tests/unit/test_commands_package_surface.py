@@ -3,6 +3,13 @@ from __future__ import annotations
 import unittest
 
 import src.qual.commands as commands
+from src.qual.commands.catalog import CANONICAL_DEMO_PATH_PARTIAL_COMMANDS
+from src.qual.commands.engine_stubs import (
+    REVISE_BLOCKER_STEP,
+    SESSION_RESUME_BLOCKER_STEP,
+    SESSION_SAVE_BLOCKER_STEP,
+)
+from src.qual.commands.stub_dispatch import PARTIAL_COMMAND_TOKENS
 
 
 class CommandsPackageSurfaceTests(unittest.TestCase):
@@ -99,6 +106,66 @@ class CommandsPackageSurfaceTests(unittest.TestCase):
     def test_dispatch_partial_command_unknown_token_via_package_root(self) -> None:
         result = commands.dispatch_partial_command(("unknown",))
         self.assertIsInstance(result, commands.UnknownCommandError)
+
+    def test_partial_command_result_type_is_exported(self) -> None:
+        self.assertTrue(hasattr(commands, "PartialCommandResult"))
+
+
+class StubCatalogAlignmentTests(unittest.TestCase):
+    """Verify that engine_stubs.py blocker step constants stay in sync with
+    catalog.py CANONICAL_DEMO_PATH_PARTIAL_COMMANDS.
+
+    feat-engine-runs reads the blocker_step field on each result to know
+    which canonical demo step it is closing. These tests ensure the strings
+    in the two modules cannot drift apart silently.
+    """
+
+    def test_revise_blocker_step_is_a_canonical_partial_demo_step(self) -> None:
+        partial_canonical_steps = {step for step, _ in CANONICAL_DEMO_PATH_PARTIAL_COMMANDS}
+        self.assertIn(
+            REVISE_BLOCKER_STEP,
+            partial_canonical_steps,
+            f"REVISE_BLOCKER_STEP '{REVISE_BLOCKER_STEP}' must appear in CANONICAL_DEMO_PATH_PARTIAL_COMMANDS",
+        )
+
+    def test_session_save_blocker_step_is_a_canonical_partial_demo_step(self) -> None:
+        partial_canonical_steps = {step for step, _ in CANONICAL_DEMO_PATH_PARTIAL_COMMANDS}
+        self.assertIn(
+            SESSION_SAVE_BLOCKER_STEP,
+            partial_canonical_steps,
+            f"SESSION_SAVE_BLOCKER_STEP '{SESSION_SAVE_BLOCKER_STEP}' must appear in CANONICAL_DEMO_PATH_PARTIAL_COMMANDS",
+        )
+
+    def test_session_resume_blocker_step_is_a_canonical_partial_demo_step(self) -> None:
+        partial_canonical_steps = {step for step, _ in CANONICAL_DEMO_PATH_PARTIAL_COMMANDS}
+        self.assertIn(
+            SESSION_RESUME_BLOCKER_STEP,
+            partial_canonical_steps,
+            f"SESSION_RESUME_BLOCKER_STEP '{SESSION_RESUME_BLOCKER_STEP}' must appear in CANONICAL_DEMO_PATH_PARTIAL_COMMANDS",
+        )
+
+    def test_partial_command_tokens_count_matches_canonical_partial_demo_steps(self) -> None:
+        self.assertEqual(
+            len(PARTIAL_COMMAND_TOKENS),
+            len(CANONICAL_DEMO_PATH_PARTIAL_COMMANDS),
+            "PARTIAL_COMMAND_TOKENS and CANONICAL_DEMO_PATH_PARTIAL_COMMANDS must have the same length",
+        )
+
+    def test_all_three_blocker_steps_are_covered(self) -> None:
+        partial_canonical_steps = {step for step, _ in CANONICAL_DEMO_PATH_PARTIAL_COMMANDS}
+        for blocker_step in (REVISE_BLOCKER_STEP, SESSION_SAVE_BLOCKER_STEP, SESSION_RESUME_BLOCKER_STEP):
+            self.assertIn(blocker_step, partial_canonical_steps)
+
+    def test_canonical_partial_demo_steps_pins_exact_set(self) -> None:
+        canonical_steps = tuple(step for step, _ in CANONICAL_DEMO_PATH_PARTIAL_COMMANDS)
+        self.assertEqual(
+            canonical_steps,
+            (
+                "produce-plan-or-revision",
+                "persist-updated-document-session-state",
+                "continue-without-losing-context",
+            ),
+        )
 
 
 if __name__ == "__main__":
