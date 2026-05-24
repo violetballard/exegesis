@@ -527,8 +527,9 @@ def _branch_scope_violations(
 def _is_main_equivalent_control_plane_sync(repo_cwd: str, branch: str, path: str) -> bool:
     """Allow feature branches to carry control-plane files already present on main."""
     if not (
-        path.startswith(".codex/kickoff_packets/")
-        or path in {"THREAD_OWNERSHIP.md", "packet_garden/tools/planner.py", "scripts/scope-check.sh"}
+        path in CONTROL_PLANE_REVIEW_PATH_NAMES
+        or any(path.startswith(prefix) for prefix in CONTROL_PLANE_REVIEW_PATH_PREFIXES)
+        or path in {"scripts/scope-check.sh", "scripts/common.sh", "tests/unit/test_offline_handoff.py"}
     ):
         return False
     proc = subprocess.run(
