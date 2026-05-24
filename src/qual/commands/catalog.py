@@ -4,6 +4,21 @@ import re
 from hashlib import sha256
 from dataclasses import dataclass
 from functools import lru_cache
+from typing import Iterable, Iterator, TypeVar
+
+_T = TypeVar("_T")
+_U = TypeVar("_U")
+
+
+def _strict_zip(a: Iterable[_T], b: Iterable[_U]) -> Iterator[tuple[_T, _U]]:
+    # Replicates zip(strict=True) from Python 3.10 for 3.9 compatibility.
+    _a = tuple(a)
+    _b = tuple(b)
+    if len(_a) != len(_b):
+        raise ValueError(
+            f"_strict_zip: iterables have different lengths ({len(_a)} vs {len(_b)})"
+        )
+    return zip(_a, _b)
 
 
 @dataclass(frozen=True)
@@ -463,10 +478,6 @@ CANONICAL_DEMO_PATH_STEPS: tuple[str, ...] = (
 )
 CANONICAL_DEMO_PATH_GAP_REASONS: tuple[tuple[str, str], ...] = (
     (
-        "promote-or-gather-context-into-basket",
-        "no stable command route promotes or gathers retrieved context into the basket",
-    ),
-    (
         "produce-plan-or-revision",
         "no stable command route produces a plan or revision through the engine loop",
     ),
@@ -509,7 +520,20 @@ DEMO_PATH_STEPS_BY_FLOW_STEP: tuple[tuple[str, str], ...] = (
 )
 
 
+def _validate_demo_path_gap_reasons_no_supplemental_overlap() -> None:
+    supplemental_steps = {
+        _normalize_token(demo_step)
+        for demo_step, _flow_step, _argv in CANONICAL_DEMO_PATH_SUPPLEMENTAL_COMMANDS
+    }
+    for step, _reason in CANONICAL_DEMO_PATH_GAP_REASONS:
+        if _normalize_token(step) in supplemental_steps:
+            raise ValueError(
+                f"Gap reason for '{step}' is stale: the step is already covered by a supplemental command"
+            )
+
+
 def validate_command_catalog(specs: tuple[CommandSpec, ...] = COMMAND_SPECS) -> None:
+    _validate_demo_path_gap_reasons_no_supplemental_overlap()
     seen_names: set[str] = set()
     seen_flow_steps: set[str] = set()
     seen_aliases: dict[str, str] = {}
@@ -1190,7 +1214,7 @@ def command_demo_path_readiness(
     contract = command_demo_path_contract(normalized_program, specs, flow_steps)
     steps = _command_demo_path_readiness_steps(contract, normalized_program)
     command_lines = tuple(" ".join(command) for command in contract.commands)
-    demo_step_commands = tuple(zip(contract.demo_steps, command_lines, strict=True))
+    demo_step_commands = tuple(_strict_zip(contract.demo_steps, command_lines))
     supplemental_commands = _supplemental_canonical_step_commands(
         normalized_program,
         specs=specs,
@@ -1251,7 +1275,7 @@ def command_demo_path_handoff_summary(
 ) -> CommandDemoPathHandoffSummary:
     readiness = command_demo_path_readiness(program, specs, flow_steps)
     command_lines = tuple(" ".join(command) for command in readiness.commands)
-    demo_step_commands = tuple(zip(readiness.demo_steps, command_lines, strict=True))
+    demo_step_commands = tuple(_strict_zip(readiness.demo_steps, command_lines))
     supplemental_commands = _supplemental_canonical_step_commands(
         readiness.program,
         specs=specs,
@@ -1273,7 +1297,7 @@ def command_demo_path_handoff_summary(
         compatibility_normalized_command_lines=tuple(
             " ".join(entry.normalized_command) for entry in compatibility_entries
         ),
-        flow_step_commands=tuple(zip(readiness.flow_steps, command_lines, strict=True)),
+        flow_step_commands=tuple(_strict_zip(readiness.flow_steps, command_lines)),
         demo_step_commands=demo_step_commands,
         missing_demo_steps=readiness.missing_demo_steps,
         covered_canonical_step_commands=readiness.covered_canonical_step_commands,
@@ -1618,9 +1642,9 @@ def _validate_command_demo_path_handoff_summary(
         " ".join(entry.normalized_command) for entry in compatibility_entries
     ):
         raise ValueError("Command demo path handoff normalized compatibility commands are inconsistent")
-    if summary.flow_step_commands != tuple(zip(readiness.flow_steps, summary.command_lines, strict=True)):
+    if summary.flow_step_commands != tuple(_strict_zip(readiness.flow_steps, summary.command_lines)):
         raise ValueError("Command demo path handoff flow steps are inconsistent")
-    if summary.demo_step_commands != tuple(zip(readiness.demo_steps, summary.command_lines, strict=True)):
+    if summary.demo_step_commands != tuple(_strict_zip(readiness.demo_steps, summary.command_lines)):
         raise ValueError("Command demo path handoff demo steps are inconsistent")
     if summary.missing_demo_steps != readiness.missing_demo_steps:
         raise ValueError("Command demo path handoff missing steps are inconsistent")
@@ -1852,7 +1876,7 @@ def _validate_command_demo_path_readiness(
     if readiness.fingerprint != expected_fingerprint:
         raise ValueError("Command demo path readiness fingerprint is inconsistent")
     command_lines = tuple(" ".join(command) for command in readiness.commands)
-    demo_step_commands = tuple(zip(readiness.demo_steps, command_lines, strict=True))
+    demo_step_commands = tuple(_strict_zip(readiness.demo_steps, command_lines))
     expected_covered_commands = _covered_canonical_step_commands(
         (*demo_step_commands, *readiness.supplemental_canonical_step_commands)
     )
