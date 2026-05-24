@@ -1,1 +1,0 @@
-"""Qual workstation scaffold package."""
