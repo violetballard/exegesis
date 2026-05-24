@@ -133,7 +133,6 @@ CONTROL_PLANE_REVIEW_PATH_PREFIXES = (
     ".codex/",
     "agents/",
     "codex/",
-    "codex_packet_handoff/",
     "packet_garden/",
 )
 CONTROL_PLANE_REVIEW_PATH_NAMES = {
@@ -2674,7 +2673,7 @@ def fixer_prompt(lane: str, branch: str, reviewer_packet: str, workdir: Optional
             "- Use bounded reads only: first use `rg -n` for relevant headings/keywords, then read narrow `nl -ba | sed -n '<start>,<end>p'` ranges, normally <=80 lines at a time.\n"
             "- Do not `cat` or full-file Read docs, source files, `.codex`, `.agents`, archives, or logs.\n"
             "- Do not edit hidden `.codex` metadata files from a sandboxed fixer.\n"
-            "- Do not edit or commit control-plane files from this fixer, including `packet_garden/**`, `codex_packet_handoff/**`, `.codex/**`, `.agents/**`, `THREAD_PACKET.md`, `THREAD_OWNERSHIP.md`, `INTEGRATION.md`, `AGENTS.md`, or `scripts/scope-check.sh`.\n"
+            "- Do not edit or commit control-plane files from this fixer, including `packet_garden/**`, `.codex/**`, `.agents/**`, `THREAD_PACKET.md`, `THREAD_OWNERSHIP.md`, `INTEGRATION.md`, `AGENTS.md`, or `scripts/scope-check.sh`.\n"
             "- If the reviewer requires handoff metadata, packet metadata, shared packet, lane metadata, `THREAD_PACKET.md`, `.codex/**`, `packet_garden/**`, or scope-policy changes, report `control-plane metadata fix required` and stop instead of editing those files.\n"
             "- Do not retry a failed `.codex` write with multiple tools; one failed write is enough evidence that the control plane must handle that metadata correction.\n"
             "- If a tool reports `Context size has been exceeded`, stop, report that exact blocker, and wait for a fresh launch.\n\n"
@@ -2701,7 +2700,7 @@ def fixer_prompt(lane: str, branch: str, reviewer_packet: str, workdir: Optional
         "- Use bounded reads only: first use `rg -n` for relevant headings/keywords, then read narrow `nl -ba | sed -n '<start>,<end>p'` ranges, normally <=80 lines at a time.\n"
         "- Do not `cat` or full-file Read docs, source files, `.codex`, `.agents`, archives, or logs.\n"
         "- Do not edit hidden `.codex` metadata files from a sandboxed fixer.\n"
-        "- Do not edit or commit control-plane files from this fixer, including `packet_garden/**`, `codex_packet_handoff/**`, `.codex/**`, `.agents/**`, `THREAD_PACKET.md`, `THREAD_OWNERSHIP.md`, `INTEGRATION.md`, `AGENTS.md`, or `scripts/scope-check.sh`.\n"
+        "- Do not edit or commit control-plane files from this fixer, including `packet_garden/**`, `.codex/**`, `.agents/**`, `THREAD_PACKET.md`, `THREAD_OWNERSHIP.md`, `INTEGRATION.md`, `AGENTS.md`, or `scripts/scope-check.sh`.\n"
         "- If the reviewer requires handoff metadata, packet metadata, shared packet, lane metadata, `THREAD_PACKET.md`, `.codex/**`, `packet_garden/**`, or scope-policy changes, report `control-plane metadata fix required` and stop instead of editing those files.\n"
         "- Do not retry a failed `.codex` write with multiple tools; one failed write is enough evidence that the control plane must handle that metadata correction.\n"
         "- If a tool reports `Context size has been exceeded`, stop, report that exact blocker, and wait for a fresh launch.\n\n"
