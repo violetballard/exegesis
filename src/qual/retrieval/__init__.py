@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TypeAlias
+from typing import Optional, Union
 
 from src.qual.engine.retrieval import build_retrieval_query as engine_build_retrieval_query
 from src.qual.retrieval.service import (
@@ -13,7 +13,7 @@ from src.qual.retrieval.service import (
     RetrievalService,
 )
 
-RetrievalConstraintInput: TypeAlias = dict[str, object] | RetrievalConstraints | None
+RetrievalConstraintInput = Optional[Union[dict, RetrievalConstraints]]
 
 
 def _build_retrieval_query(

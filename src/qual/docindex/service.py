@@ -4,7 +4,9 @@ import hashlib
 import json
 import uuid
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+UTC = timezone.utc
 from pathlib import Path
 from typing import Any, Literal
 

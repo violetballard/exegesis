@@ -42,4 +42,4 @@ def _xor_stream(data: bytes, *, key: bytes, nonce: bytes) -> bytes:
         block = hashlib.sha256(key + seed).digest()
         out.extend(block)
         counter += 1
-    return bytes(a ^ b for a, b in zip(data, out, strict=False))
+    return bytes(a ^ b for a, b in zip(data, out))

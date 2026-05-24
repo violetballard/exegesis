@@ -8,7 +8,9 @@ import sqlite3
 import uuid
 from contextlib import contextmanager
 from dataclasses import dataclass, field, replace
-from datetime import UTC, date, datetime
+from datetime import date, datetime, timezone
+
+UTC = timezone.utc
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Any, ClassVar, Iterator, Literal, cast
