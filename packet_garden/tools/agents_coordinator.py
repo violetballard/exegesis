@@ -96,10 +96,11 @@ FEATURE_LOOP_LOG_TAIL_BYTES = 32768
 FEATURE_LOOP_BAD_APPLYPATCH_THRESHOLD = 6
 FEATURE_LOOP_RECONNECT_THRESHOLD = 4
 FEATURE_NO_TOOL_ACTIVITY_MIN_RUNTIME_SECONDS = float(
-    os.environ.get("FEATURE_NO_TOOL_ACTIVITY_MIN_RUNTIME_SECONDS", "2700")
+    os.environ.get("FEATURE_NO_TOOL_ACTIVITY_MIN_RUNTIME_SECONDS", "600")
 )
 FEATURE_MAX_RUNTIME_SECONDS = float(os.environ.get("FEATURE_MAX_RUNTIME_SECONDS", "2700"))
 FEATURE_ADVANCED_HEAD_REVIEW_SECONDS = float(os.environ.get("FEATURE_ADVANCED_HEAD_REVIEW_SECONDS", "900"))
+FEATURE_HANDOFF_REVIEW_SECONDS = float(os.environ.get("FEATURE_HANDOFF_REVIEW_SECONDS", "300"))
 ROUTER_JOB_LOOP_MIN_RUNTIME_SECONDS = 300.0
 ROUTER_FIXER_NO_TOOL_MIN_RUNTIME_SECONDS = float(os.environ.get("ROUTER_FIXER_NO_TOOL_MIN_RUNTIME_SECONDS", "90"))
 FEATURE_LOOP_PARSE_ERROR_THRESHOLD = 2
@@ -601,8 +602,6 @@ def _feature_runner_loop_reason(lane_state: Dict[str, object], *, lane: str = ""
     )
     if launched_at and (time.time() - launched_at) < FEATURE_LOOP_MIN_RUNTIME_SECONDS:
         return None
-    if advanced_head_review_due:
-        return f"branch advanced past last handoff; review grace elapsed after {int(elapsed)}s"
     log_path = Path(str(lane_state.get("log_path") or ""))
     if not log_path.exists():
         if over_autonomy_window:
@@ -613,6 +612,11 @@ def _feature_runner_loop_reason(lane_state: Dict[str, object], *, lane: str = ""
         if over_autonomy_window:
             return f"feature autonomy window exceeded after {int(elapsed)}s"
         return None
+    handoff_reason = _feature_runner_handoff_reason(lane_state, lane=lane, text=text, elapsed=elapsed)
+    if handoff_reason:
+        return handoff_reason
+    if advanced_head_review_due:
+        return f"branch advanced past last handoff; review grace elapsed after {int(elapsed)}s"
     parse_failures = text.count("failed to parse function arguments")
     bad_apply_patch = text.count("Usage: apply_patch 'PATCH'")
     malformed_args = text.count("failed to parse function arguments: invalid type: sequence, expected a string")
@@ -640,6 +644,34 @@ def _feature_runner_loop_reason(lane_state: Dict[str, object], *, lane: str = ""
         return no_tool_reason
     if over_autonomy_window:
         return f"feature autonomy window exceeded after {int(elapsed)}s"
+    return None
+
+
+def _feature_runner_handoff_reason(
+    lane_state: Dict[str, object],
+    *,
+    lane: str,
+    text: str,
+    elapsed: float,
+) -> Optional[str]:
+    if not lane or FEATURE_HANDOFF_REVIEW_SECONDS <= 0 or elapsed < FEATURE_HANDOFF_REVIEW_SECONDS:
+        return None
+    if not _lane_head_advanced_since_handoff(lane):
+        return None
+    lower = text.lower()
+    if "handoff" not in lower:
+        return None
+    completion_markers = (
+        "commit:",
+        "final head",
+        "gate results",
+        "gates passed",
+        "tests pass",
+        "no control-plane files modified",
+        "branch:",
+    )
+    if any(marker in lower for marker in completion_markers):
+        return f"feature handoff detected after {int(elapsed)}s; branch advanced past last handoff"
     return None
 
 
