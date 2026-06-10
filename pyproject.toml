@@ -1,0 +1,35 @@
+[tool.briefcase]
+project_name = "Exegesis"
+bundle = "studio.exegesis"
+version = "0.1.0.dev1"
+url = "https://exegesis.studio"
+license.file = "LICENSE.md"
+author = "Violet Ballard"
+author_email = "hello@exegesis.studio"
+
+[tool.briefcase.app.exegesis_textual]
+formal_name = "Exegesis"
+description = "A source-available AI-native writing workstation for high-trust qualitative research."
+long_description = "Exegesis is a local-first writing workstation for qualitative researchers and other high-trust knowledge workers."
+sources = [
+    "client-textual/src/exegesis_textual",
+    "engine/src/exegesis_engine",
+    "shared/src/exegesis_shared",
+]
+test_sources = [
+    "client-textual/tests",
+]
+requires = [
+    "textual==8.2.3",
+    "mistralai==2.4.1",
+    "keyring>=25,<26",
+    "rich>=13,<15",
+]
+icon = "packaging/macos/AppIcon"
+console_app = false
+
+[tool.briefcase.app.exegesis_textual.macOS]
+requires = [
+    "std-nslog>=1.0,<2.0",
+]
+universal_build = false

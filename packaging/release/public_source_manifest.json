@@ -1,0 +1,48 @@
+{
+  "include_paths": [
+    "client-textual/src",
+    "client-textual/requirements.txt",
+    "client-textual/tests",
+    "engine/src",
+    "shared/src",
+    "exegesis_textual",
+    "exegesis_engine",
+    "exegesis_shared",
+    "scripts/release",
+    "packaging/macos/AppIcon.iconset",
+    "packaging/release/public_source_manifest.json",
+    "packaging/public/README.md",
+    "packaging/public/RELEASE_NOTES.md",
+    "pyproject.toml",
+    "LICENSE.md"
+  ],
+  "root_file_mappings": {
+    "packaging/public/README.md": "README.md",
+    "packaging/public/RELEASE_NOTES.md": "RELEASE_NOTES.md"
+  },
+  "exclude_names": [
+    ".DS_Store",
+    "__pycache__",
+    ".pytest_cache",
+    ".mypy_cache",
+    ".ruff_cache",
+    "build",
+    "dist",
+    "vendor"
+  ],
+  "deny_fragments": [
+    ".codex",
+    ".agents",
+    "packet_garden",
+    "milestone",
+    "roadmap",
+    "THREAD_OWNERSHIP",
+    "THREAD_PACKET",
+    "INTEGRATION",
+    "PIPELINE_RUNBOOK",
+    "REMOTE_MONITORING",
+    "runtime",
+    "logs",
+    "cache"
+  ]
+}
