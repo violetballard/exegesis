@@ -100,12 +100,9 @@ class NotebookControllerMixin:
 
     async def on_workflow_pane_search_result_add_to_basket_requested(self, message: WorkflowPane.SearchResultAddToBasketRequested) -> None:
         result = await self.dispatch_app_action(
-            "add_excerpt_to_basket",
+            "add_document_to_basket",
             {
                 "document": message.document_slug,
-                "excerpt": message.excerpt,
-                "start": message.match_range[0] if message.match_range is not None else None,
-                "end": message.match_range[1] if message.match_range is not None else None,
             },
             source="notebook",
             confirmed=True,

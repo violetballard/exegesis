@@ -511,7 +511,9 @@ SHELL_CSS = """
     }
 
     .workflow-reasoning-card {
-        margin-top: 1;
+        width: 98%;
+        margin-top: 0;
+        margin-right: 2;
         margin-bottom: 1;
         padding: 0 1;
         border-left: tall $warning;
@@ -531,6 +533,7 @@ SHELL_CSS = """
     }
 
     .workflow-history-status-content {
+        width: 98%;
         height: auto;
         min-height: 1;
         margin: 0;
@@ -564,7 +567,7 @@ SHELL_CSS = """
         height: auto;
         min-height: 6;
         border: round;
-        padding: 1 2 1 1;
+        padding: 1 2 0 1;
     }
 
     .workflow-card-title {
@@ -664,6 +667,7 @@ SHELL_CSS = """
         overflow: hidden;
         padding-right: 1;
         margin-top: 1;
+        margin-bottom: 0;
     }
 
     .workflow-history-card-actions {

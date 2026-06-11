@@ -94,6 +94,18 @@ SAFE_TRANSCRIPT_FILE_ACTION_TERMS = (
     "trash",
     "update item",
 )
+SEARCH_INTENT_TERMS = (
+    "find",
+    "search",
+    "look for",
+    "locate",
+    "reference",
+    "references",
+    "mention",
+    "mentions",
+    "snippet",
+    "snippets",
+)
 RESTORE_TRASH_INTENT_TERMS = ("restore", "recover", "put back", "bring back")
 PERMANENT_DELETE_INTENT_TERMS = ("delete forever", "permanently delete", "permanent delete", "purge")
 DELETE_TO_TRASH_INTENT_TERMS = ("delete", "move to trash", "remove", "trash")
@@ -802,16 +814,12 @@ class WorkflowPane(Vertical):
             document_slug: str,
             document_title: str,
             document_type: str,
-            excerpt: str,
-            match_range: tuple[int, int] | None,
         ) -> None:
             super().__init__()
             self.workflow_pane = workflow_pane
             self.document_slug = document_slug
             self.document_title = document_title
             self.document_type = document_type
-            self.excerpt = excerpt
-            self.match_range = match_range
 
     class RewriteProposalReady(Message):
         def __init__(
@@ -1175,7 +1183,7 @@ class WorkflowPane(Vertical):
             chat.history_entries.append(HistoryStatusEntry(self._proposal_generation_status(request_mode)))
             chat.active_history_index = None
         else:
-            chat.history_entries.append(HistoryTextEntry("assistant", "", streaming=True))
+            chat.history_entries.append(HistoryTextEntry("assistant", "", streaming=True, visible=False))
             chat.active_history_index = len(chat.history_entries) - 1
         self._request_counter += 1
         request_id = self._request_counter
@@ -1383,6 +1391,8 @@ class WorkflowPane(Vertical):
         if shell_context.document_type != "transcript" or shell_context.confidentiality_mode == "local-confidential":
             return False
         if shell_context.selected_text.strip() and self._user_prompt_requests_excerpt(prompt):
+            return False
+        if self._user_prompt_requests_search(prompt):
             return False
         if self._user_prompt_requests_safe_transcript_file_action(prompt):
             return False
@@ -1771,15 +1781,12 @@ class WorkflowPane(Vertical):
         )
 
     def on_search_results_card_add_to_basket_requested(self, message: SearchResultsCard.AddToBasketRequested) -> None:
-        match = message.result.match_at(message.match_index)
         self.post_message(
             self.SearchResultAddToBasketRequested(
                 self,
                 message.result.document_slug,
                 message.result.title,
                 message.result.document_type,
-                match.snippet if match is not None else message.result.snippet,
-                match.match_range if match is not None else message.result.match_range,
             )
         )
 
@@ -1808,7 +1815,8 @@ class WorkflowPane(Vertical):
         assistant.content += text
         if chat.active_request_mode not in {"draft", "rewrite"}:
             self._update_active_history_text(chat, text)
-            self._render_chat(slug)
+            if chat.active_history_visible:
+                self._render_chat(slug)
 
     def _apply_reasoning_delta(self, slug: str, request_id: int, text: str) -> None:
         chat = WORKFLOW_CHATS.get(slug)
@@ -1838,6 +1846,8 @@ class WorkflowPane(Vertical):
         draft_block_insert = chat.active_draft_block_insert
         assistant = self._active_assistant_message(chat)
         assistant.streaming = False
+        reveal_active_history = chat.active_history_visible
+        should_render_history = True
         if replay_content is not None:
             assistant.provider_content = replay_content
         elif assistant.provider_content is None:
@@ -1895,12 +1905,16 @@ class WorkflowPane(Vertical):
                     )
                 )
             else:
+                self._reveal_active_history_entry(chat, reveal=reveal_active_history)
                 self._finalize_active_history_entry(chat)
+                if not reveal_active_history:
+                    should_render_history = False
                 if slug == self._active_slug:
                     self.set_status("")
                 else:
                     self._sync_status()
-        self._render_chat(slug)
+        if should_render_history:
+            self._render_chat(slug)
         self._sync_status()
 
     def _fail_chat_stream(self, slug: str, request_id: int, error: str) -> None:
@@ -2345,6 +2359,18 @@ class WorkflowPane(Vertical):
             entry.streaming = False
         chat.active_history_index = None
 
+    def _reveal_active_history_entry(self, chat: WorkflowChat, *, reveal: bool | None = None) -> None:
+        if reveal is None:
+            reveal = chat.active_history_visible
+        if not reveal:
+            return
+        index = chat.active_history_index
+        if index is None or index >= len(chat.history_entries):
+            return
+        entry = chat.history_entries[index]
+        if isinstance(entry, HistoryTextEntry):
+            entry.visible = True
+
     def _begin_reasoning_entry(self, chat: WorkflowChat) -> None:
         if chat.active_reasoning_index is not None:
             return
@@ -2407,6 +2433,8 @@ class WorkflowPane(Vertical):
         shell_context = self._shell_context(chat.active_rewrite_target if request_mode == "rewrite" else None)
         tools = provider_tool_specs() if allow_tools and request_mode == "chat" else None
         completed = False
+        buffer_assistant_text = allow_tools and request_mode == "chat"
+        buffered_assistant_text: list[str] = []
         try:
             async for event in self._stream_backend_reply(
                 slug,
@@ -2416,12 +2444,24 @@ class WorkflowPane(Vertical):
                 tools=tools,
             ):
                 if event.kind == "assistant_delta":
-                    self.call_later(self._apply_chat_delta, slug, request_id, event.text)
+                    if buffer_assistant_text:
+                        buffered_assistant_text.append(event.text)
+                    else:
+                        self.call_later(self._apply_chat_delta, slug, request_id, event.text)
                 elif event.kind == "reasoning_delta":
                     self.call_later(self._apply_reasoning_delta, slug, request_id, event.text)
                 elif event.kind == "assistant_done":
                     completed = True
-                    self.call_later(self._complete_chat_stream, slug, request_id, event.replay_content)
+                    if buffered_assistant_text:
+                        self.call_later(
+                            self._complete_chat_stream_with_buffer,
+                            slug,
+                            request_id,
+                            "".join(buffered_assistant_text),
+                            event.replay_content,
+                        )
+                    else:
+                        self.call_later(self._complete_chat_stream, slug, request_id, event.replay_content)
                     return
                 elif event.kind == "tool_call" and event.tool_call is not None:
                     if allow_tools:
@@ -2433,11 +2473,31 @@ class WorkflowPane(Vertical):
                     self.call_later(self._fail_chat_stream, slug, request_id, event.error)
                     return
             if not completed:
-                self.call_later(self._complete_chat_stream, slug, request_id)
+                if buffered_assistant_text:
+                    self.call_later(
+                        self._complete_chat_stream_with_buffer,
+                        slug,
+                        request_id,
+                        "".join(buffered_assistant_text),
+                        None,
+                    )
+                else:
+                    self.call_later(self._complete_chat_stream, slug, request_id)
         except asyncio.CancelledError:
             raise
         except Exception as exc:
             self.call_later(self._fail_chat_stream, slug, request_id, f"Mistral request failed: {exc}")
+
+    def _complete_chat_stream_with_buffer(
+        self,
+        slug: str,
+        request_id: int,
+        buffered_text: str,
+        replay_content: object | None = None,
+    ) -> None:
+        if buffered_text:
+            self._apply_chat_delta(slug, request_id, buffered_text)
+        self._complete_chat_stream(slug, request_id, replay_content)
 
     async def _stream_backend_reply(
         self,
@@ -2460,7 +2520,6 @@ class WorkflowPane(Vertical):
         if chat is None or chat.active_request_id != request_id:
             return
         self._hide_active_turn_display(chat)
-        self._render_chat(slug)
         self.run_worker(
             self._handle_tool_call(slug, request_id, tool_call),
             name=f"workflow-tool-{slug}",
@@ -2542,10 +2601,15 @@ class WorkflowPane(Vertical):
             self._sync_status()
             return
         result = await self._dispatch_tool_action(tool_call, conversation_turn_id=f"{slug}:{request_id}")
-        self._append_action_result(chat, spec.id, spec.label, result)
         if spec.id == "search_documents" and result.status == "completed":
             query = str(tool_call.arguments.get("query") or "")
             chat.history_entries.append(HistorySearchEntry(query=query, results=self._search_documents(query)))
+            self._append_tool_result_messages(chat, tool_call, result)
+            self._start_follow_up_after_tool(slug)
+            self._render_chat(slug)
+            self._sync_status()
+            return
+        self._append_action_result(chat, spec.id, spec.label, result)
         self._append_tool_result_messages(chat, tool_call, result)
         if result.status == "completed":
             self._start_follow_up_after_tool(slug)
@@ -2614,6 +2678,11 @@ class WorkflowPane(Vertical):
         return any(term in normalized for term in SAFE_TRANSCRIPT_FILE_ACTION_TERMS)
 
     @staticmethod
+    def _user_prompt_requests_search(prompt: str) -> bool:
+        normalized = prompt.casefold()
+        return any(term in normalized for term in SEARCH_INTENT_TERMS)
+
+    @staticmethod
     def _user_prompt_requests_restore(prompt: str) -> bool:
         normalized = prompt.casefold()
         return any(term in normalized for term in RESTORE_TRASH_INTENT_TERMS) and not any(
@@ -2653,7 +2722,6 @@ class WorkflowPane(Vertical):
         chat.active_reasoning_index = None
         chat.active_history_visible = True
         self._workers.pop(chat.slug, None)
-        self._render_chat(chat.slug)
 
     async def _dispatch_tool_action(
         self,
@@ -2748,7 +2816,6 @@ class WorkflowPane(Vertical):
         chat.active_rewrite_target = None
         chat.active_draft_target_range = None
         chat.active_draft_block_insert = False
-        self._render_chat(slug)
         self._sync_status()
         self._workers[slug] = self.run_worker(
             self._stream_reply(slug, request_id, "chat", allow_tools=False),

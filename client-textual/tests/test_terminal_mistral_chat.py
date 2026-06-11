@@ -334,6 +334,29 @@ class ToolCallWithPreambleBackend(FakeBackend):
         yield ChatEvent(kind="tool_call", tool_call=self.tool_call)
 
 
+class DelayedToolCallWithPreambleBackend(FakeBackend):
+    def __init__(self, tool_call: ToolCallRequest) -> None:
+        super().__init__(configured=True)
+        self.tool_call = tool_call
+        self.preamble_sent = asyncio.Event()
+        self.release_tool_call = asyncio.Event()
+
+    async def stream_reply(
+        self,
+        chat_slug: str,
+        messages: list[ChatMessage],
+        shell_context: ShellChatContext,
+        request_mode: str = "chat",
+        tools: object | None = None,
+    ):
+        del chat_slug, messages, shell_context, request_mode, tools
+        await asyncio.sleep(0)
+        yield ChatEvent(kind="assistant_delta", text="I will rewrite the user's request into a more detailed prompt.")
+        self.preamble_sent.set()
+        await self.release_tool_call.wait()
+        yield ChatEvent(kind="tool_call", tool_call=self.tool_call)
+
+
 class SequencedDraftBackend(FakeBackend):
     def __init__(self, draft_outputs: list[str]) -> None:
         super().__init__(configured=True)
@@ -914,6 +937,18 @@ class WorkflowActionDispatchTestApp(WorkflowTestApp):
                 "matches": [{"snippet": f"Match for {query}", "match_range": (0, len(query))}],
             }
         ]
+
+
+class WorkflowTranscriptActionDispatchTestApp(WorkflowActionDispatchTestApp):
+    def shell_chat_context(self) -> dict[str, str]:
+        return {
+            "project_name": "Test Project",
+            "document_title": "Transcript 1",
+            "document_type": "transcript",
+            "document_content": "Sensitive transcript text should stay withheld.",
+            "confidentiality_mode": "online",
+            "basket_context": "",
+        }
 
 
 class SlowWorkflowActionDispatchTestApp(WorkflowActionDispatchTestApp):
@@ -2074,13 +2109,10 @@ class ShellConfidentialityModeTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(document_pane.active_document.slug, CURRENT_DRAFT_SLUG)
             self.assertEqual(app._engine_adapter.state.basket.items, [])
 
-    async def test_search_result_add_to_basket_handler_uses_match_range_provenance(self) -> None:
+    async def test_search_result_add_to_basket_handler_adds_whole_document(self) -> None:
         app = ShellWorkflowTestApp(FakeBackend(configured=True))
         async with app.run_test() as pilot:
             await pilot.pause()
-            content = DOCUMENT_FIXTURES["project-demo-essay"].content
-            selected = "theoretical frameworks"
-            start = content.index(selected)
 
             await app.on_workflow_pane_search_result_add_to_basket_requested(
                 WorkflowPane.SearchResultAddToBasketRequested(
@@ -2088,18 +2120,33 @@ class ShellConfidentialityModeTests(unittest.IsolatedAsyncioTestCase):
                     "project-demo-essay",
                     "Data Memo 1",
                     "memo",
-                    selected,
-                    (start, start + len(selected)),
                 )
             )
             await pilot.pause()
 
             [item] = app._engine_adapter.state.basket.items
-            self.assertEqual(item.payload["selected_text"], selected)
-            self.assertEqual(item.payload["start"], start)
-            self.assertEqual(item.payload["end"], start + len(selected))
+            self.assertEqual(item.item_type, "document")
             self.assertEqual(item.payload["source_document_slug"], "project-demo-essay")
-            self.assertEqual(item.payload["source_match_status"], "range")
+            self.assertEqual(item.payload["document_type"], "memo")
+            self.assertNotIn("selected_text", item.payload)
+
+    async def test_search_result_add_to_basket_handler_refuses_full_transcript_in_non_confidential_project(self) -> None:
+        app = ShellWorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+
+            await app.on_workflow_pane_search_result_add_to_basket_requested(
+                WorkflowPane.SearchResultAddToBasketRequested(
+                    app.query_one(WorkflowPane),
+                    "project-notebook",
+                    "Transcript 1 - Participant 1 - 5.1.26",
+                    "transcript",
+                )
+            )
+            await pilot.pause()
+
+            self.assertEqual(app._engine_adapter.state.basket.items, [])
+            self.assertIn("Full transcripts cannot be added", app.query_one(WorkflowPane)._status_message)
 
     async def test_basket_excerpt_inspector_shows_excerpt_type_without_instructional_copy(self) -> None:
         app = ShellWorkflowTestApp(FakeBackend(configured=True))
@@ -6958,11 +7005,11 @@ class WorkflowPaneChatTests(unittest.IsolatedAsyncioTestCase):
             self.assertIsNotNone(backend.seen_tools[0])
             self.assertIsNone(backend.seen_tools[1])
             entries = workflow.active_chat.history_entries
-            self.assertTrue(any(isinstance(entry, HistoryActionResultEntry) for entry in entries))
+            self.assertFalse(any(isinstance(entry, HistoryActionResultEntry) for entry in entries))
             self.assertTrue(any(isinstance(entry, HistorySearchEntry) for entry in entries))
             self.assertIn("I found matching context.", workflow.active_chat.messages[-1].content)
             transcript = workflow._rendered_history_text(workflow.active_chat)
-            self.assertIn("### App Action Result", transcript)
+            self.assertIn('### Search: "leadership"', transcript)
             self.assertNotIn("raw_provider", transcript)
 
     async def test_tool_follow_up_reasoning_and_text_are_transcript_only(self) -> None:
@@ -7107,6 +7154,42 @@ class WorkflowPaneChatTests(unittest.IsolatedAsyncioTestCase):
             await pilot.pause()
             self.assertEqual(app.dispatched_actions[0][0], "search_documents")
 
+    async def test_tool_call_preamble_stays_hidden_before_tool_arrives(self) -> None:
+        tool_call = ToolCallRequest(
+            provider="mistral",
+            tool_name="search_documents",
+            arguments={"query": "leadership"},
+            raw_call_id="call-search",
+        )
+        backend = DelayedToolCallWithPreambleBackend(tool_call)
+        app = WorkflowActionDispatchTestApp(backend)
+
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input).value = "Find leadership examples"
+            workflow = app.query_one(WorkflowPane)
+
+            workflow.send_active_message()
+            await asyncio.wait_for(backend.preamble_sent.wait(), timeout=2)
+            await pilot.pause()
+            history = workflow._history_for_slug(workflow.active_chat.slug)
+            rendered_sources = [widget.source_entry for widget in history.children if hasattr(widget, "source_entry")]
+
+            self.assertFalse(
+                any(
+                    isinstance(entry, HistoryTextEntry)
+                    and "more detailed prompt" in entry.content
+                    for entry in rendered_sources
+                )
+            )
+
+            backend.release_tool_call.set()
+            for _ in range(12):
+                await pilot.pause()
+                if not workflow.active_chat.generating:
+                    break
+            self.assertEqual(app.dispatched_actions[0][0], "search_documents")
+
     async def test_follow_up_ignores_recursive_tool_call_from_provider(self) -> None:
         tool_call = ToolCallRequest(
             provider="mistral",
@@ -7131,7 +7214,7 @@ class WorkflowPaneChatTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual([action[0] for action in app.dispatched_actions], ["search_documents"])
             self.assertEqual(
                 sum(isinstance(entry, HistoryActionResultEntry) for entry in workflow.active_chat.history_entries),
-                1,
+                0,
             )
             self.assertEqual(
                 sum(isinstance(entry, HistorySearchEntry) for entry in workflow.active_chat.history_entries),
@@ -7350,6 +7433,36 @@ class WorkflowPaneChatTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual([type(entry) for entry in rendered_entries], [HistoryTextEntry, HistoryStatusEntry])
             self.assertEqual(rendered_entries[1].content, NON_CONFIDENTIAL_TRANSCRIPT_WARNING)
             self.assertIsNone(app._backend.last_context)
+
+    async def test_search_prompt_while_transcript_open_does_not_trigger_withheld_warning(self) -> None:
+        tool_call = ToolCallRequest(
+            provider="mistral",
+            tool_name="search_documents",
+            arguments={"query": "leadership"},
+            raw_call_id="call-search",
+        )
+        app = WorkflowTranscriptActionDispatchTestApp(ToolCallBackend(tool_call))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+            composer.value = "Find references to leadership"
+            workflow = app.query_one(WorkflowPane)
+
+            workflow.send_active_message()
+            for _ in range(12):
+                await pilot.pause()
+                if not workflow.active_chat.generating:
+                    break
+
+            self.assertEqual(app.dispatched_actions[0][0], "search_documents")
+            self.assertFalse(
+                any(
+                    isinstance(entry, HistoryStatusEntry)
+                    and entry.content == NON_CONFIDENTIAL_TRANSCRIPT_WARNING
+                    for entry in workflow.active_chat.history_entries
+                )
+            )
+            self.assertTrue(any(isinstance(entry, HistorySearchEntry) for entry in workflow.active_chat.history_entries))
 
     async def test_notebook_display_order_is_chronological_with_latest_at_bottom(self) -> None:
         app = WorkflowTestApp(FakeBackend(configured=True))
@@ -7709,7 +7822,7 @@ class WorkflowPaneChatTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(app.messages[-1].match_range, (15, 20))
             self.assertEqual(str(app.query_one("#search-result-count-1", Static).render()), "2/3")
 
-    async def test_search_result_add_button_requests_basket_excerpt_for_current_match(self) -> None:
+    async def test_search_result_add_button_requests_basket_document_for_result(self) -> None:
         app = WorkflowTestApp(FakeBackend(configured=False))
         search_entry = HistorySearchEntry(
             query="alpha",
@@ -7746,8 +7859,8 @@ class WorkflowPaneChatTests(unittest.IsolatedAsyncioTestCase):
             message = app.messages[-1]
             self.assertIsInstance(message, WorkflowPane.SearchResultAddToBasketRequested)
             self.assertEqual(message.document_slug, CURRENT_DRAFT_SLUG)
-            self.assertEqual(message.excerpt, "alpha two")
-            self.assertEqual(message.match_range, (15, 20))
+            self.assertEqual(message.document_title, "current_draft.md")
+            self.assertEqual(message.document_type, "draft")
             self.assertEqual(search_entry.selected_match_indices[CURRENT_DRAFT_SLUG], 1)
 
     async def test_single_match_search_result_hides_navigation_arrows(self) -> None:
