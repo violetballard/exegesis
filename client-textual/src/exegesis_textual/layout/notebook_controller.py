@@ -58,6 +58,7 @@ class NotebookControllerMixin:
             proposed_text=patch.proposed_text,
             instruction_text=patch.instruction_text,
             source_chat_slug=patch.source_chat_slug,
+            block_insert=message.block_insert,
         )
         document_pane.show_pending_rewrite(preview)
         workflow_pane.show_patch_review(
@@ -70,6 +71,7 @@ class NotebookControllerMixin:
                 proposed_text=patch.proposed_text,
                 document_slug=patch.document_id,
                 target_range=patch.target_range,
+                block_insert=preview.block_insert,
             )
         )
         self._show_subject(
@@ -96,6 +98,21 @@ class NotebookControllerMixin:
         self._set_status(f"Opened search result: {message.document_title}. Selection is ready to add to the basket.")
         self._show_document_subject(active, refresh_notebook_context=False)
 
+    async def on_workflow_pane_search_result_add_to_basket_requested(self, message: WorkflowPane.SearchResultAddToBasketRequested) -> None:
+        result = await self.dispatch_app_action(
+            "add_excerpt_to_basket",
+            {
+                "document": message.document_slug,
+                "excerpt": message.excerpt,
+                "start": message.match_range[0] if message.match_range is not None else None,
+                "end": message.match_range[1] if message.match_range is not None else None,
+            },
+            source="notebook",
+            confirmed=True,
+        )
+        self.query_one(WorkflowPane).set_status(result.message)
+        self._set_status(result.message)
+
     def on_workflow_pane_draft_requested(self, message: WorkflowPane.DraftRequested) -> None:
         document_pane = self.query_one(DocumentPane)
         workflow_pane = self.query_one(WorkflowPane)
@@ -106,6 +123,8 @@ class NotebookControllerMixin:
             generated_text=message.generated_text,
             instruction_text=message.instruction_text,
             source_chat_slug=message.chat_slug,
+            target_range=message.target_range,
+            block_insert=message.block_insert,
         )
         if preview is None:
             workflow_pane.set_status("Draft generation finished, but the proposal could not be prepared.")
@@ -120,6 +139,7 @@ class NotebookControllerMixin:
                 proposed_text=preview.proposed_text,
                 document_slug=preview.document_slug,
                 target_range=preview.target_range,
+                block_insert=preview.block_insert,
             )
         )
         self._show_subject(
@@ -140,7 +160,7 @@ class NotebookControllerMixin:
         if message.decision == "apply":
             if not is_draft_patch:
                 self._rewrite_adapter.apply_patch(message.patch_id)
-            preview = document_pane.apply_pending_rewrite(message.patch_id)
+            preview = document_pane.apply_pending_rewrite(message.patch_id, focus_selection=False)
             if preview is not None:
                 self._dirty_document_slugs.add(preview.document_slug)
                 self._sync_save_controls()
@@ -165,6 +185,7 @@ class NotebookControllerMixin:
                     f"Rejected {action_label} for {DOCUMENT_FIXTURES[preview.document_slug].title}.",
                 )
         self._sync_terminal_patch_card()
+        workflow_pane.focus_editor()
 
     def on_workflow_pane_transcript_saved(self, message: WorkflowPane.TranscriptSaved) -> None:
         chat = message.chat
@@ -258,20 +279,28 @@ class NotebookControllerMixin:
             document_title=str(raw.get("document_title", "current_draft.md")),
             document_type=str(raw.get("document_type", "draft")),
             document_content=str(raw.get("document_content", "")),
-            confidentiality_mode=str(raw.get("confidentiality_mode", "online")),
+            confidentiality_mode=str(raw.get("confidentiality_mode", "non-confidential")),
             basket_context=str(raw.get("basket_context", "")),
+            selected_text=str(raw.get("selected_text", "")),
+            selection_start=raw.get("selection_start") if isinstance(raw.get("selection_start"), int) else None,
+            selection_end=raw.get("selection_end") if isinstance(raw.get("selection_end"), int) else None,
         )
 
-    def shell_chat_context(self) -> dict[str, str]:
+    def shell_chat_context(self) -> dict[str, object]:
         document = self.query_one(DocumentPane).active_document
-        document_content = "" if document.is_transcript else document.content
+        selection = self.query_one(DocumentPane).current_selection_snapshot()
+        confidential = self._current_project_is_confidential()
+        document_content = "" if document.is_transcript and not confidential else document.content
         return {
             "project_name": self._current_project_name,
             "document_title": document.title,
             "document_type": document.document_type,
             "document_content": document_content,
-            "confidentiality_mode": "online",
+            "confidentiality_mode": "local-confidential" if confidential else "non-confidential",
             "basket_context": self._serialize_basket_context(),
+            "selected_text": selection.selected_text if selection is not None else "",
+            "selection_start": selection.start if selection is not None else None,
+            "selection_end": selection.end if selection is not None else None,
         }
 
     def _refresh_notebook_context_meter(self) -> None:
@@ -415,7 +444,7 @@ class NotebookControllerMixin:
             )
         )
         chunks: list[str] = []
-        remaining = TERMINAL_CONTEXT_WINDOW_TOKENS * 4
+        remaining = self._workflow_context_window_tokens() * 4
         for index, entry in enumerate(entries, start=1):
             header = (
                 f"[{index}] kind={entry.kind}\n"
@@ -438,3 +467,16 @@ class NotebookControllerMixin:
             if remaining <= 0:
                 break
         return "\n\n".join(chunks)
+
+    def _workflow_context_window_tokens(self) -> int:
+        try:
+            workflow = self.query_one(WorkflowPane)
+        except Exception:
+            return TERMINAL_CONTEXT_WINDOW_TOKENS
+        context_window = getattr(workflow, "_context_window_tokens", None)
+        if callable(context_window):
+            try:
+                return int(context_window())
+            except (TypeError, ValueError):
+                return TERMINAL_CONTEXT_WINDOW_TOKENS
+        return TERMINAL_CONTEXT_WINDOW_TOKENS

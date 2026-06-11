@@ -147,6 +147,10 @@ class BasketPane(Vertical):
         entry = self.selected_entry()
         return self.remove_entry(entry.slug if entry is not None else None)
 
+    def clear_entries(self) -> None:
+        for slug in list(self._entries):
+            self.remove_entry(slug)
+
     def has_list_focus(self) -> bool:
         return any(
             self.query_one(f"#{list_id}", OptionList).has_focus

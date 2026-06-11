@@ -5,6 +5,17 @@ from typing import Protocol
 
 KEYRING_SERVICE = "exegesis.developer.providers"
 MISTRAL_ACCOUNT = "mistral"
+CLAUDE_ACCOUNT = "claude"
+GOOGLE_ACCOUNT = "google"
+OPENAI_ACCOUNT = "openai"
+LOCAL_OPENAI_ACCOUNT = "local_openai"
+PROVIDER_CREDENTIAL_ACCOUNTS = {
+    MISTRAL_ACCOUNT: MISTRAL_ACCOUNT,
+    CLAUDE_ACCOUNT: CLAUDE_ACCOUNT,
+    GOOGLE_ACCOUNT: GOOGLE_ACCOUNT,
+    OPENAI_ACCOUNT: OPENAI_ACCOUNT,
+    LOCAL_OPENAI_ACCOUNT: LOCAL_OPENAI_ACCOUNT,
+}
 
 
 class CredentialStoreError(RuntimeError):
@@ -116,9 +127,14 @@ __all__ = [
     "CredentialStore",
     "CredentialStoreError",
     "CredentialStoreStatus",
+    "CLAUDE_ACCOUNT",
+    "GOOGLE_ACCOUNT",
     "InMemoryCredentialStore",
     "KEYRING_SERVICE",
     "KeyringCredentialStore",
+    "LOCAL_OPENAI_ACCOUNT",
     "MISTRAL_ACCOUNT",
+    "OPENAI_ACCOUNT",
+    "PROVIDER_CREDENTIAL_ACCOUNTS",
     "UnavailableCredentialStore",
 ]

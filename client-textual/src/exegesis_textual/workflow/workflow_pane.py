@@ -1,19 +1,29 @@
 from __future__ import annotations
 
 import asyncio
-from dataclasses import dataclass, field
+import json
+import re
+from dataclasses import dataclass, field, replace
 from math import ceil
 from pathlib import Path
+from uuid import uuid4
 
 from textual import events
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.message import Message
-from textual.widgets import Button, Input, LoadingIndicator, Markdown, Static, TabPane, TabbedContent
+from textual.widgets import Button, LoadingIndicator, Markdown, Static, TabPane, TabbedContent
 from textual.worker import Worker
 
+from exegesis_textual.actions.registry import (
+    AppActionResult,
+    ToolCallRequest,
+    get_app_action_spec,
+    provider_tool_specs,
+)
 from exegesis_textual.cards.patch_card import PatchReviewCardData
 from exegesis_textual.panes import PaneCopy
+from exegesis_textual.widgets import SystemClipboardInput as Input
 from exegesis_textual.workflow.mistral_chat import (
     ChatEvent,
     ChatMessage,
@@ -22,6 +32,7 @@ from exegesis_textual.workflow.mistral_chat import (
     ShellChatContext,
     TerminalChatBackend,
 )
+from exegesis_textual.services.model_settings import DEFAULT_CONTEXT_WINDOW_TOKENS
 
 WORKFLOW_PANE_COPY = PaneCopy(
     pane_id="workflow-pane",
@@ -48,7 +59,8 @@ WORKFLOW_COMPACT_CHAT_ID = "workflow-compact-chat"
 WORKFLOW_CLOSE_CHAT_ID = "workflow-close-chat"
 WORKFLOW_ARTIFACTS_DIR = Path(__file__).resolve().parents[3] / ".artifacts" / "transcripts"
 PRIMARY_CHAT_SLUG = "chat-main"
-TERMINAL_CONTEXT_WINDOW_TOKENS = 256 * 1024
+TERMINAL_CONTEXT_WINDOW_TOKENS = DEFAULT_CONTEXT_WINDOW_TOKENS
+COMMAND_HISTORY_LIMIT = 100
 CONTEXT_EARLY_COMPACT_PROMPT_RATIO = 0.75
 CONTEXT_STRONG_COMPACT_PROMPT_RATIO = 0.90
 CONTEXT_HARD_LIMIT_RATIO = 1.0
@@ -58,6 +70,68 @@ NON_CONFIDENTIAL_TRANSCRIPT_WARNING = (
     "Non-confidential warning: full transcripts are not loaded into model context. "
     "Use excerpts, selected passages, search snippets, or text you provide here."
 )
+EXCERPT_INTENT_TERMS = (
+    "excerpt",
+    "quote",
+    "quoted",
+    "passage",
+    "snippet",
+    "selection",
+    "selected text",
+    "highlight",
+    "highlighted",
+)
+SAFE_TRANSCRIPT_FILE_ACTION_TERMS = (
+    "close",
+    "close tab",
+    "delete",
+    "delete forever",
+    "move to trash",
+    "permanently delete",
+    "remove",
+    "rename",
+    "restore",
+    "trash",
+    "update item",
+)
+RESTORE_TRASH_INTENT_TERMS = ("restore", "recover", "put back", "bring back")
+PERMANENT_DELETE_INTENT_TERMS = ("delete forever", "permanently delete", "permanent delete", "purge")
+DELETE_TO_TRASH_INTENT_TERMS = ("delete", "move to trash", "remove", "trash")
+_DRAFT_INTENT_RE = re.compile(
+    r"^\s*(?:please\s+)?(?:(?:can|could|would)\s+you\s+)?(?:write|draft|compose|generate)\b",
+    re.IGNORECASE,
+)
+_DRAFT_TEXT_OBJECT_RE = re.compile(
+    r"\b(?:abstract|body|conclusion|draft|finding|findings|introduction|paragraph|passage|section|sentence)\b",
+    re.IGNORECASE,
+)
+_DRAFT_ADD_CREATE_RE = re.compile(r"^\s*(?:please\s+)?(?:add|create)\b", re.IGNORECASE)
+_REWRITE_VERB_RE = re.compile(
+    r"\b(?:shorten|tighten|condense|revise|rewrite|edit|polish|clarify|simplify|expand)\b",
+    re.IGNORECASE,
+)
+_REWRITE_MAKE_RE = re.compile(
+    r"\bmake\s+(?:it|this|that|the\s+(?:current\s+)?(?:selection|excerpt|passage|text))\b.*"
+    r"\b(?:shorter|longer|clearer|stronger|tighter|more|less|concise|specific|polished|academic|readable)\b",
+    re.IGNORECASE,
+)
+_GENERAL_QUESTION_RE = re.compile(
+    r"^\s*(?:how\s+(?:do|should|can)\s+i|what\s+(?:is|are)|why\b|where\b|when\b|who\b|explain\b|tell\s+me\s+about\b)",
+    re.IGNORECASE,
+)
+_HEADING_LINE_RE = re.compile(r"^(?P<hashes>#{1,6})\s+(?P<title>.+?)\s*$")
+_DRAFT_HEADING_ALIASES = {
+    "abstract": ("abstract",),
+    "introduction": ("introduction", "intro"),
+    "background": ("background",),
+    "methods": ("methods", "methodology", "method"),
+    "methodology": ("methodology", "methods", "method"),
+    "findings": ("findings", "finding", "results", "result"),
+    "results": ("results", "result", "findings", "finding"),
+    "discussion": ("discussion",),
+    "conclusion": ("conclusion", "concluding"),
+    "references": ("references", "reference", "bibliography"),
+}
 
 
 @dataclass(frozen=True)
@@ -93,6 +167,7 @@ class HistoryTextEntry:
     role: str
     content: str
     streaming: bool = False
+    visible: bool = True
 
 
 @dataclass(frozen=True)
@@ -104,6 +179,8 @@ class HistoryStatusEntry:
 class HistoryReasoningEntry:
     content: str
     streaming: bool = False
+    revealed: bool = False
+    visible: bool = True
 
 
 def _display_document_type(document_type: str) -> str:
@@ -128,6 +205,7 @@ class HistoryRewriteEntry:
     proposed_text: str
     document_slug: str = ""
     target_range: tuple[int, int] | None = None
+    block_insert: bool = False
 
 
 @dataclass(frozen=True)
@@ -150,11 +228,40 @@ class HistoryCompactionPromptEntry:
 
 
 @dataclass(frozen=True)
+class HistoryActionRequestEntry:
+    action_id: str
+    label: str
+    message: str
+    payload: dict[str, object] = field(default_factory=dict)
+    conversation_turn_id: str | None = None
+    options: tuple[dict[str, object], ...] = field(default_factory=tuple)
+    input_name: str | None = None
+    input_placeholder: str = ""
+    request_id: str = field(default_factory=lambda: f"action-request-{uuid4().hex}")
+
+
+@dataclass(frozen=True)
+class HistoryActionResultEntry:
+    action_id: str
+    label: str
+    status: str
+    message: str
+    data: dict[str, object] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class DirectAppCommand:
+    action_id: str
+    payload: dict[str, object]
+
+
+@dataclass(frozen=True)
 class RewriteRequestTarget:
     document_slug: str
     document_title: str
     target_range: tuple[int, int]
     original_text: str
+    block_insert: bool = False
 
 
 @dataclass
@@ -172,9 +279,15 @@ class WorkflowChat:
     active_request_mode: str | None = None
     active_instruction_text: str = ""
     active_history_index: int | None = None
+    active_history_visible: bool = True
     active_reasoning_index: int | None = None
     active_rewrite_target: RewriteRequestTarget | None = None
+    active_draft_target_range: tuple[int, int] | None = None
+    active_draft_block_insert: bool = False
     pending_patch_id: str | None = None
+    command_history: list[str] = field(default_factory=list)
+    command_history_index: int | None = None
+    command_history_draft: str = ""
 
     @property
     def transcript_name(self) -> str:
@@ -282,7 +395,23 @@ class ReasoningTraceHistoryCard(Vertical):
 
     def compose(self) -> ComposeResult:
         yield Static("Reasoning Trace", classes="workflow-history-label workflow-reasoning-label")
-        yield Markdown(self.source_entry.content or ("…" if self.source_entry.streaming else ""), classes="workflow-history-message")
+        if self.source_entry.streaming:
+            with Horizontal(classes="workflow-history-loading-row"):
+                yield LoadingIndicator(classes="workflow-history-loading")
+                yield Static("Thinking...", classes="workflow-history-loading-text")
+        else:
+            yield Static("Thinking complete", classes="workflow-reasoning-summary")
+        if self.source_entry.revealed and not self.source_entry.streaming:
+            yield Markdown(self.source_entry.content or "(no reasoning text captured)", classes="workflow-history-message")
+        elif not self.source_entry.streaming:
+            yield Static("Click to reveal reasoning trace.", classes="workflow-reasoning-summary")
+
+    def on_click(self, event: events.Click) -> None:
+        event.stop()
+        if self.source_entry.streaming:
+            return
+        self.source_entry.revealed = not self.source_entry.revealed
+        self.refresh(recompose=True)
 
 
 class SearchResultsCard(Vertical):
@@ -306,6 +435,13 @@ class SearchResultsCard(Vertical):
             self.result = result
             self.match_index = match_index
 
+    class AddToBasketRequested(Message):
+        def __init__(self, card: "SearchResultsCard", result: SearchResultItem, match_index: int) -> None:
+            super().__init__()
+            self.card = card
+            self.result = result
+            self.match_index = match_index
+
     def __init__(self, entry: HistorySearchEntry) -> None:
         super().__init__(classes="workflow-card workflow-search-card")
         self._entry = entry
@@ -320,6 +456,7 @@ class SearchResultsCard(Vertical):
             return
         yield Static(f"{len(self._entry.results)} matching document(s)", classes="workflow-card-meta")
         for index, result in enumerate(self._entry.results, start=1):
+            add_id = f"search-result-add-{index}"
             button_id = f"search-result-{index}"
             prev_id = f"search-result-prev-{index}"
             next_id = f"search-result-next-{index}"
@@ -327,6 +464,7 @@ class SearchResultsCard(Vertical):
             self._selected_match_index.setdefault(index - 1, initial_match_index)
             with Vertical(classes="workflow-search-result"):
                 with Horizontal(classes="workflow-search-result-row"):
+                    yield self.ResultControl(self, index - 1, "basket", "Add", id=add_id, classes="workflow-search-result-add")
                     yield self.ResultControl(self, index - 1, "open", result.title, id=button_id, classes="workflow-search-result-title")
                     yield Static(self._match_label(result, initial_match_index), id=f"search-result-count-{index}", classes="workflow-card-meta workflow-search-result-count")
                     if result.match_count() > 1:
@@ -356,6 +494,9 @@ class SearchResultsCard(Vertical):
         self._selected_match_index[result_index] = current_index
         self._entry.selected_match_indices[result.document_slug] = current_index
         self._refresh_match_display(result_index, result, current_index)
+        if action == "basket":
+            self.post_message(self.AddToBasketRequested(self, result, current_index))
+            return
         self.post_message(self.ResultSelected(self, result, current_index))
 
     def _refresh_match_display(self, result_index: int, result: SearchResultItem, match_index: int) -> None:
@@ -488,6 +629,105 @@ class CompactionPromptCard(Vertical):
             self.post_message(self.NewChatRequested(self))
 
 
+class ActionRequestCard(Vertical):
+    class ConfirmRequested(Message):
+        def __init__(self, card: "ActionRequestCard", entry: HistoryActionRequestEntry) -> None:
+            super().__init__()
+            self.card = card
+            self.entry = entry
+
+    class CancelRequested(Message):
+        def __init__(self, card: "ActionRequestCard", entry: HistoryActionRequestEntry) -> None:
+            super().__init__()
+            self.card = card
+            self.entry = entry
+
+    def __init__(self, entry: HistoryActionRequestEntry) -> None:
+        super().__init__(classes="workflow-card workflow-action-card")
+        self._entry = entry
+        self.border_title = "Action Request"
+
+    def compose(self) -> ComposeResult:
+        yield Static(self._entry.label, classes="workflow-card-title")
+        yield Static(self._entry.message, classes="workflow-card-body")
+        payload_text = self._payload_summary()
+        if payload_text:
+            yield Static(payload_text, classes="workflow-card-meta")
+        if self._entry.input_name:
+            yield Input(
+                placeholder=self._entry.input_placeholder or self._entry.input_name.replace("_", " ").title(),
+                id="action-request-input",
+            )
+        with Horizontal(classes="workflow-history-card-actions"):
+            if self._entry.options:
+                for index, option in enumerate(self._entry.options):
+                    label = str(option.get("label") or f"Option {index + 1}")
+                    classes = str(option.get("classes") or "compact-action-primary")
+                    yield Button(label, id=f"action-request-option-{index}", classes=classes)
+            else:
+                yield Button("Confirm", id="action-request-confirm", classes="compact-action-primary")
+                yield Button("Cancel", id="action-request-cancel", classes="compact-action-warning")
+
+    def _payload_summary(self) -> str:
+        lines: list[str] = []
+        for key, value in sorted(self._entry.payload.items()):
+            if str(key).startswith("_") or value in (None, ""):
+                continue
+            lines.append(f"- {key}: {value}")
+        return "\n".join(lines)
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "action-request-confirm":
+            self.post_message(self.ConfirmRequested(self, self._entry))
+        elif event.button.id == "action-request-cancel":
+            self.post_message(self.CancelRequested(self, self._entry))
+        elif event.button.id and event.button.id.startswith("action-request-option-"):
+            index_text = event.button.id.removeprefix("action-request-option-")
+            try:
+                option = self._entry.options[int(index_text)]
+            except (IndexError, ValueError):
+                return
+            payload = dict(self._entry.payload)
+            payload.update(dict(option.get("payload") or {}))
+            if self._entry.input_name:
+                try:
+                    input_value = self.query_one("#action-request-input", Input).value.strip()
+                except Exception:
+                    input_value = ""
+                if input_value:
+                    payload[self._entry.input_name] = input_value
+            if option.get("cancel"):
+                self.post_message(self.CancelRequested(self, self._entry))
+                return
+            self.post_message(self.ConfirmRequested(self, replace(self._entry, payload=payload)))
+
+
+class ActionResultCard(Vertical):
+    def __init__(self, entry: HistoryActionResultEntry) -> None:
+        super().__init__(classes="workflow-card workflow-action-card")
+        self._entry = entry
+        self.border_title = "Action Result"
+
+    def compose(self) -> ComposeResult:
+        yield Static(self._entry.label, classes="workflow-card-title")
+        yield Static(f"{self._status_label()}: {self._entry.message}", classes="workflow-card-body workflow-action-result-body")
+        summary = self._data_summary()
+        if summary:
+            yield Static(summary, classes="workflow-card-meta")
+
+    def _status_label(self) -> str:
+        return self._entry.status.replace("_", " ").capitalize()
+
+    def _data_summary(self) -> str:
+        if not self._entry.data:
+            return ""
+        if self._entry.action_id == "search_documents":
+            results = self._entry.data.get("results")
+            if isinstance(results, list):
+                return f"{len(results)} result(s) available."
+        return "\n".join(f"- {key}: {value}" for key, value in sorted(self._entry.data.items()) if isinstance(value, (str, int, float, bool)))
+
+
 class WorkflowPane(Vertical):
     class ChatActivated(Message):
         def __init__(self, workflow_pane: "WorkflowPane", chat: WorkflowChat) -> None:
@@ -530,12 +770,16 @@ class WorkflowPane(Vertical):
             chat_slug: str,
             instruction_text: str,
             generated_text: str,
+            target_range: tuple[int, int] | None = None,
+            block_insert: bool = False,
         ) -> None:
             super().__init__()
             self.workflow_pane = workflow_pane
             self.chat_slug = chat_slug
             self.instruction_text = instruction_text
             self.generated_text = generated_text
+            self.target_range = target_range
+            self.block_insert = block_insert
 
     class SearchResultSelected(Message):
         def __init__(
@@ -551,6 +795,24 @@ class WorkflowPane(Vertical):
             self.document_title = document_title
             self.match_range = match_range
 
+    class SearchResultAddToBasketRequested(Message):
+        def __init__(
+            self,
+            workflow_pane: "WorkflowPane",
+            document_slug: str,
+            document_title: str,
+            document_type: str,
+            excerpt: str,
+            match_range: tuple[int, int] | None,
+        ) -> None:
+            super().__init__()
+            self.workflow_pane = workflow_pane
+            self.document_slug = document_slug
+            self.document_title = document_title
+            self.document_type = document_type
+            self.excerpt = excerpt
+            self.match_range = match_range
+
     class RewriteProposalReady(Message):
         def __init__(
             self,
@@ -562,6 +824,7 @@ class WorkflowPane(Vertical):
             original_text: str,
             instruction_text: str,
             proposed_text: str,
+            block_insert: bool = False,
         ) -> None:
             super().__init__()
             self.workflow_pane = workflow_pane
@@ -572,6 +835,7 @@ class WorkflowPane(Vertical):
             self.original_text = original_text
             self.instruction_text = instruction_text
             self.proposed_text = proposed_text
+            self.block_insert = block_insert
 
     class PatchDecisionRequested(Message):
         def __init__(self, workflow_pane: "WorkflowPane", patch_id: str, decision: str) -> None:
@@ -634,6 +898,16 @@ class WorkflowPane(Vertical):
     def refresh_context_meter(self) -> None:
         if self.is_mounted:
             self._sync_status()
+
+    def _context_window_tokens(self) -> int:
+        context_window = getattr(self._backend, "context_window_tokens", None)
+        if callable(context_window):
+            try:
+                tokens = int(context_window())
+            except (TypeError, ValueError):
+                return TERMINAL_CONTEXT_WINDOW_TOKENS
+            return tokens if tokens >= 0 else TERMINAL_CONTEXT_WINDOW_TOKENS
+        return TERMINAL_CONTEXT_WINDOW_TOKENS
 
     async def new_chat(self) -> WorkflowChat:
         slug = f"chat-{self._chat_counter:02d}"
@@ -765,7 +1039,12 @@ class WorkflowPane(Vertical):
         pending_proposal = self._pending_proposal_review_entry(self.active_chat)
         if pending_proposal is not None:
             if pending_proposal.patch_id.startswith("draft-"):
-                self._start_request("draft", proposal_feedback_entry=pending_proposal)
+                self._start_request(
+                    "draft",
+                    proposal_feedback_entry=pending_proposal,
+                    draft_target_range=pending_proposal.target_range,
+                    draft_block_insert=pending_proposal.block_insert,
+                )
                 return
             rewrite_target = self._rewrite_target_from_review_entry(pending_proposal)
             if rewrite_target is not None:
@@ -773,18 +1052,29 @@ class WorkflowPane(Vertical):
                 return
         self._start_request("chat")
 
-    def draft_into_document(self) -> None:
-        self._start_request("draft")
+    def draft_into_document(
+        self,
+        *,
+        target_range: tuple[int, int] | None = None,
+        block_insert: bool = False,
+        show_user_prompt: bool = True,
+    ) -> None:
+        self._start_request(
+            "draft",
+            draft_target_range=target_range,
+            draft_block_insert=block_insert,
+            show_user_prompt=show_user_prompt,
+        )
 
-    def rewrite_selection(self) -> None:
+    def rewrite_selection(self, target: RewriteRequestTarget | None = None, *, show_user_prompt: bool = True) -> None:
         if self.has_patch_review():
             self.set_status("Apply or reject the current revision proposal first.")
             return
-        rewrite_target = self._rewrite_context()
+        rewrite_target = target or self._rewrite_context()
         if rewrite_target is None:
             self.set_status("Select text in the document before requesting a rewrite.")
             return
-        self._start_request("rewrite", rewrite_target=rewrite_target)
+        self._start_request("rewrite", rewrite_target=rewrite_target, show_user_prompt=show_user_prompt)
 
     def search_documents(self) -> None:
         chat = self.active_chat
@@ -796,6 +1086,7 @@ class WorkflowPane(Vertical):
         if not query:
             self.set_status("Enter a search query first.")
             return
+        self._record_command_history(chat, query)
         composer.value = ""
         chat.history_entries.append(HistoryTextEntry("user", f"Search: {query}"))
         results = self._search_documents(query)
@@ -809,23 +1100,35 @@ class WorkflowPane(Vertical):
         *,
         rewrite_target: RewriteRequestTarget | None = None,
         proposal_feedback_entry: HistoryRewriteEntry | None = None,
+        draft_target_range: tuple[int, int] | None = None,
+        draft_block_insert: bool = False,
+        show_user_prompt: bool = True,
     ) -> None:
         chat = self.active_chat
         composer = self.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
         if chat.generating:
             self.set_status("Wait for the current response to finish.")
             return
+        prompt = composer.value.strip()
+        if request_mode == "chat" and self._handle_direct_app_command(prompt):
+            return
         if not self._backend.is_configured():
-            self.set_status("Open Model Settings and save a Mistral API key before using model actions.")
+            self.set_status("Open Model Settings and save an API key before using model actions.")
             request_settings = getattr(self.app, "shell_request_model_settings", None)
             if callable(request_settings):
                 request_settings()
             return
-        prompt = composer.value.strip()
         if not prompt:
             mode_text = "rewrite instruction" if request_mode == "rewrite" else "drafting instruction" if request_mode == "draft" else "message"
             self.set_status(f"Enter a {mode_text} first.")
             return
+        if request_mode == "chat":
+            request_mode, rewrite_target = self._infer_chat_model_action(prompt)
+        if request_mode == "draft" and draft_target_range is None:
+            inferred_draft_range = self._draft_target_range_from_prompt(prompt)
+            if inferred_draft_range is not None:
+                draft_target_range = inferred_draft_range
+                draft_block_insert = True
         shell_context = self._shell_context(rewrite_target)
         fixed_tokens = self._estimated_fixed_context_tokens_for_context(shell_context, request_mode)
         if self._fixed_context_is_too_large(fixed_tokens):
@@ -836,32 +1139,38 @@ class WorkflowPane(Vertical):
             self._sync_status()
             return
         used_tokens = self._estimated_used_tokens(chat)
-        if used_tokens >= int(TERMINAL_CONTEXT_WINDOW_TOKENS * CONTEXT_HARD_LIMIT_RATIO):
+        token_capacity = self._context_window_tokens()
+        if token_capacity > 0 and used_tokens >= int(token_capacity * CONTEXT_HARD_LIMIT_RATIO):
             self._show_compaction_prompt(
                 chat,
                 used_tokens,
                 "Estimated context is full. You may compact or start a new chat, but Exegesis will keep trying until the model refuses the request.",
             )
-        elif used_tokens >= int(TERMINAL_CONTEXT_WINDOW_TOKENS * CONTEXT_STRONG_COMPACT_PROMPT_RATIO):
+        elif token_capacity > 0 and used_tokens >= int(token_capacity * CONTEXT_STRONG_COMPACT_PROMPT_RATIO):
             self._show_compaction_prompt(
                 chat,
                 used_tokens,
                 "This chat is close to the context limit. You can compact now, start a new chat, or keep going.",
             )
-        elif used_tokens >= int(TERMINAL_CONTEXT_WINDOW_TOKENS * CONTEXT_EARLY_COMPACT_PROMPT_RATIO):
+        elif token_capacity > 0 and used_tokens >= int(token_capacity * CONTEXT_EARLY_COMPACT_PROMPT_RATIO):
             self._show_compaction_prompt(
                 chat,
                 used_tokens,
                 "This chat is getting long. You can compact soon, start a new chat, or keep going.",
             )
         request_prompt = self._proposal_feedback_prompt(prompt, proposal_feedback_entry) if proposal_feedback_entry is not None else prompt
+        if show_user_prompt:
+            self._record_command_history(chat, prompt)
         composer.value = ""
-        chat.messages.append(ChatMessage("user", request_prompt))
-        chat.messages.append(ChatMessage("assistant", "", streaming=True))
-        chat.history_entries.append(HistoryTextEntry("user", prompt))
-        if self._should_warn_about_withheld_transcript(shell_context):
+        chat.history_entries.append(HistoryTextEntry("user", prompt, visible=show_user_prompt))
+        if self._should_warn_about_withheld_transcript(shell_context, prompt):
             chat.history_entries.append(HistoryStatusEntry(NON_CONFIDENTIAL_TRANSCRIPT_WARNING))
             self.set_status("Full transcript withheld from non-confidential model context.")
+            self._render_chat(chat.slug)
+            self._sync_status()
+            return
+        chat.messages.append(ChatMessage("user", request_prompt))
+        chat.messages.append(ChatMessage("assistant", "", streaming=True))
         if request_mode in {"draft", "rewrite"}:
             chat.history_entries.append(HistoryStatusEntry(self._proposal_generation_status(request_mode)))
             chat.active_history_index = None
@@ -875,7 +1184,11 @@ class WorkflowPane(Vertical):
         chat.active_request_mode = request_mode
         chat.active_instruction_text = prompt
         chat.active_reasoning_index = None
+        chat.active_history_visible = True
         chat.active_rewrite_target = rewrite_target
+        chat.active_draft_target_range = draft_target_range
+        chat.active_draft_block_insert = draft_block_insert
+        self._begin_reasoning_entry(chat)
         self._render_chat(chat.slug)
         self._sync_status()
         self._workers[chat.slug] = self.run_worker(
@@ -887,8 +1200,193 @@ class WorkflowPane(Vertical):
             exclusive=True,
         )
 
-    def _should_warn_about_withheld_transcript(self, shell_context: ShellChatContext) -> bool:
-        return shell_context.document_type == "transcript" and shell_context.confidentiality_mode != "local-confidential"
+    def _handle_direct_app_command(self, prompt: str) -> bool:
+        command = self._direct_app_command_from_prompt(prompt)
+        if command is None:
+            return False
+        chat = self.active_chat
+        composer = self.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+        self._record_command_history(chat, prompt)
+        composer.value = ""
+        chat.messages.append(ChatMessage("user", prompt))
+        chat.history_entries.append(HistoryTextEntry("user", prompt))
+        try:
+            spec = get_app_action_spec(command.action_id)
+        except KeyError:
+            result = AppActionResult("failed", f"Unknown app action: {command.action_id}")
+            chat.history_entries.append(HistoryActionResultEntry(command.action_id, command.action_id, result.status, result.message, {}))
+            self.set_status(result.message)
+            self._render_chat(chat.slug)
+            self._sync_status()
+            return True
+        result = AppActionResult(
+            "pending_confirmation",
+            f"{spec.label} requires confirmation before Exegesis changes project state.",
+            card={
+                "type": "action_request",
+                "action_id": command.action_id,
+                "label": spec.label,
+                "payload": dict(command.payload),
+                "conversation_turn_id": f"{chat.slug}:direct:{uuid4()}",
+            },
+        )
+        chat.history_entries.append(
+            self._action_request_entry_from_result(
+                result,
+                fallback_action_id=command.action_id,
+                fallback_label=spec.label,
+                fallback_payload=dict(command.payload),
+                conversation_turn_id=None,
+            )
+        )
+        self.set_status(result.message)
+        self._render_chat(chat.slug)
+        self._sync_status()
+        return True
+
+    def _direct_app_command_from_prompt(self, prompt: str) -> DirectAppCommand | None:
+        text = prompt.strip()
+        if not text or self._looks_like_file_operation_question(text):
+            return None
+        if self._user_prompt_requests_permanent_delete(text):
+            target = self._direct_file_operation_target(text, "permanent_delete")
+            return DirectAppCommand("permanently_delete_trash_item", {"trash_item": target} if target else {})
+        if self._user_prompt_requests_restore(text):
+            target = self._direct_file_operation_target(text, "restore")
+            return DirectAppCommand("restore_trash_item", {"trash_item": target} if target else {})
+        if self._user_prompt_requests_delete_to_trash(text):
+            target = self._direct_file_operation_target(text, "delete")
+            return DirectAppCommand("move_document_to_trash", {"document": target} if target else {})
+        return None
+
+    @staticmethod
+    def _looks_like_file_operation_question(prompt: str) -> bool:
+        normalized = prompt.strip().casefold()
+        return normalized.startswith(("how do i ", "how can i ", "what happens", "why "))
+
+    def _infer_chat_model_action(self, prompt: str) -> tuple[str, RewriteRequestTarget | None]:
+        if self._looks_like_general_instruction_question(prompt):
+            return "chat", None
+        rewrite_target = self._rewrite_context()
+        if rewrite_target is not None and self._prompt_requests_selection_rewrite(prompt):
+            return "rewrite", rewrite_target
+        if self._prompt_requests_active_document_draft(prompt):
+            return "draft", None
+        return "chat", None
+
+    @staticmethod
+    def _looks_like_general_instruction_question(prompt: str) -> bool:
+        return bool(_GENERAL_QUESTION_RE.search(prompt.strip()))
+
+    @staticmethod
+    def _prompt_requests_selection_rewrite(prompt: str) -> bool:
+        normalized = prompt.strip()
+        return bool(_REWRITE_VERB_RE.search(normalized) or _REWRITE_MAKE_RE.search(normalized))
+
+    @staticmethod
+    def _prompt_requests_active_document_draft(prompt: str) -> bool:
+        normalized = prompt.strip()
+        if _DRAFT_INTENT_RE.search(normalized):
+            return True
+        return bool(_DRAFT_ADD_CREATE_RE.search(normalized) and _DRAFT_TEXT_OBJECT_RE.search(normalized))
+
+    def _draft_target_range_from_prompt(self, prompt: str) -> tuple[int, int] | None:
+        heading = self._draft_heading_from_prompt(prompt)
+        if not heading:
+            return None
+        shell_context = self._shell_context(None)
+        return self._document_section_body_range(shell_context.document_content, heading)
+
+    def _draft_heading_from_prompt(self, prompt: str) -> str | None:
+        shell_context = self._shell_context(None)
+        document_headings = self._document_headings(shell_context.document_content)
+        if not document_headings:
+            return None
+        prompt_text = self._normalized_prompt_match_text(prompt)
+        for heading in sorted(document_headings, key=lambda value: len(value), reverse=True):
+            heading_key = self._normalized_prompt_match_text(heading)
+            if not heading_key:
+                continue
+            variants = _DRAFT_HEADING_ALIASES.get(heading_key, (heading_key,))
+            if any(self._prompt_contains_phrase(prompt_text, variant) for variant in variants):
+                return heading
+        return None
+
+    @staticmethod
+    def _document_headings(document_text: str) -> tuple[str, ...]:
+        headings: list[str] = []
+        for line in document_text.splitlines():
+            match = _HEADING_LINE_RE.match(line.strip())
+            if not match:
+                continue
+            title = match.group("title").strip().strip("*_`").rstrip(":").strip()
+            if title:
+                headings.append(title)
+        return tuple(headings)
+
+    @staticmethod
+    def _document_section_body_range(document_text: str, heading: str) -> tuple[int, int] | None:
+        target = WorkflowPane._normalized_prompt_match_text(heading)
+        if not target:
+            return None
+        lines = document_text.splitlines(keepends=True)
+        offset = 0
+        for index, line in enumerate(lines):
+            match = _HEADING_LINE_RE.match(line.strip())
+            if match is None or WorkflowPane._normalized_prompt_match_text(match.group("title")) != target:
+                offset += len(line)
+                continue
+            section_start = offset + len(line)
+            section_end = len(document_text)
+            next_offset = section_start
+            for next_line in lines[index + 1 :]:
+                if _HEADING_LINE_RE.match(next_line.strip()):
+                    section_end = next_offset
+                    break
+                next_offset += len(next_line)
+            return (section_start, section_end)
+        return None
+
+    @staticmethod
+    def _normalized_prompt_match_text(value: str) -> str:
+        return " ".join(re.sub(r"[^a-z0-9]+", " ", value.casefold()).split())
+
+    @staticmethod
+    def _prompt_contains_phrase(prompt_text: str, phrase: str) -> bool:
+        normalized_phrase = WorkflowPane._normalized_prompt_match_text(phrase)
+        if not normalized_phrase:
+            return False
+        return bool(re.search(rf"(?:^|\s){re.escape(normalized_phrase)}(?:\s|$)", prompt_text))
+
+    @staticmethod
+    def _direct_file_operation_target(prompt: str, operation: str) -> str:
+        target = prompt.strip().strip(" \t\r\n.!?")
+        target = re.sub(r"^\s*(please\s+)?((can|could|would)\s+you\s+)?", "", target, flags=re.IGNORECASE)
+        if operation == "restore":
+            target = re.sub(r"^\s*(restore|recover|put\s+back|bring\s+back)\s+", "", target, flags=re.IGNORECASE)
+            target = re.sub(r"\s+(from|out\s+of)\s+(the\s+)?trash\s*$", "", target, flags=re.IGNORECASE)
+        elif operation == "permanent_delete":
+            target = re.sub(r"^\s*(permanently\s+delete|permanent\s+delete|delete\s+forever|purge)\s+", "", target, flags=re.IGNORECASE)
+            target = re.sub(r"\s+(from|out\s+of)\s+(the\s+)?trash\s*$", "", target, flags=re.IGNORECASE)
+        else:
+            target = re.sub(r"^\s*(delete|remove|trash)\s+", "", target, flags=re.IGNORECASE)
+            target = re.sub(r"^\s*move\s+", "", target, flags=re.IGNORECASE)
+            target = re.sub(r"\s+(to|into)\s+(the\s+)?trash\s*$", "", target, flags=re.IGNORECASE)
+            target = re.sub(r"\s+from\s+(the\s+)?project\s*$", "", target, flags=re.IGNORECASE)
+        target = re.sub(r"^\s*(the\s+)?(document|file|item)\s+(named|called)?\s*", "", target, flags=re.IGNORECASE)
+        target = target.strip(" \t\r\n\"'`")
+        if target.casefold() in {"", "it", "this", "that", "current", "selected"}:
+            return ""
+        return target
+
+    def _should_warn_about_withheld_transcript(self, shell_context: ShellChatContext, prompt: str) -> bool:
+        if shell_context.document_type != "transcript" or shell_context.confidentiality_mode == "local-confidential":
+            return False
+        if shell_context.selected_text.strip() and self._user_prompt_requests_excerpt(prompt):
+            return False
+        if self._user_prompt_requests_safe_transcript_file_action(prompt):
+            return False
+        return True
 
     def stop_active_generation(self) -> None:
         chat = self.active_chat
@@ -903,6 +1401,8 @@ class WorkflowPane(Vertical):
         chat.active_request_mode = None
         chat.active_instruction_text = ""
         chat.active_rewrite_target = None
+        chat.active_draft_target_range = None
+        chat.active_draft_block_insert = False
         if chat.messages and chat.messages[-1].role == "assistant":
             chat.messages[-1].streaming = False
         self._finalize_active_history_entry(chat)
@@ -940,6 +1440,7 @@ class WorkflowPane(Vertical):
                 proposed_text=data.proposed_text,
                 document_slug=data.document_slug,
                 target_range=data.target_range,
+                block_insert=data.block_insert,
             )
         )
         chat.pending_patch_id = data.patch_id
@@ -971,6 +1472,7 @@ class WorkflowPane(Vertical):
             document_title=entry.document_title,
             target_range=entry.target_range,
             original_text=entry.original_text,
+            block_insert=entry.block_insert,
         )
 
     @staticmethod
@@ -1024,9 +1526,238 @@ class WorkflowPane(Vertical):
         await self.new_chat()
         self.set_status("Started a new chat instead of compacting.")
 
+    async def on_action_request_card_confirm_requested(self, message: ActionRequestCard.ConfirmRequested) -> None:
+        target_chat = self.active_chat
+        if self._pending_action_request_index(message.entry, chat=target_chat) is None:
+            self.set_status(f"{message.entry.label} is no longer active.")
+            self._sync_status()
+            return
+        result = await self._dispatch_confirmed_action_request(message.entry)
+        self._replace_action_request_with_result(message.entry, result, chat=target_chat)
+        self.set_status(result.message)
+        self._render_chat(self.active_chat.slug)
+        self._sync_status()
+
+    async def on_action_request_card_cancel_requested(self, message: ActionRequestCard.CancelRequested) -> None:
+        target_chat = self.active_chat
+        if self._pending_action_request_index(message.entry, chat=target_chat) is None:
+            self.set_status(f"{message.entry.label} is no longer active.")
+            self._sync_status()
+            return
+        result = AppActionResult("refused", f"Cancelled {message.entry.label}.")
+        self._replace_action_request_with_result(message.entry, result, chat=target_chat)
+        self.set_status(result.message)
+        self._render_chat(self.active_chat.slug)
+        self._sync_status()
+
+    async def _dispatch_confirmed_action_request(self, entry: HistoryActionRequestEntry) -> AppActionResult:
+        dispatcher = getattr(self.app, "dispatch_app_action", None)
+        if not callable(dispatcher):
+            return AppActionResult("failed", "The shell action dispatcher is unavailable.")
+        return await dispatcher(
+            entry.action_id,
+            dict(entry.payload),
+            source="model_tool",
+            conversation_turn_id=entry.conversation_turn_id,
+            confirmed=True,
+        )
+
+    def _replace_action_request_with_result(
+        self,
+        request_entry: HistoryActionRequestEntry,
+        result: AppActionResult,
+        *,
+        chat: WorkflowChat | None = None,
+    ) -> None:
+        target_chat = chat or self.active_chat
+        replacement: HistoryActionRequestEntry | HistoryActionResultEntry
+        if result.status == "pending_confirmation":
+            replacement = self._action_request_entry_from_result(
+                result,
+                fallback_action_id=request_entry.action_id,
+                fallback_label=request_entry.label,
+                fallback_payload=dict(request_entry.payload),
+                conversation_turn_id=request_entry.conversation_turn_id,
+            )
+        else:
+            replacement = HistoryActionResultEntry(
+                action_id=request_entry.action_id,
+                label=request_entry.label,
+                status=result.status,
+                message=result.message,
+                data=dict(result.data),
+            )
+        index = self._pending_action_request_index(request_entry, chat=target_chat)
+        if index is None:
+            target_chat.history_entries.append(replacement)
+        else:
+            target_chat.history_entries[index] = replacement
+
+    def _pending_action_request_index(
+        self,
+        request_entry: HistoryActionRequestEntry,
+        *,
+        chat: WorkflowChat | None = None,
+    ) -> int | None:
+        target_chat = chat or self.active_chat
+        for index, entry in enumerate(target_chat.history_entries):
+            if isinstance(entry, HistoryActionRequestEntry) and entry.request_id == request_entry.request_id:
+                return index
+        return None
+
+    def _active_action_request_entry(self, chat: WorkflowChat | None = None) -> HistoryActionRequestEntry | None:
+        target_chat = chat or self.active_chat
+        for entry in reversed(target_chat.history_entries):
+            if isinstance(entry, HistoryActionRequestEntry):
+                return entry
+        return None
+
+    def decide_active_notebook_card(self, decision: str) -> AppActionResult:
+        """Accept/reject the active proposal or action-confirmation card."""
+        normalized = "apply" if decision in {"apply", "accept", "confirm"} else "reject"
+        chat = self.active_chat
+        if chat.pending_patch_id is not None:
+            self.post_message(self.PatchDecisionRequested(self, chat.pending_patch_id, normalized))
+            verb = "Accepted" if normalized == "apply" else "Rejected"
+            return AppActionResult("completed", f"{verb} notebook proposal.")
+        request_entry = self._active_action_request_entry(chat)
+        if request_entry is None:
+            verb = "accept" if normalized == "apply" else "reject"
+            return AppActionResult("refused", f"No active notebook card to {verb}.")
+        if normalized == "apply":
+            self.run_worker(
+                self._confirm_action_request_from_shortcut(chat.slug, request_entry),
+                name=f"workflow-action-confirm-{chat.slug}",
+                group=f"chat:{chat.slug}",
+                thread=False,
+                exit_on_error=False,
+            )
+            return AppActionResult("completed", f"Confirming {request_entry.label}.")
+        result = AppActionResult("refused", f"Cancelled {request_entry.label}.")
+        self._replace_action_request_with_result(request_entry, result, chat=chat)
+        self.set_status(result.message)
+        self._render_chat(chat.slug)
+        self._sync_status()
+        return AppActionResult("completed", result.message)
+
+    async def _confirm_action_request_from_shortcut(self, chat_slug: str, request_entry: HistoryActionRequestEntry) -> None:
+        target_chat = WORKFLOW_CHATS.get(chat_slug)
+        if target_chat is None:
+            return
+        if self._pending_action_request_index(request_entry, chat=target_chat) is None:
+            self.set_status(f"{request_entry.label} is no longer active.")
+            self._sync_status()
+            return
+        result = await self._dispatch_confirmed_action_request(request_entry)
+        self._replace_action_request_with_result(request_entry, result, chat=target_chat)
+        self.set_status(result.message)
+        self._render_chat(chat_slug)
+        self._sync_status()
+
+    @staticmethod
+    def _action_request_entry_from_result(
+        result: AppActionResult,
+        *,
+        fallback_action_id: str,
+        fallback_label: str,
+        fallback_payload: dict[str, object],
+        conversation_turn_id: str | None,
+    ) -> HistoryActionRequestEntry:
+        card = result.card if isinstance(result.card, dict) else {}
+        action_id = str(card.get("action_id") or fallback_action_id)
+        payload = dict(fallback_payload)
+        if isinstance(card.get("payload"), dict):
+            payload.update(dict(card["payload"]))
+        raw_options = card.get("options")
+        options: tuple[dict[str, object], ...] = ()
+        if isinstance(raw_options, list):
+            options = tuple(option for option in raw_options if isinstance(option, dict))
+        raw_input = card.get("input")
+        input_name = None
+        input_placeholder = ""
+        if isinstance(raw_input, dict):
+            raw_name = raw_input.get("name")
+            input_name = str(raw_name) if raw_name else None
+            input_placeholder = str(raw_input.get("placeholder") or "")
+        raw_turn_id = card.get("conversation_turn_id") or conversation_turn_id
+        return HistoryActionRequestEntry(
+            action_id=action_id,
+            label=str(card.get("label") or fallback_label),
+            message=result.message,
+            payload=payload,
+            conversation_turn_id=str(raw_turn_id) if raw_turn_id else None,
+            options=options,
+            input_name=input_name,
+            input_placeholder=input_placeholder,
+        )
+
     def on_input_submitted(self, event: Input.Submitted) -> None:
         if event.input.id == WORKFLOW_COMPOSER_INPUT_ID:
             self.send_active_message()
+
+    def on_key(self, event: events.Key) -> None:
+        key_aliases = {event.key, *(getattr(event, "aliases", ()) or ())}
+        modifiers = {str(modifier).casefold() for modifier in (getattr(event, "modifiers", ()) or ())}
+        if "shift+enter" in key_aliases or (event.key == "enter" and "shift" in modifiers):
+            result = self.decide_active_notebook_card("apply")
+            self.set_status(result.message)
+            event.stop()
+            event.prevent_default()
+            return
+        if "escape" in key_aliases:
+            result = self.decide_active_notebook_card("reject")
+            self.set_status(result.message)
+            event.stop()
+            event.prevent_default()
+            return
+        if event.key not in {"up", "down"}:
+            return
+        composer = self.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+        if self.app.focused is not composer or composer.disabled:
+            return
+        direction = -1 if event.key == "up" else 1
+        if self._recall_command_history(direction):
+            event.stop()
+            event.prevent_default()
+
+    def _record_command_history(self, chat: WorkflowChat, prompt: str) -> None:
+        command = prompt.strip()
+        if not command:
+            return
+        if not chat.command_history or chat.command_history[-1] != command:
+            chat.command_history.append(command)
+            if len(chat.command_history) > COMMAND_HISTORY_LIMIT:
+                del chat.command_history[: len(chat.command_history) - COMMAND_HISTORY_LIMIT]
+        chat.command_history_index = None
+        chat.command_history_draft = ""
+
+    def _recall_command_history(self, direction: int) -> bool:
+        chat = self.active_chat
+        if not chat.command_history:
+            return False
+        composer = self.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+        if chat.command_history_index is None:
+            if direction > 0:
+                return False
+            chat.command_history_draft = composer.value
+            chat.command_history_index = len(chat.command_history) - 1
+        else:
+            next_index = chat.command_history_index + direction
+            if next_index < 0:
+                next_index = 0
+            if next_index >= len(chat.command_history):
+                chat.command_history_index = None
+                self._set_composer_history_value(chat.command_history_draft)
+                chat.command_history_draft = ""
+                return True
+            chat.command_history_index = next_index
+        self._set_composer_history_value(chat.command_history[chat.command_history_index])
+        return True
+
+    def _set_composer_history_value(self, value: str) -> None:
+        composer = self.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+        composer.value = value
+        composer.cursor_position = len(value)
 
     def on_search_results_card_result_selected(self, message: SearchResultsCard.ResultSelected) -> None:
         match = message.result.match_at(message.match_index)
@@ -1035,6 +1766,19 @@ class WorkflowPane(Vertical):
                 self,
                 message.result.document_slug,
                 message.result.title,
+                match.match_range if match is not None else message.result.match_range,
+            )
+        )
+
+    def on_search_results_card_add_to_basket_requested(self, message: SearchResultsCard.AddToBasketRequested) -> None:
+        match = message.result.match_at(message.match_index)
+        self.post_message(
+            self.SearchResultAddToBasketRequested(
+                self,
+                message.result.document_slug,
+                message.result.title,
+                message.result.document_type,
+                match.snippet if match is not None else message.result.snippet,
                 match.match_range if match is not None else message.result.match_range,
             )
         )
@@ -1071,16 +1815,16 @@ class WorkflowPane(Vertical):
         if chat is None or chat.active_request_id != request_id:
             return
         if chat.active_reasoning_index is None:
-            insert_at = chat.active_history_index if chat.active_history_index is not None else len(chat.history_entries)
-            chat.history_entries.insert(insert_at, HistoryReasoningEntry(text, streaming=True))
-            chat.active_reasoning_index = insert_at
-            if chat.active_history_index is not None and chat.active_history_index >= insert_at:
-                chat.active_history_index += 1
+            self._begin_reasoning_entry(chat)
         else:
             entry = chat.history_entries[chat.active_reasoning_index]
             if isinstance(entry, HistoryReasoningEntry):
                 entry.content += text
-        self._render_chat(slug)
+                return
+        if chat.active_reasoning_index is not None:
+            entry = chat.history_entries[chat.active_reasoning_index]
+            if isinstance(entry, HistoryReasoningEntry):
+                entry.content += text
 
     def _complete_chat_stream(self, slug: str, request_id: int, replay_content: object | None = None) -> None:
         chat = WORKFLOW_CHATS.get(slug)
@@ -1089,6 +1833,9 @@ class WorkflowPane(Vertical):
         request_mode = chat.active_request_mode or "chat"
         instruction_text = chat.active_instruction_text
         rewrite_target = chat.active_rewrite_target
+        rewrite_block_insert = rewrite_target.block_insert if rewrite_target is not None else False
+        draft_target_range = chat.active_draft_target_range
+        draft_block_insert = chat.active_draft_block_insert
         assistant = self._active_assistant_message(chat)
         assistant.streaming = False
         if replay_content is not None:
@@ -1114,7 +1861,10 @@ class WorkflowPane(Vertical):
         chat.active_request_mode = None
         chat.active_instruction_text = ""
         chat.active_reasoning_index = None
+        chat.active_history_visible = True
         chat.active_rewrite_target = None
+        chat.active_draft_target_range = None
+        chat.active_draft_block_insert = False
         self._workers.pop(slug, None)
         if request_mode == "rewrite":
             self._remove_last_status_entry(chat, self._proposal_generation_status("rewrite"))
@@ -1128,12 +1878,22 @@ class WorkflowPane(Vertical):
                     rewrite_target.original_text,
                     instruction_text,
                     generated_text,
+                    rewrite_block_insert,
                 )
             )
         else:
             if request_mode == "draft":
                 self._remove_last_status_entry(chat, self._proposal_generation_status("draft"))
-                self.post_message(self.DraftRequested(self, slug, instruction_text, generated_text))
+                self.post_message(
+                    self.DraftRequested(
+                        self,
+                        slug,
+                        instruction_text,
+                        generated_text,
+                        draft_target_range,
+                        draft_block_insert,
+                    )
+                )
             else:
                 self._finalize_active_history_entry(chat)
                 if slug == self._active_slug:
@@ -1156,7 +1916,10 @@ class WorkflowPane(Vertical):
         chat.active_request_id = None
         chat.active_request_mode = None
         chat.active_instruction_text = ""
+        chat.active_history_visible = True
         chat.active_rewrite_target = None
+        chat.active_draft_target_range = None
+        chat.active_draft_block_insert = False
         if chat.messages and chat.messages[-1].role == "assistant" and not chat.messages[-1].content:
             chat.messages.pop()
         else:
@@ -1253,7 +2016,7 @@ class WorkflowPane(Vertical):
             if version != self._history_render_versions.get(slug):
                 return
             chat = WORKFLOW_CHATS[slug]
-            widgets = [self._widget_for_history_entry(entry) for entry in chat.history_entries]
+            widgets = [self._widget_for_history_entry(entry) for entry in chat.history_entries if self._history_entry_is_visible(entry)]
             if not widgets:
                 widgets = [Static("Live notebook history will appear here...", classes="workflow-history-placeholder")]
             await history.mount_all(widgets)
@@ -1272,7 +2035,15 @@ class WorkflowPane(Vertical):
             return CompactionHistoryCard(entry)
         if isinstance(entry, HistoryCompactionPromptEntry):
             return CompactionPromptCard(entry)
+        if isinstance(entry, HistoryActionRequestEntry):
+            return ActionRequestCard(entry)
+        if isinstance(entry, HistoryActionResultEntry):
+            return ActionResultCard(entry)
         return Static(str(entry), classes="workflow-history-block")
+
+    @staticmethod
+    def _history_entry_is_visible(entry: object) -> bool:
+        return bool(getattr(entry, "visible", True))
 
     def _rendered_history_text(self, chat: WorkflowChat) -> str:
         blocks: list[str] = []
@@ -1280,7 +2051,8 @@ class WorkflowPane(Vertical):
             if isinstance(entry, HistoryTextEntry):
                 blocks.append(f"**{entry.role.capitalize()}:**\n\n{entry.content}")
             elif isinstance(entry, HistoryReasoningEntry):
-                blocks.append(f"### Reasoning Trace\n\n{entry.content}")
+                content = entry.content.strip() or "(No provider-exposed thinking text was captured.)"
+                blocks.append(f"### Reasoning Trace\n\n{content}")
             elif isinstance(entry, HistoryStatusEntry):
                 blocks.append(f"> {entry.content}")
             elif isinstance(entry, HistorySearchEntry):
@@ -1333,6 +2105,30 @@ class WorkflowPane(Vertical):
                         ]
                     )
                 )
+            elif isinstance(entry, HistoryActionRequestEntry):
+                blocks.append(
+                    "\n".join(
+                        [
+                            "### App Action Request",
+                            f"- Action: {entry.action_id}",
+                            f"- Label: {entry.label}",
+                            f"- Status: pending confirmation",
+                            entry.message,
+                        ]
+                    )
+                )
+            elif isinstance(entry, HistoryActionResultEntry):
+                blocks.append(
+                    "\n".join(
+                        [
+                            "### App Action Result",
+                            f"- Action: {entry.action_id}",
+                            f"- Label: {entry.label}",
+                            f"- Status: {entry.status}",
+                            entry.message,
+                        ]
+                    )
+                )
         return "\n\n".join(blocks).strip()
 
     def _show_compaction_prompt(self, chat: WorkflowChat, used_tokens: int, reason: str) -> None:
@@ -1340,7 +2136,7 @@ class WorkflowPane(Vertical):
         chat.history_entries.append(
             HistoryCompactionPromptEntry(
                 used_tokens=used_tokens,
-                token_capacity=TERMINAL_CONTEXT_WINDOW_TOKENS,
+                token_capacity=self._context_window_tokens(),
                 reason=reason,
             )
         )
@@ -1391,7 +2187,7 @@ class WorkflowPane(Vertical):
 
     def _context_available_text(self, chat: WorkflowChat) -> str:
         used_tokens = self._estimated_used_tokens(chat)
-        return self._format_context_usage(used_tokens, TERMINAL_CONTEXT_WINDOW_TOKENS)
+        return self._format_context_usage(used_tokens, self._context_window_tokens())
 
     def _estimated_used_tokens(self, chat: WorkflowChat) -> int:
         shell_context = self._shell_context(chat.active_rewrite_target)
@@ -1423,14 +2219,17 @@ class WorkflowPane(Vertical):
         ]
         return sum(len(part) for part in context_parts)
 
-    @staticmethod
-    def _fixed_context_is_too_large(fixed_tokens: int) -> bool:
-        return fixed_tokens >= int(TERMINAL_CONTEXT_WINDOW_TOKENS * CONTEXT_HARD_LIMIT_RATIO)
+    def _fixed_context_is_too_large(self, fixed_tokens: int) -> bool:
+        token_capacity = self._context_window_tokens()
+        if token_capacity <= 0:
+            return False
+        return fixed_tokens >= int(token_capacity * CONTEXT_HARD_LIMIT_RATIO)
 
     def _fixed_context_too_large_message(self, fixed_tokens: int) -> str:
+        token_capacity = self._context_window_tokens()
         return (
             "Request not sent: current document and basket context already exceed the model window.\n\n"
-            f"Fixed context: ~{fixed_tokens:,} / {TERMINAL_CONTEXT_WINDOW_TOKENS:,} tokens before chat history.\n\n"
+            f"Fixed context: ~{fixed_tokens:,} / {token_capacity:,} tokens before chat history.\n\n"
             "Compaction only reduces notebook chat history.\n"
             "Please remove basket items, use excerpts instead of whole files, or switch to a smaller current document."
         )
@@ -1444,7 +2243,7 @@ class WorkflowPane(Vertical):
     def _shell_context_prompt_text(self, shell_context: ShellChatContext, request_mode: str) -> str:
         mode = request_mode if request_mode in {"chat", "draft", "rewrite", "summary"} else "chat"
         transcript_policy = ""
-        if shell_context.document_type == "transcript":
+        if shell_context.document_type == "transcript" and shell_context.confidentiality_mode != "local-confidential":
             document_content = (
                 "[Transcript metadata only. The full transcript text is intentionally withheld because this is a "
                 "non-confidential project. Do not claim to know, summarize, quote, analyze, or answer questions about "
@@ -1462,6 +2261,7 @@ class WorkflowPane(Vertical):
             document_content = shell_context.document_content.strip() or "(empty document)"
         basket_context = shell_context.basket_context.strip() or "(empty basket)"
         selection_context = shell_context.selected_text.strip()
+        section_context = self._document_sections_context(document_content)
         mode_instruction = {
             "draft": (
                 "Mode: draft. Use the open document and basket context to generate text for insertion. "
@@ -1478,6 +2278,12 @@ class WorkflowPane(Vertical):
             f"- Active document type: {shell_context.document_type}\n"
             f"- Confidentiality mode: {shell_context.confidentiality_mode}\n\n"
             f"{transcript_policy}"
+            "Notebook action inference:\n"
+            "- If the user asks to write, draft, compose, generate, or add prose without naming a target, infer the active document as the target and use draft_into_document.\n"
+            "- If the user names an existing section such as abstract, introduction, findings, or conclusion, infer that section as the draft insertion target and draft only the body text for that section.\n"
+            "- If selected text is active and the user asks to make it shorter/clearer/stronger, revise it, rewrite it, tighten it, or otherwise edit it without naming a target, infer the active selection as the target and use rewrite_selection.\n\n"
+            "Available document sections:\n"
+            f"{section_context}\n\n"
             "Current open document content:\n"
             "<current_document>\n"
             f"{document_content}\n"
@@ -1493,7 +2299,16 @@ class WorkflowPane(Vertical):
             f"{mode_instruction}\n"
         )
 
+    @classmethod
+    def _document_sections_context(cls, document_content: str) -> str:
+        headings = cls._document_headings(document_content)
+        if not headings:
+            return "(none detected)"
+        return "\n".join(f"- {heading}" for heading in headings)
+
     def _format_context_usage(self, used_tokens: int, token_capacity: int) -> str:
+        if token_capacity <= 0:
+            return f"context used (~{used_tokens:,} tokens / unknown limit)"
         percentage = (used_tokens / token_capacity) * 100 if token_capacity else 0
         if used_tokens == 0:
             percentage_text = "0%"
@@ -1530,6 +2345,15 @@ class WorkflowPane(Vertical):
             entry.streaming = False
         chat.active_history_index = None
 
+    def _begin_reasoning_entry(self, chat: WorkflowChat) -> None:
+        if chat.active_reasoning_index is not None:
+            return
+        insert_at = chat.active_history_index if chat.active_history_index is not None else len(chat.history_entries)
+        chat.history_entries.insert(insert_at, HistoryReasoningEntry("", streaming=True, visible=chat.active_history_visible))
+        chat.active_reasoning_index = insert_at
+        if chat.active_history_index is not None and chat.active_history_index >= insert_at:
+            chat.active_history_index += 1
+
     def _finalize_active_reasoning_entry(self, chat: WorkflowChat) -> None:
         index = chat.active_reasoning_index
         if index is None or index >= len(chat.history_entries):
@@ -1555,6 +2379,18 @@ class WorkflowPane(Vertical):
         chat.history_entries.pop(index)
         chat.active_reasoning_index = None
 
+    def _hide_active_turn_display(self, chat: WorkflowChat) -> None:
+        """Keep provider scaffolding transcript-only once a tool call starts."""
+        if chat.active_history_index is not None and chat.active_history_index < len(chat.history_entries):
+            entry = chat.history_entries[chat.active_history_index]
+            if isinstance(entry, HistoryTextEntry):
+                entry.visible = False
+        if chat.active_reasoning_index is not None and chat.active_reasoning_index < len(chat.history_entries):
+            entry = chat.history_entries[chat.active_reasoning_index]
+            if isinstance(entry, HistoryReasoningEntry):
+                entry.visible = False
+        chat.active_history_visible = False
+
     def _remove_last_status_entry(self, chat: WorkflowChat, content: str) -> None:
         for index in range(len(chat.history_entries) - 1, -1, -1):
             entry = chat.history_entries[index]
@@ -1566,24 +2402,362 @@ class WorkflowPane(Vertical):
         chat.history_entries = [entry for entry in chat.history_entries if not isinstance(entry, HistoryRewriteEntry)]
         chat.pending_patch_id = None
 
-    async def _stream_reply(self, slug: str, request_id: int, request_mode: str) -> None:
+    async def _stream_reply(self, slug: str, request_id: int, request_mode: str, *, allow_tools: bool = True) -> None:
         chat = WORKFLOW_CHATS[slug]
         shell_context = self._shell_context(chat.active_rewrite_target if request_mode == "rewrite" else None)
+        tools = provider_tool_specs() if allow_tools and request_mode == "chat" else None
+        completed = False
         try:
-            async for event in self._backend.stream_reply(slug, chat.messages, shell_context, request_mode=request_mode):
+            async for event in self._stream_backend_reply(
+                slug,
+                chat.messages,
+                shell_context,
+                request_mode=request_mode,
+                tools=tools,
+            ):
                 if event.kind == "assistant_delta":
                     self.call_later(self._apply_chat_delta, slug, request_id, event.text)
                 elif event.kind == "reasoning_delta":
                     self.call_later(self._apply_reasoning_delta, slug, request_id, event.text)
                 elif event.kind == "assistant_done":
+                    completed = True
                     self.call_later(self._complete_chat_stream, slug, request_id, event.replay_content)
+                    return
+                elif event.kind == "tool_call" and event.tool_call is not None:
+                    if allow_tools:
+                        self.call_later(self._start_tool_call_worker, slug, request_id, event.tool_call)
+                    else:
+                        self.call_later(self._suppress_recursive_tool_call, slug, request_id)
+                    return
                 elif event.kind == "error":
                     self.call_later(self._fail_chat_stream, slug, request_id, event.error)
                     return
+            if not completed:
+                self.call_later(self._complete_chat_stream, slug, request_id)
         except asyncio.CancelledError:
             raise
         except Exception as exc:
             self.call_later(self._fail_chat_stream, slug, request_id, f"Mistral request failed: {exc}")
+
+    async def _stream_backend_reply(
+        self,
+        slug: str,
+        messages: list[ChatMessage],
+        shell_context: ShellChatContext,
+        *,
+        request_mode: str,
+        tools: tuple[object, ...] | None,
+    ):
+        try:
+            stream = self._backend.stream_reply(slug, messages, shell_context, request_mode=request_mode, tools=tools)
+        except TypeError:
+            stream = self._backend.stream_reply(slug, messages, shell_context, request_mode=request_mode)
+        async for event in stream:
+            yield event
+
+    def _start_tool_call_worker(self, slug: str, request_id: int, tool_call: ToolCallRequest) -> None:
+        chat = WORKFLOW_CHATS.get(slug)
+        if chat is None or chat.active_request_id != request_id:
+            return
+        self._hide_active_turn_display(chat)
+        self._render_chat(slug)
+        self.run_worker(
+            self._handle_tool_call(slug, request_id, tool_call),
+            name=f"workflow-tool-{slug}",
+            group=f"chat:{slug}",
+            thread=False,
+            exit_on_error=False,
+            exclusive=True,
+        )
+
+    def _suppress_recursive_tool_call(self, slug: str, request_id: int) -> None:
+        chat = WORKFLOW_CHATS.get(slug)
+        if chat is None or chat.active_request_id != request_id:
+            return
+        chat.generating = False
+        chat.active_request_id = None
+        chat.active_request_mode = None
+        chat.active_instruction_text = ""
+        chat.active_rewrite_target = None
+        chat.active_draft_target_range = None
+        chat.active_draft_block_insert = False
+        if chat.messages and chat.messages[-1].role == "assistant" and not chat.messages[-1].content:
+            chat.messages.pop()
+        self._remove_active_history_entry(chat)
+        self._remove_active_reasoning_entry(chat)
+        chat.active_history_visible = True
+        self._workers.pop(slug, None)
+        self._render_chat(slug)
+        self._sync_status()
+
+    async def _handle_tool_call(self, slug: str, request_id: int, tool_call: ToolCallRequest) -> None:
+        chat = WORKFLOW_CHATS.get(slug)
+        if chat is None or chat.active_request_id != request_id:
+            return
+        self._finish_tool_call_turn(chat)
+        tool_call = self._coerce_tool_call_from_prompt(chat, tool_call)
+        try:
+            spec = get_app_action_spec(tool_call.action_id)
+        except KeyError:
+            result = AppActionResult("refused", f"Unknown app action requested by model: {tool_call.action_id}")
+            self._append_action_result(chat, tool_call.action_id, tool_call.action_id, result)
+            self._render_chat(slug)
+            self._sync_status()
+            return
+        if spec.safety == "system_only":
+            result = AppActionResult("refused", f"{spec.label} must be invoked manually from Exegesis.")
+            self._append_action_result(chat, spec.id, spec.label, result)
+            self.set_status(result.message)
+            self._render_chat(slug)
+            self._sync_status()
+            return
+
+        if spec.safety == "confirm_required":
+            result = await self._dispatch_tool_action(tool_call, conversation_turn_id=f"{slug}:{request_id}")
+            if result.status == "pending_confirmation":
+                chat.history_entries.append(
+                    self._action_request_entry_from_result(
+                        result,
+                        fallback_action_id=spec.id,
+                        fallback_label=spec.label,
+                        fallback_payload=dict(tool_call.arguments),
+                        conversation_turn_id=f"{slug}:{request_id}",
+                    )
+                )
+            else:
+                self._append_action_result(chat, spec.id, spec.label, result)
+            self.set_status(result.message)
+            self._render_chat(slug)
+            self._sync_status()
+            return
+        if spec.safety == "proposal_auto":
+            result = await self._dispatch_tool_action(tool_call, conversation_turn_id=f"{slug}:{request_id}")
+            self.set_status(result.message)
+            if result.status != "completed":
+                self._append_action_result(chat, spec.id, spec.label, result)
+                self._render_chat(slug)
+                self._sync_status()
+                return
+            self._render_chat(slug)
+            self._sync_status()
+            return
+        result = await self._dispatch_tool_action(tool_call, conversation_turn_id=f"{slug}:{request_id}")
+        self._append_action_result(chat, spec.id, spec.label, result)
+        if spec.id == "search_documents" and result.status == "completed":
+            query = str(tool_call.arguments.get("query") or "")
+            chat.history_entries.append(HistorySearchEntry(query=query, results=self._search_documents(query)))
+        self._append_tool_result_messages(chat, tool_call, result)
+        if result.status == "completed":
+            self._start_follow_up_after_tool(slug)
+        else:
+            self.set_status(result.message)
+            self._render_chat(slug)
+            self._sync_status()
+
+    def _coerce_tool_call_from_prompt(self, chat: WorkflowChat, tool_call: ToolCallRequest) -> ToolCallRequest:
+        tool_call = self._coerce_trash_tool_call_from_prompt(chat, tool_call)
+        return self._coerce_basket_tool_call_from_prompt(chat, tool_call)
+
+    def _coerce_trash_tool_call_from_prompt(self, chat: WorkflowChat, tool_call: ToolCallRequest) -> ToolCallRequest:
+        latest_user = self._latest_user_message_content(chat)
+        if tool_call.action_id == "permanently_delete_trash_item" and self._user_prompt_requests_restore(latest_user):
+            return replace(tool_call, tool_name="restore_trash_item")
+        if tool_call.action_id == "restore_trash_item" and self._user_prompt_requests_permanent_delete(latest_user):
+            return replace(tool_call, tool_name="permanently_delete_trash_item")
+        if tool_call.action_id in {"restore_trash_item", "permanently_delete_trash_item"} and self._user_prompt_requests_delete_to_trash(latest_user):
+            return replace(tool_call, tool_name="move_document_to_trash")
+        return tool_call
+
+    def _coerce_basket_tool_call_from_prompt(self, chat: WorkflowChat, tool_call: ToolCallRequest) -> ToolCallRequest:
+        if tool_call.action_id != "add_document_to_basket":
+            return tool_call
+        if self._tool_payload_requests_excerpt(tool_call.arguments):
+            return replace(tool_call, tool_name="add_excerpt_to_basket")
+        latest_user = self._latest_user_message_content(chat)
+        if self._user_prompt_requests_excerpt(latest_user):
+            return replace(tool_call, tool_name="add_excerpt_to_basket")
+        return tool_call
+
+    @staticmethod
+    def _latest_user_message_content(chat: WorkflowChat) -> str:
+        return next((message.content for message in reversed(chat.messages) if message.role == "user"), "")
+
+    @staticmethod
+    def _tool_payload_requests_excerpt(arguments: dict[str, object]) -> bool:
+        if any(
+            arguments.get(key) not in (None, "")
+            for key in (
+                "excerpt",
+                "selected_text",
+                "selection",
+                "text",
+                "snippet",
+                "quote",
+                "passage",
+                "source_excerpt",
+                "start",
+                "end",
+            )
+        ):
+            return True
+        raw_range = arguments.get("match_range") or arguments.get("range")
+        return isinstance(raw_range, (list, tuple)) and len(raw_range) >= 2
+
+    @staticmethod
+    def _user_prompt_requests_excerpt(prompt: str) -> bool:
+        normalized = prompt.casefold()
+        return any(term in normalized for term in EXCERPT_INTENT_TERMS)
+
+    @staticmethod
+    def _user_prompt_requests_safe_transcript_file_action(prompt: str) -> bool:
+        normalized = prompt.casefold()
+        return any(term in normalized for term in SAFE_TRANSCRIPT_FILE_ACTION_TERMS)
+
+    @staticmethod
+    def _user_prompt_requests_restore(prompt: str) -> bool:
+        normalized = prompt.casefold()
+        return any(term in normalized for term in RESTORE_TRASH_INTENT_TERMS) and not any(
+            term in normalized for term in PERMANENT_DELETE_INTENT_TERMS
+        )
+
+    @staticmethod
+    def _user_prompt_requests_permanent_delete(prompt: str) -> bool:
+        normalized = prompt.casefold()
+        return any(term in normalized for term in PERMANENT_DELETE_INTENT_TERMS)
+
+    @staticmethod
+    def _user_prompt_requests_delete_to_trash(prompt: str) -> bool:
+        normalized = prompt.casefold()
+        return (
+            any(term in normalized for term in DELETE_TO_TRASH_INTENT_TERMS)
+            and not any(term in normalized for term in RESTORE_TRASH_INTENT_TERMS)
+            and not any(term in normalized for term in PERMANENT_DELETE_INTENT_TERMS)
+        )
+
+    def _finish_tool_call_turn(self, chat: WorkflowChat) -> None:
+        chat.generating = False
+        chat.active_request_id = None
+        chat.active_request_mode = None
+        chat.active_instruction_text = ""
+        chat.active_rewrite_target = None
+        chat.active_draft_target_range = None
+        chat.active_draft_block_insert = False
+        if chat.messages and chat.messages[-1].role == "assistant":
+            chat.messages.pop()
+        self._remove_active_history_entry(chat)
+        if chat.active_reasoning_index is not None and chat.active_reasoning_index < len(chat.history_entries):
+            entry = chat.history_entries[chat.active_reasoning_index]
+            if isinstance(entry, HistoryReasoningEntry):
+                entry.visible = False
+        self._finalize_active_reasoning_entry(chat)
+        chat.active_reasoning_index = None
+        chat.active_history_visible = True
+        self._workers.pop(chat.slug, None)
+        self._render_chat(chat.slug)
+
+    async def _dispatch_tool_action(
+        self,
+        tool_call: ToolCallRequest,
+        *,
+        conversation_turn_id: str,
+        confirmed: bool = False,
+    ) -> AppActionResult:
+        dispatcher = getattr(self.app, "dispatch_app_action", None)
+        if not callable(dispatcher):
+            return AppActionResult("failed", "The shell action dispatcher is unavailable.")
+        return await dispatcher(
+            tool_call.action_id,
+            dict(tool_call.arguments),
+            source="model_tool",
+            conversation_turn_id=conversation_turn_id,
+            confirmed=confirmed,
+        )
+
+    def _append_action_result(
+        self,
+        chat: WorkflowChat,
+        action_id: str,
+        label: str,
+        result: AppActionResult,
+    ) -> None:
+        chat.history_entries.append(
+            HistoryActionResultEntry(
+                action_id=action_id,
+                label=label,
+                status=result.status,
+                message=result.message,
+                data=dict(result.data),
+            )
+        )
+
+    def _append_tool_result_messages(
+        self,
+        chat: WorkflowChat,
+        tool_call: ToolCallRequest,
+        result: AppActionResult,
+    ) -> None:
+        call_id = tool_call.raw_call_id or f"exegesis-{chat.slug}-{len(chat.messages) + 1}"
+        arguments = {key: value for key, value in tool_call.arguments.items() if not str(key).casefold().endswith("key")}
+        chat.messages.append(
+            ChatMessage(
+                "assistant",
+                "",
+                provider_content={
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "id": call_id,
+                            "type": "function",
+                            "function": {
+                                "name": tool_call.tool_name,
+                                "arguments": json.dumps(arguments, sort_keys=True),
+                            },
+                        }
+                    ],
+                },
+            )
+        )
+        chat.messages.append(
+            ChatMessage(
+                "tool",
+                result.provider_safe_text,
+                provider_content={
+                    "role": "tool",
+                    "name": tool_call.tool_name,
+                    "content": result.provider_safe_text,
+                    "tool_call_id": call_id,
+                },
+            )
+        )
+
+    def _start_follow_up_after_tool(self, slug: str) -> None:
+        chat = WORKFLOW_CHATS[slug]
+        if chat.generating:
+            return
+        chat.messages.append(ChatMessage("assistant", "", streaming=True))
+        chat.history_entries.append(HistoryTextEntry("assistant", "", streaming=True, visible=False))
+        chat.active_history_index = len(chat.history_entries) - 1
+        self._request_counter += 1
+        request_id = self._request_counter
+        chat.generating = True
+        chat.active_request_id = request_id
+        chat.active_request_mode = "chat"
+        chat.active_instruction_text = ""
+        chat.active_reasoning_index = None
+        chat.active_history_visible = False
+        chat.active_rewrite_target = None
+        chat.active_draft_target_range = None
+        chat.active_draft_block_insert = False
+        self._render_chat(slug)
+        self._sync_status()
+        self._workers[slug] = self.run_worker(
+            self._stream_reply(slug, request_id, "chat", allow_tools=False),
+            name=f"workflow-chat-{slug}",
+            group=f"chat:{slug}",
+            thread=False,
+            exit_on_error=False,
+            exclusive=True,
+        )
 
     def _search_documents(self, query: str) -> list[SearchResultItem]:
         if hasattr(self.app, "shell_search_documents"):
@@ -1641,28 +2815,38 @@ class WorkflowPane(Vertical):
     def _shell_context(self, rewrite_target: RewriteRequestTarget | None = None) -> ShellChatContext:
         if hasattr(self.app, "shell_chat_context"):
             raw = self.app.shell_chat_context()
+            selected_text = str(raw.get("selected_text", ""))
+            selection_start = self._coerce_optional_int(raw.get("selection_start"))
+            selection_end = self._coerce_optional_int(raw.get("selection_end"))
             return ShellChatContext(
                 project_name=str(raw.get("project_name", "Current Project")),
                 document_title=str(raw.get("document_title", "current_draft.md")),
                 document_type=str(raw.get("document_type", "draft")),
                 document_content=str(raw.get("document_content", "")),
-                confidentiality_mode=str(raw.get("confidentiality_mode", "online")),
+                confidentiality_mode=str(raw.get("confidentiality_mode", "non-confidential")),
                 basket_context=str(raw.get("basket_context", "")),
-                selected_text=rewrite_target.original_text if rewrite_target is not None else "",
-                selection_start=rewrite_target.target_range[0] if rewrite_target is not None else None,
-                selection_end=rewrite_target.target_range[1] if rewrite_target is not None else None,
+                selected_text=rewrite_target.original_text if rewrite_target is not None else selected_text,
+                selection_start=rewrite_target.target_range[0] if rewrite_target is not None else selection_start,
+                selection_end=rewrite_target.target_range[1] if rewrite_target is not None else selection_end,
             )
         return ShellChatContext(
             project_name="Current Project",
             document_title="current_draft.md",
             document_type="draft",
             document_content="",
-            confidentiality_mode="online",
+            confidentiality_mode="non-confidential",
             basket_context="",
             selected_text=rewrite_target.original_text if rewrite_target is not None else "",
             selection_start=rewrite_target.target_range[0] if rewrite_target is not None else None,
             selection_end=rewrite_target.target_range[1] if rewrite_target is not None else None,
         )
+
+    @staticmethod
+    def _coerce_optional_int(value: object) -> int | None:
+        try:
+            return int(value) if value is not None else None
+        except (TypeError, ValueError):
+            return None
 
     def _make_pane(self, slug: str) -> TabPane:
         chat = WORKFLOW_CHATS[slug]
@@ -1694,9 +2878,14 @@ __all__ = [
     "WORKFLOW_SEND_ID",
     "WORKFLOW_STATUS_ID",
     "WORKFLOW_TABBED_CONTENT_ID",
+    "ActionRequestCard",
+    "ActionResultCard",
+    "HistoryActionRequestEntry",
+    "HistoryActionResultEntry",
     "HistoryCompactionEntry",
     "HistoryCompactionPromptEntry",
     "HistoryReasoningEntry",
+    "HistorySearchEntry",
     "WorkflowChat",
     "WorkflowPane",
     "clipped_rewrite_card_text",

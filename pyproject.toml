@@ -1,7 +1,7 @@
 [tool.briefcase]
 project_name = "Exegesis"
 bundle = "studio.exegesis"
-version = "0.1.0.dev1"
+version = "0.1.0.dev2"
 url = "https://exegesis.studio"
 license.file = "LICENSE.md"
 author = "Violet Ballard"
@@ -22,6 +22,9 @@ test_sources = [
 requires = [
     "textual==8.2.3",
     "mistralai==2.4.1",
+    "openai>=2,<3",
+    "anthropic>=0.74,<1",
+    "google-genai>=2,<3",
     "keyring>=25,<26",
     "rich>=13,<15",
 ]

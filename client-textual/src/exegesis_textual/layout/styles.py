@@ -19,7 +19,8 @@ SHELL_CSS = """
     #shell-command-bar-bottom,
     #shell-command-bar-file,
     #shell-command-bar-summary,
-    #shell-command-bar-terminal {
+    #shell-command-bar-terminal,
+    #shell-command-bar-notebook {
         width: 1fr;
         height: 1;
         min-height: 1;
@@ -70,6 +71,16 @@ SHELL_CSS = """
         content-align: center middle;
         text-style: bold;
         border: none;
+    }
+
+    #shell-footer-confidentiality.non-confidential {
+        background: $error;
+        color: $text;
+    }
+
+    #shell-footer-confidentiality.confidential {
+        background: $success;
+        color: $text;
     }
 
     #shell-footer-hints {
@@ -460,6 +471,7 @@ SHELL_CSS = """
     .workflow-history-block {
         height: auto;
         margin-top: 0;
+        margin-right: 2;
         margin-bottom: 0;
         padding: 0 1 0 0;
     }
@@ -472,6 +484,7 @@ SHELL_CSS = """
     .workflow-card,
     .workflow-history-placeholder {
         margin-top: 1;
+        margin-right: 2;
     }
 
     .workflow-card:first-child,
@@ -509,6 +522,14 @@ SHELL_CSS = """
         color: $warning;
     }
 
+    .workflow-reasoning-summary {
+        color: $text-muted;
+        height: auto;
+        min-height: 1;
+        margin: 0;
+        padding: 0;
+    }
+
     .workflow-history-status-content {
         height: auto;
         min-height: 1;
@@ -543,7 +564,6 @@ SHELL_CSS = """
         height: auto;
         min-height: 6;
         border: round;
-        margin-right: 2;
         padding: 1 2 1 1;
     }
 
@@ -563,6 +583,10 @@ SHELL_CSS = """
         padding-right: 1;
     }
 
+    .workflow-action-result-body {
+        margin-bottom: 0;
+    }
+
     .workflow-search-result {
         margin-top: 1;
         padding: 0 2;
@@ -574,6 +598,7 @@ SHELL_CSS = """
         align-vertical: middle;
     }
 
+    .workflow-search-result-add,
     .workflow-search-result-title {
         width: auto;
         min-width: 0;
@@ -589,6 +614,14 @@ SHELL_CSS = """
         content-align: left middle;
     }
 
+    .workflow-search-result-add {
+        width: 7;
+        min-width: 7;
+        max-width: 7;
+        content-align: center middle;
+    }
+
+    .workflow-search-result-add:hover,
     .workflow-search-result-title:hover {
         background: #1668b0;
         color: $text;
@@ -728,11 +761,40 @@ SHELL_CSS = """
         max-width: 94%;
     }
 
+    #project-name-modal {
+        width: 86;
+        max-width: 94%;
+    }
+
     #model-settings-status {
         min-height: 3;
         height: auto;
         margin-bottom: 1;
         padding: 1 2;
+        background: $surface-lighten-1;
+    }
+
+    #model-settings-api-key-group,
+    #model-settings-standard-fields,
+    #model-settings-local-fields {
+        height: auto;
+    }
+
+    #model-settings-api-key-group {
+        margin-top: 1;
+    }
+
+    #model-settings-standard-fields .modal-field-label,
+    #model-settings-local-fields .modal-field-label {
+        margin-top: 1;
+    }
+
+    #model-settings-local-context-slider {
+        height: 3;
+        min-height: 3;
+        margin-top: 1;
+        margin-bottom: 1;
+        padding: 0 1;
         background: $surface-lighten-1;
     }
 
@@ -937,6 +999,18 @@ SHELL_CSS = """
         content-align: center middle;
     }
 
+    #project-name-create {
+        width: 20;
+    }
+
+    #project-name-create-confidential {
+        width: 34;
+    }
+
+    #project-name-cancel {
+        width: 16;
+    }
+
     #project-name-cancel,
     #project-rename-active-cancel,
     #project-picker-cancel,
@@ -1058,9 +1132,11 @@ SHELL_CSS = """
 
     .duplicate-modal-cancel-actions Button {
         width: 18;
+        margin-right: 1;
     }
 
     #duplicate-replace-all,
+    #duplicate-skip-all-import,
     #duplicate-cancel {
         width: 18;
     }

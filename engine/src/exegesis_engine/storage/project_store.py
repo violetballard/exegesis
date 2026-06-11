@@ -126,7 +126,7 @@ class ProjectStore:
         self._fsync_directory(destination.parent)
         return self._project_item(destination)
 
-    def trash_document(self, document_id: str) -> ProjectItem:
+    def trash_document(self, document_id: str, *, display_label: str | None = None) -> ProjectItem:
         source = self._resolve(document_id)
         if not source.exists():
             raise FileNotFoundError(f"document does not exist: {document_id!r}")
@@ -141,22 +141,30 @@ class ProjectStore:
         os.replace(source, destination)
         manifest_path = self._trash_manifest_path(destination)
         trashed_at = datetime.now(timezone.utc).isoformat()
+        manifest = {
+            "original_id": document_id,
+            "trashed_at": trashed_at,
+            "trash_id": self._item_id(destination),
+        }
+        if display_label and display_label.strip():
+            manifest["display_label"] = display_label.strip()
         self._atomic_write_json(
             manifest_path,
-            {
-                "original_id": document_id,
-                "trashed_at": trashed_at,
-                "trash_id": self._item_id(destination),
-            },
+            manifest,
         )
         self._fsync_directory(source.parent)
         self._fsync_directory(destination.parent)
         return ProjectItem(
             id=self._item_id(destination),
-            label=destination.name,
+            label=str(manifest.get("display_label") or destination.name),
             item_type="document",
             path=str(destination),
-            metadata={"trashed": True, "original_id": document_id, "trashed_at": trashed_at},
+            metadata={
+                "trashed": True,
+                "original_id": document_id,
+                "trashed_at": trashed_at,
+                "display_label": manifest.get("display_label", ""),
+            },
         )
 
     def list_trash_items(self) -> list[ProjectItem]:
@@ -164,16 +172,18 @@ class ProjectStore:
         items: list[ProjectItem] = []
         for path in self._document_paths(trash_root):
             metadata = self._read_trash_manifest(path)
+            display_label = str(metadata.get("display_label") or path.name)
             items.append(
                 ProjectItem(
                     id=self._item_id(path),
-                    label=path.name,
+                    label=display_label,
                     item_type="trash_document",
                     path=str(path),
                     metadata={
                         "trashed": True,
                         "original_id": metadata.get("original_id", ""),
                         "trashed_at": metadata.get("trashed_at", ""),
+                        "display_label": display_label,
                     },
                 )
             )

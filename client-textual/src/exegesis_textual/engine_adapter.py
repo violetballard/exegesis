@@ -72,8 +72,8 @@ class ShellEngineAdapter:
     def move_document(self, document_id: str, new_relative_path: str) -> ProjectItem:
         return self.service.move_document(document_id, new_relative_path)
 
-    def delete_document(self, document_id: str) -> ProjectItem:
-        return self.service.delete_document(document_id)
+    def delete_document(self, document_id: str, *, display_label: str | None = None) -> ProjectItem:
+        return self.service.delete_document(document_id, display_label=display_label)
 
     def list_trash_items(self) -> list[ProjectItem]:
         return self.service.list_trash_items()

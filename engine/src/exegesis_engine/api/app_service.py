@@ -200,9 +200,11 @@ class ExegesisAppService:
         self.state.project = ProjectState(
             current_project_id_or_path=str(root),
             project_items=[item for item in project_items if item.item_type == "document"],
-            open_document_id=self.state.project.open_document_id,
+            open_document_id=None,
             sessions=[item for item in project_items if item.item_type == "session"],
         )
+        self.state.document = DocumentState()
+        self.state.basket = BasketState()
         self._record_audit_event(
             "project.opened",
             {"project_path": str(root), "document_count": len(self.state.project.project_items)},
@@ -412,11 +414,11 @@ class ExegesisAppService:
         self._record_audit_event("document.renamed", {"old_doc_id": document_id, "new_doc_id": project_item.id})
         return project_item
 
-    def delete_document(self, document_id: str) -> ProjectItem:
+    def delete_document(self, document_id: str, *, display_label: str | None = None) -> ProjectItem:
         self._ensure_project_open()
         if self._project_store is None:
             raise RuntimeError("Project store is required before deleting documents")
-        item = self._project_store.trash_document(document_id)
+        item = self._project_store.trash_document(document_id, display_label=display_label)
         trashed_item = ProjectItem(
             id=item.id,
             label=item.label,

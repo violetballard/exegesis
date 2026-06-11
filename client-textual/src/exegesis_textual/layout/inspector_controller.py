@@ -10,7 +10,7 @@ from exegesis_textual.panes.document_pane import DOCUMENT_FIXTURES, DocumentPane
 from exegesis_textual.panes.inspector_pane import InspectorPane
 from exegesis_textual.panes.project_pane import ProjectNodeInfo, ProjectPane
 from exegesis_textual.workflow.mistral_chat import ChatMessage
-from exegesis_textual.workflow.workflow_pane import TERMINAL_CONTEXT_WINDOW_TOKENS
+from exegesis_textual.workflow.workflow_pane import TERMINAL_CONTEXT_WINDOW_TOKENS, WorkflowPane
 
 
 class InspectorControllerMixin:
@@ -24,7 +24,7 @@ class InspectorControllerMixin:
     def _request_summary(self, size: str, word_count: int) -> None:
         self._save_dirty_documents()
         if not self._workflow_backend.is_configured():
-            self._set_status("Open Model Settings and save a Mistral API key before generating summaries.")
+            self._set_status("Open Model Settings and save an API key before generating summaries.")
             request_settings = getattr(self, "shell_request_model_settings", None)
             if callable(request_settings):
                 request_settings()
@@ -142,8 +142,21 @@ class InspectorControllerMixin:
             chat.bullets,
             None,
             token_count=self._estimate_chat_tokens(chat),
-            token_capacity=TERMINAL_CONTEXT_WINDOW_TOKENS,
+            token_capacity=self._workflow_context_window_tokens(),
         )
+
+    def _workflow_context_window_tokens(self) -> int:
+        try:
+            workflow = self.query_one(WorkflowPane)
+        except Exception:
+            return TERMINAL_CONTEXT_WINDOW_TOKENS
+        context_window = getattr(workflow, "_context_window_tokens", None)
+        if callable(context_window):
+            try:
+                return int(context_window())
+            except (TypeError, ValueError):
+                return TERMINAL_CONTEXT_WINDOW_TOKENS
+        return TERMINAL_CONTEXT_WINDOW_TOKENS
 
     def _document_excerpt(self, text: str) -> str:
         excerpt = " ".join(text.strip().split())

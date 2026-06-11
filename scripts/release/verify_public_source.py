@@ -33,8 +33,9 @@ def main() -> int:
         included_paths(load_manifest())
         print("public source manifest validated")
         return 0
-    verify_public_source(args.source)
-    print(f"verified {args.source.relative_to(ROOT)}")
+    source = args.source.resolve()
+    verify_public_source(source)
+    print(f"verified {source.relative_to(ROOT)}")
     return 0
 
 

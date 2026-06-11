@@ -27,6 +27,8 @@ from exegesis_textual.workflow.mistral_chat import (
 
 ROOT = Path(__file__).resolve().parents[2]
 WEZTERM_CONFIG = ROOT / "client-textual" / "src" / "exegesis_textual" / "desktop" / "resources" / "wezterm.lua"
+TEXTUAL_REQUIREMENTS = ROOT / "client-textual" / "requirements.txt"
+TEXTUAL_LAUNCHER = ROOT / "scripts" / "run-textual-shell.sh"
 
 
 def _load_release_script(name: str):
@@ -101,6 +103,29 @@ class ReleasePackagingTests(unittest.TestCase):
         self.assertIn("gui-startup", config)
         self.assertIn(":maximize()", config)
 
+    def test_packaged_wezterm_config_forwards_clipboard_shortcuts_to_textual(self) -> None:
+        config = WEZTERM_CONFIG.read_text(encoding="utf-8")
+        self.assertNotIn("PasteFrom('Clipboard')", config)
+        self.assertIn("{ key = 'c', mods = 'CMD', action = wezterm.action.SendKey({ key = 'c', mods = 'CTRL' }) }", config)
+        self.assertIn("{ key = 'c', mods = 'SUPER', action = wezterm.action.SendKey({ key = 'c', mods = 'CTRL' }) }", config)
+        self.assertIn("{ key = 'x', mods = 'CMD', action = wezterm.action.SendKey({ key = 'x', mods = 'CTRL' }) }", config)
+        self.assertIn("{ key = 'x', mods = 'SUPER', action = wezterm.action.SendKey({ key = 'x', mods = 'CTRL' }) }", config)
+        self.assertIn("{ key = 'v', mods = 'CMD', action = wezterm.action.SendKey({ key = 'v', mods = 'CTRL' }) }", config)
+        self.assertIn("{ key = 'v', mods = 'SUPER', action = wezterm.action.SendKey({ key = 'v', mods = 'CTRL' }) }", config)
+        self.assertIn("{ key = 'Insert', mods = 'SHIFT', action = wezterm.action.SendKey({ key = 'v', mods = 'CTRL' }) }", config)
+
+    def test_dev_launcher_checks_all_provider_sdk_dependencies(self) -> None:
+        requirements = TEXTUAL_REQUIREMENTS.read_text(encoding="utf-8")
+        launcher = TEXTUAL_LAUNCHER.read_text(encoding="utf-8")
+        for package, import_line in (
+            ("mistralai", "import mistralai"),
+            ("openai", "import openai"),
+            ("anthropic", "import anthropic"),
+            ("google-genai", "from google import genai"),
+        ):
+            self.assertIn(package, requirements)
+            self.assertIn(import_line, launcher)
+
     def test_prompt_manifest_matches_packaged_writer_prompt(self) -> None:
         identity = load_prompt_manifest(DEFAULT_SYSTEM_PROMPT_MANIFEST_PATH)
         self.assertEqual(identity.prompt_id, "exegesis.writer")
@@ -174,6 +199,10 @@ class ReleasePackagingTests(unittest.TestCase):
             self.assertEqual(payload["CFBundleName"], "Exegesis")
             self.assertEqual(payload["CFBundleDisplayName"], "Exegesis")
             self.assertEqual(payload["CFBundleIdentifier"], "studio.exegesis.developer")
+
+    def test_release_readiness_audit_passes_for_tracked_release_inputs(self) -> None:
+        audit = _load_release_script("audit_release_readiness.py")
+        audit.audit_release_readiness()
 
 
 if __name__ == "__main__":

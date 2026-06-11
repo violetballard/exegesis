@@ -138,9 +138,9 @@ class BasketControllerMixin:
         active = DOCUMENT_FIXTURES.get(slug)
         if active is None:
             return False
-        if active.is_transcript:
+        if active.is_transcript and not self._current_project_is_confidential():
             self.push_screen(TranscriptWarningModal())
-            self._set_status("Transcript blocked from basket in online mode.")
+            self._set_status("Transcript blocked from basket in non-confidential project mode.")
             return False
         document_id = self._document_id_by_slug.get(slug, active.location)
         item_id = f"document:{document_id}"
@@ -347,7 +347,7 @@ class BasketControllerMixin:
             fixture = DOCUMENT_FIXTURES.get(info.slug)
             if fixture is None:
                 continue
-            if fixture.is_transcript:
+            if fixture.is_transcript and not self._current_project_is_confidential():
                 blocked += 1
                 continue
             if self._add_document_slug_to_basket(info.slug):
@@ -361,7 +361,7 @@ class BasketControllerMixin:
         elif added:
             self._set_status(f"Added {added} documents to the basket.")
         elif blocked:
-            self._set_status("Transcript documents are blocked from basket in online mode.")
+            self._set_status("Transcript documents are blocked from basket in non-confidential project mode.")
         return True
 
     def _delete_selected_basket_item(self) -> None:

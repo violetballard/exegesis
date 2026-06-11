@@ -25,6 +25,7 @@ class PatchReviewCardData:
     proposed_text: str = ""
     document_slug: str = ""
     target_range: tuple[int, int] | None = None
+    block_insert: bool = False
 
 
 class PatchReviewCard(Vertical):

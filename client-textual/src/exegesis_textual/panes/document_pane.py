@@ -64,6 +64,7 @@ class PendingRewritePreview:
     proposed_text: str
     instruction_text: str
     source_chat_slug: str
+    block_insert: bool = False
 
 
 DocumentViewStatus = str
@@ -192,31 +193,30 @@ def render_review_document_text(document_text: str, preview: PendingRewritePrevi
 
 def render_review_document_rich(document_text: str, preview: PendingRewritePreview) -> Text:
     start, end = preview.target_range
-    before = document_text[:start]
-    after = document_text[end:]
+    before = document_text[:start].rstrip("\n")
+    after = document_text[end:].lstrip("\n")
     rich_text = Text()
     rich_text.append(before)
+    if before:
+        rich_text.append("\n")
     rich_text.append(_render_review_block_rich(preview))
+    if after:
+        rich_text.append("\n")
     rich_text.append(after)
     return rich_text
 
 
 def apply_preview_to_content(document_text: str, preview: PendingRewritePreview) -> str:
     start, end = preview.target_range
-    return f"{document_text[:start]}{preview.proposed_text}{document_text[end:]}"
+    return insert_generated_text_at_range(document_text, preview.proposed_text, (start, end), block_insert=preview.block_insert)
 
 
-def review_preview_start_location(document_text: str, preview: PendingRewritePreview) -> tuple[int, int]:
-    """Return the TextArea location where the inline review block begins."""
-    start = max(0, min(preview.target_range[0], len(document_text)))
-    before = document_text[:start]
-    return (before.count("\n") + 1, 0)
-
-
-def generated_text_insert_location(
+def applied_generated_text_range(
     document_text: str,
     generated_text: str,
     target_range: tuple[int, int] | None,
+    *,
+    block_insert: bool = False,
 ) -> tuple[int, int] | None:
     clean_text = generated_text.strip("\n")
     if not clean_text:
@@ -232,7 +232,30 @@ def generated_text_insert_location(
         if end < start:
             start, end = end, start
         start = max(0, min(start, len(document_text)))
-    before = insert_generated_text_at_range(document_text, generated_text, target_range)[:start]
+        if block_insert and _previous_line_is_heading(document_text, start):
+            start += 1
+    return (start, start + len(clean_text))
+
+
+def review_preview_start_location(document_text: str, preview: PendingRewritePreview) -> tuple[int, int]:
+    """Return the TextArea location where the inline review block begins."""
+    start = max(0, min(preview.target_range[0], len(document_text)))
+    before = document_text[:start]
+    return (before.count("\n") + 1, 0)
+
+
+def generated_text_insert_location(
+    document_text: str,
+    generated_text: str,
+    target_range: tuple[int, int] | None,
+    *,
+    block_insert: bool = False,
+) -> tuple[int, int] | None:
+    insert_range = applied_generated_text_range(document_text, generated_text, target_range, block_insert=block_insert)
+    if insert_range is None:
+        return None
+    start = insert_range[0]
+    before = insert_generated_text_at_range(document_text, generated_text, target_range, block_insert=block_insert)[:start]
     return (before.count("\n"), len(before.rsplit("\n", 1)[-1]))
 
 
@@ -240,6 +263,8 @@ def insert_generated_text_at_range(
     document_text: str,
     generated_text: str,
     target_range: tuple[int, int] | None,
+    *,
+    block_insert: bool = False,
 ) -> str:
     clean_text = generated_text.strip("\n")
     if not clean_text:
@@ -252,11 +277,80 @@ def insert_generated_text_at_range(
     start, end = target_range
     if end < start:
         start, end = end, start
+    if block_insert:
+        prefix = "\n" if _previous_line_is_heading(document_text, start) else ""
+        suffix = "\n\n" if end < len(document_text) and not document_text[end:].startswith("\n") else "\n"
+        tail = document_text[end:].lstrip("\n")
+        return f"{document_text[:start]}{prefix}{clean_text}{suffix}{tail}"
     return f"{document_text[:start]}{clean_text}{document_text[end:]}"
 
 
+def _previous_line_is_heading(document_text: str, offset: int) -> bool:
+    if offset <= 0:
+        return False
+    line_end = max(0, offset - 1)
+    line_start = document_text.rfind("\n", 0, line_end) + 1
+    return document_text[line_start:line_end].strip().startswith("#")
+
+
+_PROPOSAL_CONTENT_LABELS = {
+    "proposed",
+    "proposed draft",
+    "proposed revision",
+    "proposed rewrite",
+    "proposed text",
+    "proposal",
+    "draft",
+    "draft proposal",
+    "generated draft",
+    "generated text",
+    "revision proposal",
+    "rewrite proposal",
+}
+_PROPOSAL_METADATA_LABELS = {
+    "instruction",
+    "instructions",
+    "insertion point",
+    "original",
+    "original text",
+    "target",
+    "target section",
+    "current document",
+}
+
+
+def _strip_generated_proposal_scaffolding(generated_text: str) -> str:
+    """Drop model-facing proposal labels before text reaches document previews."""
+    lines = generated_text.strip("\n").splitlines()
+    cleaned: list[str] = []
+    saw_content_label = False
+    for raw_line in lines:
+        stripped = raw_line.strip()
+        lowered = stripped.rstrip(":").casefold()
+        if not stripped:
+            if cleaned:
+                cleaned.append(raw_line)
+            continue
+        if lowered in _PROPOSAL_CONTENT_LABELS:
+            saw_content_label = True
+            cleaned = []
+            continue
+        if stripped.casefold().startswith(tuple(f"{label}:" for label in _PROPOSAL_CONTENT_LABELS)):
+            _, _, remainder = raw_line.partition(":")
+            saw_content_label = True
+            cleaned = [remainder.strip()] if remainder.strip() else []
+            continue
+        if lowered in _PROPOSAL_METADATA_LABELS:
+            continue
+        if stripped.casefold().startswith(tuple(f"{label}:" for label in _PROPOSAL_METADATA_LABELS)):
+            continue
+        cleaned.append(raw_line)
+    return "\n".join(cleaned if (saw_content_label or len(cleaned) != len(lines)) else lines).strip("\n")
+
+
 def clean_generated_draft_text(document_text: str, generated_text: str) -> str:
-    """Trim duplicate existing headings that models often prepend to body drafts."""
+    """Trim proposal scaffolding and duplicate existing headings from body drafts."""
+    generated_text = _strip_generated_proposal_scaffolding(generated_text)
     heading_titles = {
         _normalized_heading_text(line)
         for line in document_text.splitlines()
@@ -293,32 +387,7 @@ def _normalized_heading_text(line: str) -> str:
 
 def clean_generated_rewrite_text(document_text: str, generated_text: str) -> str:
     """Trim proposal scaffolding and duplicate headings from model rewrite output."""
-    lines = generated_text.strip("\n").splitlines()
-    cleaned: list[str] = []
-    take_after_label = False
-    for raw_line in lines:
-        stripped = raw_line.strip()
-        lowered = stripped.rstrip(":").casefold()
-        if not stripped:
-            if cleaned:
-                cleaned.append(raw_line)
-            continue
-        if lowered in {"revision proposal", "rewrite proposal", "proposed", "proposed revision", "proposed rewrite"}:
-            take_after_label = True
-            cleaned = []
-            continue
-        if lowered in {"original", "original text", "instruction", "insertion point"}:
-            continue
-        if stripped.casefold().startswith(("instruction:", "original:", "original text:", "insertion point:")):
-            continue
-        if stripped.casefold().startswith(("proposed:", "proposed revision:", "proposed rewrite:")):
-            _, _, remainder = raw_line.partition(":")
-            cleaned = [remainder.strip()] if remainder.strip() else []
-            take_after_label = True
-            continue
-        cleaned.append(raw_line)
-    result = "\n".join(cleaned if take_after_label else lines).strip("\n")
-    return clean_generated_draft_text(document_text, result)
+    return clean_generated_draft_text(document_text, _strip_generated_proposal_scaffolding(generated_text))
 
 
 def _render_review_block(preview: PendingRewritePreview) -> str:
@@ -353,12 +422,11 @@ def _render_review_block_rich(preview: PendingRewritePreview) -> Text:
     proposed_lines = preview.proposed_text.splitlines() or [preview.proposed_text]
     is_draft = preview.patch_id.startswith("draft-")
     text = Text()
-    text.append("\n")
     if is_draft:
         text.append("┌─ Draft Proposal\n", style="bold")
         for line in proposed_lines:
             text.append(f"│   {line}\n", style="white on #7f1d1d")
-        text.append("└─ End Draft Proposal\n\n", style="bold")
+        text.append("└─ End Draft Proposal", style="bold")
         return text
     text.append("┌─ Revision Proposal\n", style="bold")
     text.append("│ Original\n", style="bold green")
@@ -368,7 +436,7 @@ def _render_review_block_rich(preview: PendingRewritePreview) -> Text:
     text.append("│ Proposed\n", style="bold red")
     for line in proposed_lines:
         text.append(f"│   {line}\n", style="white on #7f1d1d")
-    text.append("└─ End Revision Proposal\n\n", style="bold")
+    text.append("└─ End Revision Proposal", style="bold")
     return text
 
 
@@ -512,14 +580,28 @@ class DocumentPane(Vertical):
         self._apply_editor_state(preview.document_slug, reveal_pending_preview=True)
         self._sync_controls()
 
-    def apply_pending_rewrite(self, patch_id: str) -> PendingRewritePreview | None:
+    def apply_pending_rewrite(self, patch_id: str, *, focus_selection: bool = True) -> PendingRewritePreview | None:
         slug, preview = self._find_preview_by_patch_id(patch_id)
         if slug is None or preview is None:
             return None
         fixture = DOCUMENT_FIXTURES[slug]
-        fixture.content = apply_preview_to_content(fixture.content, preview)
+        old_content = fixture.content
+        draft_selection_range = (
+            applied_generated_text_range(
+                old_content,
+                preview.proposed_text,
+                preview.target_range,
+                block_insert=preview.block_insert,
+            )
+            if preview.patch_id.startswith("draft-")
+            else None
+        )
+        fixture.content = apply_preview_to_content(old_content, preview)
         self._pending_previews.pop(slug, None)
         self._apply_editor_state(slug)
+        if draft_selection_range is not None:
+            self._apply_search_selection(slug, draft_selection_range, focus=focus_selection)
+            self.call_after_refresh(lambda: self._apply_search_selection(slug, draft_selection_range, focus=focus_selection))
         self._sync_controls()
         return preview
 
@@ -668,6 +750,22 @@ class DocumentPane(Vertical):
         self._sync_controls()
         return True
 
+    async def reset_for_project(self) -> None:
+        tabbed_content = self.query_one(f"#{DOCUMENT_TABBED_CONTENT_ID}", TabbedContent)
+        await tabbed_content.clear_panes()
+        self._open_tabs = [CURRENT_DRAFT_SLUG]
+        self._active_slug = CURRENT_DRAFT_SLUG
+        self._pending_previews.clear()
+        self._search_selection_ranges.clear()
+        self._view_statuses.clear()
+        self._syncing_slugs.clear()
+        self._save_enabled = False
+        await tabbed_content.add_pane(self._make_pane(CURRENT_DRAFT_SLUG))
+        tabbed_content.active = CURRENT_DRAFT_SLUG
+        self._apply_editor_state(CURRENT_DRAFT_SLUG)
+        self._sync_tab_label(CURRENT_DRAFT_SLUG)
+        self._sync_controls()
+
     def on_tabbed_content_tab_activated(self, event: TabbedContent.TabActivated) -> None:
         pane = getattr(event, "pane", None)
         if pane is None or pane.id is None:
@@ -773,6 +871,8 @@ class DocumentPane(Vertical):
         generated_text: str,
         instruction_text: str,
         source_chat_slug: str,
+        target_range: tuple[int, int] | None = None,
+        block_insert: bool = False,
     ) -> PendingRewritePreview | None:
         fixture = DOCUMENT_FIXTURES.get(slug)
         if fixture is None:
@@ -781,6 +881,15 @@ class DocumentPane(Vertical):
         if existing_preview is not None and existing_preview.patch_id.startswith("draft-"):
             target_range = existing_preview.target_range
             original_text = existing_preview.original_text
+            block_insert = existing_preview.block_insert
+        elif target_range is not None:
+            start, end = target_range
+            if end < start:
+                start, end = end, start
+            start = max(0, min(start, len(fixture.content)))
+            end = max(0, min(end, len(fixture.content)))
+            target_range = (start, end)
+            original_text = fixture.content[start:end]
         else:
             editor = self._editor_for_slug(slug)
             selection = editor.selection
@@ -805,6 +914,7 @@ class DocumentPane(Vertical):
             proposed_text=clean_generated_draft_text(fixture.content, generated_text),
             instruction_text=instruction_text,
             source_chat_slug=source_chat_slug,
+            block_insert=block_insert,
         )
         self.show_pending_rewrite(preview)
         return preview

@@ -311,13 +311,19 @@ PROJECT_CATEGORY_FOLDERS = {
 
 class ProjectBrowserTree(Tree[ProjectNodeInfo]):
     BINDINGS = [
-        *(binding for binding in Tree.BINDINGS if binding.key != "space"),
+        *(binding for binding in Tree.BINDINGS if binding.key not in {"enter", "space"}),
+        Binding("enter", "request_update", "Update item", priority=True),
         Binding("space", "toggle_marked_cursor", "Select", priority=True),
         Binding("delete", "request_delete", "Delete", priority=True),
         Binding("backspace", "request_delete", "Delete", priority=True),
     ]
 
     class DeleteRequested(Message):
+        def __init__(self, project_browser: "ProjectBrowserTree") -> None:
+            super().__init__()
+            self.project_browser = project_browser
+
+    class UpdateRequested(Message):
         def __init__(self, project_browser: "ProjectBrowserTree") -> None:
             super().__init__()
             self.project_browser = project_browser
@@ -733,6 +739,17 @@ class ProjectBrowserTree(Tree[ProjectNodeInfo]):
 
     def action_request_delete(self) -> None:
         self.post_message(self.DeleteRequested(self))
+
+    def action_request_update(self) -> None:
+        node = self.get_node_at_line(self.cursor_line) if self.cursor_line >= 0 else self.cursor_node
+        info = None if node is None else node.data
+        if info is not None and info.kind in {"section", "folder", "trash_category", "trash_folder"} and node is not None:
+            self._toggle_node(node)
+            return
+        if info is not None and info.kind == "entry":
+            self.post_message(self.UpdateRequested(self))
+            return
+        super().action_select_cursor()
 
     def action_select_cursor(self) -> None:
         node = self.get_node_at_line(self.cursor_line) if self.cursor_line >= 0 else self.cursor_node
@@ -1165,6 +1182,9 @@ class ProjectPane(Vertical):
 
     def on_project_browser_tree_delete_requested(self, message: ProjectBrowserTree.DeleteRequested) -> None:
         self.post_message(self.DeleteRequested(self))
+
+    def on_project_browser_tree_update_requested(self, message: ProjectBrowserTree.UpdateRequested) -> None:
+        self.post_message(self.UpdateItemRequested(self))
 
     def on_project_title_rename_requested(self, message: "ProjectTitle.RenameRequested") -> None:
         message.stop()

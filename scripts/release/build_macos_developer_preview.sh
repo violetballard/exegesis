@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 
-VERSION="0.1.0.dev1"
+VERSION="0.1.0.dev2"
 RELEASE_DIR="$ROOT/packaging/release"
 ARTIFACT_DIR="$RELEASE_DIR/artifacts/macos-developer-preview"
 METADATA="$RELEASE_DIR/developer-preview-macos.json"

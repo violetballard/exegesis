@@ -10,17 +10,31 @@ import sys
 LOCAL_DEVELOPER_ENV = "EXEGESIS_TEXTUAL_LOCAL_DEVELOPER"
 RELEASE_MODE_ENV = "EXEGESIS_TEXTUAL_RELEASE_MODE"
 TEXTUAL_SETTINGS_PATH_ENV = "EXEGESIS_TEXTUAL_SETTINGS_PATH"
+CONFIDENTIALITY_NON_CONFIDENTIAL = "non_confidential"
+CONFIDENTIALITY_CONFIDENTIAL = "confidential"
+CONFIDENTIALITY_VALUES = (CONFIDENTIALITY_NON_CONFIDENTIAL, CONFIDENTIALITY_CONFIDENTIAL)
 
 
 @dataclass(frozen=True)
 class ProjectRecord:
     name: str
     slug: str
+    confidentiality: str = CONFIDENTIALITY_NON_CONFIDENTIAL
 
     @property
     def display_label(self) -> str:
         expected_slug = safe_project_dir_name(self.name)
-        return self.name if self.slug == expected_slug else f"{self.name} ({self.slug})"
+        base = self.name if self.slug == expected_slug else f"{self.name} ({self.slug})"
+        tag = "[Confidential]" if self.confidentiality == CONFIDENTIALITY_CONFIDENTIAL else "[Non-Confidential]"
+        return f"{base} {tag}"
+
+    @property
+    def is_confidential(self) -> bool:
+        return self.confidentiality == CONFIDENTIALITY_CONFIDENTIAL
+
+
+def normalize_project_confidentiality(raw: object) -> str:
+    return raw if isinstance(raw, str) and raw in CONFIDENTIALITY_VALUES else CONFIDENTIALITY_NON_CONFIDENTIAL
 
 
 def textual_repo_root() -> Path:

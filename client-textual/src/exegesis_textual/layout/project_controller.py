@@ -31,6 +31,7 @@ from exegesis_textual.panes.document_pane import (
     DocumentPane,
     register_document_fixture,
 )
+from exegesis_textual.panes.basket_pane import BasketPane
 from exegesis_textual.panes.project_pane import (
     CURRENT_DRAFT_BULLETS,
     CURRENT_DRAFT_LOCATION,
@@ -39,6 +40,7 @@ from exegesis_textual.panes.project_pane import (
     PROJECT_ENTRIES,
     PROJECT_NAME,
     ProjectEntry,
+    ProjectBrowserTree,
     ProjectNodeInfo,
     ProjectPane,
 )
@@ -47,6 +49,12 @@ from exegesis_textual.services.imports import (
     importable_markdown_files_in_folder,
     is_markdown_file,
     path_has_hidden_part,
+)
+from exegesis_textual.services.model_settings import (
+    LOCAL_OPENAI_PROVIDER,
+    ModelSettings,
+    load_model_settings,
+    provider_profile_from_settings,
 )
 from exegesis_textual.services.project_fixtures import (
     DEFAULT_EMPTY_PROJECT_NAME,
@@ -58,8 +66,11 @@ from exegesis_textual.services.project_fixtures import (
     default_project_fixture_content,
 )
 from exegesis_textual.services.projects import (
+    CONFIDENTIALITY_CONFIDENTIAL,
+    CONFIDENTIALITY_NON_CONFIDENTIAL,
     ProjectRecord,
     is_local_developer_mode,
+    normalize_project_confidentiality,
     safe_project_dir_name,
     save_textual_last_project_name,
     save_textual_projects_dir,
@@ -120,14 +131,17 @@ class ProjectControllerMixin:
     def _project_manifest_path(self, project_root: Path) -> Path:
         return project_root / PROJECT_MANIFEST_PATH
 
-    def _write_project_manifest(self, project_root: Path, project_name: str) -> None:
+    def _write_project_manifest(self, project_root: Path, project_name: str, confidentiality: str | None = None) -> None:
         manifest_path = self._project_manifest_path(project_root)
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        if confidentiality is None:
+            confidentiality = self._project_confidentiality_from_root(project_root)
         manifest_path.write_text(
             json.dumps(
                 {
                     "name": project_name,
                     "slug": project_root.name,
+                    "confidentiality": normalize_project_confidentiality(confidentiality),
                 },
                 indent=2,
                 sort_keys=True,
@@ -147,11 +161,19 @@ class ProjectControllerMixin:
         name = raw.get("name")
         return name if isinstance(name, str) and name.strip() else project_root.name
 
+    def _project_confidentiality_from_root(self, project_root: Path) -> str:
+        manifest_path = self._project_manifest_path(project_root)
+        try:
+            raw = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return CONFIDENTIALITY_NON_CONFIDENTIAL
+        return normalize_project_confidentiality(raw.get("confidentiality"))
+
     def _refresh_project_names(self, *, include_fallback: bool = True) -> None:
         projects_root = self._projects_base_dir
         projects_root.mkdir(parents=True, exist_ok=True)
         records = [
-            ProjectRecord(self._project_name_from_root(path), path.name)
+            ProjectRecord(self._project_name_from_root(path), path.name, self._project_confidentiality_from_root(path))
             for path in sorted(projects_root.iterdir(), key=lambda item: item.name.lower())
             if path.is_dir() and not path.name.startswith(".")
         ]
@@ -179,7 +201,7 @@ class ProjectControllerMixin:
     def _ensure_default_project_documents(self) -> None:
         if self._current_project_name != PROJECT_NAME:
             return
-        self._write_project_manifest(self._project_root, PROJECT_NAME)
+        self._write_project_manifest(self._project_root, PROJECT_NAME, CONFIDENTIALITY_NON_CONFIDENTIAL)
         for entry in PROJECT_ENTRIES:
             document_id = DEFAULT_PROJECT_DOCUMENT_IDS.get(entry.slug)
             if document_id is None:
@@ -217,7 +239,11 @@ class ProjectControllerMixin:
             self._document_id_by_slug[entry.slug] = document_id
 
     def _ensure_minimal_project_documents(self) -> None:
-        self._write_project_manifest(self._project_root, self._current_project_name)
+        self._write_project_manifest(
+            self._project_root,
+            self._current_project_name,
+            getattr(self, "_current_project_confidentiality", CONFIDENTIALITY_NON_CONFIDENTIAL),
+        )
         draft_path = self._project_root / "drafts" / "current_draft.md"
         if not draft_path.exists():
             draft_path.parent.mkdir(parents=True, exist_ok=True)
@@ -312,6 +338,7 @@ class ProjectControllerMixin:
         old_source_slug: str | None = None,
     ) -> str:
         slug = self._next_dynamic_slug("trash")
+        display_title = str(metadata.get("display_label") or title)
         original_id = str(metadata.get("original_id") or "")
         trashed_at = str(metadata.get("trashed_at") or "")
         content = self._read_trash_document_content_by_id(trash_id)
@@ -322,9 +349,9 @@ class ProjectControllerMixin:
         self._trash_metadata_by_slug[slug] = dict(metadata)
         register_document_fixture(
             slug=slug,
-            title=title,
+            title=display_title,
             location=trash_id,
-            summary=f"{title} is in the project trash. Double-select to restore or permanently delete it.",
+            summary=f"{display_title} is in the project trash. Double-select to restore or permanently delete it.",
             content=content,
             document_type=document_type,
             is_transcript=(document_type == "transcript"),
@@ -332,9 +359,9 @@ class ProjectControllerMixin:
         self.query_one(DocumentPane).set_document_view_status(slug, "trashed")
         self.query_one(ProjectPane).add_trash_entry(
             slug=slug,
-            title=title,
+            title=display_title,
             location=original_id,
-            summary=f"{title} is in the project trash. Double-select to restore or permanently delete it.",
+            summary=f"{display_title} is in the project trash. Double-select to restore or permanently delete it.",
             bullets=(
                 f"Trash location: {trash_id}",
             ),
@@ -345,9 +372,23 @@ class ProjectControllerMixin:
             old_source_document_id=original_id or None,
             old_source_document_slug=old_source_slug,
             trash_source_document_slug=slug,
-            source_title=title,
+            source_title=display_title,
         )
         return slug
+
+    def _project_title_for_slug(self, slug: str | None) -> str | None:
+        if not slug:
+            return None
+        try:
+            node = self.query_one(ProjectBrowserTree)._entry_nodes.get(slug)
+        except Exception:
+            node = None
+        if node is not None and node.data is not None and node.data.title:
+            return node.data.title
+        fixture = DOCUMENT_FIXTURES.get(slug)
+        if fixture is not None and fixture.title:
+            return fixture.title
+        return None
 
     def _rebind_basket_sources_to_trash(
         self,
@@ -453,6 +494,55 @@ class ProjectControllerMixin:
                 parts.append(safe)
         return Path(*parts) if parts else Path("")
 
+    def _folder_path_has_suffix(self, folder_path: Path, suffix: Path) -> bool:
+        folder_parts = folder_path.parts
+        suffix_parts = suffix.parts
+        return bool(folder_parts and suffix_parts and len(suffix_parts) <= len(folder_parts) and folder_parts[-len(suffix_parts) :] == suffix_parts)
+
+    def _category_folder_path_exists(self, category: str, folder_path: Path) -> bool:
+        if not folder_path.parts:
+            return False
+        return (self._project_root / self._category_folder(category) / folder_path).is_dir()
+
+    def _resolve_model_document_folder_path(self, category: str, requested_folder: object | None) -> str:
+        """Resolve model-supplied folder hints without accidentally nesting the active folder."""
+        selected = self._safe_folder_path(self._selected_project_folder_path(category))
+        if requested_folder is None:
+            return selected.as_posix()
+        requested = self._safe_folder_path(str(requested_folder))
+        if not requested.parts:
+            return ""
+        if selected.parts and self._folder_path_has_suffix(selected, requested):
+            return selected.as_posix()
+        if selected.parts and requested.parts and requested.parts[0] == selected.parts[0]:
+            return requested.as_posix()
+        if (
+            selected.parts
+            and len(requested.parts) == 1
+            and self._category_folder_path_exists(category, selected / requested)
+            and not self._category_folder_path_exists(category, requested)
+        ):
+            return (selected / requested).as_posix()
+        return requested.as_posix()
+
+    def _resolve_model_folder_creation_path(self, category: str, name: str, parent_folder: object | None = None) -> Path:
+        requested = self._safe_folder_path(name)
+        if not requested.parts:
+            return Path("")
+        if parent_folder is None or not str(parent_folder).strip():
+            parent = self._safe_folder_path(self._selected_project_folder_path(category))
+            explicit_parent = False
+        else:
+            parent = self._safe_folder_path(str(parent_folder))
+            explicit_parent = True
+        if parent.parts and self._folder_path_has_suffix(parent, requested):
+            return parent
+        if parent.parts and requested.parts and requested.parts[0] == parent.parts[0]:
+            return requested
+        if not explicit_parent and len(requested.parts) > 1:
+            return requested
+        return self._safe_folder_path(parent / requested)
+
     def _folder_path_for_document_id(self, document_id: str) -> str:
         category = self._category_for_document_id(document_id)
         if category is None:
@@ -505,14 +595,28 @@ class ProjectControllerMixin:
         safe_stem = re.sub(r"[^A-Za-z0-9._ -]+", "-", stem).strip(" .-_") or default_stem
         return f"{safe_stem}{suffix}"
 
-    def _handle_new_project_result(self, name: str | None) -> None:
-        if name is None:
+    def _local_endpoint_configured(self) -> bool:
+        try:
+            return load_model_settings(self._repo_root()).local_endpoint_configured()
+        except Exception:
+            return False
+
+    def _current_project_is_confidential(self) -> bool:
+        return getattr(self, "_current_project_confidentiality", CONFIDENTIALITY_NON_CONFIDENTIAL) == CONFIDENTIALITY_CONFIDENTIAL
+
+    def _handle_new_project_result(self, result: tuple[str, str] | str | None) -> None:
+        if result is None:
             return
+        if isinstance(result, tuple):
+            name, confidentiality = result
+        else:
+            name = result
+            confidentiality = CONFIDENTIALITY_NON_CONFIDENTIAL
         project_name = name.strip() or DEFAULT_EMPTY_PROJECT_NAME
         self._remove_initial_placeholder_project_root()
         project_slug = self._dedupe_project_folder_slug(project_name)
         self._prompt_for_initial_project = False
-        self._switch_project(project_name, created=True, project_slug=project_slug)
+        self._switch_project(project_name, created=True, project_slug=project_slug, confidentiality=confidentiality)
 
     def _remove_initial_placeholder_project_root(self) -> None:
         placeholder = getattr(self, "_initial_placeholder_project_root", None)
@@ -549,6 +653,9 @@ class ProjectControllerMixin:
             self._set_status(f"Project is not available in the Exegesis project folder: {slug_or_name}")
             return
         if action == "open":
+            if record.is_confidential and not self._local_endpoint_configured():
+                self._set_status("Configure a loopback Local OpenAI Compatible Endpoint before opening a confidential project.")
+                return
             self._switch_project(record.name, created=False, project_slug=record.slug)
         elif action == "delete":
             self.push_screen(
@@ -625,7 +732,7 @@ class ProjectControllerMixin:
             self._ensure_demo_project_available()
         elif not self._has_project_directories():
             self._set_status(f"Projects directory set to {selected}. Create a project to continue.")
-            self.push_screen(NewProjectModal(), callback=self._handle_new_project_result)
+            self.push_screen(NewProjectModal(local_endpoint_configured=self._local_endpoint_configured()), callback=self._handle_new_project_result)
             return
         self._refresh_project_names()
         project_name = self._project_names[0] if self._project_names else DEFAULT_EMPTY_PROJECT_NAME
@@ -717,9 +824,9 @@ class ProjectControllerMixin:
             self._ensure_demo_project_available()
         self._refresh_project_names(include_fallback=False)
         if self._project_records:
-            self.push_screen(OpenProjectModal(self._project_records), callback=self._handle_open_project_result)
+            self.push_screen(OpenProjectModal(self._project_records, local_endpoint_configured=self._local_endpoint_configured()), callback=self._handle_open_project_result)
         else:
-            self.push_screen(NewProjectModal(), callback=self._handle_new_project_result)
+            self.push_screen(NewProjectModal(local_endpoint_configured=self._local_endpoint_configured()), callback=self._handle_new_project_result)
 
     def _handle_duplicate_import_result(
         self,
@@ -758,6 +865,7 @@ class ProjectControllerMixin:
         mode: str = "selected",
         source_root: Path | None = None,
         replace_all_duplicates: bool = False,
+        skip_all_duplicates: bool = False,
     ) -> None:
         if result is None:
             self._finish_import_progress(progress_modal, "Import cancelled.")
@@ -792,6 +900,7 @@ class ProjectControllerMixin:
                 imported_count=imported_count,
                 skipped_count=skipped_count,
                 replace_all_duplicates=replace_all_duplicates or action == "replace_all",
+                skip_all_duplicates=skip_all_duplicates or action == "skip_all",
             ),
             thread=False,
             exclusive=False,
@@ -815,14 +924,48 @@ class ProjectControllerMixin:
             index += 1
         return f"{base}-{index}"
 
-    def _switch_project(self, project_name: str, *, created: bool, project_slug: str | None = None) -> None:
+    def _activate_local_openai_for_confidential_project(self) -> None:
+        backend_getter = getattr(self, "_model_backend", None)
+        if not callable(backend_getter):
+            return
+        backend = backend_getter()
+        if backend is None:
+            return
+        settings = backend.model_settings()
+        profile = provider_profile_from_settings(settings, LOCAL_OPENAI_PROVIDER)
+        backend.save_model_settings(
+            ModelSettings(
+                provider=LOCAL_OPENAI_PROVIDER,
+                model=profile.model,
+                reasoning_effort=profile.reasoning_effort,
+                context_window_tokens=profile.context_window_tokens,
+                settings_prompt_dismissed=settings.settings_prompt_dismissed,
+                endpoint_url=profile.endpoint_url,
+                reasoning_start_tag=profile.reasoning_start_tag,
+                reasoning_end_tag=profile.reasoning_end_tag,
+                profiles=dict(settings.profiles),
+            )
+        )
+
+    def _switch_project(
+        self,
+        project_name: str,
+        *,
+        created: bool,
+        project_slug: str | None = None,
+        confidentiality: str | None = None,
+    ) -> None:
         self._save_dirty_documents()
         self._current_project_name = project_name
         self._current_project_slug = project_slug or self._project_slug_for_name(project_name)
         self._project_root = self._project_root_for_name(project_name)
+        self._current_project_confidentiality = normalize_project_confidentiality(
+            confidentiality if confidentiality is not None else self._project_confidentiality_from_root(self._project_root)
+        )
         self._document_id_by_slug.clear()
         self._trash_id_by_slug.clear()
         self._trash_metadata_by_slug.clear()
+        self._dirty_document_slugs.clear()
         if self._current_project_name == PROJECT_NAME:
             self._ensure_default_project_documents()
             self._map_default_project_documents()
@@ -832,11 +975,23 @@ class ProjectControllerMixin:
             self._map_minimal_project_documents()
             self.query_one(ProjectPane).reset_project_entries((NEW_PROJECT_CURRENT_DRAFT_ENTRY,))
         self._engine_adapter.open_project(self._project_root)
+        self.query_one(BasketPane).clear_entries()
+        self._refresh_notebook_context_meter()
+        self.run_worker(
+            self.query_one(DocumentPane).reset_for_project(),
+            name="project-document-reset",
+            group="project",
+            exclusive=True,
+        )
         self.query_one(ProjectPane).set_project_name(project_name)
+        if self._current_project_is_confidential():
+            self._activate_local_openai_for_confidential_project()
         self._refresh_project_names()
         save_textual_last_project_name(project_name, self._repo_root())
         verb = "Created" if created else "Opened"
-        self._set_status(f"{verb} project: {project_name}")
+        self._sync_footer_bar()
+        mode = "confidential " if self._current_project_is_confidential() else ""
+        self._set_status(f"{verb} {mode}project: {project_name}")
         self._show_subject(
             project_name,
             "Active project.",
@@ -1026,8 +1181,9 @@ class ProjectControllerMixin:
         action, new_title = result
         try:
             if action == "replace":
-                replaced = self._engine_adapter.delete_document(original_id)
                 existing_slug = next((doc_slug for doc_slug, doc_id in self._document_id_by_slug.items() if doc_id == original_id), None)
+                existing_title = self._project_title_for_slug(existing_slug) or Path(original_id).name
+                replaced = self._engine_adapter.delete_document(original_id, display_label=existing_title)
                 if existing_slug is not None:
                     self.query_one(ProjectPane).remove_entry(existing_slug)
                     self._document_id_by_slug.pop(existing_slug, None)
@@ -1053,20 +1209,21 @@ class ProjectControllerMixin:
     def _finish_restored_trash_item(self, trash_slug: str, item, content: str) -> None:
         metadata = self._trash_metadata_by_slug.get(trash_slug, {})
         original_id = str(metadata.get("original_id") or "") or None
+        restored_title = str(metadata.get("display_label") or item.label)
         self._remove_document_tab(trash_slug)
         self.query_one(ProjectPane).remove_entry(trash_slug)
         self._trash_id_by_slug.pop(trash_slug, None)
         self._trash_metadata_by_slug.pop(trash_slug, None)
         category = self._category_for_document_id(item.id)
         if category is None:
-            self._set_status(f"Restored {item.label}, but it is outside a visible project category.")
+            self._set_status(f"Restored {restored_title}, but it is outside a visible project category.")
             return
         restored_slug = self._next_dynamic_slug(self._category_slug_prefix(category))
         self._document_id_by_slug[restored_slug] = item.id
-        summary = f"{item.label} restored from trash."
+        summary = f"{restored_title} restored from trash."
         register_document_fixture(
             slug=restored_slug,
-            title=item.label,
+            title=restored_title,
             location=item.id,
             summary=summary,
             content=content,
@@ -1076,7 +1233,7 @@ class ProjectControllerMixin:
         self.query_one(ProjectPane).add_project_entry(
             category=category,
             slug=restored_slug,
-            title=item.label,
+            title=restored_title,
             location=item.id,
             summary=summary,
             bullets=(
@@ -1090,9 +1247,9 @@ class ProjectControllerMixin:
             old_source_document_slug=trash_slug,
             new_source_document_id=item.id,
             new_source_document_slug=restored_slug,
-            source_title=item.label,
+            source_title=restored_title,
         )
-        self._set_status(f"Restored {item.label} to {item.id}.")
+        self._set_status(f"Restored {restored_title} to {item.id}.")
 
     def _remove_document_tab(self, slug: str) -> None:
         self.run_worker(
@@ -1220,7 +1377,8 @@ class ProjectControllerMixin:
             return False
         try:
             if duplicate_action == "replace" and existing_slug is not None:
-                replaced = self._engine_adapter.delete_document(target_id)
+                existing_title = self._project_title_for_slug(existing_slug) or Path(target_id).name
+                replaced = self._engine_adapter.delete_document(target_id, display_label=existing_title)
                 self.query_one(ProjectPane).remove_entry(existing_slug)
                 self._document_id_by_slug.pop(existing_slug, None)
                 DOCUMENT_FIXTURES.pop(existing_slug, None)
@@ -1410,6 +1568,7 @@ class ProjectControllerMixin:
         imported_count: int = 0,
         skipped_count: int = 0,
         replace_all_duplicates: bool = False,
+        skip_all_duplicates: bool = False,
     ) -> None:
         if not paths:
             self._set_status("No markdown files selected for import.")
@@ -1475,9 +1634,14 @@ class ProjectControllerMixin:
                 if action == "replace_all":
                     replace_all_duplicates = True
                     action = "replace"
+                elif action == "skip_all":
+                    skip_all_duplicates = True
+                    action = "skip"
             target_exists = self._project_child_path(target_id).exists()
             if action is None and replace_all_duplicates and target_exists:
                 action = "replace"
+            elif action is None and skip_all_duplicates and target_exists:
+                action = "skip"
             elif action is None and target_exists:
                 if progress_modal is not None:
                     progress_modal.update_progress(
@@ -1501,6 +1665,7 @@ class ProjectControllerMixin:
                     mode: str = mode,
                     source_root: Path | None = source_root,
                     replace_all_duplicates: bool = replace_all_duplicates,
+                    skip_all_duplicates: bool = skip_all_duplicates,
                 ) -> None:
                     self._handle_duplicate_batch_import_result(
                         paths,
@@ -1514,19 +1679,22 @@ class ProjectControllerMixin:
                         mode,
                         source_root,
                         replace_all_duplicates,
+                        skip_all_duplicates,
                     )
 
                 self.push_screen(
-                        DuplicateDocumentModal(
-                            resolved.name,
-                            target_id,
-                            cancel_label="Skip",
-                            cancel_result=("skip", None),
-                            replace_all_label="Replace all",
-                            replace_all_result=("replace_all", None),
-                            cancel_import_label="Cancel",
-                            cancel_import_result=("cancel_import", None),
-                        ),
+                    DuplicateDocumentModal(
+                        resolved.name,
+                        target_id,
+                        cancel_label="Skip",
+                        cancel_result=("skip", None),
+                        replace_all_label="Replace all",
+                        replace_all_result=("replace_all", None),
+                        skip_all_label="Skip all",
+                        skip_all_result=("skip_all", None),
+                        cancel_import_label="Cancel",
+                        cancel_import_result=("cancel_import", None),
+                    ),
                     callback=handle_duplicate_batch_result,
                 )
                 self._set_status(f"Import conflict: {target_id} already exists.")
@@ -1718,7 +1886,7 @@ class ProjectControllerMixin:
         trashed_item = None
         if document_id is not None:
             try:
-                trashed_item = self._engine_adapter.delete_document(document_id)
+                trashed_item = self._engine_adapter.delete_document(document_id, display_label=selected.title)
             except (FileNotFoundError, RuntimeError, ValueError) as exc:
                 self._set_status(f"Could not move backing file to trash: {exc}")
                 return False

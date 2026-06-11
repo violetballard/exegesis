@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import replace
 import json
 import os
 import tempfile
@@ -12,14 +13,25 @@ from rich.style import Style
 from textual import events
 from textual.app import App, ComposeResult
 from textual.document._document import Selection
-from textual.widgets import Button, Header, Input, Markdown, OptionList, Static, TabbedContent, TextArea
+from textual.widgets import Button, Header, Input, Markdown, OptionList, RadioButton, Select, Static, TabbedContent, TextArea
 
+from exegesis_textual.actions.registry import AppActionResult, ToolCallRequest, provider_tool_specs
 from exegesis_textual.cards.patch_card import PatchReviewCardData
 from exegesis_textual.commands.palette import ExegesisCommandProvider, default_palette_commands
 from exegesis_textual.layout.modals import (
     MODEL_SETTINGS_API_KEY_ID,
+    MODEL_SETTINGS_API_KEY_GROUP_ID,
     MODEL_SETTINGS_CLEAR_ID,
+    MODEL_SETTINGS_CONTEXT_ID,
+    MODEL_SETTINGS_LOCAL_FIELDS_ID,
+    MODEL_SETTINGS_LOCAL_CONTEXT_INPUT_ID,
+    MODEL_SETTINGS_LOCAL_CONTEXT_SLIDER_ID,
+    MODEL_SETTINGS_LOCAL_ENDPOINT_ID,
+    MODEL_SETTINGS_LOCAL_MODEL_ID,
+    MODEL_SETTINGS_MODEL_ID,
+    MODEL_SETTINGS_REASONING_ID,
     MODEL_SETTINGS_SAVE_ID,
+    MODEL_SETTINGS_STANDARD_FIELDS_ID,
     MODEL_SETTINGS_STATUS_ID,
     MODEL_SETTINGS_TEST_ID,
 )
@@ -29,6 +41,7 @@ from exegesis_textual.layout.shell import (
     DUPLICATE_RENAME_INPUT_ID,
     DUPLICATE_CANCEL_IMPORT_ID,
     DUPLICATE_CANCEL_ID,
+    DUPLICATE_SKIP_ALL_IMPORT_ID,
     DeleteFolderConfirmModal,
     DeleteProjectConfirmModal,
     DuplicateDocumentModal,
@@ -68,14 +81,17 @@ from exegesis_textual.layout.shell import (
     UpdateProjectItemModal,
     ModelSettingsModal,
     COMMAND_BAR_FILE_ID,
+    COMMAND_BAR_NOTEBOOK_ID,
     TOP_MOVE_TO_TRASH_ID,
     TOP_NEW_FOLDER_ID,
     TOP_PERMANENT_DELETE_TRASH_ID,
     TOP_RESTORE_TRASH_ID,
     TOP_SAVE_DOCUMENT_ID,
     TOP_SAVE_SHORT_SUMMARY_ID,
+    TOP_TERMINAL_ACCEPT_ID,
     TOP_TERMINAL_DRAFT_ID,
     TOP_TERMINAL_NEW_CHAT_ID,
+    TOP_TERMINAL_REJECT_ID,
     TOP_TERMINAL_SAVE_ID,
     TOP_TERMINAL_SEARCH_ID,
     TOP_UPDATE_ITEM_ID,
@@ -94,6 +110,7 @@ from exegesis_textual.panes.document_pane import (
     clean_generated_draft_text,
     generated_text_insert_location,
     insert_generated_text_at_range,
+    render_review_document_rich,
     render_review_document_text,
 )
 from exegesis_textual.panes.basket_pane import (
@@ -120,20 +137,45 @@ from exegesis_textual.panes.project_pane import (
     ProjectTitle,
 )
 from exegesis_textual.services.credentials import (
+    CLAUDE_ACCOUNT,
     CredentialStoreError,
+    GOOGLE_ACCOUNT,
     InMemoryCredentialStore,
     KEYRING_SERVICE,
+    LOCAL_OPENAI_ACCOUNT,
     MISTRAL_ACCOUNT,
+    OPENAI_ACCOUNT,
     UnavailableCredentialStore,
 )
 from exegesis_textual.services.model_settings import (
+    CLAUDE_FABLE_MODEL,
+    CLAUDE_HAIKU_MODEL,
+    CLAUDE_OPUS_MODEL,
+    CLAUDE_PROVIDER,
+    CLAUDE_SONNET_MODEL,
+    CONTEXT_1M_TOKENS,
+    CONTEXT_200K_TOKENS,
+    CONTEXT_256K_TOKENS,
+    GOOGLE_GEMINI_FLASH_MODEL,
+    GOOGLE_PROVIDER,
+    LOCAL_OPENAI_PROVIDER,
+    ModelSettings,
     MISTRAL_LARGE_MODEL,
     MISTRAL_MEDIUM_MODEL,
     MistralModelSettings,
+    OPENAI_GPT_55_MODEL,
+    OPENAI_PROVIDER,
+    ProviderModelProfile,
+    is_loopback_endpoint,
+    load_model_settings,
     load_mistral_model_settings,
+    normalize_local_openai_base_url,
+    reasoning_options_for_model,
+    save_model_settings,
     save_mistral_model_settings,
 )
 from exegesis_textual.services.projects import (
+    CONFIDENTIALITY_CONFIDENTIAL,
     LOCAL_DEVELOPER_ENV,
     TEXTUAL_SETTINGS_PATH_ENV,
     textual_settings_path,
@@ -170,9 +212,14 @@ from exegesis_textual.workflow.workflow_pane import (
     WORKFLOW_CHATS,
     WorkflowChat,
     WorkflowPane,
+    ActionRequestCard,
+    ActionResultCard,
+    HistoryActionRequestEntry,
+    HistoryActionResultEntry,
     clipped_rewrite_card_text,
     _display_document_type,
 )
+from exegesis_textual.widgets import SystemClipboardInput
 
 DEMO_MEMO_FOLDER = "fieldwork/round_1"
 DEMO_MEMO_DOCUMENT_ID = f"memos/{DEMO_MEMO_FOLDER}/data_memo_1.md"
@@ -221,6 +268,7 @@ class FakeBackend:
         messages: list[ChatMessage],
         shell_context: ShellChatContext,
         request_mode: str = "chat",
+        tools: object | None = None,
     ):
         del chat_slug, messages
         self.last_mode = request_mode
@@ -244,12 +292,46 @@ class ReasoningBackend(FakeBackend):
         messages: list[ChatMessage],
         shell_context: ShellChatContext,
         request_mode: str = "chat",
+        tools: object | None = None,
     ):
         del chat_slug, messages, shell_context, request_mode
         await asyncio.sleep(0)
         yield ChatEvent(kind="reasoning_delta", text="reasoning ")
         yield ChatEvent(kind="assistant_delta", text="answer")
         yield ChatEvent(kind="assistant_done", replay_content=[{"type": "thinking", "thinking": "reasoning "}, {"type": "text", "text": "answer"}])
+
+
+class NoDoneBackend(FakeBackend):
+    async def stream_reply(
+        self,
+        chat_slug: str,
+        messages: list[ChatMessage],
+        shell_context: ShellChatContext,
+        request_mode: str = "chat",
+        tools: object | None = None,
+    ):
+        del chat_slug, messages, shell_context, request_mode, tools
+        await asyncio.sleep(0)
+        yield ChatEvent(kind="assistant_delta", text="completed without explicit done")
+
+
+class ToolCallWithPreambleBackend(FakeBackend):
+    def __init__(self, tool_call: ToolCallRequest) -> None:
+        super().__init__(configured=True)
+        self.tool_call = tool_call
+
+    async def stream_reply(
+        self,
+        chat_slug: str,
+        messages: list[ChatMessage],
+        shell_context: ShellChatContext,
+        request_mode: str = "chat",
+        tools: object | None = None,
+    ):
+        del chat_slug, messages, shell_context, request_mode, tools
+        await asyncio.sleep(0)
+        yield ChatEvent(kind="assistant_delta", text="I will rewrite the user's request into a more detailed prompt.")
+        yield ChatEvent(kind="tool_call", tool_call=self.tool_call)
 
 
 class SequencedDraftBackend(FakeBackend):
@@ -264,6 +346,7 @@ class SequencedDraftBackend(FakeBackend):
         messages: list[ChatMessage],
         shell_context: ShellChatContext,
         request_mode: str = "chat",
+        tools: object | None = None,
     ):
         del chat_slug
         self.last_mode = request_mode
@@ -291,6 +374,7 @@ class SequencedRewriteBackend(FakeBackend):
         messages: list[ChatMessage],
         shell_context: ShellChatContext,
         request_mode: str = "chat",
+        tools: object | None = None,
     ):
         del chat_slug
         self.last_mode = request_mode
@@ -313,6 +397,7 @@ class ContextLimitBackend(FakeBackend):
         messages: list[ChatMessage],
         shell_context: ShellChatContext,
         request_mode: str = "chat",
+        tools: object | None = None,
     ):
         del chat_slug, messages
         self.last_mode = request_mode
@@ -328,6 +413,7 @@ class RateLimitBackend(FakeBackend):
         messages: list[ChatMessage],
         shell_context: ShellChatContext,
         request_mode: str = "chat",
+        tools: object | None = None,
     ):
         del chat_slug, messages
         self.last_mode = request_mode
@@ -356,6 +442,7 @@ class SlowSummaryBackend(FakeBackend):
         messages: list[ChatMessage],
         shell_context: ShellChatContext,
         request_mode: str = "chat",
+        tools: object | None = None,
     ):
         del chat_slug, messages
         self.last_mode = request_mode
@@ -363,6 +450,58 @@ class SlowSummaryBackend(FakeBackend):
         self.started.set()
         await self.release.wait()
         yield ChatEvent(kind="assistant_delta", text="Slow summary complete.")
+        yield ChatEvent(kind="assistant_done")
+
+
+class ToolCallBackend(FakeBackend):
+    def __init__(self, tool_call: ToolCallRequest, follow_up: str = "Tool result acknowledged.") -> None:
+        super().__init__(configured=True)
+        self.tool_call = tool_call
+        self.follow_up = follow_up
+        self.calls = 0
+        self.seen_tools: list[object] = []
+
+    async def stream_reply(
+        self,
+        chat_slug: str,
+        messages: list[ChatMessage],
+        shell_context: ShellChatContext,
+        request_mode: str = "chat",
+        tools: object | None = None,
+    ):
+        del chat_slug, shell_context
+        self.last_mode = request_mode
+        self.seen_tools.append(tools)
+        self.calls += 1
+        await asyncio.sleep(0)
+        if self.calls == 1:
+            yield ChatEvent(kind="tool_call", tool_call=self.tool_call)
+            return
+        latest_tool_text = next((message.content for message in reversed(messages) if message.role == "tool"), "")
+        yield ChatEvent(kind="assistant_delta", text=f"{self.follow_up} {latest_tool_text}".strip())
+        yield ChatEvent(kind="assistant_done")
+
+
+class ToolCallWithReasoningFollowUpBackend(ToolCallBackend):
+    async def stream_reply(
+        self,
+        chat_slug: str,
+        messages: list[ChatMessage],
+        shell_context: ShellChatContext,
+        request_mode: str = "chat",
+        tools: object | None = None,
+    ):
+        del chat_slug, shell_context
+        self.last_mode = request_mode
+        self.seen_tools.append(tools)
+        self.calls += 1
+        await asyncio.sleep(0)
+        if self.calls == 1:
+            yield ChatEvent(kind="tool_call", tool_call=self.tool_call)
+            return
+        latest_tool_text = next((message.content for message in reversed(messages) if message.role == "tool"), "")
+        yield ChatEvent(kind="reasoning_delta", text="tool follow-up thinking")
+        yield ChatEvent(kind="assistant_delta", text=f"Tool follow-up answer. {latest_tool_text}".strip())
         yield ChatEvent(kind="assistant_done")
 
 
@@ -709,6 +848,99 @@ class WorkflowTestApp(App[None]):
     def on_workflow_pane_search_result_selected(self, message: WorkflowPane.SearchResultSelected) -> None:
         self.messages.append(message)
 
+    def on_workflow_pane_search_result_add_to_basket_requested(self, message: WorkflowPane.SearchResultAddToBasketRequested) -> None:
+        self.messages.append(message)
+
+
+class WorkflowActionDispatchTestApp(WorkflowTestApp):
+    def __init__(self, backend: FakeBackend) -> None:
+        super().__init__(backend)
+        self.dispatched_actions: list[tuple[str, dict[str, object], str, bool]] = []
+
+    async def dispatch_app_action(
+        self,
+        action_id: str,
+        payload: dict[str, object] | None = None,
+        source: str = "system",
+        conversation_turn_id: str | None = None,
+        *,
+        confirmed: bool = False,
+    ):
+        del conversation_turn_id
+        clean_payload = dict(payload or {})
+        self.dispatched_actions.append((action_id, clean_payload, source, confirmed))
+        if action_id == "search_documents":
+            return AppActionResult(
+                "completed",
+                "Search found 1 matching document: current_draft.md.",
+                data={"query": clean_payload.get("query", ""), "results": self.shell_search_documents(str(clean_payload.get("query", "")))},
+            )
+        if action_id == "add_document_to_basket" and clean_payload.get("document") == "Transcript":
+            return AppActionResult(
+                "refused",
+                "Full transcripts cannot be added to the basket in a non-confidential project. Add excerpts instead.",
+            )
+        if action_id == "add_document_to_basket" and not confirmed:
+            return AppActionResult("pending_confirmation", "Add document requires confirmation.")
+        if action_id == "update_selected_project_item" and not confirmed:
+            return AppActionResult(
+                "pending_confirmation",
+                "memos/data_memo_1.md already exists. Replace it or enter a different name.",
+                card={
+                    "type": "action_request",
+                    "action_id": action_id,
+                    "label": "Update item",
+                    "payload": clean_payload,
+                    "options": [
+                        {"label": "Replace", "payload": {"duplicate_action": "replace"}},
+                        {"label": "Rename", "payload": {"duplicate_action": "rename"}},
+                        {"label": "Cancel", "payload": {"duplicate_action": "cancel"}, "cancel": True},
+                    ],
+                    "input": {"name": "duplicate_title", "placeholder": "Alternate file name"},
+                },
+            )
+        return AppActionResult("completed", f"{action_id} completed.")
+
+    def shell_search_documents(self, query: str) -> list[dict[str, object]]:
+        return [
+            {
+                "document_slug": CURRENT_DRAFT_SLUG,
+                "title": "current_draft.md",
+                "document_type": "draft",
+                "snippet": f"Match for {query}",
+                "token_count": 12,
+                "location": "current_draft.md",
+                "match_range": (0, len(query)),
+                "matches": [{"snippet": f"Match for {query}", "match_range": (0, len(query))}],
+            }
+        ]
+
+
+class SlowWorkflowActionDispatchTestApp(WorkflowActionDispatchTestApp):
+    def __init__(self, backend: FakeBackend) -> None:
+        super().__init__(backend)
+        self.dispatch_started = asyncio.Event()
+        self.dispatch_release = asyncio.Event()
+
+    async def dispatch_app_action(
+        self,
+        action_id: str,
+        payload: dict[str, object] | None = None,
+        source: str = "system",
+        conversation_turn_id: str | None = None,
+        *,
+        confirmed: bool = False,
+    ):
+        self.dispatch_started.set()
+        await self.dispatch_release.wait()
+        return await super().dispatch_app_action(
+            action_id,
+            payload,
+            source,
+            conversation_turn_id,
+            confirmed=confirmed,
+        )
+
 
 class WorkflowTranscriptTestApp(WorkflowTestApp):
     def shell_chat_context(self) -> dict[str, str]:
@@ -759,6 +991,8 @@ class WorkflowDraftTestApp(App[None]):
             generated_text=message.generated_text,
             instruction_text=message.instruction_text,
             source_chat_slug=message.chat_slug,
+            target_range=message.target_range,
+            block_insert=message.block_insert,
         )
         if preview is not None:
             self.query_one(WorkflowPane).show_patch_review(
@@ -769,6 +1003,9 @@ class WorkflowDraftTestApp(App[None]):
                     source_chat_slug=preview.source_chat_slug,
                     original_text=preview.original_text,
                     proposed_text=preview.proposed_text,
+                    document_slug=preview.document_slug,
+                    target_range=preview.target_range,
+                    block_insert=preview.block_insert,
                 )
             )
 
@@ -819,7 +1056,20 @@ class ShellConfidentialityModeTests(unittest.IsolatedAsyncioTestCase):
             footer = app.query_one(f"#{FOOTER_CONFIDENTIALITY_ID}", Static)
             self.assertEqual(footer.render(), NON_CONFIDENTIAL_MODE_LABEL)
             self.assertNotIsInstance(footer, Button)
-            self.assertEqual(app.shell_chat_context()["confidentiality_mode"], "online")
+            self.assertEqual(app.shell_chat_context()["confidentiality_mode"], "non-confidential")
+
+    async def test_confidential_project_footer_uses_confidential_badge(self) -> None:
+        app = ShellWorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app._current_project_confidentiality = CONFIDENTIALITY_CONFIDENTIAL
+            app._sync_footer_bar()
+
+            footer = app.query_one(f"#{FOOTER_CONFIDENTIALITY_ID}", Static)
+            self.assertEqual(footer.render(), "Confidential")
+            self.assertTrue(footer.has_class("confidential"))
+            self.assertFalse(footer.has_class("non-confidential"))
+            self.assertNotEqual(str(footer.styles.background), "#ff1744")
 
     async def test_empty_projects_root_creates_demo_project(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -885,6 +1135,774 @@ class ShellConfidentialityModeTests(unittest.IsolatedAsyncioTestCase):
             app.action_add_file_to_basket()
             await pilot.pause()
             self.assertNotIn("project-notebook", app._serialize_basket_context())
+
+    async def test_notebook_can_restore_trashed_transcript_in_non_confidential_project(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                tool_call = ToolCallRequest(
+                    provider="mistral",
+                    tool_name="restore_trash_item",
+                    arguments={},
+                    raw_call_id="call-restore-transcript",
+                )
+                app = ShellWorkflowTestApp(ToolCallBackend(tool_call))
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+
+                    await app._create_project_document("Transcripts")
+                    await pilot.pause()
+                    transcript_slug = app.query_one(DocumentPane).active_document.slug
+                    transcript_id = app._document_id_by_slug[transcript_slug]
+                    tree = app.query_one(ProjectBrowserTree)
+                    tree.move_cursor(tree._entry_nodes[transcript_slug], animate=False)
+                    await app._delete_selected_project_document()
+                    await pilot.pause()
+                    [(trash_slug, _trash_id)] = list(app._trash_id_by_slug.items())
+                    tree.move_cursor(tree._entry_nodes[trash_slug], animate=False)
+                    await app.query_one(DocumentPane).open_document(trash_slug, focus=False)
+                    await pilot.pause()
+
+                    workflow = app.query_one(WorkflowPane)
+                    app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input).value = "Restore this transcript from the trash."
+                    workflow.send_active_message()
+                    for _ in range(6):
+                        await pilot.pause()
+
+                    self.assertFalse(any(isinstance(entry, HistoryStatusEntry) and "full transcripts" in entry.content.casefold() for entry in workflow.active_chat.history_entries))
+                    request_entries = [entry for entry in workflow.active_chat.history_entries if isinstance(entry, HistoryActionRequestEntry)]
+                    self.assertEqual(len(request_entries), 1)
+                    self.assertEqual(request_entries[0].action_id, "restore_trash_item")
+
+                    await workflow.on_action_request_card_confirm_requested(
+                        ActionRequestCard.ConfirmRequested(ActionRequestCard(request_entries[0]), request_entries[0])
+                    )
+                    await pilot.pause()
+                    await pilot.pause()
+
+                    self.assertNotIn(trash_slug, app._trash_id_by_slug)
+                    self.assertIn(transcript_id, app._document_id_by_slug.values())
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
+    async def test_notebook_can_restore_named_nested_trashed_transcript(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                tool_call = ToolCallRequest(
+                    provider="openai",
+                    tool_name="restore_trash_item",
+                    arguments={"document": "Transcript 1 - Participant 1 - 5.1.26"},
+                    raw_call_id="call-restore-named-transcript",
+                )
+                app = ShellWorkflowTestApp(ToolCallBackend(tool_call))
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+
+                    transcript_slug = "project-notebook"
+                    transcript_id = app._document_id_by_slug[transcript_slug]
+                    tree = app.query_one(ProjectBrowserTree)
+                    tree.move_cursor(tree._entry_nodes[transcript_slug], animate=False)
+                    await app._delete_selected_project_document()
+                    await pilot.pause()
+                    [(trash_slug, _trash_id)] = list(app._trash_id_by_slug.items())
+                    self.assertNotIn(transcript_slug, app._document_id_by_slug)
+
+                    tree.move_cursor(tree._entry_nodes[CURRENT_DRAFT_SLUG], animate=False)
+                    await app.query_one(DocumentPane).open_document(CURRENT_DRAFT_SLUG, focus=False)
+                    await pilot.pause()
+
+                    workflow = app.query_one(WorkflowPane)
+                    composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+                    composer.value = "Restore Transcript 1 from the trash."
+                    workflow.send_active_message()
+                    for _ in range(6):
+                        await pilot.pause()
+
+                    request_entries = [
+                        entry
+                        for entry in workflow.active_chat.history_entries
+                        if isinstance(entry, HistoryActionRequestEntry)
+                    ]
+                    self.assertEqual(len(request_entries), 1)
+                    self.assertEqual(request_entries[0].action_id, "restore_trash_item")
+
+                    await workflow.on_action_request_card_confirm_requested(
+                        ActionRequestCard.ConfirmRequested(ActionRequestCard(request_entries[0]), request_entries[0])
+                    )
+                    await pilot.pause()
+                    await pilot.pause()
+
+                    self.assertNotIn(trash_slug, app._trash_id_by_slug)
+                    self.assertIn(transcript_id, app._document_id_by_slug.values())
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
+    async def test_model_can_restore_trash_item_by_same_partial_title_used_to_delete(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                app = ShellWorkflowTestApp(FakeBackend(configured=True))
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+
+                    created = await app.dispatch_app_action(
+                        "create_transcript",
+                        {"title": "Alpha Restore Transcript"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+                    self.assertEqual(created.status, "completed")
+                    created_slug = next(
+                        slug
+                        for slug, fixture in DOCUMENT_FIXTURES.items()
+                        if fixture.title == "Alpha Restore Transcript.md"
+                    )
+                    transcript_id = app._document_id_by_slug[created_slug]
+                    moved = await app.dispatch_app_action(
+                        "move_document_to_trash",
+                        {"document": "Alpha Restore"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+                    self.assertEqual(moved.status, "completed")
+                    [(trash_slug, _trash_id)] = list(app._trash_id_by_slug.items())
+
+                    restored = await app.dispatch_app_action(
+                        "restore_trash_item",
+                        {"trash_item": "Alpha Restore"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+
+                    self.assertEqual(restored.status, "completed")
+                    self.assertNotIn(trash_slug, app._trash_id_by_slug)
+                    self.assertIn(transcript_id, app._document_id_by_slug.values())
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
+    async def test_model_can_permanently_delete_trash_item_by_same_partial_title_used_to_delete(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                app = ShellWorkflowTestApp(FakeBackend(configured=True))
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+
+                    created = await app.dispatch_app_action(
+                        "create_memo",
+                        {"title": "Alpha Delete Memo"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+                    self.assertEqual(created.status, "completed")
+                    moved = await app.dispatch_app_action(
+                        "move_document_to_trash",
+                        {"document": "Alpha Delete"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+                    self.assertEqual(moved.status, "completed")
+                    [(trash_slug, _trash_id)] = list(app._trash_id_by_slug.items())
+
+                    deleted = await app.dispatch_app_action(
+                        "permanently_delete_trash_item",
+                        {"trash_item": "Alpha Delete"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+
+                    self.assertEqual(deleted.status, "completed")
+                    self.assertNotIn(trash_slug, app._trash_id_by_slug)
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
+    async def test_notebook_restore_intent_corrects_misrouted_permanent_delete_tool(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                tool_call = ToolCallRequest(
+                    provider="google",
+                    tool_name="permanently_delete_trash_item",
+                    arguments={"document": "Transcript 1 - Participant 1 - 5.1.26"},
+                    raw_call_id="call-misrouted-restore",
+                )
+                app = ShellWorkflowTestApp(ToolCallBackend(tool_call))
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+
+                    transcript_slug = "project-notebook"
+                    tree = app.query_one(ProjectBrowserTree)
+                    tree.move_cursor(tree._entry_nodes[transcript_slug], animate=False)
+                    await app._delete_selected_project_document()
+                    await pilot.pause()
+                    [(trash_slug, _trash_id)] = list(app._trash_id_by_slug.items())
+
+                    tree.move_cursor(tree._entry_nodes[CURRENT_DRAFT_SLUG], animate=False)
+                    workflow = app.query_one(WorkflowPane)
+                    composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+                    composer.value = "Restore the transcript from the trash."
+                    workflow.send_active_message()
+                    for _ in range(6):
+                        await pilot.pause()
+
+                    request_entries = [
+                        entry
+                        for entry in workflow.active_chat.history_entries
+                        if isinstance(entry, HistoryActionRequestEntry)
+                    ]
+                    self.assertEqual(len(request_entries), 1)
+                    self.assertEqual(request_entries[0].action_id, "restore_trash_item")
+                    self.assertIn(trash_slug, app._trash_id_by_slug)
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
+    async def test_notebook_delete_intent_corrects_misrouted_restore_tool(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                tool_call = ToolCallRequest(
+                    provider="mistral",
+                    tool_name="restore_trash_item",
+                    arguments={"document": "Alpha Delete"},
+                    raw_call_id="call-misrouted-delete",
+                )
+                app = ShellWorkflowTestApp(ToolCallBackend(tool_call))
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+                    created = await app.dispatch_app_action(
+                        "create_memo",
+                        {"title": "Alpha Delete Memo"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+                    self.assertEqual(created.status, "completed")
+
+                    workflow = app.query_one(WorkflowPane)
+                    composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+                    composer.value = "Delete Alpha Delete Memo."
+                    workflow.send_active_message()
+                    for _ in range(6):
+                        await pilot.pause()
+
+                    request_entries = [
+                        entry
+                        for entry in workflow.active_chat.history_entries
+                        if isinstance(entry, HistoryActionRequestEntry)
+                    ]
+                    self.assertEqual(len(request_entries), 1)
+                    self.assertEqual(request_entries[0].action_id, "move_document_to_trash")
+
+                    await workflow.on_action_request_card_confirm_requested(
+                        ActionRequestCard.ConfirmRequested(ActionRequestCard(request_entries[0]), request_entries[0])
+                    )
+                    await pilot.pause()
+                    self.assertEqual(len(app._trash_id_by_slug), 1)
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
+    async def test_notebook_normal_delete_intent_corrects_misrouted_permanent_delete_tool(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                tool_call = ToolCallRequest(
+                    provider="mistral",
+                    tool_name="permanently_delete_trash_item",
+                    arguments={"document": "Alpha Delete"},
+                    raw_call_id="call-misrouted-normal-delete",
+                )
+                app = ShellWorkflowTestApp(ToolCallBackend(tool_call))
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+                    created = await app.dispatch_app_action(
+                        "create_memo",
+                        {"title": "Alpha Delete Memo"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+                    self.assertEqual(created.status, "completed")
+
+                    workflow = app.query_one(WorkflowPane)
+                    composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+                    composer.value = "Remove Alpha Delete Memo."
+                    workflow.send_active_message()
+                    for _ in range(6):
+                        await pilot.pause()
+
+                    request_entries = [
+                        entry
+                        for entry in workflow.active_chat.history_entries
+                        if isinstance(entry, HistoryActionRequestEntry)
+                    ]
+                    self.assertEqual(len(request_entries), 1)
+                    self.assertEqual(request_entries[0].action_id, "move_document_to_trash")
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
+    async def test_notebook_direct_delete_command_bypasses_provider(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                backend = FakeBackend(configured=False)
+                app = ShellWorkflowTestApp(backend)
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+                    created = await app.dispatch_app_action(
+                        "create_memo",
+                        {"title": "Alpha Direct Delete Memo"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+                    self.assertEqual(created.status, "completed")
+
+                    workflow = app.query_one(WorkflowPane)
+                    composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+                    composer.value = "Delete Alpha Direct Delete Memo."
+                    workflow.send_active_message()
+                    await pilot.pause()
+
+                    request_entries = [
+                        entry
+                        for entry in workflow.active_chat.history_entries
+                        if isinstance(entry, HistoryActionRequestEntry)
+                    ]
+                    self.assertEqual(len(request_entries), 1)
+                    self.assertEqual(request_entries[0].action_id, "move_document_to_trash")
+                    self.assertEqual(request_entries[0].payload["document"], "Alpha Direct Delete Memo")
+                    self.assertIsNone(backend.last_mode)
+
+                    await workflow.on_action_request_card_confirm_requested(
+                        ActionRequestCard.ConfirmRequested(ActionRequestCard(request_entries[0]), request_entries[0])
+                    )
+                    await pilot.pause()
+                    self.assertEqual(len(app._trash_id_by_slug), 1)
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
+    async def test_notebook_direct_restore_command_bypasses_provider(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                backend = FakeBackend(configured=False)
+                app = ShellWorkflowTestApp(backend)
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+                    created = await app.dispatch_app_action(
+                        "create_memo",
+                        {"title": "Alpha Direct Restore Memo"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+                    self.assertEqual(created.status, "completed")
+                    moved = await app.dispatch_app_action(
+                        "move_document_to_trash",
+                        {"document": "Alpha Direct Restore"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+                    self.assertEqual(moved.status, "completed")
+                    self.assertEqual(len(app._trash_id_by_slug), 1)
+
+                    workflow = app.query_one(WorkflowPane)
+                    composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+                    composer.value = "Restore Alpha Direct Restore from trash."
+                    workflow.send_active_message()
+                    await pilot.pause()
+
+                    request_entries = [
+                        entry
+                        for entry in workflow.active_chat.history_entries
+                        if isinstance(entry, HistoryActionRequestEntry)
+                    ]
+                    self.assertEqual(len(request_entries), 1)
+                    self.assertEqual(request_entries[0].action_id, "restore_trash_item")
+                    self.assertEqual(request_entries[0].payload["trash_item"], "Alpha Direct Restore")
+                    self.assertIsNone(backend.last_mode)
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
+    async def test_notebook_can_permanently_delete_trashed_transcript_in_non_confidential_project(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                tool_call = ToolCallRequest(
+                    provider="mistral",
+                    tool_name="permanently_delete_trash_item",
+                    arguments={},
+                    raw_call_id="call-delete-transcript",
+                )
+                app = ShellWorkflowTestApp(ToolCallBackend(tool_call))
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+
+                    await app._create_project_document("Transcripts")
+                    await pilot.pause()
+                    transcript_slug = app.query_one(DocumentPane).active_document.slug
+                    transcript_id = app._document_id_by_slug[transcript_slug]
+                    backing_path = Path(tmp) / "demo-project" / transcript_id
+                    tree = app.query_one(ProjectBrowserTree)
+                    tree.move_cursor(tree._entry_nodes[transcript_slug], animate=False)
+                    await app._delete_selected_project_document()
+                    await pilot.pause()
+                    [(trash_slug, _trash_id)] = list(app._trash_id_by_slug.items())
+                    tree.move_cursor(tree._entry_nodes[trash_slug], animate=False)
+                    await app.query_one(DocumentPane).open_document(trash_slug, focus=False)
+                    await pilot.pause()
+
+                    workflow = app.query_one(WorkflowPane)
+                    app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input).value = "Permanently delete this transcript from trash."
+                    workflow.send_active_message()
+                    for _ in range(6):
+                        await pilot.pause()
+
+                    self.assertFalse(any(isinstance(entry, HistoryStatusEntry) and "full transcripts" in entry.content.casefold() for entry in workflow.active_chat.history_entries))
+                    request_entries = [entry for entry in workflow.active_chat.history_entries if isinstance(entry, HistoryActionRequestEntry)]
+                    self.assertEqual(len(request_entries), 1)
+                    self.assertEqual(request_entries[0].action_id, "permanently_delete_trash_item")
+
+                    await workflow.on_action_request_card_confirm_requested(
+                        ActionRequestCard.ConfirmRequested(ActionRequestCard(request_entries[0]), request_entries[0])
+                    )
+                    await pilot.pause()
+                    await pilot.pause()
+
+                    self.assertFalse(backing_path.exists())
+                    self.assertNotIn(trash_slug, app._trash_id_by_slug)
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
+    async def test_model_add_document_prefers_active_document_over_stale_project_selection(self) -> None:
+        app = ShellWorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            await app.query_one(DocumentPane).open_document("project-longform-essay", focus=False)
+            tree = app.query_one(ProjectBrowserTree)
+            tree.move_cursor(tree._entry_nodes["project-notebook"], animate=False)
+            await pilot.pause()
+
+            result = await app.dispatch_app_action("add_document_to_basket", {}, source="model_tool", confirmed=True)
+            await pilot.pause()
+
+            self.assertEqual(result.status, "completed")
+            [item] = app._engine_adapter.state.basket.items
+            self.assertEqual(item.payload["source_document_slug"], "project-longform-essay")
+            self.assertEqual(item.payload["document_type"], "summary")
+            self.assertNotEqual(item.payload["source_document_slug"], "project-notebook")
+
+    async def test_model_add_excerpt_prefers_active_selection_over_stale_project_selection(self) -> None:
+        app = ShellWorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            content = DOCUMENT_FIXTURES["project-longform-essay"].content
+            selected = "exploratory prose"
+            start = content.casefold().index(selected)
+            await app.query_one(DocumentPane).open_document_with_selection(
+                "project-longform-essay",
+                (start, start + len(selected)),
+                focus=False,
+            )
+            tree = app.query_one(ProjectBrowserTree)
+            tree.move_cursor(tree._entry_nodes["project-notebook"], animate=False)
+            await pilot.pause()
+
+            result = await app.dispatch_app_action("add_excerpt_to_basket", {}, source="model_tool", confirmed=True)
+            await pilot.pause()
+
+            self.assertEqual(result.status, "completed")
+            [item] = app._engine_adapter.state.basket.items
+            self.assertEqual(item.payload["source_document_slug"], "project-longform-essay")
+            self.assertEqual(item.payload["source_document_type"], "summary")
+            self.assertEqual(item.payload["selected_text"].casefold(), selected)
+
+    async def test_model_full_transcript_add_refuses_before_confirmation(self) -> None:
+        app = ShellWorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            await app.query_one(DocumentPane).open_document("project-notebook", focus=False)
+            await pilot.pause()
+
+            result = await app.dispatch_app_action("add_document_to_basket", {}, source="model_tool")
+            await pilot.pause()
+
+            self.assertEqual(result.status, "refused")
+            self.assertNotEqual(result.card.get("type") if isinstance(result.card, dict) else None, "action_request")
+            self.assertNotIn("project-notebook", app._serialize_basket_context())
+
+    async def test_model_add_excerpt_payload_from_transcript_is_allowed(self) -> None:
+        app = ShellWorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            content = DOCUMENT_FIXTURES["project-notebook"].content
+            excerpt = "Interview fragments"
+            self.assertIn(excerpt, content)
+
+            result = await app.dispatch_app_action(
+                "add_excerpt_to_basket",
+                {"source_document": "project-notebook", "quote": excerpt},
+                source="model_tool",
+                confirmed=True,
+            )
+            await pilot.pause()
+
+            self.assertEqual(result.status, "completed")
+            [item] = app._engine_adapter.state.basket.items
+            self.assertEqual(item.item_type, "excerpt")
+            self.assertEqual(item.payload["source_document_slug"], "project-notebook")
+            self.assertEqual(item.payload["source_document_type"], "transcript")
+            self.assertEqual(item.payload["selected_text"], excerpt)
+
+    async def test_model_document_action_with_excerpt_payload_reroutes_to_excerpt(self) -> None:
+        app = ShellWorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            excerpt = "Interview fragments"
+
+            pending = await app.dispatch_app_action(
+                "add_document_to_basket",
+                {"document": "project-notebook", "passage": excerpt},
+                source="model_tool",
+            )
+            self.assertEqual(pending.status, "pending_confirmation")
+            self.assertEqual(pending.card.get("action_id") if isinstance(pending.card, dict) else None, "add_excerpt_to_basket")
+
+            result = await app.dispatch_app_action(
+                "add_document_to_basket",
+                {"document": "project-notebook", "passage": excerpt},
+                source="model_tool",
+                confirmed=True,
+            )
+            await pilot.pause()
+
+            self.assertEqual(result.status, "completed")
+            [item] = app._engine_adapter.state.basket.items
+            self.assertEqual(item.item_type, "excerpt")
+            self.assertEqual(item.payload["source_document_slug"], "project-notebook")
+            self.assertEqual(item.payload["selected_text"], excerpt)
+
+    async def test_notebook_tool_can_confirm_transcript_excerpt_add(self) -> None:
+        excerpt = "Interview fragments"
+        tool_call = ToolCallRequest(
+            provider="mistral",
+            tool_name="add_excerpt_to_basket",
+            arguments={"source_document": "project-notebook", "quote": excerpt},
+            raw_call_id="call-transcript-excerpt",
+        )
+        app = ShellWorkflowTestApp(ToolCallBackend(tool_call))
+
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+            workflow = app.query_one(WorkflowPane)
+            composer.value = "Add this transcript excerpt to the basket"
+
+            workflow.send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+            await pilot.pause()
+
+            request_entries = [
+                entry
+                for entry in workflow.active_chat.history_entries
+                if isinstance(entry, HistoryActionRequestEntry)
+            ]
+            self.assertEqual(len(request_entries), 1)
+            self.assertEqual(request_entries[0].action_id, "add_excerpt_to_basket")
+
+            await workflow.on_action_request_card_confirm_requested(
+                ActionRequestCard.ConfirmRequested(ActionRequestCard(request_entries[0]), request_entries[0])
+            )
+            await pilot.pause()
+
+            [item] = app._engine_adapter.state.basket.items
+            self.assertEqual(item.item_type, "excerpt")
+            self.assertEqual(item.payload["source_document_slug"], "project-notebook")
+            self.assertEqual(item.payload["source_document_type"], "transcript")
+            self.assertEqual(item.payload["selected_text"], excerpt)
+
+    async def test_notebook_document_tool_call_with_excerpt_intent_adds_selected_transcript_excerpt(self) -> None:
+        excerpt = "Interview fragments"
+        tool_call = ToolCallRequest(
+            provider="mistral",
+            tool_name="add_document_to_basket",
+            arguments={},
+            raw_call_id="call-misclassified-excerpt",
+        )
+        app = ShellWorkflowTestApp(ToolCallBackend(tool_call))
+
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            content = DOCUMENT_FIXTURES["project-notebook"].content
+            start = content.index(excerpt)
+            await app.query_one(DocumentPane).open_document_with_selection(
+                "project-notebook",
+                (start, start + len(excerpt)),
+                focus=False,
+            )
+            await pilot.pause()
+            composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+            workflow = app.query_one(WorkflowPane)
+            composer.value = "Add the selected excerpt to the basket"
+
+            workflow.send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+            await pilot.pause()
+
+            request_entries = [
+                entry
+                for entry in workflow.active_chat.history_entries
+                if isinstance(entry, HistoryActionRequestEntry)
+            ]
+            self.assertEqual(len(request_entries), 1)
+            self.assertEqual(request_entries[0].action_id, "add_excerpt_to_basket")
+            self.assertFalse(
+                any(
+                    isinstance(entry, HistoryStatusEntry)
+                    and entry.content == NON_CONFIDENTIAL_TRANSCRIPT_WARNING
+                    for entry in workflow.active_chat.history_entries
+                )
+            )
+
+            await workflow.on_action_request_card_confirm_requested(
+                ActionRequestCard.ConfirmRequested(ActionRequestCard(request_entries[0]), request_entries[0])
+            )
+            await pilot.pause()
+
+            [item] = app._engine_adapter.state.basket.items
+            self.assertEqual(item.item_type, "excerpt")
+            self.assertEqual(item.payload["source_document_slug"], "project-notebook")
+            self.assertEqual(item.payload["source_document_type"], "transcript")
+            self.assertEqual(item.payload["selected_text"], excerpt)
+
+    async def test_model_folder_creation_does_not_recreate_selected_folder_inside_itself(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                app = ShellWorkflowTestApp(FakeBackend(configured=True))
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+
+                    tree = app.query_one(ProjectBrowserTree)
+                    tree.move_cursor(tree._folder_nodes[("Memos", "fieldwork")], animate=False)
+                    result = await app.dispatch_app_action(
+                        "create_folder",
+                        {"category": "Memos", "name": "new_round"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+
+                    self.assertEqual(result.status, "completed")
+                    self.assertIn(("Memos", "fieldwork/new_round"), tree._folder_nodes)
+                    self.assertEqual(tree.selected_folder_path(), "fieldwork/new_round")
+
+                    repeated = await app.dispatch_app_action(
+                        "create_folder",
+                        {"category": "Memos", "name": "new_round"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+
+                    self.assertEqual(repeated.status, "completed")
+                    self.assertIn(("Memos", "fieldwork/new_round"), tree._folder_nodes)
+                    self.assertNotIn(("Memos", "fieldwork/new_round/new_round"), tree._folder_nodes)
+                    self.assertFalse((app._project_root / "memos" / "fieldwork" / "new_round" / "new_round").exists())
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
+    async def test_model_document_creation_uses_selected_folder_when_folder_is_omitted(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                app = ShellWorkflowTestApp(FakeBackend(configured=True))
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+
+                    tree = app.query_one(ProjectBrowserTree)
+                    tree.move_cursor(tree._folder_nodes[("Memos", "fieldwork")], animate=False)
+                    await app.dispatch_app_action(
+                        "create_folder",
+                        {"category": "Memos", "name": "new_round"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+
+                    result = await app.dispatch_app_action(
+                        "create_memo",
+                        {"title": "observation.md"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+
+                    self.assertEqual(result.status, "completed")
+                    self.assertTrue((app._project_root / "memos" / "fieldwork" / "new_round" / "observation.md").exists())
+                    self.assertFalse((app._project_root / "memos" / "observation.md").exists())
+                    document_slug = str(result.data["document_slug"])
+                    self.assertEqual(app._document_id_by_slug[document_slug], "memos/fieldwork/new_round/observation.md")
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
 
     async def test_transcript_document_is_not_auto_loaded_into_chat_context(self) -> None:
         app = ShellWorkflowTestApp(FakeBackend(configured=True))
@@ -952,6 +1970,17 @@ class ShellConfidentialityModeTests(unittest.IsolatedAsyncioTestCase):
             write_clipboard.assert_called_once_with(selected)
             self.assertEqual(app.clipboard, selected)
 
+    async def test_document_editors_show_text_area_line_numbers(self) -> None:
+        app = ShellWorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+
+            await app.query_one(DocumentPane).open_document("project-demo-essay")
+            await pilot.pause()
+
+            self.assertTrue(app.query_one("#document-editor-current-draft", TextArea).show_line_numbers)
+            self.assertTrue(app.query_one("#document-editor-project-demo-essay", TextArea).show_line_numbers)
+
     async def test_document_editor_paste_reads_host_clipboard(self) -> None:
         original = DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content
         try:
@@ -1003,6 +2032,74 @@ class ShellConfidentialityModeTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(item.payload["source_status"], "current")
             self.assertIn("captured_at", item.payload)
             self.assertIsNotNone(app.query_one(BasketPane).get_entry(item.id))
+
+    async def test_notebook_payload_adds_provenanced_excerpt_to_basket(self) -> None:
+        app = ShellWorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            content = DOCUMENT_FIXTURES["project-demo-essay"].content
+            selected = "theoretical frameworks"
+            start = content.index(selected)
+
+            result = await app.dispatch_app_action(
+                "add_excerpt_to_basket",
+                {"document": "project-demo-essay", "excerpt": selected},
+                source="model_tool",
+                confirmed=True,
+            )
+            await pilot.pause()
+
+            self.assertEqual(result.status, "completed")
+            [item] = app._engine_adapter.state.basket.items
+            self.assertEqual(item.item_type, "excerpt")
+            self.assertEqual(item.payload["selected_text"], selected)
+            self.assertEqual(item.payload["start"], start)
+            self.assertEqual(item.payload["end"], start + len(selected))
+            self.assertEqual(item.payload["source_document_slug"], "project-demo-essay")
+            self.assertEqual(item.payload["source_match_status"], "matched_text")
+            self.assertIsNotNone(app.query_one(BasketPane).get_entry(item.id))
+
+    async def test_model_close_document_tab_closes_active_document_without_basket_mutation(self) -> None:
+        app = ShellWorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            document_pane = app.query_one(DocumentPane)
+            await document_pane.open_document("project-longform-essay", focus=False)
+            await pilot.pause()
+
+            result = await app.dispatch_app_action("close_document_tab", {}, source="model_tool", confirmed=True)
+            await pilot.pause()
+
+            self.assertEqual(result.status, "completed")
+            self.assertEqual(document_pane.active_document.slug, CURRENT_DRAFT_SLUG)
+            self.assertEqual(app._engine_adapter.state.basket.items, [])
+
+    async def test_search_result_add_to_basket_handler_uses_match_range_provenance(self) -> None:
+        app = ShellWorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            content = DOCUMENT_FIXTURES["project-demo-essay"].content
+            selected = "theoretical frameworks"
+            start = content.index(selected)
+
+            await app.on_workflow_pane_search_result_add_to_basket_requested(
+                WorkflowPane.SearchResultAddToBasketRequested(
+                    app.query_one(WorkflowPane),
+                    "project-demo-essay",
+                    "Data Memo 1",
+                    "memo",
+                    selected,
+                    (start, start + len(selected)),
+                )
+            )
+            await pilot.pause()
+
+            [item] = app._engine_adapter.state.basket.items
+            self.assertEqual(item.payload["selected_text"], selected)
+            self.assertEqual(item.payload["start"], start)
+            self.assertEqual(item.payload["end"], start + len(selected))
+            self.assertEqual(item.payload["source_document_slug"], "project-demo-essay")
+            self.assertEqual(item.payload["source_match_status"], "range")
 
     async def test_basket_excerpt_inspector_shows_excerpt_type_without_instructional_copy(self) -> None:
         app = ShellWorkflowTestApp(FakeBackend(configured=True))
@@ -1682,6 +2779,51 @@ class ShellConfidentialityModeTests(unittest.IsolatedAsyncioTestCase):
                 else:
                     os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
 
+    async def test_project_browser_preserves_extensionless_display_title_in_trash(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                app = ShellWorkflowTestApp(FakeBackend(configured=True))
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+
+                    slug = "project-demo-essay"
+                    document_id = app._document_id_by_slug[slug]
+                    tree = app.query_one(ProjectBrowserTree)
+                    source_info = tree._entry_nodes[slug].data
+                    self.assertIsNotNone(source_info)
+                    self.assertEqual(source_info.title, "Data Memo 1")
+
+                    tree.move_cursor(tree._entry_nodes[slug], animate=False)
+                    await app._delete_selected_project_document()
+                    await pilot.pause()
+
+                    [(trash_slug, _trash_id)] = list(app._trash_id_by_slug.items())
+                    trash_info = tree._entry_nodes[trash_slug].data
+                    self.assertIsNotNone(trash_info)
+                    self.assertEqual(trash_info.title, "Data Memo 1")
+                    self.assertNotIn(".md", str(tree._entry_nodes[trash_slug].label))
+                    self.assertEqual(app._engine_adapter.list_trash_items()[0].label, "Data Memo 1")
+
+                    app._handle_trash_document_result(trash_slug, "restore")
+                    await pilot.pause()
+
+                    restored_slug = next(
+                        candidate_slug
+                        for candidate_slug, candidate_document_id in app._document_id_by_slug.items()
+                        if candidate_document_id == document_id
+                    )
+                    restored_info = tree._entry_nodes[restored_slug].data
+                    self.assertIsNotNone(restored_info)
+                    self.assertEqual(restored_info.title, "Data Memo 1")
+                    self.assertNotIn(".md", str(tree._entry_nodes[restored_slug].label))
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
     async def test_project_browser_backspace_key_moves_selected_document_to_trash(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
@@ -1716,7 +2858,7 @@ class ShellConfidentialityModeTests(unittest.IsolatedAsyncioTestCase):
                 else:
                     os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
 
-    async def test_project_browser_selection_opens_document_without_stealing_delete_focus(self) -> None:
+    async def test_project_browser_enter_opens_update_item_modal(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
             os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
@@ -1741,15 +2883,13 @@ class ShellConfidentialityModeTests(unittest.IsolatedAsyncioTestCase):
                     await pilot.press("enter")
                     await pilot.pause()
 
-                    self.assertTrue(tree.has_focus)
-                    self.assertEqual(app.query_one(DocumentPane).active_document.slug, slug)
-
-                    await pilot.press("delete")
-                    await pilot.pause()
-
-                    self.assertFalse(backing_path.exists())
-                    self.assertNotIn(slug, app._document_id_by_slug)
-                    self.assertEqual(len(app._trash_id_by_slug), 1)
+                    self.assertIsInstance(app.screen, UpdateProjectItemModal)
+                    self.assertEqual(app.screen.query_one(f"#{PROJECT_UPDATE_TITLE_INPUT_ID}", Input).value, "memo_01.md")
+                    self.assertIn(
+                        "Memos",
+                        str(app.screen.query_one(f"#{PROJECT_UPDATE_SELECTED_FOLDER_ID}", Static).render()),
+                    )
+                    self.assertTrue(backing_path.exists())
             finally:
                 if previous is None:
                     os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
@@ -2624,6 +3764,43 @@ class ShellConfidentialityModeTests(unittest.IsolatedAsyncioTestCase):
                     self.assertIn("Welcome to your Exegesis project", (project_root / "drafts" / "current_draft.md").read_text(encoding="utf-8"))
                     manifest = project_root / ".exegesis" / "project.json"
                     self.assertIn('"name": "Methodology Notes"', manifest.read_text(encoding="utf-8"))
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
+    async def test_new_project_clears_prior_document_tabs_and_basket(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                app = ShellWorkflowTestApp(FakeBackend(configured=True))
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+                    document_pane = app.query_one(DocumentPane)
+                    basket_pane = app.query_one(BasketPane)
+
+                    await document_pane.open_document("project-demo-essay", focus=False)
+                    app._add_document_slug_to_basket("project-demo-essay")
+                    await pilot.pause()
+
+                    self.assertIn("project-demo-essay", document_pane._open_tabs)
+                    self.assertTrue(basket_pane.entries)
+                    self.assertTrue(app._engine_adapter.state.basket.items)
+
+                    app._handle_new_project_result("Fresh Project")
+                    for _ in range(4):
+                        await pilot.pause()
+
+                    self.assertEqual(document_pane._open_tabs, [CURRENT_DRAFT_SLUG])
+                    self.assertEqual(document_pane.active_document.slug, CURRENT_DRAFT_SLUG)
+                    self.assertEqual(basket_pane.entries, {})
+                    self.assertEqual(app._engine_adapter.state.basket.items, [])
+                    self.assertIn(
+                        "Welcome to your Exegesis project",
+                        DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content,
+                    )
             finally:
                 if previous is None:
                     os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
@@ -3837,6 +5014,7 @@ class ShellConfidentialityModeTests(unittest.IsolatedAsyncioTestCase):
                     self.assertIsInstance(app.screen, DuplicateDocumentModal)
                     self.assertEqual(str(app.screen.query_one(f"#{DUPLICATE_CANCEL_ID}", Button).label), "Skip")
                     self.assertEqual(str(app.screen.query_one(f"#{DUPLICATE_REPLACE_ALL_ID}", Button).label), "Replace all")
+                    self.assertEqual(str(app.screen.query_one(f"#{DUPLICATE_SKIP_ALL_IMPORT_ID}", Button).label), "Skip all")
                     self.assertEqual(str(app.screen.query_one(f"#{DUPLICATE_CANCEL_IMPORT_ID}", Button).label), "Cancel")
             finally:
                 if previous is None:
@@ -3995,6 +5173,55 @@ class ShellConfidentialityModeTests(unittest.IsolatedAsyncioTestCase):
                 else:
                     os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
 
+    async def test_batch_import_duplicate_skip_all_skips_later_duplicates_without_reprompt(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                app = ShellWorkflowTestApp(FakeBackend(configured=True))
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+
+                    project_root = Path(tmp) / "demo-project"
+                    memo_duplicate = Path(tmp) / "data_memo_1.md"
+                    unique = Path(tmp) / "skip_all_unique.md"
+                    second_duplicate = Path(tmp) / "second_duplicate.md"
+                    memo_duplicate.write_text("# Skip All Memo\n", encoding="utf-8")
+                    unique.write_text("# Skip All Unique\n", encoding="utf-8")
+                    second_duplicate.write_text("# Skip All Second\n", encoding="utf-8")
+                    second_target = project_root / "memos" / DEMO_MEMO_FOLDER / "second_duplicate.md"
+                    second_target.write_text("# Existing Second Duplicate\n", encoding="utf-8")
+                    original_memo = (project_root / DEMO_MEMO_DOCUMENT_ID).read_text(encoding="utf-8")
+                    progress_modal = ImportProgressModal(total=3, category="Memos")
+                    await app.push_screen(progress_modal)
+                    await pilot.pause()
+
+                    await app._import_project_documents(
+                        [memo_duplicate, unique, second_duplicate],
+                        category="Memos",
+                        destination_folder=DEMO_MEMO_FOLDER,
+                        progress_modal=progress_modal,
+                    )
+                    await pilot.pause()
+
+                    self.assertIsInstance(app.screen, DuplicateDocumentModal)
+                    app.screen.query_one(f"#{DUPLICATE_SKIP_ALL_IMPORT_ID}", Button).press()
+                    await pilot.pause()
+                    await pilot.pause()
+
+                    self.assertEqual((project_root / DEMO_MEMO_DOCUMENT_ID).read_text(encoding="utf-8"), original_memo)
+                    self.assertEqual(
+                        (project_root / "memos" / DEMO_MEMO_FOLDER / "skip_all_unique.md").read_text(encoding="utf-8"),
+                        "# Skip All Unique\n",
+                    )
+                    self.assertEqual(second_target.read_text(encoding="utf-8"), "# Existing Second Duplicate\n")
+                    self.assertNotIsInstance(app.screen, DuplicateDocumentModal)
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
     async def test_restore_duplicate_can_rename(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
@@ -4078,6 +5305,27 @@ class ModelSettingsModalTests(unittest.IsolatedAsyncioTestCase):
 
             self.assertEqual(api_key_input.value, "paste-key")
 
+    async def test_model_settings_modal_paste_inserts_local_model_id_text(self) -> None:
+        settings = ModelSettings(provider=LOCAL_OPENAI_PROVIDER, endpoint_url="http://127.0.0.1:1234")
+        app = App()
+        async with app.run_test() as pilot:
+            await app.push_screen(
+                ModelSettingsModal(
+                    settings=settings,
+                    has_api_key=False,
+                    secure_storage_available=True,
+                )
+            )
+            await pilot.pause()
+
+            model_input = app.screen.query_one(f"#{MODEL_SETTINGS_LOCAL_MODEL_ID}", Input)
+            model_input.focus()
+            await pilot.pause()
+            app.screen.on_paste(events.Paste("gemma-4-31b-it\n"))
+            await pilot.pause()
+
+            self.assertEqual(model_input.value, "gemma-4-31b-it")
+
     async def test_model_settings_modal_test_connection_posts_live_request(self) -> None:
         app = self.TestHost()
         async with app.run_test() as pilot:
@@ -4105,6 +5353,130 @@ class ModelSettingsModalTests(unittest.IsolatedAsyncioTestCase):
             await pilot.pause()
             self.assertFalse(app.screen.query_one(f"#{MODEL_SETTINGS_TEST_ID}", Button).disabled)
 
+    async def test_model_settings_modal_provider_selection_resets_defaults(self) -> None:
+        app = self.TestHost()
+        async with app.run_test() as pilot:
+            await app.push_screen(
+                ModelSettingsModal(
+                    settings=MistralModelSettings(),
+                    has_api_key=False,
+                    has_api_keys={GOOGLE_PROVIDER: True},
+                    secure_storage_available=True,
+                )
+            )
+            await pilot.pause()
+
+            provider_radio = app.screen.query_one("#model-settings-provider-google", RadioButton)
+            provider_radio.toggle()
+            await pilot.pause()
+
+            model_select = app.screen.query_one(f"#{MODEL_SETTINGS_MODEL_ID}", Select)
+            reasoning_select = app.screen.query_one(f"#{MODEL_SETTINGS_REASONING_ID}", Select)
+            context_select = app.screen.query_one(f"#{MODEL_SETTINGS_CONTEXT_ID}", Select)
+            api_key_input = app.screen.query_one(f"#{MODEL_SETTINGS_API_KEY_ID}", Input)
+            api_key_group = app.screen.query_one(f"#{MODEL_SETTINGS_API_KEY_GROUP_ID}")
+
+            self.assertEqual(str(api_key_group.query_one(Static).render()), "API Key")
+            self.assertTrue(app.screen.query_one(f"#{MODEL_SETTINGS_STANDARD_FIELDS_ID}").display)
+            self.assertFalse(app.screen.query_one(f"#{MODEL_SETTINGS_LOCAL_FIELDS_ID}").display)
+            self.assertEqual(model_select.value, GOOGLE_GEMINI_FLASH_MODEL)
+            self.assertEqual(reasoning_select.value, "medium")
+            self.assertEqual(context_select.value, CONTEXT_200K_TOKENS)
+            self.assertFalse(reasoning_select.disabled)
+            self.assertFalse(context_select.disabled)
+            self.assertEqual(api_key_input.placeholder, "Stored securely")
+
+            app.screen.query_one(f"#{MODEL_SETTINGS_TEST_ID}", Button).press()
+            await pilot.pause()
+
+            self.assertEqual(len(app.requests), 1)
+            self.assertEqual(app.requests[0].settings.provider, GOOGLE_PROVIDER)
+            self.assertEqual(app.requests[0].settings.model, GOOGLE_GEMINI_FLASH_MODEL)
+            self.assertEqual(app.requests[0].settings.reasoning_effort, "medium")
+            self.assertEqual(app.requests[0].settings.context_window_tokens, CONTEXT_200K_TOKENS)
+
+    async def test_model_settings_modal_local_provider_uses_open_fields(self) -> None:
+        settings = ModelSettings(
+            provider=LOCAL_OPENAI_PROVIDER,
+            model="gemma-4-31b-it",
+            reasoning_effort="medium",
+            context_window_tokens=0,
+            endpoint_url="http://127.0.0.1:1234",
+        )
+        app = self.TestHost()
+        async with app.run_test() as pilot:
+            await app.push_screen(
+                ModelSettingsModal(
+                    settings=settings,
+                    has_api_key=False,
+                    secure_storage_available=False,
+                    secure_storage_message="Secure storage locked.",
+                )
+            )
+            await pilot.pause()
+
+            self.assertEqual(app.screen.query_one(f"#{MODEL_SETTINGS_API_KEY_ID}", Input).placeholder, "local")
+            self.assertFalse(app.screen.query_one(f"#{MODEL_SETTINGS_STANDARD_FIELDS_ID}").display)
+            self.assertTrue(app.screen.query_one(f"#{MODEL_SETTINGS_LOCAL_FIELDS_ID}").display)
+            self.assertEqual(app.screen.query_one(f"#{MODEL_SETTINGS_LOCAL_ENDPOINT_ID}", Input).value, "http://127.0.0.1:1234")
+            self.assertEqual(app.screen.query_one(f"#{MODEL_SETTINGS_LOCAL_MODEL_ID}", Input).value, "gemma-4-31b-it")
+            self.assertEqual(app.screen.query_one(f"#{MODEL_SETTINGS_LOCAL_CONTEXT_INPUT_ID}", Input).value, "0")
+            context_slider = app.screen.query_one(f"#{MODEL_SETTINGS_LOCAL_CONTEXT_SLIDER_ID}")
+            self.assertEqual(context_slider.value, 0)
+            slider_render = context_slider.render().plain
+            self.assertIn("2K", slider_render)
+            self.assertIn("4K", slider_render)
+            self.assertIn("8K", slider_render)
+            self.assertIn("16K", slider_render)
+            self.assertIn("32K", slider_render)
+            self.assertIn("64K", slider_render)
+            self.assertIn("128K", slider_render)
+            self.assertIn("256K", slider_render)
+            self.assertIn("512K", slider_render)
+            self.assertIn("1M", slider_render)
+            self.assertTrue(app.screen.query_one(f"#{MODEL_SETTINGS_MODEL_ID}", Select).display is False)
+            self.assertFalse(app.screen.query_one(f"#{MODEL_SETTINGS_SAVE_ID}", Button).disabled)
+            self.assertFalse(app.screen.query_one(f"#{MODEL_SETTINGS_TEST_ID}", Button).disabled)
+
+            app.screen.query_one(f"#{MODEL_SETTINGS_TEST_ID}", Button).press()
+            await pilot.pause()
+
+            self.assertEqual(len(app.requests), 1)
+            self.assertEqual(app.requests[0].settings.provider, LOCAL_OPENAI_PROVIDER)
+            self.assertEqual(app.requests[0].settings.model, "gemma-4-31b-it")
+            self.assertEqual(app.requests[0].settings.endpoint_url, "http://127.0.0.1:1234")
+            self.assertEqual(app.requests[0].settings.context_window_tokens, 0)
+
+
+class SystemClipboardInputTests(unittest.IsolatedAsyncioTestCase):
+    class ClipboardInputApp(App[None]):
+        def compose(self) -> ComposeResult:
+            yield SystemClipboardInput(value="replace me", id="clipboard-input")
+
+    async def test_paste_reads_host_clipboard_and_replaces_selection(self) -> None:
+        app = self.ClipboardInputApp()
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            text_input = app.query_one("#clipboard-input", SystemClipboardInput)
+            text_input.select_all()
+
+            with patch("exegesis_textual.widgets.clipboard_input.read_system_clipboard", return_value="local-model\n"):
+                text_input.action_paste()
+
+            self.assertEqual(text_input.value, "local-model")
+
+    async def test_copy_writes_host_clipboard(self) -> None:
+        app = self.ClipboardInputApp()
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            text_input = app.query_one("#clipboard-input", SystemClipboardInput)
+            text_input.select_all()
+
+            with patch("exegesis_textual.widgets.clipboard_input.write_system_clipboard") as write_clipboard:
+                text_input.action_copy()
+
+            write_clipboard.assert_called_once_with("replace me")
+
 
 class MistralChatBackendTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -4129,6 +5501,13 @@ class MistralChatBackendTests(unittest.TestCase):
     def test_default_model_constant(self) -> None:
         self.assertEqual(DEFAULT_MISTRAL_MODEL, "mistral-small-latest")
 
+    def test_claude_effort_options_match_api_supported_models(self) -> None:
+        deep_efforts = ("low", "medium", "high", "xhigh", "max")
+        self.assertEqual(reasoning_options_for_model(CLAUDE_FABLE_MODEL), deep_efforts)
+        self.assertEqual(reasoning_options_for_model(CLAUDE_OPUS_MODEL), deep_efforts)
+        self.assertEqual(reasoning_options_for_model(CLAUDE_SONNET_MODEL), ("low", "medium", "high", "max"))
+        self.assertEqual(reasoning_options_for_model(CLAUDE_HAIKU_MODEL), ("none",))
+
     def test_settings_path_uses_test_override(self) -> None:
         self.assertEqual(textual_settings_path(), self._settings_path)
 
@@ -4146,11 +5525,65 @@ class MistralChatBackendTests(unittest.TestCase):
         save_mistral_model_settings(settings)
 
         raw = json.loads(self._settings_path.read_text(encoding="utf-8"))
+        self.assertEqual(raw["model"]["provider"], "mistral")
         self.assertEqual(raw["model"]["model"], MISTRAL_MEDIUM_MODEL)
         self.assertEqual(raw["model"]["reasoning_effort"], "none")
+        self.assertEqual(raw["model"]["context_window_tokens"], CONTEXT_256K_TOKENS)
         self.assertTrue(raw["model"]["settings_prompt_dismissed"])
         self.assertNotIn("api", json.dumps(raw).casefold())
         self.assertEqual(load_mistral_model_settings(), settings)
+
+    def test_multi_provider_model_settings_persist_without_secrets(self) -> None:
+        settings = ModelSettings(
+            provider=GOOGLE_PROVIDER,
+            model=GOOGLE_GEMINI_FLASH_MODEL,
+            reasoning_effort="high",
+            context_window_tokens=CONTEXT_1M_TOKENS,
+            settings_prompt_dismissed=True,
+        )
+
+        save_model_settings(settings)
+
+        raw = json.loads(self._settings_path.read_text(encoding="utf-8"))
+        self.assertEqual(raw["model"]["provider"], GOOGLE_PROVIDER)
+        self.assertEqual(raw["model"]["model"], GOOGLE_GEMINI_FLASH_MODEL)
+        self.assertEqual(raw["model"]["reasoning_effort"], "high")
+        self.assertEqual(raw["model"]["context_window_tokens"], CONTEXT_1M_TOKENS)
+        self.assertNotIn("api", json.dumps(raw).casefold())
+        self.assertEqual(load_model_settings(), settings)
+
+    def test_local_openai_profile_persists_without_secrets(self) -> None:
+        settings = ModelSettings(
+            provider=LOCAL_OPENAI_PROVIDER,
+            model="gemma-4-31b-it",
+            reasoning_effort="medium",
+            context_window_tokens=0,
+            endpoint_url="localhost:1234",
+            profiles={
+                LOCAL_OPENAI_PROVIDER: ProviderModelProfile(
+                    provider=LOCAL_OPENAI_PROVIDER,
+                    model="gemma-4-31b-it",
+                    reasoning_effort="medium",
+                    context_window_tokens=0,
+                    endpoint_url="localhost:1234",
+                )
+            },
+        )
+
+        save_model_settings(settings)
+
+        raw = json.loads(self._settings_path.read_text(encoding="utf-8"))
+        local_profile = raw["model"]["profiles"][LOCAL_OPENAI_PROVIDER]
+        self.assertEqual(raw["model"]["provider"], LOCAL_OPENAI_PROVIDER)
+        self.assertEqual(local_profile["model"], "gemma-4-31b-it")
+        self.assertEqual(local_profile["endpoint_url"], "localhost:1234")
+        self.assertEqual(local_profile["context_window_tokens"], 0)
+        self.assertTrue(load_model_settings().local_endpoint_configured())
+        self.assertEqual(normalize_local_openai_base_url("localhost:1234"), "http://localhost:1234/v1")
+        self.assertEqual(normalize_local_openai_base_url("http://127.0.0.1:1234/v1"), "http://127.0.0.1:1234/v1")
+        self.assertTrue(is_loopback_endpoint("http://127.0.0.1:1234"))
+        self.assertFalse(is_loopback_endpoint("http://192.168.1.20:1234"))
+        self.assertNotIn("api", json.dumps(raw).casefold())
 
     def test_large_model_omits_reasoning_effort(self) -> None:
         settings = MistralModelSettings(model=MISTRAL_LARGE_MODEL, reasoning_effort="high")
@@ -4167,6 +5600,49 @@ class MistralChatBackendTests(unittest.TestCase):
         self.assertEqual(store.get_secret(MISTRAL_ACCOUNT), "test-key")
         backend.clear_api_key()
         self.assertFalse(backend.is_configured())
+
+    def test_provider_keys_are_stored_per_provider_account(self) -> None:
+        store = InMemoryCredentialStore()
+        backend = MistralChatBackend(credential_store=store)
+        settings = ModelSettings(provider=GOOGLE_PROVIDER, model=GOOGLE_GEMINI_FLASH_MODEL, reasoning_effort="medium")
+        backend.save_model_settings(settings)
+
+        self.assertFalse(backend.has_api_key(GOOGLE_PROVIDER))
+        backend.set_api_key(" google-key ", GOOGLE_PROVIDER)
+
+        self.assertTrue(backend.has_api_key(GOOGLE_PROVIDER))
+        self.assertEqual(store.get_secret(GOOGLE_ACCOUNT), "google-key")
+        self.assertFalse(backend.has_api_key("mistral"))
+        self.assertTrue(backend.is_configured())
+
+    def test_local_openai_default_key_does_not_look_stored(self) -> None:
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore())
+
+        self.assertFalse(backend.has_api_key(LOCAL_OPENAI_PROVIDER))
+        self.assertEqual(backend._api_key(LOCAL_OPENAI_PROVIDER), "local")
+
+        backend.set_api_key(" real-local-key ", LOCAL_OPENAI_PROVIDER)
+
+        self.assertTrue(backend.has_api_key(LOCAL_OPENAI_PROVIDER))
+        self.assertEqual(backend._api_key(LOCAL_OPENAI_PROVIDER), "real-local-key")
+
+    def test_local_openai_requires_loopback_endpoint_and_model_to_be_configured(self) -> None:
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore())
+        backend.save_model_settings(ModelSettings(provider=LOCAL_OPENAI_PROVIDER, endpoint_url="http://127.0.0.1:1234"))
+
+        self.assertFalse(backend.is_configured())
+
+        backend.save_model_settings(
+            ModelSettings(provider=LOCAL_OPENAI_PROVIDER, model="local-model", endpoint_url="http://192.168.1.20:1234")
+        )
+
+        self.assertFalse(backend.is_configured())
+
+        backend.save_model_settings(
+            ModelSettings(provider=LOCAL_OPENAI_PROVIDER, model="local-model", endpoint_url="http://127.0.0.1:1234")
+        )
+
+        self.assertTrue(backend.is_configured())
 
     def test_unavailable_credential_store_has_no_plaintext_fallback(self) -> None:
         backend = MistralChatBackend(credential_store=UnavailableCredentialStore("locked"))
@@ -4264,6 +5740,515 @@ class MistralChatBackendTests(unittest.TestCase):
         get_client.assert_called_once_with("typed-key")
         self.assertEqual(store.get_secret(MISTRAL_ACCOUNT), "")
 
+    def test_google_connection_test_posts_live_generate_content_request(self) -> None:
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore({GOOGLE_ACCOUNT: "key"}))
+        settings = ModelSettings(provider=GOOGLE_PROVIDER, model=GOOGLE_GEMINI_FLASH_MODEL, reasoning_effort="medium")
+        calls: list[dict[str, object]] = []
+
+        class FakeGoogleModels:
+            async def generate_content(self, **kwargs):
+                calls.append(kwargs)
+                return {"candidates": [{"content": {"parts": [{"text": "OK"}]}}]}
+
+        class FakeGoogleAio:
+            models = FakeGoogleModels()
+
+        class FakeGoogleClient:
+            def __init__(self, *, api_key: str):
+                calls.append({"api_key": api_key})
+                self.aio = FakeGoogleAio()
+
+        async def test_connection():
+            from google import genai as google_genai
+
+            with patch.object(google_genai, "Client", FakeGoogleClient):
+                return await backend.test_connection(settings)
+
+        result = asyncio.run(test_connection())
+
+        self.assertTrue(result.ok)
+        self.assertIn("Live Google connection succeeded", result.message)
+        self.assertEqual(calls[0]["api_key"], "key")
+        self.assertEqual(calls[1]["model"], GOOGLE_GEMINI_FLASH_MODEL)
+        self.assertEqual(calls[1]["config"]["max_output_tokens"], 32)
+        self.assertNotIn("thinking_config", calls[1]["config"])
+
+    def test_google_connection_test_distinguishes_generation_quota_from_bad_configuration(self) -> None:
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore({GOOGLE_ACCOUNT: "key"}))
+        settings = ModelSettings(provider=GOOGLE_PROVIDER, model=GOOGLE_GEMINI_FLASH_MODEL, reasoning_effort="medium")
+        calls: list[dict[str, object]] = []
+
+        class FakeGoogleModels:
+            async def generate_content(self, **kwargs):
+                calls.append({"generate": kwargs})
+                raise RuntimeError('status_code: 429 body: {"error":{"status":"RESOURCE_EXHAUSTED"}}')
+
+            async def get(self, **kwargs):
+                calls.append({"get": kwargs})
+                return {"name": f"models/{GOOGLE_GEMINI_FLASH_MODEL}"}
+
+        class FakeGoogleAio:
+            models = FakeGoogleModels()
+
+        class FakeGoogleClient:
+            def __init__(self, *, api_key: str):
+                calls.append({"api_key": api_key})
+                self.aio = FakeGoogleAio()
+
+        async def test_connection():
+            from google import genai as google_genai
+
+            with patch.object(google_genai, "Client", FakeGoogleClient):
+                return await backend.test_connection(settings)
+
+        result = asyncio.run(test_connection())
+
+        self.assertFalse(result.ok)
+        self.assertIn("API key and model are configured", result.message)
+        self.assertIn("generation quota is currently exhausted", result.message)
+        self.assertEqual(calls[0]["api_key"], "key")
+        self.assertEqual(calls[1]["generate"]["model"], GOOGLE_GEMINI_FLASH_MODEL)
+        self.assertEqual(calls[3]["get"]["model"], GOOGLE_GEMINI_FLASH_MODEL)
+
+    def test_claude_connection_test_uses_sdk_messages_create(self) -> None:
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore({CLAUDE_ACCOUNT: "key"}))
+        settings = ModelSettings(provider=CLAUDE_PROVIDER, model=CLAUDE_SONNET_MODEL, reasoning_effort="high")
+        calls: list[dict[str, object]] = []
+
+        class FakeClaudeMessages:
+            async def create(self, **kwargs):
+                calls.append(kwargs)
+                return {"content": [{"type": "text", "text": "OK"}]}
+
+        class FakeClaudeClient:
+            def __init__(self, *, api_key: str):
+                calls.append({"api_key": api_key})
+                self.messages = FakeClaudeMessages()
+
+        async def test_connection():
+            with patch.object(__import__("anthropic"), "AsyncAnthropic", FakeClaudeClient):
+                return await backend.test_connection(settings)
+
+        result = asyncio.run(test_connection())
+
+        self.assertTrue(result.ok)
+        self.assertIn("Live Claude connection succeeded", result.message)
+        self.assertEqual(calls[0]["api_key"], "key")
+        self.assertEqual(calls[1]["model"], CLAUDE_SONNET_MODEL)
+        self.assertEqual(calls[1]["max_tokens"], 32)
+        self.assertNotIn("temperature", calls[1])
+        self.assertNotIn("extra_body", calls[1])
+        self.assertEqual(calls[1]["thinking"], {"type": "adaptive"})
+        self.assertEqual(calls[1]["output_config"], {"effort": "high"})
+
+    def test_openai_connection_rate_limit_uses_settings_error_copy(self) -> None:
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore({OPENAI_ACCOUNT: "key"}))
+        settings = ModelSettings(provider=OPENAI_PROVIDER, model=OPENAI_GPT_55_MODEL, reasoning_effort="medium")
+
+        class FakeOpenAIResponses:
+            async def create(self, **_kwargs):
+                raise RuntimeError('status_code: 429 body: {"message":"rate limit exceeded","type":"rate_limit"}')
+
+        class FakeOpenAIClient:
+            def __init__(self, *, api_key: str):
+                self.responses = FakeOpenAIResponses()
+
+        async def test_connection():
+            with patch.object(__import__("openai"), "AsyncOpenAI", FakeOpenAIClient):
+                return await backend.test_connection(settings)
+
+        result = asyncio.run(test_connection())
+
+        self.assertFalse(result.ok)
+        self.assertIn("OpenAI rate limit reached", result.message)
+        self.assertIn("connection test", result.message)
+        self.assertNotIn("Reduce basket context", result.message)
+
+    def test_google_stream_reply_uses_sdk_streaming(self) -> None:
+        settings = ModelSettings(provider=GOOGLE_PROVIDER, model=GOOGLE_GEMINI_FLASH_MODEL, reasoning_effort="medium")
+        save_model_settings(settings)
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore({GOOGLE_ACCOUNT: "google-key"}))
+        calls: list[dict[str, object]] = []
+        clients: list[dict[str, object]] = []
+
+        class FakeGoogleStream:
+            def __aiter__(self):
+                self._chunks = iter(
+                    [
+                        {
+                            "candidates": [
+                                {"content": {"parts": [{"text": "thinking", "thought": True}, {"text": " answer"}]}}
+                            ]
+                        },
+                        {
+                            "candidates": [
+                                {
+                                    "content": {
+                                        "parts": [
+                                            {
+                                                "functionCall": {
+                                                    "name": "search_documents",
+                                                    "args": {"query": "leadership"},
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                    ]
+                )
+                return self
+
+            async def __anext__(self):
+                try:
+                    return next(self._chunks)
+                except StopIteration:
+                    raise StopAsyncIteration
+
+        class FakeModels:
+            async def generate_content_stream(self, **kwargs):
+                calls.append(kwargs)
+                return FakeGoogleStream()
+
+        class FakeAio:
+            def __init__(self) -> None:
+                self.models = FakeModels()
+
+        class FakeGoogleClient:
+            def __init__(self, **kwargs) -> None:
+                clients.append(kwargs)
+                self.aio = FakeAio()
+
+        from google import genai as google_genai
+
+        async def collect() -> list[ChatEvent]:
+            with patch.object(backend, "_load_system_prompt", return_value="system"), patch.object(
+                google_genai, "Client", FakeGoogleClient
+            ):
+                return [
+                    event
+                    async for event in backend.stream_reply(
+                        "chat-main",
+                        [ChatMessage("user", "Find leadership")],
+                        self._context(),
+                        tools=provider_tool_specs(),
+                    )
+                ]
+
+        events = asyncio.run(collect())
+
+        self.assertEqual([event.kind for event in events], ["reasoning_delta", "assistant_delta", "tool_call"])
+        self.assertEqual(events[0].text, "thinking")
+        self.assertEqual(events[1].text, " answer")
+        self.assertEqual(events[2].tool_call.tool_name, "search_documents")
+        self.assertEqual(events[2].tool_call.arguments, {"query": "leadership"})
+        self.assertEqual(clients[0]["api_key"], "google-key")
+        self.assertEqual(calls[0]["model"], GOOGLE_GEMINI_FLASH_MODEL)
+        self.assertEqual(calls[0]["config"]["thinking_config"], {"thinking_level": "medium"})
+        self.assertIn("tools", calls[0]["config"])
+        tool_payload = json.dumps(calls[0]["config"]["tools"])
+        self.assertNotIn("additionalProperties", tool_payload)
+        self.assertNotIn("additional_properties", tool_payload)
+
+    def test_openai_stream_reply_uses_selected_provider_and_responses_api(self) -> None:
+        settings = ModelSettings(provider=OPENAI_PROVIDER, model=OPENAI_GPT_55_MODEL, reasoning_effort="medium")
+        save_model_settings(settings)
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore({OPENAI_ACCOUNT: "openai-key"}))
+        calls: list[dict[str, object]] = []
+        clients: list[dict[str, object]] = []
+
+        class FakeResponseStream:
+            def __aiter__(self):
+                self._events = iter([{"type": "response.output_text.delta", "delta": "OpenAI answer"}])
+                return self
+
+            async def __anext__(self):
+                try:
+                    return next(self._events)
+                except StopIteration:
+                    raise StopAsyncIteration
+
+        class FakeResponses:
+            async def create(self, **kwargs):
+                calls.append(kwargs)
+                return FakeResponseStream()
+
+        class FakeAsyncOpenAI:
+            def __init__(self, **kwargs):
+                clients.append(kwargs)
+                self.responses = FakeResponses()
+
+        async def collect() -> list[ChatEvent]:
+            with patch.object(backend, "_load_system_prompt", return_value="system"), patch.object(
+                __import__("openai"), "AsyncOpenAI", FakeAsyncOpenAI
+            ):
+                return [
+                    event
+                    async for event in backend.stream_reply(
+                        "chat-main",
+                        [ChatMessage("user", "Hello")],
+                        self._context(),
+                    )
+                ]
+
+        events = asyncio.run(collect())
+
+        self.assertEqual([event.kind for event in events], ["assistant_delta", "assistant_done"])
+        self.assertEqual(events[0].text, "OpenAI answer")
+        self.assertEqual(clients[0]["api_key"], "openai-key")
+        self.assertEqual(calls[0]["model"], OPENAI_GPT_55_MODEL)
+        self.assertEqual(calls[0]["reasoning"], {"effort": "medium"})
+        self.assertTrue(calls[0]["stream"])
+
+    def test_openai_stream_waits_for_completed_tool_call_arguments(self) -> None:
+        settings = ModelSettings(provider=OPENAI_PROVIDER, model=OPENAI_GPT_55_MODEL, reasoning_effort="medium")
+        save_model_settings(settings)
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore({OPENAI_ACCOUNT: "openai-key"}))
+        calls: list[dict[str, object]] = []
+
+        class FakeResponseStream:
+            def __aiter__(self):
+                self._events = iter(
+                    [
+                        {
+                            "type": "response.output_item.added",
+                            "item": {
+                                "id": "fc_1",
+                                "type": "function_call",
+                                "status": "in_progress",
+                                "arguments": "",
+                                "call_id": "call_1",
+                                "name": "draft_into_document",
+                            },
+                        },
+                        {
+                            "type": "response.function_call_arguments.delta",
+                            "item_id": "fc_1",
+                            "delta": '{"instruction":"Draft an abstract"',
+                        },
+                        {
+                            "type": "response.output_item.done",
+                            "item": {
+                                "id": "fc_1",
+                                "type": "function_call",
+                                "status": "completed",
+                                "arguments": '{"instruction":"Draft an abstract","insert_after_heading":"Abstract"}',
+                                "call_id": "call_1",
+                                "name": "draft_into_document",
+                            },
+                        },
+                    ]
+                )
+                return self
+
+            async def __anext__(self):
+                try:
+                    return next(self._events)
+                except StopIteration:
+                    raise StopAsyncIteration
+
+        class FakeResponses:
+            async def create(self, **kwargs):
+                calls.append(kwargs)
+                return FakeResponseStream()
+
+        class FakeAsyncOpenAI:
+            def __init__(self, **_kwargs):
+                self.responses = FakeResponses()
+
+        async def collect() -> list[ChatEvent]:
+            with patch.object(backend, "_load_system_prompt", return_value="system"), patch.object(
+                __import__("openai"), "AsyncOpenAI", FakeAsyncOpenAI
+            ):
+                return [
+                    event
+                    async for event in backend.stream_reply(
+                        "chat-main",
+                        [ChatMessage("user", "Draft an abstract")],
+                        self._context(),
+                        tools=provider_tool_specs(),
+                    )
+                ]
+
+        events = asyncio.run(collect())
+
+        self.assertEqual([event.kind for event in events], ["tool_call"])
+        self.assertEqual(events[0].tool_call.tool_name, "draft_into_document")
+        self.assertEqual(
+            events[0].tool_call.arguments,
+            {"instruction": "Draft an abstract", "insert_after_heading": "Abstract"},
+        )
+        self.assertIn("tools", calls[0])
+
+    def test_local_openai_stream_splits_reasoning_tags_from_answer_text(self) -> None:
+        settings = ModelSettings(
+            provider=LOCAL_OPENAI_PROVIDER,
+            model="gemma-4-31b-it",
+            reasoning_effort="medium",
+            context_window_tokens=262_144,
+            endpoint_url="http://127.0.0.1:1234",
+            profiles={
+                LOCAL_OPENAI_PROVIDER: ProviderModelProfile(
+                    provider=LOCAL_OPENAI_PROVIDER,
+                    model="gemma-4-31b-it",
+                    reasoning_effort="medium",
+                    context_window_tokens=262_144,
+                    endpoint_url="http://127.0.0.1:1234",
+                )
+            },
+        )
+        save_model_settings(settings)
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore())
+        calls: list[dict[str, object]] = []
+        clients: list[dict[str, object]] = []
+
+        class FakeDelta:
+            def __init__(self, content: str) -> None:
+                self.content = content
+                self.tool_calls = None
+
+        class FakeChoice:
+            def __init__(self, content: str) -> None:
+                self.delta = FakeDelta(content)
+
+        class FakeChunk:
+            def __init__(self, content: str) -> None:
+                self.choices = [FakeChoice(content)]
+
+        class FakeChatStream:
+            def __aiter__(self):
+                self._chunks = iter(
+                    [
+                        FakeChunk("Answer before <thi"),
+                        FakeChunk("nk>hidden thought</thi"),
+                        FakeChunk("nk> final answer"),
+                    ]
+                )
+                return self
+
+            async def __anext__(self):
+                try:
+                    return next(self._chunks)
+                except StopIteration:
+                    raise StopAsyncIteration
+
+        class FakeCompletions:
+            async def create(self, **kwargs):
+                calls.append(kwargs)
+                return FakeChatStream()
+
+        class FakeChat:
+            def __init__(self) -> None:
+                self.completions = FakeCompletions()
+
+        class FakeAsyncOpenAI:
+            def __init__(self, **kwargs):
+                clients.append(kwargs)
+                self.chat = FakeChat()
+
+        async def collect() -> list[ChatEvent]:
+            with patch.object(backend, "_load_system_prompt", return_value="system"), patch.object(
+                __import__("openai"), "AsyncOpenAI", FakeAsyncOpenAI
+            ):
+                return [
+                    event
+                    async for event in backend.stream_reply(
+                        "chat-main",
+                        [ChatMessage("user", "Hello")],
+                        self._context(),
+                    )
+                ]
+
+        events = asyncio.run(collect())
+
+        self.assertEqual([event.kind for event in events], ["assistant_delta", "reasoning_delta", "assistant_delta", "assistant_done"])
+        self.assertEqual(events[0].text, "Answer before ")
+        self.assertEqual(events[1].text, "hidden thought")
+        self.assertEqual(events[2].text, " final answer")
+        self.assertEqual(clients[0]["api_key"], "local")
+        self.assertEqual(clients[0]["base_url"], "http://127.0.0.1:1234/v1")
+        self.assertEqual(calls[0]["model"], "gemma-4-31b-it")
+        self.assertEqual(calls[0]["extra_body"], {"reasoning_effort": "medium"})
+
+    def test_claude_stream_reply_emits_tool_call_event(self) -> None:
+        settings = ModelSettings(provider=CLAUDE_PROVIDER, model=CLAUDE_SONNET_MODEL, reasoning_effort="high")
+        save_model_settings(settings)
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore({CLAUDE_ACCOUNT: "claude-key"}))
+        calls: list[dict[str, object]] = []
+        clients: list[dict[str, object]] = []
+
+        class FakeClaudeStream:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, exc_type, exc, tb) -> None:
+                return None
+
+            def __aiter__(self):
+                self._events = iter(
+                    [
+                        {
+                            "type": "content_block_start",
+                            "content_block": {
+                                "type": "tool_use",
+                                "id": "toolu_search",
+                                "name": "search_documents",
+                                "input": {},
+                            },
+                        },
+                        {
+                            "type": "content_block_delta",
+                            "delta": {"type": "input_json_delta", "partial_json": '{"query": "leadership"}'},
+                        },
+                        {"type": "content_block_stop"},
+                    ]
+                )
+                return self
+
+            async def __anext__(self):
+                try:
+                    return next(self._events)
+                except StopIteration:
+                    raise StopAsyncIteration
+
+        class FakeMessages:
+            def stream(self, **kwargs):
+                calls.append(kwargs)
+                return FakeClaudeStream()
+
+        class FakeAsyncAnthropic:
+            def __init__(self, **kwargs):
+                clients.append(kwargs)
+                self.messages = FakeMessages()
+
+        async def collect() -> list[ChatEvent]:
+            with patch.object(backend, "_load_system_prompt", return_value="system"), patch.object(
+                __import__("anthropic"), "AsyncAnthropic", FakeAsyncAnthropic
+            ):
+                return [
+                    event
+                    async for event in backend.stream_reply(
+                        "chat-main",
+                        [ChatMessage("user", "Find leadership")],
+                        self._context(),
+                        tools=provider_tool_specs(),
+                    )
+                ]
+
+        events = asyncio.run(collect())
+
+        self.assertEqual([event.kind for event in events], ["tool_call"])
+        self.assertEqual(events[0].tool_call.tool_name, "search_documents")
+        self.assertEqual(events[0].tool_call.arguments, {"query": "leadership"})
+        self.assertEqual(clients[0]["api_key"], "claude-key")
+        self.assertEqual(calls[0]["model"], CLAUDE_SONNET_MODEL)
+        self.assertNotIn("temperature", calls[0])
+        self.assertNotIn("extra_body", calls[0])
+        self.assertEqual(calls[0]["thinking"], {"type": "adaptive"})
+        self.assertEqual(calls[0]["output_config"], {"effort": "high"})
+        self.assertIn("tools", calls[0])
+
     def test_live_connection_test_large_model_omits_reasoning_effort(self) -> None:
         backend = MistralChatBackend(credential_store=InMemoryCredentialStore({MISTRAL_ACCOUNT: "key"}))
         settings = MistralModelSettings(model=MISTRAL_LARGE_MODEL, reasoning_effort="high")
@@ -4299,6 +6284,8 @@ class MistralChatBackendTests(unittest.TestCase):
 
         self.assertFalse(result.ok)
         self.assertIn("Mistral rate limit reached", result.message)
+        self.assertIn("connection test", result.message)
+        self.assertNotIn("Reduce basket context", result.message)
         self.assertNotIn("status_code", result.message)
         self.assertNotIn('{"message"', result.message)
 
@@ -4365,6 +6352,60 @@ class MistralChatBackendTests(unittest.TestCase):
         self.assertEqual(client.calls[0]["model"], MISTRAL_LARGE_MODEL)
         self.assertNotIn("reasoning_effort", client.calls[0])
 
+    def test_chat_mode_sends_registry_tools_to_mistral(self) -> None:
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore({MISTRAL_ACCOUNT: "key"}))
+        client = _RecordingMistralClient([_fake_stream_event([{"type": "text", "text": "hello"}], finish_reason="stop")])
+        tools = provider_tool_specs()
+
+        async def collect() -> None:
+            with patch.object(backend, "_load_system_prompt", return_value="system"), patch.object(
+                backend, "_get_client", return_value=client
+            ):
+                async for _event in backend.stream_reply(
+                    "chat-main",
+                    [ChatMessage("user", "Search the project")],
+                    self._context(),
+                    tools=tools,
+                ):
+                    pass
+
+        asyncio.run(collect())
+
+        self.assertEqual(client.calls[0]["tool_choice"], "auto")
+        self.assertFalse(client.calls[0]["parallel_tool_calls"])
+        tool_names = [tool["function"]["name"] for tool in client.calls[0]["tools"]]
+        self.assertIn("search_documents", tool_names)
+        self.assertIn("add_document_to_basket", tool_names)
+
+    def test_mistral_tool_call_is_emitted_as_tool_event(self) -> None:
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore({MISTRAL_ACCOUNT: "key"}))
+        tool_call = {
+            "id": "call-search",
+            "type": "function",
+            "function": {"name": "search_documents", "arguments": '{"query": "leadership"}'},
+        }
+        client = _RecordingMistralClient([_fake_stream_event(None, finish_reason="tool_calls", tool_calls=[tool_call])])
+
+        async def collect() -> list[ChatEvent]:
+            with patch.object(backend, "_load_system_prompt", return_value="system"), patch.object(
+                backend, "_get_client", return_value=client
+            ):
+                return [
+                    event
+                    async for event in backend.stream_reply(
+                        "chat-main",
+                        [ChatMessage("user", "Find leadership")],
+                        self._context(),
+                        tools=provider_tool_specs(),
+                    )
+                ]
+
+        events = asyncio.run(collect())
+
+        self.assertEqual([event.kind for event in events], ["tool_call"])
+        self.assertEqual(events[0].tool_call.tool_name, "search_documents")
+        self.assertEqual(events[0].tool_call.arguments, {"query": "leadership"})
+
     def test_reasoning_chunks_are_emitted_separately_from_answer_text(self) -> None:
         backend = MistralChatBackend(credential_store=InMemoryCredentialStore({MISTRAL_ACCOUNT: "key"}))
         save_mistral_model_settings(MistralModelSettings(model=DEFAULT_MISTRAL_MODEL, reasoning_effort="high"))
@@ -4390,7 +6431,7 @@ class MistralChatBackendTests(unittest.TestCase):
         self.assertEqual(events[2].kind, "assistant_done")
         self.assertEqual(events[2].replay_content, chunks)
 
-    def test_build_messages_uses_provider_replay_content_for_assistant_turns(self) -> None:
+    def test_build_messages_replays_full_mistral_reasoning_for_assistant_turns(self) -> None:
         backend = MistralChatBackend(credential_store=InMemoryCredentialStore({MISTRAL_ACCOUNT: "key"}))
         replay = [{"type": "thinking", "thinking": "hidden"}, {"type": "text", "text": "visible"}]
 
@@ -4403,6 +6444,86 @@ class MistralChatBackendTests(unittest.TestCase):
 
         self.assertEqual(payload[-1]["role"], "assistant")
         self.assertEqual(payload[-1]["content"], replay)
+
+    def test_provider_tool_replay_uses_flattened_tool_call_metadata(self) -> None:
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore({MISTRAL_ACCOUNT: "key"}))
+        messages = [
+            ChatMessage("user", "Find leadership"),
+            ChatMessage(
+                "assistant",
+                "",
+                provider_content={
+                    "role": "assistant",
+                    "tool_calls": [
+                        {
+                            "id": "call-search",
+                            "type": "function",
+                            "function": {"name": "search_documents", "arguments": '{"query": "leadership"}'},
+                        }
+                    ],
+                },
+            ),
+            ChatMessage(
+                "tool",
+                "Completed: Search found.",
+                provider_content={
+                    "role": "tool",
+                    "name": "search_documents",
+                    "content": "Completed: Search found.",
+                    "tool_call_id": "call-search",
+                },
+            ),
+        ]
+        payload = backend._build_messages("system", messages, self._context(), "chat")
+        _system, conversation = backend._provider_system_and_messages("system", payload)
+
+        local_messages = backend._local_openai_messages(payload)
+        self.assertEqual(local_messages[-2]["tool_calls"][0]["id"], "call-search")
+        self.assertEqual(local_messages[-2]["tool_calls"][0]["function"]["name"], "search_documents")
+        self.assertEqual(local_messages[-1]["tool_call_id"], "call-search")
+
+        claude_messages = backend._claude_messages(conversation)
+        self.assertEqual(claude_messages[-2]["content"][0]["id"], "call-search")
+        self.assertEqual(claude_messages[-2]["content"][0]["name"], "search_documents")
+        self.assertEqual(claude_messages[-1]["content"][0]["tool_use_id"], "call-search")
+
+        google_contents = backend._google_contents(conversation)
+        self.assertEqual(google_contents[-2]["parts"][0]["functionCall"]["name"], "search_documents")
+        self.assertEqual(google_contents[-1]["parts"][0]["functionResponse"]["name"], "search_documents")
+
+        openai_input = backend._openai_responses_input(conversation)
+        self.assertEqual(openai_input[-2]["call_id"], "call-search")
+        self.assertEqual(openai_input[-2]["name"], "search_documents")
+        self.assertEqual(openai_input[-1]["call_id"], "call-search")
+
+    def test_mistral_reasoning_replay_is_normalized_for_next_turn(self) -> None:
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore({MISTRAL_ACCOUNT: "key"}))
+
+        parsed = backend._parse_content(
+            [
+                {"type": "thinking", "thinking": "hidden reasoning"},
+                {"type": "text", "text": "visible answer"},
+            ]
+        )
+
+        self.assertEqual(parsed.reasoning, "hidden reasoning")
+        self.assertEqual(parsed.text, "visible answer")
+        self.assertEqual(
+            parsed.replay_parts,
+            (
+                {"type": "thinking", "thinking": [{"type": "text", "text": "hidden reasoning"}]},
+                {"type": "text", "text": "visible answer"},
+            ),
+        )
+
+    def test_mistral_streamed_answer_text_replays_as_text_chunk(self) -> None:
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore({MISTRAL_ACCOUNT: "key"}))
+
+        parsed = backend._parse_content("visible answer")
+
+        self.assertEqual(parsed.reasoning, "")
+        self.assertEqual(parsed.text, "visible answer")
+        self.assertEqual(parsed.replay_parts, ({"type": "text", "text": "visible answer"},))
 
     def test_rate_limit_error_is_formatted_without_raw_provider_json(self) -> None:
         class RateLimitedChat:
@@ -4555,6 +6676,24 @@ class MistralChatBackendTests(unittest.TestCase):
         self.assertIn("Ask how you can assist with the project", joined)
         self.assertNotIn("<current_document>\n(empty document)\n</current_document>", joined)
 
+    def test_confidential_project_sends_transcript_content_as_current_document_context(self) -> None:
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore())
+        context = ShellChatContext(
+            project_name="Test Project",
+            document_title="Transcript 1",
+            document_type="transcript",
+            document_content="Sensitive full transcript text can be used locally.",
+            confidentiality_mode="local-confidential",
+            basket_context="",
+        )
+
+        payload = backend._build_messages("Base system prompt", [ChatMessage("user", "Summarize it.")], context, "chat")
+        joined = "\n\n".join(str(message["content"]) for message in payload)
+
+        self.assertIn("Sensitive full transcript text can be used locally.", joined)
+        self.assertNotIn("Transcript metadata only", joined)
+        self.assertNotIn("full transcript text is intentionally withheld", joined)
+
     def test_notebook_prompt_labels_withheld_transcript_context(self) -> None:
         workflow = WorkflowPane(FakeBackend(configured=True))
         context = ShellChatContext(
@@ -4572,6 +6711,26 @@ class MistralChatBackendTests(unittest.TestCase):
         self.assertIn("Transcript metadata only", prompt)
         self.assertIn("Mode: chat", prompt)
         self.assertNotIn("Mistral", prompt)
+
+    def test_build_messages_lists_available_document_sections_for_tool_targeting(self) -> None:
+        backend = MistralChatBackend(credential_store=InMemoryCredentialStore())
+        context = ShellChatContext(
+            project_name="Test Project",
+            document_title="current_draft.md",
+            document_type="draft",
+            document_content="# Paper\n\n## Abstract\n\nExisting abstract.\n\n## Introduction\n\nIntro body.",
+            confidentiality_mode="online",
+            basket_context="",
+        )
+
+        payload = backend._build_messages("Base system prompt", [ChatMessage("user", "Write an abstract.")], context, "chat")
+        joined = "\n\n".join(str(message["content"]) for message in payload)
+
+        self.assertIn("Available document sections:", joined)
+        self.assertIn("- Paper", joined)
+        self.assertIn("- Abstract", joined)
+        self.assertIn("- Introduction", joined)
+        self.assertIn("set insert_after_heading", joined)
 
     def _context(self) -> ShellChatContext:
         return ShellChatContext(
@@ -4635,12 +6794,14 @@ class _RecordingMistralClient:
         return self.chat.complete_calls
 
 
-def _fake_stream_event(content: object, *, finish_reason: str | None = None):
+def _fake_stream_event(content: object, *, finish_reason: str | None = None, tool_calls: object | None = None):
     delta = Mock()
     delta.content = content
+    delta.tool_calls = tool_calls
     choice = Mock()
     choice.delta = delta
     choice.finish_reason = finish_reason
+    choice.message = None
     data = Mock()
     data.choices = [choice]
     event = Mock()
@@ -4684,6 +6845,464 @@ class WorkflowPaneChatTests(unittest.IsolatedAsyncioTestCase):
             ]
             self.assertEqual(rendered_text_entries[-2:], [("user", "Say hello"), ("assistant", "hello world")])
 
+    async def test_composer_up_down_recalls_sent_message_history(self) -> None:
+        app = WorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+            workflow = app.query_one(WorkflowPane)
+
+            composer.value = "First message"
+            workflow.send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+            composer.value = "Second message"
+            workflow.send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+
+            composer.value = "unsent draft"
+            composer.focus()
+            await pilot.press("up")
+            self.assertEqual(composer.value, "Second message")
+            await pilot.press("up")
+            self.assertEqual(composer.value, "First message")
+            await pilot.press("down")
+            self.assertEqual(composer.value, "Second message")
+            await pilot.press("down")
+            self.assertEqual(composer.value, "unsent draft")
+
+    async def test_composer_history_is_per_chat(self) -> None:
+        app = WorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+            workflow = app.query_one(WorkflowPane)
+
+            composer.value = "Main chat message"
+            workflow.send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+            await workflow.new_chat()
+            await pilot.pause()
+
+            composer.value = "secondary draft"
+            composer.focus()
+            await pilot.press("up")
+
+            self.assertEqual(composer.value, "secondary draft")
+
+    async def test_send_shows_thinking_card_without_provider_reasoning_deltas(self) -> None:
+        app = WorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+            composer.value = "Say hello"
+            workflow = app.query_one(WorkflowPane)
+
+            workflow.send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+
+            reasoning_entries = [entry for entry in workflow.active_chat.history_entries if isinstance(entry, HistoryReasoningEntry)]
+            self.assertEqual(len(reasoning_entries), 1)
+            self.assertEqual(reasoning_entries[0].content, "")
+            self.assertFalse(reasoning_entries[0].streaming)
+            card_text = "\n".join(str(widget.render()) for widget in workflow.query_one(".workflow-reasoning-card").query(Static))
+            self.assertIn("Thinking complete", card_text)
+            self.assertIn("Click to reveal reasoning trace.", card_text)
+            self.assertIn("No provider-exposed thinking text", workflow._rendered_history_text(workflow.active_chat))
+
+    async def test_send_finalizes_when_backend_stream_omits_done_event(self) -> None:
+        app = WorkflowTestApp(NoDoneBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+            composer.value = "Say hello"
+            workflow = app.query_one(WorkflowPane)
+
+            workflow.send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+            await pilot.pause()
+
+            self.assertEqual(workflow.active_chat.messages[-1].content, "completed without explicit done")
+            self.assertFalse(workflow.active_chat.generating)
+            self.assertFalse(app.query_one(f"#{WORKFLOW_SEND_ID}", Button).disabled)
+            self.assertFalse(app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input).disabled)
+
+    async def test_normal_chat_can_auto_run_read_only_search_tool(self) -> None:
+        tool_call = ToolCallRequest(
+            provider="mistral",
+            tool_name="search_documents",
+            arguments={"query": "leadership"},
+            raw_call_id="call-search",
+        )
+        backend = ToolCallBackend(tool_call, follow_up="I found matching context.")
+        app = WorkflowActionDispatchTestApp(backend)
+
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+            composer.value = "Find leadership examples"
+            workflow = app.query_one(WorkflowPane)
+
+            workflow.send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+            await pilot.pause()
+            await pilot.pause()
+
+            self.assertEqual(app.dispatched_actions[0][0], "search_documents")
+            self.assertEqual(app.dispatched_actions[0][2], "model_tool")
+            self.assertIsNotNone(backend.seen_tools[0])
+            self.assertIsNone(backend.seen_tools[1])
+            entries = workflow.active_chat.history_entries
+            self.assertTrue(any(isinstance(entry, HistoryActionResultEntry) for entry in entries))
+            self.assertTrue(any(isinstance(entry, HistorySearchEntry) for entry in entries))
+            self.assertIn("I found matching context.", workflow.active_chat.messages[-1].content)
+            transcript = workflow._rendered_history_text(workflow.active_chat)
+            self.assertIn("### App Action Result", transcript)
+            self.assertNotIn("raw_provider", transcript)
+
+    async def test_tool_follow_up_reasoning_and_text_are_transcript_only(self) -> None:
+        tool_call = ToolCallRequest(
+            provider="mistral",
+            tool_name="search_documents",
+            arguments={"query": "leadership"},
+            raw_call_id="call-search",
+        )
+        app = WorkflowActionDispatchTestApp(ToolCallWithReasoningFollowUpBackend(tool_call))
+
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+            composer.value = "Find leadership examples"
+            workflow = app.query_one(WorkflowPane)
+
+            workflow.send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+            await pilot.pause()
+            await pilot.pause()
+
+            history = workflow._history_for_slug(workflow.active_chat.slug)
+            rendered_sources = [widget.source_entry for widget in history.children if hasattr(widget, "source_entry")]
+            self.assertFalse(any(isinstance(entry, HistoryReasoningEntry) for entry in rendered_sources))
+            self.assertFalse(
+                any(
+                    isinstance(entry, HistoryTextEntry)
+                    and entry.role == "assistant"
+                    and "Tool follow-up answer" in entry.content
+                    for entry in rendered_sources
+                )
+            )
+            transcript = workflow._rendered_history_text(workflow.active_chat)
+            self.assertIn("### Reasoning Trace", transcript)
+            self.assertIn("tool follow-up thinking", transcript)
+            self.assertIn("**Assistant:**\n\nTool follow-up answer.", transcript)
+
+    async def test_proposal_auto_tool_call_defers_to_proposal_flow_without_success_card(self) -> None:
+        tool_call = ToolCallRequest(
+            provider="mistral",
+            tool_name="draft_into_document",
+            arguments={"instruction": "Draft an abstract.", "insert_after_heading": "Abstract"},
+            raw_call_id="call-draft",
+        )
+        app = WorkflowActionDispatchTestApp(ToolCallBackend(tool_call))
+
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input).value = "Draft an abstract"
+            workflow = app.query_one(WorkflowPane)
+
+            workflow.send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+            await pilot.pause()
+
+            self.assertEqual(app.dispatched_actions[-1][0], "draft_into_document")
+            self.assertFalse(any(isinstance(entry, HistoryActionResultEntry) for entry in workflow.active_chat.history_entries))
+            visible_user_entries = [
+                entry
+                for entry in workflow.active_chat.history_entries
+                if isinstance(entry, HistoryTextEntry) and entry.role == "user" and entry.visible
+            ]
+            self.assertEqual([entry.content for entry in visible_user_entries], ["Draft an abstract"])
+            self.assertEqual(workflow.active_chat.command_history, ["Draft an abstract"])
+
+    async def test_tool_call_discards_streamed_preamble_text_before_action(self) -> None:
+        tool_call = ToolCallRequest(
+            provider="mistral",
+            tool_name="draft_into_document",
+            arguments={"instruction": "Draft an abstract.", "insert_after_heading": "Abstract"},
+            raw_call_id="call-draft",
+        )
+        app = WorkflowActionDispatchTestApp(ToolCallWithPreambleBackend(tool_call))
+
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input).value = "Draft an abstract"
+            workflow = app.query_one(WorkflowPane)
+
+            workflow.send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+            await pilot.pause()
+
+            self.assertEqual(app.dispatched_actions[-1][0], "draft_into_document")
+            self.assertFalse(
+                any(
+                    "more detailed prompt" in message.content
+                    for message in workflow.active_chat.messages
+                    if message.role == "assistant"
+                )
+            )
+            self.assertFalse(
+                any(
+                    isinstance(entry, HistoryTextEntry)
+                    and entry.role == "assistant"
+                    and "more detailed prompt" in entry.content
+                    for entry in workflow.active_chat.history_entries
+                )
+            )
+            visible_user_entries = [
+                entry
+                for entry in workflow.active_chat.history_entries
+                if isinstance(entry, HistoryTextEntry) and entry.role == "user" and entry.visible
+            ]
+            self.assertEqual([entry.content for entry in visible_user_entries], ["Draft an abstract"])
+
+    async def test_tool_call_hides_streamed_preamble_while_dispatching(self) -> None:
+        tool_call = ToolCallRequest(
+            provider="mistral",
+            tool_name="search_documents",
+            arguments={"query": "leadership"},
+            raw_call_id="call-search",
+        )
+        app = SlowWorkflowActionDispatchTestApp(ToolCallWithPreambleBackend(tool_call))
+
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input).value = "Find leadership examples"
+            workflow = app.query_one(WorkflowPane)
+
+            workflow.send_active_message()
+            await asyncio.wait_for(app.dispatch_started.wait(), timeout=2)
+            await pilot.pause()
+            history = workflow._history_for_slug(workflow.active_chat.slug)
+            rendered_sources = [widget.source_entry for widget in history.children if hasattr(widget, "source_entry")]
+
+            self.assertFalse(
+                any(
+                    isinstance(entry, HistoryTextEntry)
+                    and "more detailed prompt" in entry.content
+                    for entry in rendered_sources
+                )
+            )
+            self.assertFalse(any(isinstance(entry, HistoryReasoningEntry) for entry in rendered_sources))
+
+            app.dispatch_release.set()
+            await pilot.pause()
+            await pilot.pause()
+            self.assertEqual(app.dispatched_actions[0][0], "search_documents")
+
+    async def test_follow_up_ignores_recursive_tool_call_from_provider(self) -> None:
+        tool_call = ToolCallRequest(
+            provider="mistral",
+            tool_name="search_documents",
+            arguments={"query": "leadership"},
+            raw_call_id="call-search",
+        )
+        app = WorkflowActionDispatchTestApp(ToolCallWithPreambleBackend(tool_call))
+
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input).value = "Find leadership examples"
+            workflow = app.query_one(WorkflowPane)
+
+            workflow.send_active_message()
+            for _ in range(12):
+                await pilot.pause()
+                if not workflow.active_chat.generating:
+                    break
+
+            self.assertFalse(workflow.active_chat.generating)
+            self.assertEqual([action[0] for action in app.dispatched_actions], ["search_documents"])
+            self.assertEqual(
+                sum(isinstance(entry, HistoryActionResultEntry) for entry in workflow.active_chat.history_entries),
+                1,
+            )
+            self.assertEqual(
+                sum(isinstance(entry, HistorySearchEntry) for entry in workflow.active_chat.history_entries),
+                1,
+            )
+            history = workflow._history_for_slug(workflow.active_chat.slug)
+            rendered_sources = [widget.source_entry for widget in history.children if hasattr(widget, "source_entry")]
+            self.assertFalse(
+                any(
+                    isinstance(entry, HistoryTextEntry)
+                    and "more detailed prompt" in entry.content
+                    for entry in rendered_sources
+                )
+            )
+
+    def test_action_result_card_uses_capitalized_compact_status_body(self) -> None:
+        card = ActionResultCard(HistoryActionResultEntry("rename_project", "Rename project", "completed", "Renamed project."))
+        widgets = list(card.compose())
+        body = widgets[1]
+
+        self.assertEqual(str(body.render()), "Completed: Renamed project.")
+        self.assertTrue(body.has_class("workflow-action-result-body"))
+
+    def test_action_request_card_hides_empty_private_payload_details(self) -> None:
+        card = ActionRequestCard(
+            HistoryActionRequestEntry(
+                "compact_chat",
+                "Compact chat",
+                "Compact chat requires confirmation before Exegesis changes project state.",
+                payload={"_raw": "", "note": None},
+            )
+        )
+
+        rendered = card._payload_summary()
+
+        self.assertNotIn("_raw", rendered)
+        self.assertNotIn("- note", rendered)
+        self.assertEqual(rendered, "")
+
+    async def test_confirm_required_tool_call_renders_action_request(self) -> None:
+        tool_call = ToolCallRequest(
+            provider="mistral",
+            tool_name="add_document_to_basket",
+            arguments={},
+            raw_call_id="call-basket",
+        )
+        app = WorkflowActionDispatchTestApp(ToolCallBackend(tool_call))
+
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input).value = "Add this document to the basket"
+            workflow = app.query_one(WorkflowPane)
+
+            workflow.send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+            await pilot.pause()
+
+            request_entries = [entry for entry in workflow.active_chat.history_entries if isinstance(entry, HistoryActionRequestEntry)]
+            self.assertEqual(len(request_entries), 1)
+            self.assertEqual(request_entries[0].action_id, "add_document_to_basket")
+            self.assertIsNotNone(workflow.query_one("#action-request-confirm", Button))
+
+            await workflow.on_action_request_card_confirm_requested(ActionRequestCard.ConfirmRequested(ActionRequestCard(request_entries[0]), request_entries[0]))
+            self.assertEqual(app.dispatched_actions[-1], ("add_document_to_basket", {}, "model_tool", True))
+            self.assertTrue(any(isinstance(entry, HistoryActionResultEntry) for entry in workflow.active_chat.history_entries))
+
+    async def test_refused_confirm_required_tool_call_renders_action_result(self) -> None:
+        tool_call = ToolCallRequest(
+            provider="mistral",
+            tool_name="add_document_to_basket",
+            arguments={"document": "Transcript"},
+            raw_call_id="call-transcript",
+        )
+        app = WorkflowActionDispatchTestApp(ToolCallBackend(tool_call))
+
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input).value = "Add the transcript to the basket"
+            workflow = app.query_one(WorkflowPane)
+
+            workflow.send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+            await pilot.pause()
+
+            self.assertFalse(
+                any(isinstance(entry, HistoryActionRequestEntry) for entry in workflow.active_chat.history_entries)
+            )
+            result_entries = [
+                entry
+                for entry in workflow.active_chat.history_entries
+                if isinstance(entry, HistoryActionResultEntry)
+            ]
+            self.assertEqual(len(result_entries), 1)
+            self.assertEqual(result_entries[0].action_id, "add_document_to_basket")
+            self.assertEqual(result_entries[0].status, "refused")
+            self.assertIn("Full transcripts cannot be added", result_entries[0].message)
+
+    async def test_confirm_required_file_conflict_tool_call_renders_card_options(self) -> None:
+        tool_call = ToolCallRequest(
+            provider="mistral",
+            tool_name="update_selected_project_item",
+            arguments={"document": "Data Memo 1", "title": "data_memo_1.md", "folder": "memos"},
+            raw_call_id="call-update",
+        )
+        app = WorkflowActionDispatchTestApp(ToolCallBackend(tool_call))
+
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input).value = "Rename Data Memo 1"
+            workflow = app.query_one(WorkflowPane)
+
+            workflow.send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+            await pilot.pause()
+
+            request_entries = [entry for entry in workflow.active_chat.history_entries if isinstance(entry, HistoryActionRequestEntry)]
+            self.assertEqual(len(request_entries), 1)
+            self.assertEqual(request_entries[0].action_id, "update_selected_project_item")
+            self.assertEqual([option["label"] for option in request_entries[0].options], ["Replace", "Rename", "Cancel"])
+            self.assertEqual(request_entries[0].input_name, "duplicate_title")
+
+            renamed_entry = replace(
+                request_entries[0],
+                payload={**request_entries[0].payload, "duplicate_action": "rename", "duplicate_title": "renamed_memo.md"},
+            )
+            await workflow.on_action_request_card_confirm_requested(ActionRequestCard.ConfirmRequested(ActionRequestCard(renamed_entry), renamed_entry))
+            self.assertEqual(
+                app.dispatched_actions[-1],
+                (
+                    "update_selected_project_item",
+                    {
+                        "document": "Data Memo 1",
+                        "title": "data_memo_1.md",
+                        "folder": "memos",
+                        "duplicate_action": "rename",
+                        "duplicate_title": "renamed_memo.md",
+                    },
+                    "model_tool",
+                    True,
+                ),
+            )
+            self.assertFalse(any(isinstance(entry, HistoryActionRequestEntry) for entry in workflow.active_chat.history_entries))
+            self.assertTrue(any(isinstance(entry, HistoryActionResultEntry) for entry in workflow.active_chat.history_entries))
+
+            dispatch_count = len(app.dispatched_actions)
+            await workflow.on_action_request_card_confirm_requested(ActionRequestCard.ConfirmRequested(ActionRequestCard(renamed_entry), renamed_entry))
+            self.assertEqual(len(app.dispatched_actions), dispatch_count)
+            self.assertFalse(any(isinstance(entry, HistoryActionRequestEntry) for entry in workflow.active_chat.history_entries))
+
+    async def test_system_only_tool_call_is_refused_without_dispatch(self) -> None:
+        tool_call = ToolCallRequest(provider="mistral", tool_name="model_settings", arguments={}, raw_call_id="call-settings")
+        app = WorkflowActionDispatchTestApp(ToolCallBackend(tool_call))
+
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input).value = "Open model settings"
+            workflow = app.query_one(WorkflowPane)
+
+            workflow.send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+            await pilot.pause()
+
+            self.assertEqual(app.dispatched_actions, [])
+            results = [entry for entry in workflow.active_chat.history_entries if isinstance(entry, HistoryActionResultEntry)]
+            self.assertEqual(results[-1].status, "refused")
+            self.assertIn("must be invoked manually", results[-1].message)
+
     async def test_reasoning_trace_renders_separately_from_assistant_answer(self) -> None:
         app = WorkflowTestApp(ReasoningBackend(configured=True))
         async with app.run_test() as pilot:
@@ -4703,8 +7322,12 @@ class WorkflowPaneChatTests(unittest.IsolatedAsyncioTestCase):
                 workflow.active_chat.messages[-1].provider_content,
                 [{"type": "thinking", "thinking": "reasoning "}, {"type": "text", "text": "answer"}],
             )
+            card_text = "\n".join(str(widget.render()) for widget in workflow.query_one(".workflow-reasoning-card").query(Static))
+            self.assertIn("Thinking complete", card_text)
+            self.assertIn("Click to reveal reasoning trace.", card_text)
             transcript = workflow._rendered_history_text(workflow.active_chat)
             self.assertIn("### Reasoning Trace", transcript)
+            self.assertIn("reasoning", transcript)
             self.assertIn("**Assistant:**\n\nanswer", transcript)
 
     async def test_send_warns_immediately_when_active_transcript_is_withheld(self) -> None:
@@ -4723,10 +7346,10 @@ class WorkflowPaneChatTests(unittest.IsolatedAsyncioTestCase):
                 entry
                 for entry in workflow.active_chat.history_entries
                 if isinstance(entry, (HistoryTextEntry, HistoryStatusEntry))
-            ][-3:]
-            self.assertEqual([type(entry) for entry in rendered_entries], [HistoryTextEntry, HistoryStatusEntry, HistoryTextEntry])
+            ][-2:]
+            self.assertEqual([type(entry) for entry in rendered_entries], [HistoryTextEntry, HistoryStatusEntry])
             self.assertEqual(rendered_entries[1].content, NON_CONFIDENTIAL_TRANSCRIPT_WARNING)
-            self.assertEqual(app._backend.last_context.document_type, "transcript")
+            self.assertIsNone(app._backend.last_context)
 
     async def test_notebook_display_order_is_chronological_with_latest_at_bottom(self) -> None:
         app = WorkflowTestApp(FakeBackend(configured=True))
@@ -4764,15 +7387,15 @@ class WorkflowPaneChatTests(unittest.IsolatedAsyncioTestCase):
             finally:
                 workflow.active_chat.history_entries = original_entries
 
-    async def test_notebook_context_counter_uses_mistral_small_4_window(self) -> None:
+    async def test_notebook_context_counter_uses_selected_model_window(self) -> None:
         app = WorkflowTestApp(FakeBackend(configured=True))
         async with app.run_test() as pilot:
             await pilot.pause()
             workflow = app.query_one(WorkflowPane)
             self.assertIn("context used", workflow.border_subtitle or "")
-            self.assertIn("/ 262,144 tokens", workflow.border_subtitle or "")
+            self.assertIn("/ 256,000 tokens", workflow.border_subtitle or "")
             self.assertNotIn("/ 128,000 tokens", workflow.border_subtitle or "")
-            self.assertNotEqual(workflow.border_subtitle, "0% context used (~0 / 262,144 tokens)")
+            self.assertNotEqual(workflow.border_subtitle, "0% context used (~0 / 256,000 tokens)")
 
     async def test_notebook_context_counter_includes_current_document_and_basket(self) -> None:
         app = WorkflowTestApp(FakeBackend(configured=True))
@@ -4864,6 +7487,75 @@ class WorkflowPaneChatTests(unittest.IsolatedAsyncioTestCase):
             await pilot.pause()
             self.assertEqual(app._backend.last_mode, "draft")
             self.assertIn("Seed context", app._backend.last_context.basket_context)
+
+    async def test_chat_write_intent_routes_to_draft_mode(self) -> None:
+        original = DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content
+        target_document = "# Paper\n\n## Abstract\n\n## Introduction\n\nIntro body."
+        try:
+            DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content = target_document
+            app = WorkflowDraftTestApp(FakeBackend(configured=True))
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+                composer.value = "Write an abstract"
+
+                app.query_one(WorkflowPane).send_active_message()
+                await pilot.pause()
+                await pilot.pause()
+                await pilot.pause()
+
+                self.assertEqual(app._backend.last_mode, "draft")
+                self.assertTrue(app.query_one(DocumentPane).has_pending_preview(CURRENT_DRAFT_SLUG))
+                draft_cards = [
+                    entry for entry in app.query_one(WorkflowPane).active_chat.history_entries if isinstance(entry, HistoryRewriteEntry)
+                ]
+                self.assertEqual(len(draft_cards), 1)
+                self.assertTrue(draft_cards[0].patch_id.startswith("draft-"))
+                start = target_document.index("## Abstract") + len("## Abstract\n")
+                end = target_document.index("## Introduction")
+                self.assertEqual(draft_cards[0].target_range, (start, end))
+                self.assertTrue(draft_cards[0].block_insert)
+
+                applied = app.query_one(DocumentPane).apply_pending_rewrite(draft_cards[0].patch_id)
+                self.assertIsNotNone(applied)
+                self.assertIn("## Abstract\n\nDrafted paragraph.\n\n## Introduction", DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content)
+        finally:
+            DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content = original
+
+    async def test_chat_selection_edit_intent_routes_to_rewrite_mode(self) -> None:
+        original = DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content
+        try:
+            app = ShellWorkflowTestApp(FakeBackend(configured=True))
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+                composer.value = "Make it shorter"
+
+                app.query_one(WorkflowPane).send_active_message()
+                await pilot.pause()
+                await pilot.pause()
+                await pilot.pause()
+
+                self.assertEqual(app._backend.last_mode, "rewrite")
+                self.assertIsNotNone(app._backend.last_context)
+                self.assertEqual(app._backend.last_context.selected_text, "# Cur")
+                self.assertEqual(app._backend.last_context.selection_start, 0)
+                self.assertEqual(app._backend.last_context.selection_end, 5)
+        finally:
+            DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content = original
+
+    async def test_general_writing_question_stays_chat_mode(self) -> None:
+        app = WorkflowDraftTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+            composer.value = "How should I write an abstract?"
+
+            app.query_one(WorkflowPane).send_active_message()
+            await pilot.pause()
+            await pilot.pause()
+
+            self.assertEqual(app._backend.last_mode, "chat")
 
     async def test_search_result_click_reselects_each_matching_document_range(self) -> None:
         app = ShellWorkflowTestApp(FakeBackend(configured=True))
@@ -5017,6 +7709,47 @@ class WorkflowPaneChatTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(app.messages[-1].match_range, (15, 20))
             self.assertEqual(str(app.query_one("#search-result-count-1", Static).render()), "2/3")
 
+    async def test_search_result_add_button_requests_basket_excerpt_for_current_match(self) -> None:
+        app = WorkflowTestApp(FakeBackend(configured=False))
+        search_entry = HistorySearchEntry(
+            query="alpha",
+            results=[
+                SearchResultItem(
+                    document_slug=CURRENT_DRAFT_SLUG,
+                    title="current_draft.md",
+                    document_type="draft",
+                    snippet="alpha one",
+                    token_count=12,
+                    location="current_draft.md",
+                    match_range=(0, 5),
+                    matches=(
+                        SearchResultMatch("alpha one", (0, 5)),
+                        SearchResultMatch("alpha two", (15, 20)),
+                    ),
+                )
+            ],
+        )
+        WORKFLOW_CHATS[PRIMARY_CHAT_SLUG].history_entries.append(search_entry)
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            workflow = app.query_one(WorkflowPane)
+            workflow._render_chat(PRIMARY_CHAT_SLUG)
+            await pilot.pause()
+
+            add_control = app.query_one("#search-result-add-1", Static)
+            self.assertEqual(str(add_control.render()), "Add")
+            app.query_one("#search-result-next-1", Static).card.select_result(0, "next")
+            await pilot.pause()
+            add_control.card.select_result(0, "basket")
+            await pilot.pause()
+
+            message = app.messages[-1]
+            self.assertIsInstance(message, WorkflowPane.SearchResultAddToBasketRequested)
+            self.assertEqual(message.document_slug, CURRENT_DRAFT_SLUG)
+            self.assertEqual(message.excerpt, "alpha two")
+            self.assertEqual(message.match_range, (15, 20))
+            self.assertEqual(search_entry.selected_match_indices[CURRENT_DRAFT_SLUG], 1)
+
     async def test_single_match_search_result_hides_navigation_arrows(self) -> None:
         app = WorkflowTestApp(FakeBackend(configured=False))
         WORKFLOW_CHATS[PRIMARY_CHAT_SLUG].history_entries.append(
@@ -5118,6 +7851,27 @@ class DocumentInsertionTests(unittest.TestCase):
 
         self.assertEqual(cleaned, "This is the body section.")
 
+    def test_generated_draft_text_removes_tool_proposal_scaffolding(self) -> None:
+        document_text = "# Existing Title\n\n## Abstract\n\nOriginal body."
+        generated_text = "\n".join(
+            [
+                "Draft Proposal",
+                "Instruction: Draft an abstract for the current document.",
+                "Insertion point: after Abstract",
+                "",
+                "Proposed draft",
+                "Existing Title",
+                "",
+                "Abstract",
+                "",
+                "This is the body section.",
+            ]
+        )
+
+        cleaned = clean_generated_draft_text(document_text, generated_text)
+
+        self.assertEqual(cleaned, "This is the body section.")
+
     def test_draft_preview_block_shows_only_the_proposed_draft(self) -> None:
         preview = PendingRewritePreview(
             patch_id="draft-test",
@@ -5159,6 +7913,27 @@ class DocumentInsertionTests(unittest.TestCase):
         self.assertNotIn("Instruction:", rendered)
         self.assertIn("└─ End Revision Proposal", rendered)
 
+    def test_rich_preview_block_does_not_add_phantom_blank_lines_around_proposal(self) -> None:
+        document_text = "# Paper\n\n## Abstract\n\n## Introduction\n\nIntro body."
+        start = document_text.index("## Abstract") + len("## Abstract\n")
+        end = document_text.index("## Introduction")
+        preview = PendingRewritePreview(
+            patch_id="draft-test",
+            document_slug=CURRENT_DRAFT_SLUG,
+            target_range=(start, end),
+            original_text=document_text[start:end],
+            proposed_text="This is the proposed abstract.",
+            instruction_text="Write an abstract.",
+            source_chat_slug="chat-main",
+        )
+
+        rendered = render_review_document_rich(document_text, preview).plain
+
+        self.assertIn("## Abstract\n┌─ Draft Proposal", rendered)
+        self.assertIn("└─ End Draft Proposal\n## Introduction", rendered)
+        self.assertNotIn("## Abstract\n\n┌─ Draft Proposal", rendered)
+        self.assertNotIn("└─ End Draft Proposal\n\n## Introduction", rendered)
+
     def test_replace_selection(self) -> None:
         self.assertEqual(
             insert_generated_text_at_range("Hello world", "New text", (6, 11)),
@@ -5175,6 +7950,16 @@ class DocumentInsertionTests(unittest.TestCase):
         self.assertEqual(
             insert_generated_text_at_range("Hello world", "New paragraph", None),
             "Hello world\n\nNew paragraph",
+        )
+
+    def test_block_insert_preserves_markdown_section_spacing(self) -> None:
+        content = "# Paper\n\n## Abstract\n\n## Introduction\n\nIntro body."
+        start = content.index("## Abstract") + len("## Abstract\n")
+        end = content.index("## Introduction")
+
+        self.assertEqual(
+            insert_generated_text_at_range(content, "Abstract body.", (start, end), block_insert=True),
+            "# Paper\n\n## Abstract\n\nAbstract body.\n\n## Introduction\n\nIntro body.",
         )
 
     def test_insert_location_targets_replaced_selection(self) -> None:
@@ -5242,6 +8027,9 @@ class WorkflowPaneDraftInsertionTests(unittest.IsolatedAsyncioTestCase):
                 applied = document_pane.apply_pending_rewrite(second_card.patch_id)
                 self.assertIsNotNone(applied)
                 self.assertIn("Drafted paragraph.", DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content)
+                selection = document_pane.current_selection_snapshot()
+                self.assertIsNotNone(selection)
+                self.assertEqual(selection.selected_text, "Drafted paragraph.")
         finally:
             DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content = original
 
@@ -5294,6 +8082,40 @@ class WorkflowPaneDraftInsertionTests(unittest.IsolatedAsyncioTestCase):
         finally:
             DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content = original
 
+    async def test_draft_can_target_existing_heading_instead_of_cursor(self) -> None:
+        original = DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content
+        target_document = "# Paper\n\n## Abstract\n\n## Introduction\n\nIntro body."
+        try:
+            DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content = target_document
+            backend = SequencedDraftBackend(["Abstract\n\nTargeted abstract body."])
+            app = WorkflowDraftTestApp(backend)
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+                workflow = app.query_one(WorkflowPane)
+                document_pane = app.query_one(DocumentPane)
+                start = target_document.index("## Abstract") + len("## Abstract\n")
+                end = target_document.index("## Introduction")
+
+                composer.value = "Draft me an abstract in the current document"
+                workflow.draft_into_document(target_range=(start, end), block_insert=True)
+                await pilot.pause()
+                await pilot.pause()
+
+                cards = [entry for entry in workflow.active_chat.history_entries if isinstance(entry, HistoryRewriteEntry)]
+                self.assertEqual(len(cards), 1)
+                self.assertEqual(cards[0].proposed_text, "Targeted abstract body.")
+                self.assertEqual(DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content, target_document)
+
+                applied = document_pane.apply_pending_rewrite(cards[0].patch_id)
+                self.assertIsNotNone(applied)
+                self.assertIn("## Abstract\n\nTargeted abstract body.\n\n## Introduction", DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content)
+                selection = document_pane.current_selection_snapshot()
+                self.assertIsNotNone(selection)
+                self.assertEqual(selection.selected_text, "Targeted abstract body.")
+        finally:
+            DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content = original
+
     async def test_rewrite_creates_review_card_and_pending_preview(self) -> None:
         original = DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content
         try:
@@ -5318,6 +8140,44 @@ class WorkflowPaneDraftInsertionTests(unittest.IsolatedAsyncioTestCase):
                 )
                 await pilot.pause()
                 self.assertIn(CURRENT_DRAFT_SLUG, app._dirty_document_slugs)
+        finally:
+            DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content = original
+
+    async def test_model_rewrite_can_target_heading_without_manual_selection(self) -> None:
+        original = DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content
+        target_document = "# Paper\n\n## Abstract\n\nOld abstract.\n\n## Introduction\n\nIntro body."
+        try:
+            backend = SequencedRewriteBackend(["Updated abstract."])
+            app = ShellWorkflowTestApp(backend)
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content = target_document
+                result = await app.dispatch_app_action(
+                    "rewrite_selection",
+                    {"instruction": "Rewrite the abstract", "target_heading": "Abstract"},
+                    source="model_tool",
+                )
+                await pilot.pause()
+                await pilot.pause()
+
+                self.assertEqual(result.status, "completed")
+                self.assertEqual(backend.last_mode, "rewrite")
+                self.assertEqual(backend.last_context.selected_text.strip(), "Old abstract.")
+                start = target_document.index("## Abstract") + len("## Abstract\n")
+                end = target_document.index("## Introduction")
+                self.assertEqual(backend.last_context.selection_start, start)
+                self.assertEqual(backend.last_context.selection_end, end)
+
+                workflow = app.query_one(WorkflowPane)
+                cards = [entry for entry in workflow.active_chat.history_entries if isinstance(entry, HistoryRewriteEntry)]
+                self.assertEqual(len(cards), 1)
+                self.assertEqual(cards[0].target_range, (start, end))
+                self.assertTrue(cards[0].block_insert)
+                self.assertEqual(cards[0].proposed_text, "Updated abstract.")
+
+                applied = app.query_one(DocumentPane).apply_pending_rewrite(cards[0].patch_id)
+                self.assertIsNotNone(applied)
+                self.assertIn("## Abstract\n\nUpdated abstract.\n\n## Introduction", DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content)
         finally:
             DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content = original
 
@@ -5416,6 +8276,8 @@ class ShellWorkflowShortcutTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn(("ctrl+shift+t", "New transcript"), commands)
         self.assertIn(("ctrl+shift+g", "Draft"), commands)
         self.assertIn(("ctrl+shift+w", "Rewrite"), commands)
+        self.assertIn(("shift+enter", "Accept proposal"), commands)
+        self.assertIn(("escape", "Reject proposal"), commands)
         self.assertIn(("ctrl+shift+x", "Save transcript"), commands)
         self.assertIn(("ctrl+shift+v", "Compact chat"), commands)
         self.assertIn(("ctrl+shift+u", "Update item"), commands)
@@ -5482,6 +8344,8 @@ class ShellWorkflowShortcutTests(unittest.IsolatedAsyncioTestCase):
             ("ctrl+enter", "terminal_search"),
             ("ctrl+shift+g", "terminal_draft"),
             ("ctrl+shift+w", "terminal_rewrite"),
+            ("shift+enter", "terminal_accept_proposal"),
+            ("escape", "terminal_reject_proposal"),
             ("ctrl+shift+n", "terminal_new_chat"),
             ("ctrl+shift+x", "terminal_save"),
             ("ctrl+shift+v", "terminal_compact"),
@@ -5550,6 +8414,24 @@ class ShellWorkflowShortcutTests(unittest.IsolatedAsyncioTestCase):
             await pilot.pause()
             self.assertEqual(str(project_header.styles.background), "Color(0, 255, 0)")
             self.assertEqual(str(project_header.styles.color), "Color(18, 18, 18)")
+
+    async def test_new_project_modal_fits_confidential_action_buttons(self) -> None:
+        app = ShellWorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test(size=(140, 50)) as pilot:
+            await app.push_screen(NewProjectModal(local_endpoint_configured=True))
+            await pilot.pause()
+
+            modal = app.screen.query_one("#project-name-modal")
+            create = app.screen.query_one("#project-name-create", Button)
+            confidential = app.screen.query_one("#project-name-create-confidential", Button)
+            cancel = app.screen.query_one("#project-name-cancel", Button)
+
+            self.assertEqual(modal.styles.width.value, 86)
+            self.assertEqual(create.styles.width.value, 20)
+            self.assertEqual(confidential.styles.width.value, 34)
+            self.assertEqual(cancel.styles.width.value, 16)
+            self.assertEqual(confidential.label.plain, "Create Confidential Project")
+            self.assertEqual(cancel.label.plain, "Cancel")
 
     async def test_project_browser_modal_uses_tall_project_list(self) -> None:
         app = ShellWorkflowTestApp(FakeBackend(configured=True))
@@ -5837,6 +8719,199 @@ class ShellWorkflowShortcutTests(unittest.IsolatedAsyncioTestCase):
         finally:
             DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content = original
 
+    async def test_top_notebook_proposal_buttons_are_visible(self) -> None:
+        app = ShellWorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+
+            notebook_row = app.query_one(f"#{COMMAND_BAR_NOTEBOOK_ID}")
+            self.assertEqual(notebook_row.styles.height.value, 1)
+            self.assertEqual(notebook_row.styles.min_height.value, 1)
+            self.assertEqual(notebook_row.styles.align_horizontal, "center")
+            self.assertEqual(app.query_one(f"#{TOP_TERMINAL_ACCEPT_ID}", Button).label.plain, "Shift+Enter Accept")
+            self.assertEqual(app.query_one(f"#{TOP_TERMINAL_REJECT_ID}", Button).label.plain, "Esc Reject")
+            self.assertEqual(app.query_one(f"#{TOP_TERMINAL_NEW_CHAT_ID}", Button).label.plain, "Ctrl+Shift+N New Chat")
+
+    async def test_shift_enter_accepts_active_notebook_proposal(self) -> None:
+        original = DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content
+        try:
+            app = ShellWorkflowTestApp(FakeBackend(configured=True))
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+                composer.value = "Draft a sharper paragraph"
+                app.query_one(WorkflowPane).draft_into_document()
+                await pilot.pause()
+                await pilot.pause()
+
+                self.assertTrue(app.query_one(DocumentPane).has_pending_preview(CURRENT_DRAFT_SLUG))
+
+                await pilot.press("shift+enter")
+                await pilot.pause()
+                await pilot.pause()
+
+                self.assertIn("Drafted paragraph.", DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content)
+                self.assertFalse(app.query_one(DocumentPane).has_pending_preview(CURRENT_DRAFT_SLUG))
+                self.assertIn(CURRENT_DRAFT_SLUG, app._dirty_document_slugs)
+                selection = app.query_one(DocumentPane).current_selection_snapshot()
+                self.assertIsNotNone(selection)
+                self.assertEqual(selection.selected_text, "Drafted paragraph.")
+                self.assertEqual(getattr(app.focused, "id", None), WORKFLOW_COMPOSER_INPUT_ID)
+        finally:
+            DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content = original
+
+    async def test_shift_enter_accepts_active_notebook_proposal_from_document_focus(self) -> None:
+        original = DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content
+        try:
+            app = ShellWorkflowTestApp(FakeBackend(configured=True))
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+                composer.value = "Draft a sharper paragraph"
+                app.query_one(WorkflowPane).draft_into_document()
+                await pilot.pause()
+                await pilot.pause()
+
+                self.assertTrue(app.query_one(DocumentPane).has_pending_preview(CURRENT_DRAFT_SLUG))
+                app.query_one(DocumentPane).focus_editor()
+                await pilot.pause()
+
+                await pilot.press("shift+enter")
+                await pilot.pause()
+
+                self.assertIn("Drafted paragraph.", DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content)
+                self.assertFalse(app.query_one(DocumentPane).has_pending_preview(CURRENT_DRAFT_SLUG))
+        finally:
+            DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content = original
+
+    async def test_escape_rejects_active_notebook_proposal(self) -> None:
+        original = DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content
+        try:
+            app = ShellWorkflowTestApp(FakeBackend(configured=True))
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+                composer.value = "Draft a sharper paragraph"
+                app.query_one(WorkflowPane).draft_into_document()
+                await pilot.pause()
+                await pilot.pause()
+
+                self.assertTrue(app.query_one(DocumentPane).has_pending_preview(CURRENT_DRAFT_SLUG))
+
+                await pilot.press("escape")
+                await pilot.pause()
+
+                self.assertEqual(DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content, original)
+                self.assertFalse(app.query_one(DocumentPane).has_pending_preview(CURRENT_DRAFT_SLUG))
+                self.assertNotIn(CURRENT_DRAFT_SLUG, app._dirty_document_slugs)
+        finally:
+            DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content = original
+
+    async def test_escape_rejects_active_notebook_proposal_from_card_focus(self) -> None:
+        original = DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content
+        try:
+            app = ShellWorkflowTestApp(FakeBackend(configured=True))
+            async with app.run_test() as pilot:
+                await pilot.pause()
+                composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+                composer.value = "Draft a sharper paragraph"
+                app.query_one(WorkflowPane).draft_into_document()
+                await pilot.pause()
+                await pilot.pause()
+
+                self.assertTrue(app.query_one(DocumentPane).has_pending_preview(CURRENT_DRAFT_SLUG))
+                app.query_one("#rewrite-apply", Button).focus()
+                await pilot.pause()
+
+                await pilot.press("escape")
+                await pilot.pause()
+
+                self.assertEqual(DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content, original)
+                self.assertFalse(app.query_one(DocumentPane).has_pending_preview(CURRENT_DRAFT_SLUG))
+        finally:
+            DOCUMENT_FIXTURES[CURRENT_DRAFT_SLUG].content = original
+
+    async def test_shift_enter_confirms_active_action_request_card(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                app = ShellWorkflowTestApp(FakeBackend(configured=False))
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+                    created = await app.dispatch_app_action(
+                        "create_memo",
+                        {"title": "Shortcut Delete Memo"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+                    self.assertEqual(created.status, "completed")
+
+                    workflow = app.query_one(WorkflowPane)
+                    composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+                    composer.value = "Delete Shortcut Delete Memo."
+                    workflow.send_active_message()
+                    await pilot.pause()
+                    self.assertTrue(any(isinstance(entry, HistoryActionRequestEntry) for entry in workflow.active_chat.history_entries))
+
+                    await pilot.press("shift+enter")
+                    for _ in range(6):
+                        await pilot.pause()
+                        if app._trash_id_by_slug:
+                            break
+
+                    self.assertEqual(len(app._trash_id_by_slug), 1)
+                    self.assertFalse(any(isinstance(entry, HistoryActionRequestEntry) for entry in workflow.active_chat.history_entries))
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
+    async def test_escape_cancels_active_action_request_card(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            previous = os.environ.get("EXEGESIS_TEXTUAL_PROJECTS_DIR")
+            os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = tmp
+            try:
+                app = ShellWorkflowTestApp(FakeBackend(configured=False))
+                async with app.run_test() as pilot:
+                    await pilot.pause()
+                    created = await app.dispatch_app_action(
+                        "create_memo",
+                        {"title": "Shortcut Cancel Memo"},
+                        source="model_tool",
+                        confirmed=True,
+                    )
+                    await pilot.pause()
+                    self.assertEqual(created.status, "completed")
+
+                    workflow = app.query_one(WorkflowPane)
+                    composer = app.query_one(f"#{WORKFLOW_COMPOSER_INPUT_ID}", Input)
+                    composer.value = "Delete Shortcut Cancel Memo."
+                    workflow.send_active_message()
+                    await pilot.pause()
+                    self.assertTrue(any(isinstance(entry, HistoryActionRequestEntry) for entry in workflow.active_chat.history_entries))
+
+                    await pilot.press("escape")
+                    await pilot.pause()
+
+                    self.assertFalse(app._trash_id_by_slug)
+                    self.assertFalse(any(isinstance(entry, HistoryActionRequestEntry) for entry in workflow.active_chat.history_entries))
+                    self.assertTrue(
+                        any(
+                            isinstance(entry, HistoryActionResultEntry)
+                            and entry.action_id == "move_document_to_trash"
+                            and entry.status == "refused"
+                            for entry in workflow.active_chat.history_entries
+                        )
+                    )
+            finally:
+                if previous is None:
+                    os.environ.pop("EXEGESIS_TEXTUAL_PROJECTS_DIR", None)
+                else:
+                    os.environ["EXEGESIS_TEXTUAL_PROJECTS_DIR"] = previous
+
     async def test_top_terminal_new_chat_button_creates_chat(self) -> None:
         app = ShellWorkflowTestApp(FakeBackend(configured=True))
         async with app.run_test() as pilot:
@@ -5874,6 +8949,48 @@ class ShellWorkflowShortcutTests(unittest.IsolatedAsyncioTestCase):
 
             self.assertEqual(len(workflow._open_tabs), 1)
             self.assertEqual(workflow.active_chat.slug, "chat-main")
+
+    async def test_model_close_chat_action_closes_secondary_chat_only(self) -> None:
+        app = ShellWorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            workflow = app.query_one(WorkflowPane)
+            await workflow.new_chat()
+            await pilot.pause()
+
+            result = await app.dispatch_app_action("close_chat", {}, source="model_tool", confirmed=True)
+            await pilot.pause()
+
+            self.assertEqual(result.status, "completed")
+            self.assertEqual(len(workflow._open_tabs), 1)
+            self.assertEqual(workflow.active_chat.slug, "chat-main")
+
+            main_result = await app.dispatch_app_action("close_chat", {}, source="model_tool", confirmed=True)
+
+            self.assertEqual(main_result.status, "refused")
+            self.assertEqual(len(workflow._open_tabs), 1)
+            self.assertEqual(workflow.active_chat.slug, "chat-main")
+
+    async def test_close_chat_action_card_does_not_append_result_to_main_chat(self) -> None:
+        app = ShellWorkflowTestApp(FakeBackend(configured=True))
+        async with app.run_test() as pilot:
+            await pilot.pause()
+            workflow = app.query_one(WorkflowPane)
+            secondary = await workflow.new_chat()
+            request = HistoryActionRequestEntry(
+                "close_chat",
+                "Close chat",
+                "Close chat requires confirmation before Exegesis changes project state.",
+            )
+            secondary.history_entries.append(request)
+            await pilot.pause()
+
+            await workflow.on_action_request_card_confirm_requested(ActionRequestCard.ConfirmRequested(ActionRequestCard(request), request))
+            await pilot.pause()
+
+            self.assertEqual(workflow.active_chat.slug, "chat-main")
+            self.assertFalse(any(isinstance(entry, HistoryActionResultEntry) for entry in workflow.active_chat.history_entries))
+            self.assertTrue(any(isinstance(entry, HistoryActionResultEntry) for entry in secondary.history_entries))
 
     async def test_top_terminal_save_button_saves_transcript(self) -> None:
         before = set(DOCUMENT_FIXTURES)
