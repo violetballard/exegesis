@@ -4,6 +4,9 @@ Exegesis is a local-first AI writing workstation for high-trust qualitative rese
 
 This Developer preview is source-available proof, not the full commercial product. The recommended path is to download the current Mac release from GitHub. Technical early adopters can also inspect the source, run a manual local build, and follow active development.
 
+For a public overview of the AI-native development workflow behind Exegesis, see
+`CONTRIBUTORS.md`.
+
 ## What This Preview Includes
 
 - A Mac Apple Silicon Developer preview build path for `Exegesis.app`.
