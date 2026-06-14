@@ -11,6 +11,7 @@
     "scripts/release",
     "packaging/macos/AppIcon.iconset",
     "packaging/release/public_source_manifest.json",
+    "packaging/public/.mailmap",
     "packaging/public/README.md",
     "packaging/public/CONTRIBUTORS.md",
     "packaging/public/RELEASE_NOTES.md",
@@ -18,6 +19,7 @@
     "LICENSE.md"
   ],
   "root_file_mappings": {
+    "packaging/public/.mailmap": ".mailmap",
     "packaging/public/README.md": "README.md",
     "packaging/public/CONTRIBUTORS.md": "CONTRIBUTORS.md",
     "packaging/public/RELEASE_NOTES.md": "RELEASE_NOTES.md"
